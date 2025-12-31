@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VedaWell - Ayurvedic Wellness App</title>
+    <meta name="description"
+        content="VedaWell - Your personalized journey to wellness through ancient Ayurvedic wisdom. Daily horoscope, Prakriti quiz, healing recipes & rituals.">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://vedawellapp.com/">
+    <meta property="og:title" content="VedaWell - Ayurvedic Wellness App">
+    <meta property="og:description" content="Your personalized journey to wellness through ancient Ayurvedic wisdom.">
+    <meta property="og:image" content="https://vedawellapp.com/og-image.png">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="VedaWell - Ayurvedic Wellness App">
+    <meta name="twitter:description" content="Your personalized journey to wellness through ancient Ayurvedic wisdom.">
+
+    <!-- Favicon (emoji as fallback) -->
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 80px 20px;
+            color: white;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .hero .tagline {
+            font-size: 1.5rem;
+            opacity: 0.9;
+            margin-bottom: 40px;
+        }
+
+        .hero .app-icon {
+            width: 150px;
+            height: 150px;
+            background: white;
+            border-radius: 32px;
+            margin: 0 auto 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 80px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+
+        .cta-btn {
+            padding: 16px 40px;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: transform 0.3s;
+        }
+
+        .cta-btn:hover {
+            transform: translateY(-3px);
+        }
+
+        .cta-primary {
+            background: white;
+            color: #667eea;
+        }
+
+        .cta-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+        }
+
+        .features {
+            background: white;
+            padding: 80px 20px;
+        }
+
+        .features h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 60px;
+            color: #333;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            text-align: center;
+            padding: 30px;
+            border-radius: 20px;
+            background: #f8f9fa;
+        }
+
+        .feature-card .icon {
+            font-size: 50px;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+
+        .feature-card p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .about {
+            background: #f8f9fa;
+            padding: 80px 20px;
+            text-align: center;
+        }
+
+        .about h2 {
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .about p {
+            max-width: 800px;
+            margin: 0 auto;
+            font-size: 1.2rem;
+            color: #666;
+            line-height: 1.8;
+        }
+
+        footer {
+            background: #333;
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        footer p {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- HERO SECTION -->
+    <section class="hero">
+        <div class="app-icon">🌿</div>
+        <h1>VedaWell</h1>
+        <p class="tagline">Your personalized journey to wellness through ancient Ayurvedic wisdom</p>
+
+        <div class="cta-buttons">
+            <a href="#" class="cta-btn cta-primary">📱 Download on Play Store</a>
+            <a href="#features" class="cta-btn cta-secondary">✨ Learn More</a>
+        </div>
+    </section>
+
+    <!-- FEATURES SECTION -->
+    <section class="features" id="features">
+        <h2>🪷 What VedaWell Offers</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="icon">☀️</div>
+                <h3>Daily Panchang</h3>
+                <p>Get accurate daily almanac with Tithi, Nakshatra, Yoga, and auspicious timings based on your
+                    location.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">🌟</div>
+                <h3>Vedic Horoscope</h3>
+                <p>Personalized daily predictions based on your Moon Sign (Rashi) and Birth Star (Nakshatra).</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">🧬</div>
+                <h3>Prakriti Quiz</h3>
+                <p>Discover your unique mind-body constitution (Vata, Pitta, Kapha) with our 20-question assessment.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">🍲</div>
+                <h3>Ayurvedic Kitchen</h3>
+                <p>200+ herbal remedies, healing recipes, and dosha-balancing foods for everyday wellness.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">🔥</div>
+                <h3>Daily Rituals</h3>
+                <p>Guided morning and evening practices with streak tracking and wellness points.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">🎉</div>
+                <h3>Festival Calendar</h3>
+                <p>Never miss important Hindu festivals with advance notifications and ritual guides.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ABOUT SECTION -->
+    <section class="about">
+        <h2>🙏 About VedaWell</h2>
+        <p>VedaWell brings the ancient wisdom of Ayurveda and Vedic astrology to your fingertips. Our mission is to help
+            you live in harmony with nature's rhythms through personalized wellness guidance, authentic Panchang
+            calculations, and traditional remedies passed down through generations.</p>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <p>© 2025 VedaWell. All rights reserved.</p>
+        <p><a href="/privacy-policy">Privacy Policy</a> | <a href="mailto:support@vedawellapp.com">Contact Us</a></p>
+        <p>📧 support@vedawellapp.com</p>
+    </footer>
+</body>
+
+</html>
