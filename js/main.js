@@ -140,14 +140,14 @@ function initAdsLazyLoad() {
     
     const loadAd = (container) => {
         const slot = container.dataset.adSlot;
-        const client = container.dataset.adClient || 'ca-pub-XXXXXXXX';
+        const client = container.dataset.adClient || 'ca-pub-3026726001538425';
         
         // Only load if AdSense is available
         if (typeof adsbygoogle !== 'undefined') {
             container.innerHTML = `
                 <ins class="adsbygoogle"
                      style="display:block"
-                     data-ad-client="${client}"
+                     data-ad-client="ca-pub-3026726001538425"
                      data-ad-slot="${slot}"
                      data-ad-format="auto"
                      data-full-width-responsive="true"></ins>
