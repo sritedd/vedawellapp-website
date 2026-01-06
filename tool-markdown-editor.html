@@ -235,7 +235,7 @@
                 .replace(/^\- (.*$)/gm, '<li>$1</li>')
                 .replace(/^\d+\. (.*$)/gm, '<li>$1</li>')
                 .replace(/\!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">')
-                .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
+                .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
                 .replace(/^---$/gm, '<hr>')
                 .replace(/\|(.+)\|/g, (m, p) => '<tr>' + p.split('|').map(c => '<td>' + c.trim() + '</td>').join('') + '</tr>')
                 .replace(/(<tr>.*?<\/tr>)/gs, '<table>$1</table>')
