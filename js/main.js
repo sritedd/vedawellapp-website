@@ -4,13 +4,13 @@
 function initMobileMenu() {
     const menuBtn = document.querySelector('.mobile-menu-btn');
     const navLinks = document.querySelector('.nav-links');
-    
+
     if (menuBtn && navLinks) {
         menuBtn.addEventListener('click', () => {
             navLinks.classList.toggle('open');
             menuBtn.classList.toggle('open');
         });
-        
+
         // Close menu when clicking a link
         navLinks.querySelectorAll('a').forEach(link => {
             link.addEventListener('click', () => {
@@ -24,19 +24,19 @@ function initMobileMenu() {
 // ===== Scroll Reveal Animation =====
 function initScrollReveal() {
     const reveals = document.querySelectorAll('.reveal');
-    
+
     const revealOnScroll = () => {
         reveals.forEach(element => {
             const windowHeight = window.innerHeight;
             const elementTop = element.getBoundingClientRect().top;
             const elementVisible = 150;
-            
+
             if (elementTop < windowHeight - elementVisible) {
                 element.classList.add('active');
             }
         });
     };
-    
+
     window.addEventListener('scroll', revealOnScroll);
     revealOnScroll(); // Initial check
 }
@@ -45,20 +45,20 @@ function initScrollReveal() {
 function initSearch() {
     const searchInput = document.querySelector('.search-box input');
     const toolCards = document.querySelectorAll('.tool-card');
-    
+
     if (searchInput && toolCards.length > 0) {
         searchInput.addEventListener('input', (e) => {
             const query = e.target.value.toLowerCase().trim();
-            
+
             toolCards.forEach(card => {
                 const title = card.querySelector('.card-title')?.textContent.toLowerCase() || '';
                 const description = card.querySelector('.card-description')?.textContent.toLowerCase() || '';
                 const tags = card.dataset.tags?.toLowerCase() || '';
-                
+
                 const matches = title.includes(query) || description.includes(query) || tags.includes(query);
                 card.style.display = matches ? '' : 'none';
             });
-            
+
             // Update visible count
             updateVisibleCount();
         });
@@ -77,15 +77,17 @@ function updateVisibleCount() {
 function initCategoryFilter() {
     const pills = document.querySelectorAll('.category-pill');
     const toolCards = document.querySelectorAll('.tool-card');
-    
+    const categoryDividers = document.querySelectorAll('.category-divider');
+
     pills.forEach(pill => {
         pill.addEventListener('click', () => {
             // Update active state
             pills.forEach(p => p.classList.remove('active'));
             pill.classList.add('active');
-            
+
             const category = pill.dataset.category;
-            
+
+            // Show/hide tool cards based on category
             toolCards.forEach(card => {
                 if (category === 'all' || card.dataset.category === category) {
                     card.style.display = '';
@@ -93,7 +95,17 @@ function initCategoryFilter() {
                     card.style.display = 'none';
                 }
             });
-            
+
+            // Show/hide category dividers based on visible tools
+            categoryDividers.forEach(divider => {
+                if (category === 'all') {
+                    divider.style.display = '';
+                } else {
+                    // Hide all dividers when filtering by specific category
+                    divider.style.display = 'none';
+                }
+            });
+
             updateVisibleCount();
         });
     });
@@ -102,14 +114,14 @@ function initCategoryFilter() {
 // ===== Animated Counter =====
 function animateCounters() {
     const counters = document.querySelectorAll('.stat-value[data-count]');
-    
+
     counters.forEach(counter => {
         const target = parseInt(counter.dataset.count);
         const duration = 2000;
         const start = 0;
         const increment = target / (duration / 16);
         let current = start;
-        
+
         const updateCounter = () => {
             current += increment;
             if (current < target) {
@@ -119,7 +131,7 @@ function animateCounters() {
                 counter.textContent = target + '+';
             }
         };
-        
+
         // Start animation when element is in view
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
@@ -129,7 +141,7 @@ function animateCounters() {
                 }
             });
         }, { threshold: 0.5 });
-        
+
         observer.observe(counter);
     });
 }
@@ -137,11 +149,11 @@ function animateCounters() {
 // ===== Lazy Load Ads =====
 function initAdsLazyLoad() {
     const adContainers = document.querySelectorAll('.ad-container[data-ad-slot]');
-    
+
     const loadAd = (container) => {
         const slot = container.dataset.adSlot;
         const client = container.dataset.adClient || 'ca-pub-3026726001538425';
-        
+
         // Only load if AdSense is available
         if (typeof adsbygoogle !== 'undefined') {
             container.innerHTML = `
@@ -155,7 +167,7 @@ function initAdsLazyLoad() {
             (adsbygoogle = window.adsbygoogle || []).push({});
         }
     };
-    
+
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -164,33 +176,33 @@ function initAdsLazyLoad() {
             }
         });
     }, { rootMargin: '200px' });
-    
+
     adContainers.forEach(container => observer.observe(container));
 }
 
 // ===== Newsletter Form =====
 function initNewsletterForm() {
     const form = document.getElementById('newsletterForm');
-    
+
     if (form) {
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             const email = form.querySelector('input[type="email"]').value;
-            
+
             // Store in localStorage (replace with actual API call)
             const subscribers = JSON.parse(localStorage.getItem('vedawell_subscribers') || '[]');
             if (!subscribers.includes(email)) {
                 subscribers.push(email);
                 localStorage.setItem('vedawell_subscribers', JSON.stringify(subscribers));
             }
-            
+
             // Show success
             const successMsg = form.querySelector('.success-message');
             if (successMsg) {
                 successMsg.style.display = 'block';
                 form.querySelector('input[type="email"]').value = '';
             }
-            
+
             console.log('Newsletter signup:', email);
         });
     }
@@ -199,23 +211,23 @@ function initNewsletterForm() {
 // ===== Beta Form =====
 function initBetaForm() {
     const form = document.getElementById('betaForm');
-    
+
     if (form) {
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             const email = document.getElementById('betaEmail').value;
-            
+
             // Store email in localStorage
             const betaEmails = JSON.parse(localStorage.getItem('betaEmails') || '[]');
             if (!betaEmails.includes(email)) {
                 betaEmails.push(email);
                 localStorage.setItem('betaEmails', JSON.stringify(betaEmails));
             }
-            
+
             // Show success message
             document.getElementById('betaSuccess').style.display = 'block';
             document.getElementById('betaEmail').value = '';
-            
+
             console.log('Beta signup:', email);
         });
     }
@@ -225,7 +237,7 @@ function initBetaForm() {
 function setActiveNavLink() {
     const currentPath = window.location.pathname.split('/').pop() || 'index.html';
     const navLinks = document.querySelectorAll('.nav-links a');
-    
+
     navLinks.forEach(link => {
         const href = link.getAttribute('href');
         if (href === currentPath || (currentPath === '' && href === 'index.html')) {
@@ -237,7 +249,7 @@ function setActiveNavLink() {
 // ===== Smooth Scroll =====
 function initSmoothScroll() {
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
+        anchor.addEventListener('click', function (e) {
             e.preventDefault();
             const target = document.querySelector(this.getAttribute('href'));
             if (target) {
@@ -253,7 +265,7 @@ function initSmoothScroll() {
 // ===== Back to Top Button =====
 function initBackToTop() {
     const btn = document.querySelector('.back-to-top');
-    
+
     if (btn) {
         window.addEventListener('scroll', () => {
             if (window.scrollY > 500) {
@@ -262,7 +274,7 @@ function initBackToTop() {
                 btn.classList.remove('visible');
             }
         });
-        
+
         btn.addEventListener('click', () => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
