@@ -78,6 +78,7 @@ function initCategoryFilter() {
     const pills = document.querySelectorAll('.category-pill');
     const toolCards = document.querySelectorAll('.tool-card');
     const categoryDividers = document.querySelectorAll('.category-divider');
+    const adContainers = document.querySelectorAll('.tools-section .ad-container, .tools-grid .ad-container');
 
     pills.forEach(pill => {
         pill.addEventListener('click', () => {
@@ -103,6 +104,15 @@ function initCategoryFilter() {
                 } else {
                     // Hide all dividers when filtering by specific category
                     divider.style.display = 'none';
+                }
+            });
+
+            // Show/hide ad containers - hide when filtering by category
+            adContainers.forEach(ad => {
+                if (category === 'all') {
+                    ad.style.display = '';
+                } else {
+                    ad.style.display = 'none';
                 }
             });
 
