@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robots.txt Generator</title>
+    <style>
+        body {
+            font-family: monospace;
+            background: #e0e7ff;
+            padding: 40px;
+            color: #333;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            width: 100%;
+            max-width: 800px;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #4338ca;
+            margin-top: 0;
+            text-align: center;
+            font-family: system-ui;
+        }
+
+        .section {
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 2rem;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .entry-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        select,
+        input {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            flex: 1;
+            font-family: inherit;
+        }
+
+        button {
+            cursor: pointer;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            background: #4f46e5;
+            color: white;
+        }
+
+        button:hover {
+            background: #4338ca;
+        }
+
+        button.remove {
+            background: #fee2e2;
+            color: #ef4444;
+        }
+
+        button.add {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 14px;
+            margin-top: 1rem;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🤖 Robots.txt Generator</h1>
+
+        <div class="section">
+            <h3>Default User Agent (*)</h3>
+            <div class="entry-row">
+                <label style="flex:1">Default Access:</label>
+                <select id="defaultAccess" onchange="generate()">
+                    <option value="allow">Allow All</option>
+                    <option value="disallow">Disallow All</option>
+                </select>
+            </div>
+
+            <label>Crawl Delay (seconds):</label>
+            <input type="number" id="delay" placeholder="Empty for none" min="0" oninput="generate()">
+        </div>
+
+        <div class="section">
+            <h3>Add Rules</h3>
+            <div id="rules"></div>
+            <button class="add" onclick="addRule()">+ Add Rule</button>
+        </div>
+
+        <div class="section">
+            <h3>Sitemaps</h3>
+            <div id="sitemaps"></div>
+            <button class="add" onclick="addSitemap()">+ Add Sitemap URL</button>
+        </div>
+
+        <div class="controls">
+            <h3>Generated File</h3>
+            <div>
+                <button onclick="copy()">Copy</button>
+                <button onclick="download()">Download</button>
+            </div>
+        </div>
+        <textarea id="output" readonly></textarea>
+    </div>
+
+    <script>
+        const bots = [
+            "Googlebot", "Googlebot-Image", "Bingbot", "Slurp", "Teoma", "Gigabot", "Robozilla", "Nutch", "ia_archiver"
+        ];
+
+        function addRule() {
+            const div = document.createElement('div');
+            div.className = 'entry-row rule';
+            div.innerHTML = `
+                <select class="bot-type" onchange="generate()">
+                    <option value="*">All Robots (*)</option>
+                    ${bots.map(b => `<option value="${b}">${b}</option>`).join('')}
+                </select>
+                <select class="rule-type" onchange="generate()">
+                    <option value="Disallow">Disallow</option>
+                    <option value="Allow">Allow</option>
+                </select>
+                <input type="text" class="rule-path" placeholder="/private/" oninput="generate()">
+                <button class="remove" onclick="this.parentElement.remove(); generate()">×</button>
+            `;
+            document.getElementById('rules').appendChild(div);
+        }
+
+        function addSitemap() {
+            const div = document.createElement('div');
+            div.className = 'entry-row sitemap';
+            div.innerHTML = `
+                <input type="url" class="sitemap-url" placeholder="https://example.com/sitemap.xml" oninput="generate()">
+                <button class="remove" onclick="this.parentElement.remove(); generate()">×</button>
+            `;
+            document.getElementById('sitemaps').appendChild(div);
+        }
+
+        function generate() {
+            let txt = '';
+
+            // Default block usually comes last or first? 
+            // Standard: Specific UAs first, then * at end.
+
+            const rules = document.querySelectorAll('.rule');
+            // Group by bot? Simpler: One block per rule line if mixed?
+            // Correct format: 
+            // User-agent: A
+            // Disallow: /
+
+            // Let's group by User-agent manually
+            // Or just output blocks sequentially as user added them for flexibility.
+
+            rules.forEach(r => {
+                const bot = r.querySelector('.bot-type').value;
+                const type = r.querySelector('.rule-type').value;
+                const path = r.querySelector('.rule-path').value;
+                if (path) {
+                    txt += `User-agent: ${bot}\n${type}: ${path}\n\n`;
+                }
+            });
+
+            // Default Global Settings if not duplicated
+            const def = document.getElementById('defaultAccess').value;
+            const delay = document.getElementById('delay').value;
+
+            if (def === 'disallow' || delay) {
+                txt += `User-agent: *\n`;
+                if (def === 'disallow') txt += `Disallow: /\n`;
+                if (delay) txt += `Crawl-delay: ${delay}\n`;
+                txt += `\n`;
+            }
+
+            // Sitemaps
+            document.querySelectorAll('.sitemap-url').forEach(s => {
+                if (s.value) txt += `Sitemap: ${s.value}\n`;
+            });
+
+            document.getElementById('output').value = txt.trim();
+        }
+
+        function copy() {
+            document.getElementById('output').select();
+            document.execCommand('copy');
+            alert('Copied!');
+        }
+
+        function download() {
+            const blob = new Blob([document.getElementById('output').value], { type: "text/plain" });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = "robots.txt";
+            a.click();
+        }
+
+        // Init
+        addRule();
+    </script>
+</body>
+
+</html>

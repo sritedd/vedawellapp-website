@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stopwatch & Timer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: system-ui, sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px
+        }
+
+        .card {
+            background: #1a1a2e;
+            border-radius: 24px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .5)
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 2rem
+        }
+
+        .tab {
+            flex: 1;
+            padding: 1rem;
+            background: transparent;
+            border: none;
+            color: #666;
+            font-size: 1rem;
+            cursor: pointer;
+            border-bottom: 3px solid transparent
+        }
+
+        .tab.active {
+            color: #fff;
+            border-bottom-color: #00d9ff
+        }
+
+        .display {
+            text-align: center;
+            padding: 2rem 0
+        }
+
+        .time {
+            font-size: 4rem;
+            font-family: 'Courier New', monospace;
+            color: #fff;
+            letter-spacing: 4px
+        }
+
+        .ms {
+            font-size: 2rem;
+            color: #00d9ff
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s
+        }
+
+        .btn-start {
+            background: #00d9ff;
+            color: #0f0c29
+        }
+
+        .btn-start.running {
+            background: #ff6b6b
+        }
+
+        .btn-reset {
+            background: #3a3a5c;
+            color: #fff
+        }
+
+        .btn-lap {
+            background: #3a3a5c;
+            color: #fff
+        }
+
+        .laps {
+            margin-top: 2rem;
+            max-height: 200px;
+            overflow-y: auto
+        }
+
+        .lap {
+            display: flex;
+            justify-content: space-between;
+            padding: .75rem 1rem;
+            background: #252547;
+            border-radius: 8px;
+            margin-bottom: .5rem;
+            color: #ccc
+        }
+
+        .lap-num {
+            color: #00d9ff
+        }
+
+        .timer-input {
+            display: flex;
+            justify-content: center;
+            gap: .5rem;
+            margin-bottom: 1.5rem
+        }
+
+        .timer-input input {
+            width: 60px;
+            padding: .75rem;
+            text-align: center;
+            background: #252547;
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1.5rem
+        }
+
+        .timer-input span {
+            color: #666;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center
+        }
+
+        .presets {
+            display: flex;
+            gap: .5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem
+        }
+
+        .preset {
+            padding: .5rem 1rem;
+            background: #252547;
+            border: none;
+            border-radius: 20px;
+            color: #ccc;
+            cursor: pointer;
+            font-size: .85rem
+        }
+
+        .preset:hover {
+            background: #3a3a5c
+        }
+
+        #timerSection {
+            display: none
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <div class="tabs">
+            <button class="tab active" onclick="showSection('stopwatch')">⏱️ Stopwatch</button>
+            <button class="tab" onclick="showSection('timer')">⏲️ Timer</button>
+        </div>
+        <div id="stopwatchSection">
+            <div class="display">
+                <div class="time"><span id="swMin">00</span>:<span id="swSec">00</span><span class="ms"
+                        id="swMs">.00</span></div>
+            </div>
+            <div class="controls">
+                <button class="btn btn-start" id="swStartBtn" onclick="swToggle()">Start</button>
+                <button class="btn btn-lap" onclick="swLap()">Lap</button>
+                <button class="btn btn-reset" onclick="swReset()">Reset</button>
+            </div>
+            <div class="laps" id="laps"></div>
+        </div>
+        <div id="timerSection">
+            <div class="timer-input">
+                <input type="number" id="timerH" value="0" min="0" max="99">
+                <span>:</span>
+                <input type="number" id="timerM" value="5" min="0" max="59">
+                <span>:</span>
+                <input type="number" id="timerS" value="0" min="0" max="59">
+            </div>
+            <div class="presets">
+                <button class="preset" onclick="setTimer(1,0,0)">1 min</button>
+                <button class="preset" onclick="setTimer(5,0,0)">5 min</button>
+                <button class="preset" onclick="setTimer(10,0,0)">10 min</button>
+                <button class="preset" onclick="setTimer(15,0,0)">15 min</button>
+                <button class="preset" onclick="setTimer(25,0,0)">25 min</button>
+            </div>
+            <div class="display">
+                <div class="time"><span id="tmH">00</span>:<span id="tmM">05</span>:<span id="tmS">00</span></div>
+            </div>
+            <div class="controls">
+                <button class="btn btn-start" id="tmStartBtn" onclick="tmToggle()">Start</button>
+                <button class="btn btn-reset" onclick="tmReset()">Reset</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Stopwatch
+        let swRunning = false, swTime = 0, swInterval, lapCount = 0;
+        function swToggle() {
+            swRunning = !swRunning;
+            document.getElementById('swStartBtn').textContent = swRunning ? 'Stop' : 'Start';
+            document.getElementById('swStartBtn').classList.toggle('running', swRunning);
+            if (swRunning) swInterval = setInterval(() => { swTime += 10; swUpdate() }, 10);
+            else clearInterval(swInterval);
+        }
+        function swUpdate() {
+            const ms = Math.floor(swTime % 1000 / 10);
+            const s = Math.floor(swTime / 1000) % 60;
+            const m = Math.floor(swTime / 60000);
+            document.getElementById('swMs').textContent = '.' + String(ms).padStart(2, '0');
+            document.getElementById('swSec').textContent = String(s).padStart(2, '0');
+            document.getElementById('swMin').textContent = String(m).padStart(2, '0');
+        }
+        function swLap() {
+            if (!swTime) return;
+            lapCount++;
+            const m = Math.floor(swTime / 60000), s = Math.floor(swTime / 1000) % 60, ms = Math.floor(swTime % 1000 / 10);
+            const lap = document.createElement('div'); lap.className = 'lap';
+            lap.innerHTML = `<span class="lap-num">Lap ${lapCount}</span><span>${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${String(ms).padStart(2, '0')}</span>`;
+            document.getElementById('laps').prepend(lap);
+        }
+        function swReset() { swRunning = false; clearInterval(swInterval); swTime = 0; lapCount = 0; swUpdate(); document.getElementById('swStartBtn').textContent = 'Start'; document.getElementById('swStartBtn').classList.remove('running'); document.getElementById('laps').innerHTML = '' }
+        // Timer
+        let tmRunning = false, tmTime = 300, tmInterval;
+        function setTimer(m, s, h = 0) { document.getElementById('timerH').value = h; document.getElementById('timerM').value = m; document.getElementById('timerS').value = s; tmReset() }
+        function tmToggle() {
+            if (!tmRunning) {
+                tmTime = (parseInt(document.getElementById('timerH').value) || 0) * 3600 + (parseInt(document.getElementById('timerM').value) || 0) * 60 + (parseInt(document.getElementById('timerS').value) || 0);
+                if (tmTime <= 0) return;
+            }
+            tmRunning = !tmRunning;
+            document.getElementById('tmStartBtn').textContent = tmRunning ? 'Pause' : 'Start';
+            document.getElementById('tmStartBtn').classList.toggle('running', tmRunning);
+            if (tmRunning) tmInterval = setInterval(() => { tmTime--; tmUpdate(); if (tmTime <= 0) { clearInterval(tmInterval); tmRunning = false; document.getElementById('tmStartBtn').textContent = 'Start'; alert('Timer finished!') } }, 1000);
+            else clearInterval(tmInterval);
+        }
+        function tmUpdate() {
+            const h = Math.floor(tmTime / 3600), m = Math.floor(tmTime % 3600 / 60), s = tmTime % 60;
+            document.getElementById('tmH').textContent = String(h).padStart(2, '0');
+            document.getElementById('tmM').textContent = String(m).padStart(2, '0');
+            document.getElementById('tmS').textContent = String(s).padStart(2, '0');
+        }
+        function tmReset() { tmRunning = false; clearInterval(tmInterval); tmTime = (parseInt(document.getElementById('timerH').value) || 0) * 3600 + (parseInt(document.getElementById('timerM').value) || 0) * 60 + (parseInt(document.getElementById('timerS').value) || 0); tmUpdate(); document.getElementById('tmStartBtn').textContent = 'Start'; document.getElementById('tmStartBtn').classList.remove('running') }
+        function showSection(s) {
+            document.getElementById('stopwatchSection').style.display = s === 'stopwatch' ? 'block' : 'none';
+            document.getElementById('timerSection').style.display = s === 'timer' ? 'block' : 'none';
+            document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === (s === 'stopwatch' ? 0 : 1)));
+        }
+        tmUpdate();
+    </script>
+</body>
+
+</html>

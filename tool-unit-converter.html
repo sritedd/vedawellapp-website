@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unit Converter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: system-ui, sans-serif;
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .3)
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 1.5rem
+        }
+
+        .tabs {
+            display: flex;
+            gap: .5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap
+        }
+
+        .tab {
+            padding: .5rem 1rem;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: .9rem
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            color: #fff
+        }
+
+        .converter {
+            display: flex;
+            gap: 1rem;
+            align-items: center
+        }
+
+        .input-group {
+            flex: 1
+        }
+
+        .input-group label {
+            display: block;
+            font-size: .8rem;
+            color: #666;
+            margin-bottom: .25rem
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: .75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1.25rem
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #6a11cb
+        }
+
+        .input-group select {
+            width: 100%;
+            padding: .5rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-top: .5rem
+        }
+
+        .swap {
+            background: #6a11cb;
+            color: #fff;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.25rem
+        }
+
+        .result {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            margin-top: 1.5rem
+        }
+
+        .result-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #6a11cb
+        }
+
+        .formula {
+            margin-top: 1rem;
+            font-size: .85rem;
+            color: #666
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1>📐 Unit Converter</h1>
+        <div class="tabs">
+            <button class="tab active" onclick="setCategory('length')">Length</button>
+            <button class="tab" onclick="setCategory('weight')">Weight</button>
+            <button class="tab" onclick="setCategory('temperature')">Temp</button>
+            <button class="tab" onclick="setCategory('area')">Area</button>
+            <button class="tab" onclick="setCategory('volume')">Volume</button>
+            <button class="tab" onclick="setCategory('speed')">Speed</button>
+        </div>
+        <div class="converter">
+            <div class="input-group">
+                <label>From</label>
+                <input type="number" id="fromVal" value="1" oninput="convert()">
+                <select id="fromUnit" onchange="convert()"></select>
+            </div>
+            <button class="swap" onclick="swap()">⇄</button>
+            <div class="input-group">
+                <label>To</label>
+                <input type="number" id="toVal" readonly>
+                <select id="toUnit" onchange="convert()"></select>
+            </div>
+        </div>
+        <div class="result">
+            <div class="result-value" id="resultText">1 m = 3.281 ft</div>
+            <div class="formula" id="formula"></div>
+        </div>
+    </div>
+    <script>
+        const units = {
+            length: { m: 1, km: 1000, cm: 0.01, mm: 0.001, mi: 1609.34, yd: 0.9144, ft: 0.3048, in: 0.0254 },
+            weight: { kg: 1, g: 0.001, mg: 0.000001, lb: 0.453592, oz: 0.0283495, ton: 1000 },
+            temperature: { c: 'c', f: 'f', k: 'k' },
+            area: { m2: 1, km2: 1000000, cm2: 0.0001, ft2: 0.092903, acre: 4046.86, ha: 10000 },
+            volume: { l: 1, ml: 0.001, gal: 3.78541, qt: 0.946353, pt: 0.473176, cup: 0.24, m3: 1000 },
+            speed: { mps: 1, kph: 0.277778, mph: 0.44704, knot: 0.514444, fps: 0.3048 }
+        };
+        const labels = { m: 'Meter', km: 'Kilometer', cm: 'Centimeter', mm: 'Millimeter', mi: 'Mile', yd: 'Yard', ft: 'Foot', in: 'Inch', kg: 'Kilogram', g: 'Gram', mg: 'Milligram', lb: 'Pound', oz: 'Ounce', ton: 'Metric Ton', c: 'Celsius', f: 'Fahrenheit', k: 'Kelvin', m2: 'Sq Meter', km2: 'Sq Kilometer', cm2: 'Sq Centimeter', ft2: 'Sq Foot', acre: 'Acre', ha: 'Hectare', l: 'Liter', ml: 'Milliliter', gal: 'Gallon', qt: 'Quart', pt: 'Pint', cup: 'Cup', m3: 'Cubic Meter', mps: 'm/s', kph: 'km/h', mph: 'mph', knot: 'Knot', fps: 'ft/s' };
+        let category = 'length';
+        function setCategory(cat) {
+            category = cat;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            const opts = Object.keys(units[cat]).map(u => `<option value="${u}">${labels[u]}</option>`).join('');
+            document.getElementById('fromUnit').innerHTML = opts;
+            document.getElementById('toUnit').innerHTML = opts;
+            document.getElementById('toUnit').selectedIndex = 1;
+            convert();
+        }
+        function convert() {
+            const from = document.getElementById('fromUnit').value;
+            const to = document.getElementById('toUnit').value;
+            const val = parseFloat(document.getElementById('fromVal').value) || 0;
+            let result;
+            if (category === 'temperature') {
+                if (from === 'c' && to === 'f') result = val * 9 / 5 + 32;
+                else if (from === 'c' && to === 'k') result = val + 273.15;
+                else if (from === 'f' && to === 'c') result = (val - 32) * 5 / 9;
+                else if (from === 'f' && to === 'k') result = (val - 32) * 5 / 9 + 273.15;
+                else if (from === 'k' && to === 'c') result = val - 273.15;
+                else if (from === 'k' && to === 'f') result = (val - 273.15) * 9 / 5 + 32;
+                else result = val;
+            } else {
+                const base = val * units[category][from];
+                result = base / units[category][to];
+            }
+            document.getElementById('toVal').value = result.toPrecision(6);
+            document.getElementById('resultText').textContent = `${val} ${labels[from]} = ${result.toPrecision(6)} ${labels[to]}`;
+        }
+        function swap() {
+            const f = document.getElementById('fromUnit'); const t = document.getElementById('toUnit');
+            [f.value, t.value] = [t.value, f.value]; convert();
+        }
+        setCategory('length');
+    </script>
+</body>
+
+</html>

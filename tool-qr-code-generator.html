@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: system-ui, sans-serif;
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .3)
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 1.5rem
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem
+        }
+
+        label {
+            display: block;
+            color: #666;
+            font-size: .9rem;
+            margin-bottom: .5rem
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            padding: .75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem
+        }
+
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #3498db
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical
+        }
+
+        .qr-container {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            margin-top: 1.5rem
+        }
+
+        #qrcode {
+            display: inline-block
+        }
+
+        #qrcode img,
+        #qrcode canvas {
+            border-radius: 10px
+        }
+
+        .btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1rem
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem
+        }
+
+        select {
+            width: 100%;
+            padding: .75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+</head>
+
+<body>
+    <div class="card">
+        <h1>📱 QR Code Generator</h1>
+        <div class="form-group">
+            <label>Content (URL, text, email, phone...)</label>
+            <textarea id="content" placeholder="https://example.com"
+                oninput="generate()">https://kothandan.gumroad.com</textarea>
+        </div>
+        <div class="row">
+            <div class="form-group">
+                <label>Size</label>
+                <select id="size" onchange="generate()">
+                    <option value="4">Small</option>
+                    <option value="6" selected>Medium</option>
+                    <option value="10">Large</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Error Correction</label>
+                <select id="ec" onchange="generate()">
+                    <option value="L">Low (7%)</option>
+                    <option value="M" selected>Medium (15%)</option>
+                    <option value="Q">High (25%)</option>
+                    <option value="H">Highest (30%)</option>
+                </select>
+            </div>
+        </div>
+        <div class="qr-container">
+            <div id="qrcode"></div>
+        </div>
+        <button class="btn" onclick="download()">💾 Download PNG</button>
+    </div>
+    <script>
+        function generate() {
+            const content = document.getElementById('content').value || ' ';
+            const size = parseInt(document.getElementById('size').value);
+            const ec = document.getElementById('ec').value;
+            const qr = qrcode(0, ec);
+            qr.addData(content);
+            qr.make();
+            document.getElementById('qrcode').innerHTML = qr.createImgTag(size, 0);
+        }
+        function download() {
+            const content = document.getElementById('content').value || ' ';
+            const size = parseInt(document.getElementById('size').value);
+            const ec = document.getElementById('ec').value;
+            const qr = qrcode(0, ec); qr.addData(content); qr.make();
+            const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+            const cellSize = size * 2; const count = qr.getModuleCount(); canvas.width = canvas.height = count * cellSize;
+            for (let r = 0; r < count; r++)for (let c = 0; c < count; c++) { ctx.fillStyle = qr.isDark(r, c) ? '#000' : '#fff'; ctx.fillRect(c * cellSize, r * cellSize, cellSize, cellSize) }
+            const link = document.createElement('a'); link.download = 'qrcode.png'; link.href = canvas.toDataURL(); link.click();
+        }
+        generate();
+    </script>
+</body>
+
+</html>

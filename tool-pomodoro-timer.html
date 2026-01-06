@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pomodoro Timer</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            background: #ba4949;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            transition: background 0.5s ease;
+        }
+
+        .container {
+            text-align: center;
+            width: 100%;
+            max-width: 480px;
+            padding: 20px;
+        }
+
+        .timer-modes {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 2rem;
+            background: rgba(0, 0, 0, 0.1);
+            padding: 5px;
+            border-radius: 50px;
+            display: inline-flex;
+        }
+
+        .mode-btn {
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            opacity: 0.7;
+            transition: all 0.2s;
+        }
+
+        .mode-btn:hover {
+            opacity: 1;
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .mode-btn.active {
+            background: rgba(0, 0, 0, 0.15);
+            opacity: 1;
+            font-weight: 800;
+        }
+
+        .timer-display {
+            font-size: 7rem;
+            font-weight: bold;
+            margin: 1rem 0;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .action-btn {
+            background: white;
+            color: #ba4949;
+            border: none;
+            padding: 1.5rem 4rem;
+            font-size: 1.5rem;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 5px 0 #ebebeb;
+            transition: all 0.1s;
+            position: relative;
+            top: 0;
+        }
+
+        .action-btn:active {
+            top: 5px;
+            box-shadow: none;
+        }
+
+        /* Themes */
+        body.short-break {
+            background: #38858a;
+        }
+
+        body.short-break .action-btn {
+            color: #38858a;
+        }
+
+        body.long-break {
+            background: #397097;
+        }
+
+        body.long-break .action-btn {
+            color: #397097;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(0, 0, 0, 0.1);
+            margin-top: 3rem;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: white;
+            width: 100%;
+            transition: width 1s linear;
+        }
+    </style>
+</head>
+
+<body class="pomodoro" id="body">
+    <div class="container">
+        <div class="timer-modes">
+            <button class="mode-btn active" onclick="setMode('pomodoro')">Pomodoro</button>
+            <button class="mode-btn" onclick="setMode('short')">Short Break</button>
+            <button class="mode-btn" onclick="setMode('long')">Long Break</button>
+        </div>
+
+        <div class="timer-display" id="time">25:00</div>
+
+        <button class="action-btn" id="btn" onclick="toggle()">Start</button>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="fill"></div>
+        </div>
+    </div>
+
+    <script>
+        let timeLeft = 25 * 60;
+        let totalTime = 25 * 60;
+        let timerId = null;
+        let isRunning = false;
+
+        const modes = {
+            'pomodoro': { time: 25, color: '#ba4949' },
+            'short': { time: 5, color: '#38858a' },
+            'long': { time: 15, color: '#397097' }
+        };
+
+        function setMode(mode) {
+            stop();
+            const m = modes[mode];
+            totalTime = m.time * 60;
+            timeLeft = totalTime;
+            updateDisplay();
+
+            // UI
+            document.body.className = mode === 'short' ? 'short-break' : mode === 'long' ? 'long-break' : '';
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector(`button[onclick="setMode('${mode}')"]`).classList.add('active');
+        }
+
+        function toggle() {
+            if (isRunning) stop();
+            else start();
+        }
+
+        function start() {
+            isRunning = true;
+            document.getElementById('btn').innerText = 'Stop';
+
+            timerId = setInterval(() => {
+                timeLeft--;
+                updateDisplay();
+                if (timeLeft <= 0) {
+                    stop();
+                    alert('Time is up!');
+                }
+            }, 1000);
+        }
+
+        function stop() {
+            isRunning = false;
+            clearInterval(timerId);
+            document.getElementById('btn').innerText = 'Start';
+        }
+
+        function updateDisplay() {
+            const m = Math.floor(timeLeft / 60);
+            const s = timeLeft % 60;
+            const text = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            document.getElementById('time').innerText = text;
+            document.title = `${text} - Focus`;
+
+            // Progress
+            const pct = (timeLeft / totalTime) * 100;
+            document.getElementById('fill').style.width = pct + '%';
+        }
+    </script>
+</body>
+
+</html>

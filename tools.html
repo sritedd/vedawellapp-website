@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Online Tools - Calculators, Converters, Generators | VedaWell Tools</title>
+    <meta name="description"
+        content="35+ free online tools including calculators, converters, generators, and productivity apps. All browser-based, no downloads required.">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://vedawelltools.netlify.app/tools">
+    <meta property="og:title" content="Free Online Tools - VedaWell Tools">
+    <meta property="og:description"
+        content="35+ free browser-based productivity tools. Calculators, converters, generators, and more.">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Free Online Tools - VedaWell Tools">
+
+    <!-- Favicon -->
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧰</text></svg>">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles/main.css">
+
+    <!-- Google AdSense -->
+    <!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXX" crossorigin="anonymous"></script> -->
+
+    <style>
+        /* Page-specific styles */
+        .hero-mini {
+            padding: 3rem 0;
+            text-align: center;
+        }
+
+        .hero-mini h1 {
+            font-size: var(--font-size-4xl);
+            font-weight: 800;
+            margin-bottom: var(--space-md);
+        }
+
+        .hero-mini p {
+            color: var(--text-secondary);
+            font-size: var(--font-size-lg);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .tools-section {
+            padding: var(--space-xl) 0 var(--space-3xl);
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-lg);
+        }
+
+        @media (max-width: 1024px) {
+            .tools-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .tools-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-mini h1 {
+                font-size: var(--font-size-3xl);
+            }
+        }
+
+        .tool-card {
+            display: block;
+        }
+
+        .tool-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .category-divider {
+            grid-column: 1 / -1;
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            margin: var(--space-lg) 0;
+            padding-top: var(--space-xl);
+        }
+
+        .category-divider h3 {
+            font-size: var(--font-size-xl);
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .category-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .tools-count {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: var(--font-size-sm);
+            margin-bottom: var(--space-lg);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-gradient"></div>
+
+    <div class="container">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">🛠️</div>
+                VedaWell Tools
+            </a>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="tools.html" class="active">Tools</a>
+                <a href="games.html">Games</a>
+                <a href="about.html">About</a>
+                <a href="https://buymeacoffee.com/vedawell" target="_blank" class="nav-cta">☕ Support</a>
+            </div>
+            <button class="mobile-menu-btn" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
+        </nav>
+
+        <!-- Hero Mini -->
+        <section class="hero-mini">
+            <h1>🧰 All <span class="text-gradient">Free Tools</span></h1>
+            <p>65+ free, browser-based tools to boost your productivity. No sign-ups, no downloads — everything runs
+                locally.</p>
+        </section>
+
+        <!-- Search -->
+        <div class="search-box">
+            <input type="text" placeholder="Search tools by name or category..." id="toolSearch">
+        </div>
+
+        <!-- Category Pills -->
+        <div class="category-pills">
+            <button class="category-pill active" data-category="all">All Tools <span class="count">65</span></button>
+            <button class="category-pill" data-category="calculator">💰 Calculators <span
+                    class="count">12</span></button>
+            <button class="category-pill" data-category="converter">🔄 Converters <span class="count">8</span></button>
+            <button class="category-pill" data-category="generator">⚡ Generators <span class="count">10</span></button>
+            <button class="category-pill" data-category="productivity">📝 Productivity <span
+                    class="count">14</span></button>
+            <button class="category-pill" data-category="developer">🛠️ Developer <span class="count">15</span></button>
+            <button class="category-pill" data-category="image">🖼️ Image <span class="count">4</span></button>
+            <button class="category-pill" data-category="wellness">🧘 Wellness <span class="count">2</span></button>
+        </div>
+
+        <p class="tools-count">65 tools found</p>
+
+        <!-- Ad Banner -->
+        <div class="ad-container">
+            <div class="ad-placeholder">
+                <p>📢 Advertisement</p>
+                <small>Support us by <a href="https://buymeacoffee.com/vedawell" target="_blank">buying us a
+                        coffee</a></small>
+            </div>
+        </div>
+
+        <!-- Tools Section -->
+        <section class="tools-section">
+            <div class="tools-grid">
+
+                <!-- ===== CALCULATORS ===== -->
+                <div class="category-divider">
+                    <h3>💰 Calculators</h3>
+                </div>
+
+                <a href="tool-tip-calculator.html" class="card tool-card green reveal" data-category="calculator"
+                    data-tags="tip money restaurant bill split">
+                    <div class="card-icon">💰</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Tip Calculator</h3>
+                    <p class="card-description">Calculate tips and split bills easily between friends.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Money</span>
+                        <span class="tag">Split Bill</span>
+                    </div>
+                </a>
+
+                <a href="tool-loan-calculator.html" class="card tool-card blue reveal" data-category="calculator"
+                    data-tags="loan mortgage interest payment emi">
+                    <div class="card-icon">🏦</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Loan Calculator</h3>
+                    <p class="card-description">Calculate monthly payments, interest, and amortization schedules.</p>
+                    <div class="tool-tags">
+                        <span class="tag">EMI</span>
+                        <span class="tag">Interest</span>
+                    </div>
+                </a>
+
+                <a href="tool-bmi-calculator.html" class="card tool-card pink reveal" data-category="calculator"
+                    data-tags="bmi body mass index health weight">
+                    <div class="card-icon">⚖️</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">BMI Calculator</h3>
+                    <p class="card-description">Calculate your Body Mass Index with health insights.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Health</span>
+                        <span class="tag">Fitness</span>
+                    </div>
+                </a>
+
+                <a href="tool-age-calculator.html" class="card tool-card purple reveal" data-category="calculator"
+                    data-tags="age birthday date years months days">
+                    <div class="card-icon">🎂</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Age Calculator</h3>
+                    <p class="card-description">Calculate your exact age in years, months, days, and more.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Birthday</span>
+                        <span class="tag">Date</span>
+                    </div>
+                </a>
+
+                <a href="tool-percentage-calculator.html" class="card tool-card orange reveal" data-category="calculator"
+                    data-tags="percentage math discount increase decrease">
+                    <div class="card-icon">%</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Percentage Calculator</h3>
+                    <p class="card-description">Calculate percentages, increases, decreases, and differences.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Math</span>
+                        <span class="tag">Discount</span>
+                    </div>
+                </a>
+
+                <a href="tool-tax-calculator.html" class="card tool-card green reveal" data-category="calculator"
+                    data-tags="tax australia freelancer income medicare hecs">
+                    <div class="card-icon">🧾</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">AU Tax Calculator</h3>
+                    <p class="card-description">Australian freelancer tax calculator with Medicare and HECS.</p>
+                    <div class="tool-tags">
+                        <span class="tag">2025-26</span>
+                        <span class="tag">Australia</span>
+                    </div>
+                </a>
+
+                <a href="tool-meeting-cost-calculator.html" class="card tool-card red reveal" data-category="calculator"
+                    data-tags="meeting cost salary time money">
+                    <div class="card-icon">👥</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Meeting Cost Calculator</h3>
+                    <p class="card-description">Calculate the true cost of meetings based on attendees' salaries.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Business</span>
+                        <span class="tag">Productivity</span>
+                    </div>
+                </a>
+
+                <a href="tool-expense-splitter.html" class="card tool-card cyan reveal" data-category="calculator"
+                    data-tags="expense split friends share money group">
+                    <div class="card-icon">💸</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Expense Splitter</h3>
+                    <p class="card-description">Split expenses among friends and calculate who owes whom.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Group</span>
+                        <span class="tag">Share</span>
+                    </div>
+                </a>
+
+                <a href="tool-scientific-calculator.html" class="card tool-card blue reveal" data-category="calculator"
+                    data-tags="scientific calculator math functions">
+                    <div class="card-icon">🔢</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Scientific Calculator</h3>
+                    <p class="card-description">Advanced calculator with scientific functions and operations.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Math</span>
+                        <span class="tag">Science</span>
+                    </div>
+                </a>
+
+                <a href="tool-date-calculator.html" class="card tool-card purple reveal" data-category="calculator"
+                    data-tags="date calculator days between add subtract">
+                    <div class="card-icon">📅</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Date Calculator</h3>
+                    <p class="card-description">Calculate days between dates, add or subtract days from a date.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Days</span>
+                        <span class="tag">Duration</span>
+                    </div>
+                </a>
+
+                <a href="tool-aspect-ratio-calculator.html" class="card tool-card orange reveal"
+                    data-category="calculator" data-tags="aspect ratio width height resize image video">
+                    <div class="card-icon">📐</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Aspect Ratio Calculator</h3>
+                    <p class="card-description">Calculate aspect ratios for images and videos.</p>
+                    <div class="tool-tags">
+                        <span class="tag">16:9</span>
+                        <span class="tag">Resize</span>
+                    </div>
+                </a>
+
+                <!-- ===== CONVERTERS ===== -->
+                <div class="category-divider">
+                    <h3>🔄 Converters</h3>
+                </div>
+
+                <a href="tool-color-converter.html" class="card tool-card purple reveal" data-category="converter"
+                    data-tags="color hex rgb hsl convert">
+                    <div class="card-icon">🎨</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Color Converter</h3>
+                    <p class="card-description">Convert colors between HEX, RGB, HSL, and more formats.</p>
+                    <div class="tool-tags">
+                        <span class="tag">HEX</span>
+                        <span class="tag">RGB</span>
+                        <span class="tag">HSL</span>
+                    </div>
+                </a>
+
+                <a href="tool-unit-converter.html" class="card tool-card blue reveal" data-category="converter"
+                    data-tags="unit length weight temperature volume convert">
+                    <div class="card-icon">📏</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Unit Converter</h3>
+                    <p class="card-description">Convert between length, weight, temperature, and volume units.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Length</span>
+                        <span class="tag">Weight</span>
+                        <span class="tag">Temp</span>
+                    </div>
+                </a>
+
+                <a href="tool-case-converter.html" class="card tool-card orange reveal" data-category="converter"
+                    data-tags="case text uppercase lowercase title camel">
+                    <div class="card-icon">Aa</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Case Converter</h3>
+                    <p class="card-description">Convert text between uppercase, lowercase, title case, and more.</p>
+                    <div class="tool-tags">
+                        <span class="tag">uppercase</span>
+                        <span class="tag">camelCase</span>
+                    </div>
+                </a>
+
+                <a href="tool-base64-encoder.html" class="card tool-card indigo reveal" data-category="converter"
+                    data-tags="base64 encode decode text binary">
+                    <div class="card-icon">🔐</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Base64 Encoder</h3>
+                    <p class="card-description">Encode and decode text and files to/from Base64 format.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Encode</span>
+                        <span class="tag">Decode</span>
+                    </div>
+                </a>
+
+                <a href="tool-time-zone-converter.html" class="card tool-card green reveal" data-category="converter"
+                    data-tags="time zone convert world clock meeting">
+                    <div class="card-icon">🌍</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Time Zone Converter</h3>
+                    <p class="card-description">Plan meetings and coordinate across different time zones.</p>
+                    <div class="tool-tags">
+                        <span class="tag">World Clock</span>
+                        <span class="tag">Meetings</span>
+                    </div>
+                </a>
+
+                <a href="tool-url-encoder.html" class="card tool-card pink reveal" data-category="converter"
+                    data-tags="url encode decode percent uri">
+                    <div class="card-icon">🔗</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">URL Encoder/Decoder</h3>
+                    <p class="card-description">Encode and decode URLs for web development and sharing.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Encode</span>
+                        <span class="tag">URL</span>
+                    </div>
+                </a>
+
+                <a href="tool-unix-timestamp-converter.html" class="card tool-card cyan reveal" data-category="converter"
+                    data-tags="unix timestamp epoch date time">
+                    <div class="card-icon">⏱️</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Unix Timestamp Converter</h3>
+                    <p class="card-description">Convert between Unix timestamps and human-readable dates.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Epoch</span>
+                        <span class="tag">Date</span>
+                    </div>
+                </a>
+
+                <a href="tool-number-base-converter.html" class="card tool-card red reveal" data-category="converter"
+                    data-tags="number base binary hex decimal octal convert">
+                    <div class="card-icon">2️⃣</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Number Base Converter</h3>
+                    <p class="card-description">Convert numbers between binary, hex, decimal, and octal.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Binary</span>
+                        <span class="tag">Hex</span>
+                    </div>
+                </a>
+
+                <!-- Ad Placement -->
+                <div class="ad-container" style="grid-column: 1 / -1;">
+                    <div class="ad-placeholder">
+                        <p>📢 Advertisement</p>
+                        <small>Support us by <a href="https://buymeacoffee.com/vedawell" target="_blank">buying us a
+                                coffee</a></small>
+                    </div>
+                </div>
+
+                <!-- ===== GENERATORS ===== -->
+                <div class="category-divider">
+                    <h3>⚡ Generators</h3>
+                </div>
+
+                <a href="tool-password-generator.html" class="card tool-card red reveal" data-category="generator"
+                    data-tags="password security strong random">
+                    <div class="card-icon">🔑</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Password Generator</h3>
+                    <p class="card-description">Generate strong, secure passwords with customizable options.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Security</span>
+                        <span class="tag">Random</span>
+                    </div>
+                </a>
+
+                <a href="tool-qr-code-generator.html" class="card tool-card cyan reveal" data-category="generator"
+                    data-tags="qr code scan barcode link">
+                    <div class="card-icon">📱</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">QR Code Generator</h3>
+                    <p class="card-description">Create QR codes for URLs, text, contact info, and more.</p>
+                    <div class="tool-tags">
+                        <span class="tag">URL</span>
+                        <span class="tag">Scan</span>
+                    </div>
+                </a>
+
+                <a href="tool-uuid-generator.html" class="card tool-card purple reveal" data-category="generator"
+                    data-tags="uuid guid unique id random">
+                    <div class="card-icon">🆔</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">UUID Generator</h3>
+                    <p class="card-description">Generate unique UUIDs (v1, v4) for your applications.</p>
+                    <div class="tool-tags">
+                        <span class="tag">v4</span>
+                        <span class="tag">Unique</span>
+                    </div>
+                </a>
+
+                <a href="tool-lorem-ipsum-generator.html" class="card tool-card green reveal" data-category="generator"
+                    data-tags="lorem ipsum placeholder text dummy">
+                    <div class="card-icon">📝</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Lorem Ipsum Generator</h3>
+                    <p class="card-description">Generate placeholder text for designs and layouts.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Placeholder</span>
+                        <span class="tag">Text</span>
+                    </div>
+                </a>
+
+                <a href="tool-gradient-generator.html" class="card tool-card pink reveal" data-category="generator"
+                    data-tags="gradient css background linear radial">
+                    <div class="card-icon">🌈</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Gradient Generator</h3>
+                    <p class="card-description">Create beautiful CSS gradients with live preview and copy.</p>
+                    <div class="tool-tags">
+                        <span class="tag">CSS</span>
+                        <span class="tag">Background</span>
+                    </div>
+                </a>
+
+                <a href="tool-box-shadow-generator.html" class="card tool-card blue reveal" data-category="generator"
+                    data-tags="box shadow css effect blur spread">
+                    <div class="card-icon">🔲</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Box Shadow Generator</h3>
+                    <p class="card-description">Generate CSS box shadows with visual controls and preview.</p>
+                    <div class="tool-tags">
+                        <span class="tag">CSS</span>
+                        <span class="tag">Effect</span>
+                    </div>
+                </a>
+
+                <a href="tool-invoice-generator.html" class="card tool-card blue reveal" data-category="generator"
+                    data-tags="invoice pdf business professional client">
+                    <div class="card-icon">📄</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Invoice Generator Pro</h3>
+                    <p class="card-description">Create professional invoices with logo, line items, and PDF export.</p>
+                    <div class="tool-tags">
+                        <span class="tag">PDF</span>
+                        <span class="tag">Business</span>
+                    </div>
+                </a>
+
+                <a href="tool-color-palette-generator.html" class="card tool-card purple reveal" data-category="generator"
+                    data-tags="color palette scheme design colors">
+                    <div class="card-icon">🎨</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Color Palette Generator</h3>
+                    <p class="card-description">Generate beautiful color palettes and schemes for your designs.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Design</span>
+                        <span class="tag">Colors</span>
+                    </div>
+                </a>
+
+                <a href="tool-meme-generator.html" class="card tool-card orange reveal" data-category="generator"
+                    data-tags="meme image text funny create">
+                    <div class="card-icon">😂</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Meme Generator</h3>
+                    <p class="card-description">Create custom memes with your own images and text.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Image</span>
+                        <span class="tag">Text</span>
+                    </div>
+                </a>
+
+                <!-- ===== PRODUCTIVITY ===== -->
+                <div class="category-divider">
+                    <h3>📝 Productivity</h3>
+                </div>
+
+                <a href="tool-focus-timer.html" class="card tool-card red reveal" data-category="productivity"
+                    data-tags="pomodoro timer focus work productivity">
+                    <div class="card-icon">🍅</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Focus Timer Pro</h3>
+                    <p class="card-description">Pomodoro-style productivity timer with task tracking and streaks.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Pomodoro</span>
+                        <span class="tag">Tasks</span>
+                    </div>
+                </a>
+
+                <a href="tool-stopwatch-timer.html" class="card tool-card orange reveal" data-category="productivity"
+                    data-tags="stopwatch timer lap countdown">
+                    <div class="card-icon">⏱️</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Stopwatch & Timer</h3>
+                    <p class="card-description">Full-featured stopwatch with lap times and countdown timer.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Laps</span>
+                        <span class="tag">Countdown</span>
+                    </div>
+                </a>
+
+                <a href="tool-countdown-timer.html" class="card tool-card purple reveal" data-category="productivity"
+                    data-tags="countdown event date timer">
+                    <div class="card-icon">⏰</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Countdown Timer</h3>
+                    <p class="card-description">Count down to important events and dates.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Events</span>
+                        <span class="tag">Dates</span>
+                    </div>
+                </a>
+
+                <a href="tool-todo-list.html" class="card tool-card green reveal" data-category="productivity"
+                    data-tags="todo list tasks checklist organize">
+                    <div class="card-icon">✅</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Todo List</h3>
+                    <p class="card-description">Simple and effective task management with categories.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Tasks</span>
+                        <span class="tag">Organize</span>
+                    </div>
+                </a>
+
+                <a href="tool-notes-app.html" class="card tool-card cyan reveal" data-category="productivity"
+                    data-tags="notes app write save organize">
+                    <div class="card-icon">📒</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Notes App</h3>
+                    <p class="card-description">Quick notes with auto-save and organization features.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Auto-save</span>
+                        <span class="tag">Organize</span>
+                    </div>
+                </a>
+
+                <a href="tool-habit-tracker.html" class="card tool-card pink reveal" data-category="productivity"
+                    data-tags="habit tracker streak routine daily">
+                    <div class="card-icon">📊</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Habit Tracker</h3>
+                    <p class="card-description">Build habits with streaks and visual progress tracking.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Streaks</span>
+                        <span class="tag">Daily</span>
+                    </div>
+                </a>
+
+                <a href="tool-flashcard-app.html" class="card tool-card indigo reveal" data-category="productivity"
+                    data-tags="flashcard study learn memory">
+                    <div class="card-icon">🗂️</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Flashcard App</h3>
+                    <p class="card-description">Create and study flashcards for effective learning.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Study</span>
+                        <span class="tag">Learn</span>
+                    </div>
+                </a>
+
+                <a href="tool-speed-reader.html" class="card tool-card orange reveal" data-category="productivity"
+                    data-tags="speed reading fast wpm text">
+                    <div class="card-icon">📖</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Speed Reader</h3>
+                    <p class="card-description">Improve reading speed with RSVP (Rapid Serial Visual Presentation).</p>
+                    <div class="tool-tags">
+                        <span class="tag">RSVP</span>
+                        <span class="tag">WPM</span>
+                    </div>
+                </a>
+
+                <a href="tool-typing-speed-test.html" class="card tool-card green reveal" data-category="productivity"
+                    data-tags="typing speed test wpm keyboard">
+                    <div class="card-icon">⌨️</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Typing Speed Test</h3>
+                    <p class="card-description">Test and improve your typing speed with real-time WPM tracking.</p>
+                    <div class="tool-tags">
+                        <span class="tag">WPM</span>
+                        <span class="tag">Practice</span>
+                    </div>
+                </a>
+
+                <a href="tool-pomodoro-timer.html" class="card tool-card red reveal" data-category="productivity"
+                    data-tags="pomodoro timer break work focus">
+                    <div class="card-icon">🍅</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Pomodoro Timer</h3>
+                    <p class="card-description">Classic Pomodoro technique timer with work and break intervals.</p>
+                    <div class="tool-tags">
+                        <span class="tag">25/5</span>
+                        <span class="tag">Breaks</span>
+                    </div>
+                </a>
+
+                <a href="tool-character-counter.html" class="card tool-card blue reveal" data-category="productivity"
+                    data-tags="character count word text limit twitter">
+                    <div class="card-icon">🔤</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Character Counter</h3>
+                    <p class="card-description">Count characters with limits for Twitter, Instagram, and more.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Limits</span>
+                        <span class="tag">Social</span>
+                    </div>
+                </a>
+
+                <a href="tool-screen-recorder.html" class="card tool-card purple reveal" data-category="productivity"
+                    data-tags="screen recorder video capture webcam">
+                    <div class="card-icon">📹</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Screen Recorder</h3>
+                    <p class="card-description">Record your screen, window, or webcam directly in the browser.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Video</span>
+                        <span class="tag">Capture</span>
+                    </div>
+                </a>
+
+                <a href="tool-text-to-speech.html" class="card tool-card cyan reveal" data-category="productivity"
+                    data-tags="text to speech tts voice read aloud">
+                    <div class="card-icon">🔊</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Text to Speech</h3>
+                    <p class="card-description">Convert text to spoken audio with multiple voice options.</p>
+                    <div class="tool-tags">
+                        <span class="tag">TTS</span>
+                        <span class="tag">Voice</span>
+                    </div>
+                </a>
+
+                <!-- Ad Placement -->
+                <div class="ad-container" style="grid-column: 1 / -1;">
+                    <div class="ad-placeholder">
+                        <p>📢 Advertisement</p>
+                        <small>Support us by <a href="https://buymeacoffee.com/vedawell" target="_blank">buying us a
+                                coffee</a></small>
+                    </div>
+                </div>
+
+                <!-- ===== DEVELOPER TOOLS ===== -->
+                <div class="category-divider">
+                    <h3>🛠️ Developer Tools</h3>
+                </div>
+
+                <a href="tool-word-counter.html" class="card tool-card blue reveal" data-category="developer"
+                    data-tags="word count character text analysis">
+                    <div class="card-icon">📊</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Word Counter</h3>
+                    <p class="card-description">Count words, characters, sentences, and reading time.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Words</span>
+                        <span class="tag">Characters</span>
+                    </div>
+                </a>
+
+                <a href="tool-json-formatter.html" class="card tool-card green reveal" data-category="developer"
+                    data-tags="json format validate beautify minify">
+                    <div class="card-icon">{ }</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">JSON Formatter</h3>
+                    <p class="card-description">Format, validate, beautify, and minify JSON data.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Format</span>
+                        <span class="tag">Validate</span>
+                    </div>
+                </a>
+
+                <a href="tool-regex-tester.html" class="card tool-card purple reveal" data-category="developer"
+                    data-tags="regex regular expression test pattern">
+                    <div class="card-icon">.*</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Regex Tester</h3>
+                    <p class="card-description">Test and debug regular expressions with live matching.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Pattern</span>
+                        <span class="tag">Match</span>
+                    </div>
+                </a>
+
+                <a href="tool-markdown-editor.html" class="card tool-card cyan reveal" data-category="developer"
+                    data-tags="markdown editor preview write">
+                    <div class="card-icon">📑</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Markdown Editor</h3>
+                    <p class="card-description">Write and preview Markdown with live rendering.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Preview</span>
+                        <span class="tag">Live</span>
+                    </div>
+                </a>
+
+                <a href="tool-meta-tag-generator.html" class="card tool-card orange reveal" data-category="developer"
+                    data-tags="meta tag seo html head">
+                    <div class="card-icon">🏷️</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Meta Tag Generator</h3>
+                    <p class="card-description">Generate meta tags for SEO with Google preview.</p>
+                    <div class="tool-tags">
+                        <span class="tag">SEO</span>
+                        <span class="tag">HTML</span>
+                    </div>
+                </a>
+
+                <a href="tool-hash-generator.html" class="card tool-card red reveal" data-category="developer"
+                    data-tags="hash md5 sha256 sha512 checksum">
+                    <div class="card-icon">🔒</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Hash Generator</h3>
+                    <p class="card-description">Generate MD5, SHA-256, SHA-512, and other hashes.</p>
+                    <div class="tool-tags">
+                        <span class="tag">MD5</span>
+                        <span class="tag">SHA</span>
+                    </div>
+                </a>
+
+                <a href="tool-csv-to-json.html" class="card tool-card pink reveal" data-category="developer"
+                    data-tags="csv json convert data table">
+                    <div class="card-icon">📊</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">CSV to JSON</h3>
+                    <p class="card-description">Convert CSV data to JSON format and vice versa.</p>
+                    <div class="tool-tags">
+                        <span class="tag">CSV</span>
+                        <span class="tag">Data</span>
+                    </div>
+                </a>
+
+                <a href="tool-flexbox-generator.html" class="card tool-card indigo reveal" data-category="developer"
+                    data-tags="flexbox css layout generator visual">
+                    <div class="card-icon">📦</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Flexbox Generator</h3>
+                    <p class="card-description">Visual CSS flexbox layout generator with live preview.</p>
+                    <div class="tool-tags">
+                        <span class="tag">CSS</span>
+                        <span class="tag">Layout</span>
+                    </div>
+                </a>
+
+                <a href="tool-text-diff.html" class="card tool-card orange reveal" data-category="developer"
+                    data-tags="text diff compare difference code">
+                    <div class="card-icon">📝</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Text Diff Tool</h3>
+                    <p class="card-description">Compare two text blocks and highlight differences.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Compare</span>
+                        <span class="tag">Diff</span>
+                    </div>
+                </a>
+
+                <a href="tool-open-graph-generator.html" class="card tool-card blue reveal" data-category="developer"
+                    data-tags="open graph og facebook social meta">
+                    <div class="card-icon">📢</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Open Graph Generator</h3>
+                    <p class="card-description">Generate Open Graph meta tags for social sharing.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Facebook</span>
+                        <span class="tag">Social</span>
+                    </div>
+                </a>
+
+                <a href="tool-robots-txt-generator.html" class="card tool-card green reveal" data-category="developer"
+                    data-tags="robots txt seo crawler search engine">
+                    <div class="card-icon">🤖</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Robots.txt Generator</h3>
+                    <p class="card-description">Generate robots.txt files for search engine crawlers.</p>
+                    <div class="tool-tags">
+                        <span class="tag">SEO</span>
+                        <span class="tag">Crawlers</span>
+                    </div>
+                </a>
+
+                <a href="tool-jwt-decoder.html" class="card tool-card purple reveal" data-category="developer"
+                    data-tags="jwt token decode header payload">
+                    <div class="card-icon">🔑</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">JWT Decoder</h3>
+                    <p class="card-description">Decode and inspect JSON Web Tokens (JWT).</p>
+                    <div class="tool-tags">
+                        <span class="tag">Token</span>
+                        <span class="tag">Auth</span>
+                    </div>
+                </a>
+
+                <a href="tool-css-grid-generator.html" class="card tool-card cyan reveal" data-category="developer"
+                    data-tags="css grid layout generator visual">
+                    <div class="card-icon">🔲</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">CSS Grid Generator</h3>
+                    <p class="card-description">Visual CSS grid layout generator with code export.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Grid</span>
+                        <span class="tag">Layout</span>
+                    </div>
+                </a>
+
+                <a href="tool-border-radius-preview.html" class="card tool-card pink reveal" data-category="developer"
+                    data-tags="border radius css corners preview">
+                    <div class="card-icon">◻️</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Border Radius Preview</h3>
+                    <p class="card-description">Preview and generate CSS border-radius values.</p>
+                    <div class="tool-tags">
+                        <span class="tag">CSS</span>
+                        <span class="tag">Corners</span>
+                    </div>
+                </a>
+
+                <a href="tool-html-cleaner.html" class="card tool-card red reveal" data-category="developer"
+                    data-tags="html cleaner minify format beautify">
+                    <div class="card-icon">🧹</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">HTML Cleaner</h3>
+                    <p class="card-description">Clean and minify HTML code for production.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Minify</span>
+                        <span class="tag">Clean</span>
+                    </div>
+                </a>
+
+                <a href="tool-keycode-info.html" class="card tool-card indigo reveal" data-category="developer"
+                    data-tags="keycode keyboard event javascript key">
+                    <div class="card-icon">⌨️</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Keycode Info</h3>
+                    <p class="card-description">Get keyboard event keycodes and key information.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Events</span>
+                        <span class="tag">JavaScript</span>
+                    </div>
+                </a>
+
+                <!-- ===== IMAGE TOOLS ===== -->
+                <div class="category-divider">
+                    <h3>🖼️ Image Tools</h3>
+                </div>
+
+                <a href="tool-image-compressor.html" class="card tool-card orange reveal" data-category="image"
+                    data-tags="image compress resize optimize">
+                    <div class="card-icon">🗜️</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Image Compressor</h3>
+                    <p class="card-description">Compress and resize images while maintaining quality.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Compress</span>
+                        <span class="tag">Resize</span>
+                    </div>
+                </a>
+
+                <a href="tool-image-watermarker.html" class="card tool-card purple reveal" data-category="image"
+                    data-tags="watermark image protect batch text">
+                    <div class="card-icon">🖼️</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Image Watermarker Pro</h3>
+                    <p class="card-description">Add text or image watermarks with batch processing.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Batch</span>
+                        <span class="tag">Protect</span>
+                    </div>
+                </a>
+
+                <a href="tool-exif-reader.html" class="card tool-card blue reveal" data-category="image"
+                    data-tags="exif metadata photo image info">
+                    <div class="card-icon">📷</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">EXIF Reader</h3>
+                    <p class="card-description">Read and extract EXIF metadata from photos and images.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Metadata</span>
+                        <span class="tag">Photos</span>
+                    </div>
+                </a>
+
+                <a href="tool-drawing-canvas.html" class="card tool-card cyan reveal" data-category="image"
+                    data-tags="drawing canvas paint sketch doodle">
+                    <div class="card-icon">🎨</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Drawing Canvas</h3>
+                    <p class="card-description">Simple drawing tool with brushes, colors, and export options.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Draw</span>
+                        <span class="tag">Paint</span>
+                    </div>
+                </a>
+
+                <!-- ===== WELLNESS ===== -->
+                <div class="category-divider">
+                    <h3>🧘 Wellness</h3>
+                </div>
+
+                <a href="tool-breathing-exercise.html" class="card tool-card pink reveal" data-category="wellness"
+                    data-tags="breathing exercise relax calm meditation">
+                    <div class="card-icon">🌬️</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Breathing Exercise</h3>
+                    <p class="card-description">Guided breathing exercises for relaxation and focus.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Relax</span>
+                        <span class="tag">Calm</span>
+                    </div>
+                </a>
+
+                <a href="tool-white-noise-generator.html" class="card tool-card purple reveal" data-category="wellness"
+                    data-tags="white noise sleep focus ambient sound">
+                    <div class="card-icon">🔉</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">White Noise Generator</h3>
+                    <p class="card-description">Generate ambient sounds for focus, sleep, and relaxation.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Sleep</span>
+                        <span class="tag">Focus</span>
+                    </div>
+                </a>
+
+                <a href="tool-metronome.html" class="card tool-card orange reveal" data-category="wellness"
+                    data-tags="metronome music tempo beat rhythm">
+                    <div class="card-icon">🎵</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Metronome</h3>
+                    <p class="card-description">Keep perfect time with an adjustable BPM metronome.</p>
+                    <div class="tool-tags">
+                        <span class="tag">Music</span>
+                        <span class="tag">Tempo</span>
+                    </div>
+                </a>
+
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="section" style="border-top: 1px solid var(--border);">
+            <div class="section-header">
+                <h2 class="section-title">🎮 Want Some Fun?</h2>
+                <p class="section-subtitle">Take a break with our collection of addictive browser games!</p>
+            </div>
+            <div class="text-center">
+                <a href="games.html" class="btn btn-primary">Play Games →</a>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <a href="index.html" class="logo">
+                        <div class="logo-icon">🛠️</div>
+                        VedaWell Tools
+                    </a>
+                    <p>Free, browser-based productivity tools. No sign-ups, no downloads — everything runs locally in
+                        your browser.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="tools.html">All Tools</a></li>
+                        <li><a href="games.html">Games</a></li>
+                        <li><a href="about.html">About</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Support</h4>
+                    <ul>
+                        <li><a href="https://buymeacoffee.com/vedawell" target="_blank">Buy Me a Coffee</a></li>
+                        <li><a href="https://kothandan.gumroad.com/" target="_blank">Premium Products</a></li>
+                        <li><a href="mailto:support@vedawellapp.com">Contact Us</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="privacy-policy.html">Privacy Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2025 VedaWell. All rights reserved.</p>
+                <div class="footer-social">
+                    <a href="https://buymeacoffee.com/vedawell" target="_blank" title="Buy Me a Coffee">☕</a>
+                    <a href="https://kothandan.gumroad.com/" target="_blank" title="Gumroad">🛒</a>
+                    <a href="mailto:support@vedawellapp.com" title="Email">📧</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/main.js"></script>
+</body>
+
+</html>

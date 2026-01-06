@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flappy Bird</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: system-ui, sans-serif;
+            background: linear-gradient(180deg, #4ec0ca 0%, #4ec0ca 50%, #ded895 50%, #ded895 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 20px
+        }
+
+        h1 {
+            color: #fff;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 0 #543847
+        }
+
+        .game-container {
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, .3)
+        }
+
+        canvas {
+            display: block;
+            cursor: pointer
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 400px;
+            margin-top: 1rem
+        }
+
+        .stat {
+            background: #543847;
+            color: #fff;
+            padding: .75rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 600
+        }
+
+        .stat span {
+            color: #f7dc6f
+        }
+
+        .instructions {
+            color: #543847;
+            margin-top: 1.5rem;
+            text-align: center;
+            font-weight: 500
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🐦 Flappy Bird</h1>
+    <div class="game-container">
+        <canvas id="game" width="400" height="600"></canvas>
+    </div>
+    <div class="stats">
+        <div class="stat">Score: <span id="score">0</span></div>
+        <div class="stat">Best: <span id="best">0</span></div>
+    </div>
+    <p class="instructions">Click, tap, or press SPACE to flap!</p>
+    <script>
+        const canvas = document.getElementById('game');
+        const ctx = canvas.getContext('2d');
+        const W = canvas.width, H = canvas.height;
+
+        let bird, pipes, score, frame, gameState, best = localStorage.getItem('flappyBest') || 0;
+        document.getElementById('best').textContent = best;
+
+        const gravity = 0.35, jumpForce = -7, pipeGap = 200, pipeWidth = 60, pipeSpeed = 2;
+
+        function init() {
+            bird = { x: 80, y: H / 2, vy: 0, size: 25 };
+            pipes = []; score = 0; frame = 0; gameState = 'ready';
+            document.getElementById('score').textContent = 0;
+        }
+        function draw() {
+            // Sky gradient
+            const skyGrad = ctx.createLinearGradient(0, 0, 0, H);
+            skyGrad.addColorStop(0, '#4ec0ca');
+            skyGrad.addColorStop(0.7, '#4ec0ca');
+            skyGrad.addColorStop(0.7, '#ded895');
+            skyGrad.addColorStop(1, '#ded895');
+            ctx.fillStyle = skyGrad;
+            ctx.fillRect(0, 0, W, H);
+
+            // Ground
+            ctx.fillStyle = '#ded895';
+            ctx.fillRect(0, H - 80, W, 80);
+            ctx.fillStyle = '#d4c87b';
+            ctx.fillRect(0, H - 80, W, 10);
+
+            // Pipes
+            ctx.fillStyle = '#73bf2e';
+            pipes.forEach(p => {
+                // Top pipe
+                ctx.fillRect(p.x, 0, pipeWidth, p.topH);
+                ctx.fillStyle = '#5ba71d';
+                ctx.fillRect(p.x - 5, p.topH - 30, pipeWidth + 10, 30);
+                ctx.fillStyle = '#73bf2e';
+                // Bottom pipe
+                const bottomY = p.topH + pipeGap;
+                ctx.fillRect(p.x, bottomY, pipeWidth, H - bottomY);
+                ctx.fillStyle = '#5ba71d';
+                ctx.fillRect(p.x - 5, bottomY, pipeWidth + 10, 30);
+                ctx.fillStyle = '#73bf2e';
+            });
+
+            // Bird
+            ctx.save();
+            ctx.translate(bird.x, bird.y);
+            ctx.rotate(Math.min(bird.vy * 0.05, 0.5));
+            // Body
+            ctx.fillStyle = '#f7dc6f';
+            ctx.beginPath();
+            ctx.ellipse(0, 0, bird.size, bird.size * 0.8, 0, 0, Math.PI * 2);
+            ctx.fill();
+            // Wing
+            ctx.fillStyle = '#f0b429';
+            ctx.beginPath();
+            ctx.ellipse(-5, 5, 12, 8, 0.3, 0, Math.PI * 2);
+            ctx.fill();
+            // Eye
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(10, -5, 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(12, -5, 4, 0, Math.PI * 2);
+            ctx.fill();
+            // Beak
+            ctx.fillStyle = '#e74c3c';
+            ctx.beginPath();
+            ctx.moveTo(20, 0);
+            ctx.lineTo(30, 5);
+            ctx.lineTo(20, 10);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+
+            // Score
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 48px system-ui';
+            ctx.textAlign = 'center';
+            ctx.strokeStyle = '#543847';
+            ctx.lineWidth = 4;
+            ctx.strokeText(score, W / 2, 80);
+            ctx.fillText(score, W / 2, 80);
+
+            // Messages
+            if (gameState === 'ready') {
+                ctx.fillStyle = 'rgba(0,0,0,.3)';
+                ctx.fillRect(0, H / 2 - 40, W, 80);
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 24px system-ui';
+                ctx.fillText('Tap to Start', W / 2, H / 2 + 10);
+            }
+            if (gameState === 'over') {
+                ctx.fillStyle = 'rgba(0,0,0,.5)';
+                ctx.fillRect(0, H / 2 - 60, W, 120);
+                ctx.fillStyle = '#e74c3c';
+                ctx.font = 'bold 36px system-ui';
+                ctx.fillText('Game Over', W / 2, H / 2 - 10);
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 20px system-ui';
+                ctx.fillText('Tap to Restart', W / 2, H / 2 + 30);
+            }
+        }
+        function update() {
+            if (gameState !== 'playing') return;
+            frame++;
+            bird.vy += gravity;
+            bird.y += bird.vy;
+
+            // Spawn pipes
+            if (frame % 90 === 0) {
+                const topH = Math.random() * (H - pipeGap - 200) + 100;
+                pipes.push({ x: W, topH, passed: false });
+            }
+
+            // Move pipes
+            pipes.forEach(p => {
+                p.x -= pipeSpeed;
+                if (!p.passed && p.x + pipeWidth < bird.x) {
+                    p.passed = true;
+                    score++;
+                    document.getElementById('score').textContent = score;
+                }
+            });
+            pipes = pipes.filter(p => p.x > -pipeWidth);
+
+            // Collision
+            if (bird.y + bird.size > H - 80 || bird.y - bird.size < 0) gameOver();
+            pipes.forEach(p => {
+                if (bird.x + bird.size > p.x && bird.x - bird.size < p.x + pipeWidth) {
+                    if (bird.y - bird.size < p.topH || bird.y + bird.size > p.topH + pipeGap) gameOver();
+                }
+            });
+        }
+        function gameOver() {
+            gameState = 'over';
+            if (score > best) { best = score; localStorage.setItem('flappyBest', best); document.getElementById('best').textContent = best }
+        }
+        function flap() {
+            if (gameState === 'ready') { gameState = 'playing' }
+            else if (gameState === 'over') { init() }
+            if (gameState === 'playing') { bird.vy = jumpForce }
+        }
+        function loop() { update(); draw(); requestAnimationFrame(loop) }
+
+        canvas.addEventListener('click', flap);
+        canvas.addEventListener('touchstart', e => { e.preventDefault(); flap() });
+        document.addEventListener('keydown', e => { if (e.key === ' ') { e.preventDefault(); flap() } });
+
+        init(); loop();
+    </script>
+</body>
+
+</html>

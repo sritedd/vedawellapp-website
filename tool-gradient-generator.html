@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Gradient Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: system-ui, sans-serif;
+            background: #1a1a2e;
+            min-height: 100vh;
+            padding: 20px
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto
+        }
+
+        h1 {
+            color: #fff;
+            text-align: center;
+            margin-bottom: 1.5rem
+        }
+
+        .preview {
+            height: 200px;
+            border-radius: 20px;
+            margin-bottom: 1.5rem;
+            transition: all .3s
+        }
+
+        .controls {
+            background: #252547;
+            border-radius: 20px;
+            padding: 1.5rem
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem
+        }
+
+        label {
+            display: block;
+            color: #888;
+            font-size: .85rem;
+            margin-bottom: .5rem
+        }
+
+        .type-btns {
+            display: flex;
+            gap: .5rem
+        }
+
+        .type-btn {
+            flex: 1;
+            padding: .75rem;
+            background: #1a1a2e;
+            border: none;
+            border-radius: 10px;
+            color: #888;
+            cursor: pointer
+        }
+
+        .type-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff
+        }
+
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem
+        }
+
+        .slider-row input[type="range"] {
+            flex: 1;
+            accent-color: #667eea
+        }
+
+        .slider-row span {
+            min-width: 50px;
+            color: #fff;
+            text-align: right
+        }
+
+        .colors {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap
+        }
+
+        .color-stop {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            background: #1a1a2e;
+            padding: .75rem;
+            border-radius: 10px
+        }
+
+        .color-stop input[type="color"] {
+            width: 50px;
+            height: 35px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer
+        }
+
+        .color-stop input[type="number"] {
+            width: 60px;
+            padding: .5rem;
+            background: #252547;
+            border: none;
+            border-radius: 6px;
+            color: #fff;
+            text-align: center
+        }
+
+        .color-stop button {
+            background: #ff6b6b;
+            color: #fff;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer
+        }
+
+        .add-color {
+            background: #3a3a5c;
+            color: #fff;
+            border: none;
+            padding: .75rem 1.5rem;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: .5rem
+        }
+
+        .output {
+            background: #1a1a2e;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-top: 1rem
+        }
+
+        .output code {
+            display: block;
+            color: #00d9ff;
+            font-family: monospace;
+            font-size: .9rem;
+            word-break: break-all
+        }
+
+        .copy-btn {
+            width: 100%;
+            padding: .75rem;
+            background: #667eea;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 1rem;
+            font-weight: 600
+        }
+
+        .presets {
+            display: flex;
+            gap: .5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem
+        }
+
+        .preset {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🎨 CSS Gradient Generator</h1>
+        <div class="preview" id="preview"></div>
+        <div class="presets" id="presets"></div>
+        <div class="controls">
+            <div class="form-group">
+                <label>Gradient Type</label>
+                <div class="type-btns">
+                    <button class="type-btn active" onclick="setType('linear')">Linear</button>
+                    <button class="type-btn" onclick="setType('radial')">Radial</button>
+                    <button class="type-btn" onclick="setType('conic')">Conic</button>
+                </div>
+            </div>
+            <div class="form-group" id="angleGroup">
+                <label>Angle</label>
+                <div class="slider-row">
+                    <input type="range" id="angle" min="0" max="360" value="135" oninput="generate()">
+                    <span id="angleVal">135°</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Color Stops</label>
+                <div class="colors" id="colors"></div>
+                <button class="add-color" onclick="addColor()">+ Add Color</button>
+            </div>
+            <div class="output">
+                <code id="cssOutput">background: linear-gradient(135deg, #667eea, #764ba2);</code>
+            </div>
+            <button class="copy-btn" onclick="copy()">Copy CSS</button>
+        </div>
+    </div>
+    <script>
+        let type = 'linear';
+        let colors = [{ color: '#667eea', pos: 0 }, { color: '#764ba2', pos: 100 }];
+        const presetGradients = [
+            ['#667eea', '#764ba2'], ['#f093fb', '#f5576c'], ['#4facfe', '#00f2fe'],
+            ['#43e97b', '#38f9d7'], ['#fa709a', '#fee140'], ['#a18cd1', '#fbc2eb'],
+            ['#ff0844', '#ffb199'], ['#00c6fb', '#005bea']
+        ];
+        function init() {
+            const presetsDiv = document.getElementById('presets');
+            presetsDiv.innerHTML = presetGradients.map((p, i) => `<button class="preset" style="background:linear-gradient(135deg,${p[0]},${p[1]})" onclick="applyPreset(${i})"></button>`).join('');
+            renderColors();
+            generate();
+        }
+        function setType(t) {
+            type = t;
+            document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('angleGroup').style.display = t === 'radial' ? 'none' : 'block';
+            generate();
+        }
+        function renderColors() {
+            document.getElementById('colors').innerHTML = colors.map((c, i) => `
+                <div class="color-stop">
+                    <input type="color" value="${c.color}" onchange="updateColor(${i},'color',this.value)">
+                    <input type="number" value="${c.pos}" min="0" max="100" onchange="updateColor(${i},'pos',this.value)">%
+                    ${colors.length > 2 ? `<button onclick="removeColor(${i})">×</button>` : ''}
+                </div>
+            `).join('');
+        }
+        function updateColor(i, prop, val) { colors[i][prop] = prop === 'pos' ? parseInt(val) : val; generate() }
+        function addColor() { colors.push({ color: '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0'), pos: 50 }); colors.sort((a, b) => a.pos - b.pos); renderColors(); generate() }
+        function removeColor(i) { colors.splice(i, 1); renderColors(); generate() }
+        function applyPreset(i) { colors = [{ color: presetGradients[i][0], pos: 0 }, { color: presetGradients[i][1], pos: 100 }]; renderColors(); generate() }
+        function generate() {
+            const angle = document.getElementById('angle').value;
+            document.getElementById('angleVal').textContent = angle + '°';
+            const stops = colors.map(c => `${c.color} ${c.pos}%`).join(', ');
+            let css;
+            if (type === 'linear') css = `linear-gradient(${angle}deg, ${stops})`;
+            else if (type === 'radial') css = `radial-gradient(circle, ${stops})`;
+            else css = `conic-gradient(from ${angle}deg, ${stops})`;
+            document.getElementById('preview').style.background = css;
+            document.getElementById('cssOutput').textContent = `background: ${css};`;
+        }
+        function copy() { navigator.clipboard.writeText(document.getElementById('cssOutput').textContent) }
+        init();
+    </script>
+</body>
+
+</html>

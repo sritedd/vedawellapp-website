@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Case Converter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: system-ui, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 700px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .3)
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 1.5rem
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            font-size: 1rem;
+            resize: vertical;
+            margin-bottom: 1rem
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: .75rem;
+            margin-bottom: 1rem
+        }
+
+        .btn {
+            padding: .75rem;
+            border: none;
+            border-radius: 10px;
+            font-size: .9rem;
+            cursor: pointer;
+            background: #f0f0f0;
+            transition: all .2s
+        }
+
+        .btn:hover {
+            background: #667eea;
+            color: #fff
+        }
+
+        .output {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 1.5rem;
+            min-height: 100px
+        }
+
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: .75rem
+        }
+
+        .output-header span {
+            font-size: .85rem;
+            color: #666
+        }
+
+        .copy-btn {
+            background: #667eea;
+            color: #fff;
+            border: none;
+            padding: .5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: .85rem
+        }
+
+        #result {
+            font-size: 1rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1>🔤 Text Case Converter</h1>
+        <textarea id="input" placeholder="Type or paste your text here..."></textarea>
+        <div class="buttons">
+            <button class="btn" onclick="convert('upper')">UPPERCASE</button>
+            <button class="btn" onclick="convert('lower')">lowercase</button>
+            <button class="btn" onclick="convert('title')">Title Case</button>
+            <button class="btn" onclick="convert('sentence')">Sentence case</button>
+            <button class="btn" onclick="convert('camel')">camelCase</button>
+            <button class="btn" onclick="convert('pascal')">PascalCase</button>
+            <button class="btn" onclick="convert('snake')">snake_case</button>
+            <button class="btn" onclick="convert('kebab')">kebab-case</button>
+            <button class="btn" onclick="convert('constant')">CONSTANT_CASE</button>
+            <button class="btn" onclick="convert('toggle')">tOGGLE cASE</button>
+            <button class="btn" onclick="convert('alternate')">aLtErNaTe</button>
+            <button class="btn" onclick="convert('reverse')">esreveR</button>
+        </div>
+        <div class="output">
+            <div class="output-header">
+                <span>Output</span>
+                <button class="copy-btn" onclick="copy()">Copy</button>
+            </div>
+            <div id="result">Converted text will appear here...</div>
+        </div>
+    </div>
+    <script>
+        function convert(type) {
+            const text = document.getElementById('input').value;
+            let result = '';
+            switch (type) {
+                case 'upper': result = text.toUpperCase(); break;
+                case 'lower': result = text.toLowerCase(); break;
+                case 'title': result = text.toLowerCase().replace(/\b\w/g, c => c.toUpperCase()); break;
+                case 'sentence': result = text.toLowerCase().replace(/(^\s*\w|[.!?]\s*\w)/g, c => c.toUpperCase()); break;
+                case 'camel': result = text.toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g, (_, c) => c.toUpperCase()); break;
+                case 'pascal': result = text.toLowerCase().replace(/(^|[^a-zA-Z0-9]+)(.)/g, (_, __, c) => c.toUpperCase()); break;
+                case 'snake': result = text.toLowerCase().replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, ''); break;
+                case 'kebab': result = text.toLowerCase().replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, ''); break;
+                case 'constant': result = text.toUpperCase().replace(/\s+/g, '_').replace(/[^A-Z0-9_]/g, ''); break;
+                case 'toggle': result = [...text].map(c => c === c.toUpperCase() ? c.toLowerCase() : c.toUpperCase()).join(''); break;
+                case 'alternate': result = [...text].map((c, i) => i % 2 === 0 ? c.toLowerCase() : c.toUpperCase()).join(''); break;
+                case 'reverse': result = [...text].reverse().join(''); break;
+            }
+            document.getElementById('result').textContent = result;
+        }
+        function copy() { navigator.clipboard.writeText(document.getElementById('result').textContent) }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hash Generator</title>
+    <style>
+        :root {
+            --primary: #10b981;
+            --bg: #111827;
+            --card: #1f2937;
+            --text: #f3f4f6;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: var(--bg);
+            color: var(--text);
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--card);
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .input-group {
+            margin-bottom: 2rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #9ca3af;
+            font-size: 0.9rem;
+        }
+
+        textarea {
+            width: 100%;
+            background: #374151;
+            border: 1px solid #4b5563;
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 100px;
+            transition: border 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .hash-row {
+            background: #111827;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border-left: 4px solid #374151;
+            transition: all 0.3s;
+        }
+
+        .hash-row:hover {
+            border-left-color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .hash-label {
+            font-size: 0.8rem;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .hash-value {
+            word-break: break-all;
+            color: #e5e7eb;
+            font-size: 0.95rem;
+        }
+
+        .copy-btn {
+            background: transparent;
+            border: 1px solid #4b5563;
+            color: #9ca3af;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            cursor: pointer;
+        }
+
+        .copy-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .loading {
+            opacity: 0.5;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🔒 Hash Generator</h1>
+
+        <div class="input-group">
+            <label>Enter text to hash:</label>
+            <textarea id="input" placeholder="Type something securely..." oninput="generateHashes()"></textarea>
+        </div>
+
+        <div id="hashes">
+            <div class="hash-row">
+                <div class="hash-label">MD5 <button class="copy-btn" onclick="copy('md5')">COPY</button></div>
+                <div class="hash-value" id="md5s">-</div>
+            </div>
+            <div class="hash-row">
+                <div class="hash-label">SHA-1 <button class="copy-btn" onclick="copy('sha1')">COPY</button></div>
+                <div class="hash-value" id="sha1">-</div>
+            </div>
+            <div class="hash-row">
+                <div class="hash-label">SHA-256 <button class="copy-btn" onclick="copy('sha256')">COPY</button></div>
+                <div class="hash-value" id="sha256">-</div>
+            </div>
+            <div class="hash-row">
+                <div class="hash-label">SHA-512 <button class="copy-btn" onclick="copy('sha512')">COPY</button></div>
+                <div class="hash-value" id="sha512">-</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CryptoJS for client-side hashing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script>
+        async function generateHashes() {
+            const text = document.getElementById('input').value;
+
+            if (!text) {
+                ['md5s', 'sha1', 'sha256', 'sha512'].forEach(id => document.getElementById(id).textContent = '-');
+                return;
+            }
+
+            // Using SubtleCrypto API for SHA (modern browsers)
+            // MD5 needs a library or manual implementation, but let's try to mock it if no library
+            // Actually, for a single file tool, CDN is risky if offline.
+            // Let's implement SHA-256 using native API. MD5 is deprecated anyway but users want it.
+            // I'll skip MD5 native implementation complexity and focus on SHA-1/256/512 which are built-in.
+            // But I included CryptoJS CDN above. Let's handle offline case gracefully.
+
+            if (window.CryptoJS) {
+                document.getElementById('md5s').textContent = CryptoJS.MD5(text).toString();
+                document.getElementById('sha1').textContent = CryptoJS.SHA1(text).toString();
+                document.getElementById('sha256').textContent = CryptoJS.SHA256(text).toString();
+                document.getElementById('sha512').textContent = CryptoJS.SHA512(text).toString();
+            } else {
+                // Fallback to Native API (SHA only)
+                document.getElementById('md5s').textContent = "MD5 requires online";
+
+                const msgBuffer = new TextEncoder().encode(text);
+
+                ['SHA-1', 'SHA-256', 'SHA-512'].forEach(async algo => {
+                    const hashBuffer = await crypto.subtle.digest(algo, msgBuffer);
+                    const hashArray = Array.from(new Uint8Array(hashBuffer));
+                    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                    document.getElementById(algo.replace('-', '').toLowerCase()).textContent = hashHex;
+                });
+            }
+        }
+
+        function copy(id) {
+            const el = id === 'md5' ? 'md5s' : id; // Id mapping adjustment
+            const val = document.getElementById(el).textContent;
+            navigator.clipboard.writeText(val);
+        }
+    </script>
+</body>
+
+</html>

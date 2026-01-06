@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Text Diff Checker</title>
+    <!-- Load jsdiff library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsdiff/5.1.0/diff.min.js"></script>
+    <style>
+        :root {
+            --border: #e2e8f0;
+            --bg: #f8fafc;
+            --primary: #3b82f6;
+            --text: #1e293b;
+            --add-bg: #dcfce7;
+            --add-text: #166534;
+            --del-bg: #fee2e2;
+            --del-text: #991b1b;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: white;
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .toggle-group {
+            display: flex;
+            background: #f1f5f9;
+            padding: 4px;
+            border-radius: 8px;
+        }
+
+        .toggle-btn {
+            border: none;
+            background: transparent;
+            padding: 6px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+
+        .toggle-btn.active {
+            background: white;
+            color: var(--primary);
+            shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .main-cols {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .input-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--border);
+            background: white;
+        }
+
+        .input-col:last-child {
+            border-right: none;
+        }
+
+        .col-header {
+            padding: 0.75rem 1rem;
+            background: #f8fafc;
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            color: #64748b;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        textarea {
+            flex: 1;
+            border: none;
+            padding: 1rem;
+            resize: none;
+            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            outline: none;
+        }
+
+        .action-bar {
+            padding: 1rem;
+            text-align: center;
+            background: white;
+            border-top: 1px solid var(--border);
+        }
+
+        .btn-compare {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .btn-compare:hover {
+            background: #2563eb;
+        }
+
+        /* Modal / Result View */
+        .result-view {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+        }
+
+        .result-view.active {
+            display: flex;
+        }
+
+        .result-toolbar {
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+        }
+
+        .back-btn {
+            background: #f1f5f9;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .diff-container {
+            flex: 1;
+            overflow: auto;
+            padding: 2rem;
+            background: #fafafa;
+        }
+
+        /* Diff Styles */
+        .diff-line {
+            font-family: 'Menlo', monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+
+        .diff-added {
+            background-color: var(--add-bg);
+            color: var(--add-text);
+        }
+
+        .diff-removed {
+            background-color: var(--del-bg);
+            color: var(--del-text);
+            text-decoration: line-through;
+            text-decoration-color: rgba(153, 27, 27, 0.4);
+        }
+
+        /* Side by Side Specifics */
+        .sbs-container {
+            display: flex;
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .sbs-pane {
+            flex: 1;
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .sbs-header {
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: #64748b;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        /* Inline Specifics */
+        .inline-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .stats {
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+
+        @media (max-width: 768px) {
+            .main-cols {
+                flex-direction: column;
+            }
+
+            .input-col {
+                height: 50%;
+            }
+
+            .sbs-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>🔎 Diff Checker</h1>
+        <div class="toggle-group">
+            <button class="toggle-btn active" onclick="setMode('sbs')">Side by Side</button>
+            <button class="toggle-btn" onclick="setMode('inline')">Inline</button>
+        </div>
+    </header>
+
+    <div class="main-cols">
+        <div class="input-col">
+            <div class="col-header">
+                Original Text
+                <span onclick="clearText('original')" style="cursor:pointer; color:#ef4444">Clear</span>
+            </div>
+            <textarea id="original" placeholder="Paste your original text here...">const greeting = "Hello World";
+console.log(greeting);</textarea>
+        </div>
+        <div class="input-col">
+            <div class="col-header">
+                Changed Text
+                <span onclick="clearText('changed')" style="cursor:pointer; color:#ef4444">Clear</span>
+            </div>
+            <textarea id="changed" placeholder="Paste your new text here...">const greeting = "Hello Universe";
+console.warn(greeting);
+// Added a comment</textarea>
+        </div>
+    </div>
+
+    <div class="action-bar">
+        <button class="btn-compare" onclick="compare()">Find Differences</button>
+    </div>
+
+    <!-- Result Layer -->
+    <div class="result-view" id="resultView">
+        <div class="result-toolbar">
+            <div class="stats" id="diffStats">Checking...</div>
+            <div class="toggle-group">
+                <button class="toggle-btn active" id="res-sbs" onclick="setResultMode('sbs')">Side by Side</button>
+                <button class="toggle-btn" id="res-inline" onclick="setResultMode('inline')">Inline</button>
+            </div>
+            <button class="back-btn" onclick="closeResult()">← Edit Text</button>
+        </div>
+        <div class="diff-container" id="diffOutput"></div>
+    </div>
+
+    <script>
+        let currentMode = 'sbs'; // 'sbs' or 'inline'
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+            // Update buttons in main and result view
+            const idx = mode === 'sbs' ? 0 : 1;
+            document.querySelectorAll('.toggle-group').forEach(grp => {
+                grp.children[idx].classList.add('active');
+            });
+        }
+
+        function setResultMode(mode) {
+            setMode(mode);
+            renderDiff();
+        }
+
+        function clearText(id) {
+            document.getElementById(id).value = '';
+        }
+
+        function closeResult() {
+            document.getElementById('resultView').classList.remove('active');
+        }
+
+        function compare() {
+            document.getElementById('resultView').classList.add('active');
+            renderDiff();
+        }
+
+        function renderDiff() {
+            const one = document.getElementById('original').value;
+            const two = document.getElementById('changed').value;
+            const output = document.getElementById('diffOutput');
+            output.innerHTML = '';
+
+            // Using jsdiff (assumed loaded via CDN)
+            if (typeof Diff === 'undefined') {
+                output.innerHTML = '<div style="color:red; text-align:center;">Error: Diff library failed to load. Please check internet connection.</div>';
+                return;
+            }
+
+            // Word diff is usually best for text
+            const diff = Diff.diffWords(one, two);
+
+            // Stats
+            const adds = diff.filter(p => p.added).length;
+            const rems = diff.filter(p => p.removed).length;
+            document.getElementById('diffStats').innerHTML = `<b>${adds}</b> changes added &nbsp;|&nbsp; <b>${rems}</b> changes removed`;
+
+            if (currentMode === 'inline') {
+                const container = document.createElement('div');
+                container.className = 'inline-container';
+
+                const fragment = document.createDocumentFragment();
+                diff.forEach(part => {
+                    const span = document.createElement('span');
+                    span.className = part.added ? 'diff-added' : part.removed ? 'diff-removed' : '';
+                    span.appendChild(document.createTextNode(part.value));
+                    fragment.appendChild(span);
+                });
+
+                container.appendChild(fragment);
+                output.appendChild(container);
+            } else {
+                // Side by Side
+                // Reconstruct Left (Original) and Right (New) with highlighting
+                const leftPane = document.createElement('div');
+                leftPane.className = 'sbs-pane';
+                leftPane.innerHTML = '<div class="sbs-header">Original</div>';
+
+                const rightPane = document.createElement('div');
+                rightPane.className = 'sbs-pane';
+                rightPane.innerHTML = '<div class="sbs-header">Modified</div>';
+
+                // We need to iterate and build both sides
+                const leftContent = document.createElement('div');
+                const rightContent = document.createElement('div');
+                leftContent.className = 'diff-line';
+                rightContent.className = 'diff-line';
+
+                diff.forEach(part => {
+                    if (part.added) {
+                        // Added parts only go to Right
+                        const span = document.createElement('span');
+                        span.className = 'diff-added';
+                        span.innerText = part.value;
+                        rightContent.appendChild(span);
+                    } else if (part.removed) {
+                        // Removed parts only go to Left
+                        const span = document.createElement('span');
+                        span.className = 'diff-removed';
+                        span.innerText = part.value;
+                        leftContent.appendChild(span);
+                    } else {
+                        // Common parts go to both
+                        const lSpan = document.createElement('span');
+                        lSpan.innerText = part.value;
+                        leftContent.appendChild(lSpan);
+
+                        const rSpan = document.createElement('span');
+                        rSpan.innerText = part.value;
+                        rightContent.appendChild(rSpan);
+                    }
+                });
+
+                leftPane.appendChild(leftContent);
+                rightPane.appendChild(rightContent);
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'sbs-container';
+                wrapper.appendChild(leftPane);
+                wrapper.appendChild(rightPane);
+                output.appendChild(wrapper);
+            }
+        }
+    </script>
+</body>
+
+</html>

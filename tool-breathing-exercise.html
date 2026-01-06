@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Breathing Exercise</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: system-ui, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden
+        }
+
+        .container {
+            text-align: center;
+            padding: 20px
+        }
+
+        h1 {
+            color: #fff;
+            margin-bottom: .5rem
+        }
+
+        .subtitle {
+            color: #888;
+            margin-bottom: 2rem
+        }
+
+        .circle-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 0 auto 2rem
+        }
+
+        .outer-circle {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 3px solid rgba(255, 255, 255, .1)
+        }
+
+        .breathing-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            transition: all 4s ease-in-out;
+            box-shadow: 0 0 60px rgba(102, 126, 234, .5)
+        }
+
+        .breathing-circle.inhale {
+            width: 280px;
+            height: 280px;
+            box-shadow: 0 0 100px rgba(102, 126, 234, .8)
+        }
+
+        .breathing-circle.hold {
+            width: 280px;
+            height: 280px
+        }
+
+        .breathing-circle.exhale {
+            width: 100px;
+            height: 100px
+        }
+
+        .instruction {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px
+        }
+
+        .timer {
+            color: #00d9ff;
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            font-family: monospace
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 2rem
+        }
+
+        .ctrl-btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: 600
+        }
+
+        .ctrl-btn.start {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff
+        }
+
+        .ctrl-btn.start.running {
+            background: linear-gradient(135deg, #e94560, #ff6b6b)
+        }
+
+        .ctrl-btn.stop {
+            background: rgba(255, 255, 255, .1);
+            color: #fff
+        }
+
+        .patterns {
+            display: flex;
+            gap: .75rem;
+            justify-content: center;
+            flex-wrap: wrap
+        }
+
+        .pattern {
+            padding: .75rem 1.25rem;
+            background: rgba(255, 255, 255, .1);
+            border: none;
+            border-radius: 25px;
+            color: #888;
+            cursor: pointer;
+            font-size: .9rem
+        }
+
+        .pattern.active {
+            background: rgba(102, 126, 234, .3);
+            color: #fff;
+            border: 1px solid #667eea
+        }
+
+        .stats {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            color: #888;
+            margin-top: 2rem;
+            font-size: .9rem
+        }
+
+        .stats span {
+            color: #00d9ff
+        }
+
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: -1
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(102, 126, 234, .3);
+            border-radius: 50%;
+            animation: float 15s infinite
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0
+            }
+
+            10% {
+                opacity: 1
+            }
+
+            90% {
+                opacity: 1
+            }
+
+            100% {
+                transform: translateY(-100vh) rotate(720deg);
+                opacity: 0
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="particles" id="particles"></div>
+    <div class="container">
+        <h1>🧘 Breathing Exercise</h1>
+        <p class="subtitle">Relax your mind and body</p>
+        <div class="timer" id="timer">0:00</div>
+        <div class="circle-container">
+            <div class="outer-circle"></div>
+            <div class="breathing-circle" id="circle"></div>
+            <div class="instruction" id="instruction">Ready</div>
+        </div>
+        <div class="controls">
+            <button class="ctrl-btn start" id="startBtn" onclick="toggleSession()">Start</button>
+            <button class="ctrl-btn stop" onclick="stopSession()">Stop</button>
+        </div>
+        <div class="patterns">
+            <button class="pattern active" onclick="setPattern('relaxing')">Relaxing (4-7-8)</button>
+            <button class="pattern" onclick="setPattern('balanced')">Balanced (4-4-4-4)</button>
+            <button class="pattern" onclick="setPattern('energizing')">Energizing (4-0-4)</button>
+            <button class="pattern" onclick="setPattern('calming')">Calming (5-5-5-5)</button>
+        </div>
+        <div class="stats">
+            <div>Cycles: <span id="cycles">0</span></div>
+            <div>Total breaths: <span id="breaths">0</span></div>
+        </div>
+    </div>
+    <script>
+        const patterns = {
+            relaxing: { inhale: 4, hold1: 7, exhale: 8, hold2: 0 },
+            balanced: { inhale: 4, hold1: 4, exhale: 4, hold2: 4 },
+            energizing: { inhale: 4, hold1: 0, exhale: 4, hold2: 0 },
+            calming: { inhale: 5, hold1: 5, exhale: 5, hold2: 5 }
+        };
+        let currentPattern = 'relaxing';
+        let running = false, totalSeconds = 0, cycles = 0, breaths = 0;
+        let mainInterval, breathTimeout;
+        // Create particles
+        for (let i = 0; i < 20; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            p.style.left = Math.random() * 100 + '%';
+            p.style.animationDelay = Math.random() * 15 + 's';
+            p.style.animationDuration = (10 + Math.random() * 10) + 's';
+            document.getElementById('particles').appendChild(p);
+        }
+        function setPattern(p) {
+            currentPattern = p;
+            document.querySelectorAll('.pattern').forEach(btn => btn.classList.toggle('active', btn.textContent.toLowerCase().includes(p)));
+            if (running) { stopSession(); toggleSession() }
+        }
+        function toggleSession() {
+            if (running) { pauseSession() }
+            else { startSession() }
+        }
+        function startSession() {
+            running = true;
+            document.getElementById('startBtn').textContent = 'Pause';
+            document.getElementById('startBtn').classList.add('running');
+            mainInterval = setInterval(() => { totalSeconds++; updateTimer() }, 1000);
+            breathe();
+        }
+        function pauseSession() {
+            running = false;
+            clearInterval(mainInterval);
+            clearTimeout(breathTimeout);
+            document.getElementById('startBtn').textContent = 'Resume';
+            document.getElementById('startBtn').classList.remove('running');
+        }
+        function stopSession() {
+            running = false;
+            clearInterval(mainInterval);
+            clearTimeout(breathTimeout);
+            totalSeconds = 0; cycles = 0; breaths = 0;
+            updateTimer();
+            document.getElementById('cycles').textContent = '0';
+            document.getElementById('breaths').textContent = '0';
+            document.getElementById('startBtn').textContent = 'Start';
+            document.getElementById('startBtn').classList.remove('running');
+            document.getElementById('circle').className = 'breathing-circle';
+            document.getElementById('instruction').textContent = 'Ready';
+        }
+        function breathe() {
+            const p = patterns[currentPattern];
+            const steps = [
+                { phase: 'inhale', duration: p.inhale, text: 'Breathe In' },
+                { phase: 'hold', duration: p.hold1, text: 'Hold' },
+                { phase: 'exhale', duration: p.exhale, text: 'Breathe Out' },
+                { phase: 'hold', duration: p.hold2, text: 'Hold' }
+            ].filter(s => s.duration > 0);
+            let stepIndex = 0;
+            function runStep() {
+                if (!running) return;
+                const step = steps[stepIndex];
+                document.getElementById('instruction').textContent = step.text;
+                document.getElementById('circle').className = 'breathing-circle ' + step.phase;
+                if (step.phase === 'inhale') breaths++;
+                document.getElementById('breaths').textContent = breaths;
+                breathTimeout = setTimeout(() => {
+                    stepIndex++;
+                    if (stepIndex >= steps.length) {
+                        stepIndex = 0;
+                        cycles++;
+                        document.getElementById('cycles').textContent = cycles;
+                    }
+                    runStep();
+                }, step.duration * 1000);
+            }
+            runStep();
+        }
+        function updateTimer() {
+            const m = Math.floor(totalSeconds / 60);
+            const s = totalSeconds % 60;
+            document.getElementById('timer').textContent = m + ':' + String(s).padStart(2, '0');
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connect 4</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #fffbe7;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        h1 {
+            color: #d97706;
+            margin-bottom: 20px;
+        }
+
+        .board-container {
+            background: #0056b3;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(7, 60px);
+            grid-template-rows: repeat(6, 60px);
+            gap: 10px;
+        }
+
+        .slot {
+            width: 60px;
+            height: 60px;
+            background: #fffbe7;
+            border-radius: 50%;
+            box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .piece {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            transform: scale(0);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .piece.red {
+            background: #ef4444;
+            transform: scale(1);
+            box-shadow: inset -5px -5px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .piece.yellow {
+            background: #fbbf24;
+            transform: scale(1);
+            box-shadow: inset -5px -5px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .status {
+            margin-top: 20px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #0056b3;
+        }
+
+        .btn {
+            margin-top: 15px;
+            padding: 10px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 6px;
+            border: none;
+            background: #0056b3;
+            color: white;
+            font-weight: bold;
+        }
+
+        /* Highlight winning cells */
+        .slot.win {
+            background: #84cc16;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Connect 4</h1>
+    <div class="board-container">
+        <div class="board" id="board"></div>
+    </div>
+    <div class="status" id="status">Player 1 (Red)'s Turn</div>
+    <button class="btn" onclick="reset()">Reset Game</button>
+
+    <script>
+        const ROWS = 6;
+        const COLS = 7;
+        let board = [];
+        let currPlayer = 'red'; // red or yellow
+        let gameActive = true;
+
+        function init() {
+            const boardEl = document.getElementById('board');
+            boardEl.innerHTML = '';
+            board = [];
+
+            // Logic board
+            for (let r = 0; r < ROWS; r++) {
+                let row = [];
+                for (let c = 0; c < COLS; c++) {
+                    row.push(null);
+                }
+                board.push(row);
+            }
+
+            // Creating slots (by column for clicking?)
+            // Actually, HTML grid fills row by row. 
+            // Better to just render 42 slots, and calculate col from index.
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    const slot = document.createElement('div');
+                    slot.className = 'slot';
+                    slot.id = `${r}-${c}`;
+                    slot.onclick = () => dropPiece(c);
+
+                    const piece = document.createElement('div');
+                    piece.className = 'piece';
+                    slot.appendChild(piece);
+
+                    boardEl.appendChild(slot);
+                }
+            }
+        }
+
+        function dropPiece(col) {
+            if (!gameActive) return;
+
+            // Find lowest empty row in this col
+            for (let r = ROWS - 1; r >= 0; r--) {
+                if (!board[r][col]) {
+                    board[r][col] = currPlayer;
+                    animateDrop(r, col, currPlayer);
+                    if (checkWin(r, col)) {
+                        document.getElementById('status').innerText = currPlayer === 'red' ? "Red Wins!" : "Yellow Wins!";
+                        gameActive = false;
+                    } else {
+                        currPlayer = currPlayer === 'red' ? 'yellow' : 'red';
+                        document.getElementById('status').innerText = currPlayer === 'red' ? "Player 1 (Red)'s Turn" : "Player 2 (Yellow)'s Turn";
+                        document.getElementById('status').style.color = currPlayer === 'red' ? "#ef4444" : "#fbbf24";
+                    }
+                    return;
+                }
+            }
+        }
+
+        function animateDrop(r, c, player) {
+            const slot = document.getElementById(`${r}-${c}`);
+            const piece = slot.firstChild;
+            piece.className = `piece ${player}`;
+        }
+
+        function checkWin(r, c) {
+            // Check 4 directions
+            return checkDir(r, c, 0, 1) || // Horizontal
+                checkDir(r, c, 1, 0) || // Vertical
+                checkDir(r, c, 1, 1) || // Diag /
+                checkDir(r, c, 1, -1);  // Diag \
+        }
+
+        function checkDir(r, c, dr, dc) {
+            let color = board[r][c];
+            let count = 1;
+            let winningCells = [[r, c]];
+
+            // Positive direction
+            let i = 1;
+            while (true) {
+                let nr = r + dr * i;
+                let nc = c + dc * i;
+                if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS || board[nr][nc] !== color) break;
+                count++;
+                winningCells.push([nr, nc]);
+                i++;
+            }
+
+            // Negative direction
+            i = 1;
+            while (true) {
+                let nr = r - dr * i;
+                let nc = c - dc * i;
+                if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS || board[nr][nc] !== color) break;
+                count++;
+                winningCells.push([nr, nc]);
+                i++;
+            }
+
+            if (count >= 4) {
+                // Highlight
+                winningCells.forEach(cell => {
+                    document.getElementById(`${cell[0]}-${cell[1]}`).style.background = '#84cc16';
+                });
+                return true;
+            }
+            return false;
+        }
+
+        function reset() {
+            gameActive = true;
+            currPlayer = 'red';
+            document.getElementById('status').innerText = "Player 1 (Red)'s Turn";
+            document.getElementById('status').style.color = '#ef4444';
+            init();
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

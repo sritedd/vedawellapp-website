@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Habit Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: system-ui, sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63);
+            min-height: 100vh;
+            padding: 20px
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto
+        }
+
+        h1 {
+            color: #fff;
+            text-align: center;
+            margin-bottom: 1.5rem
+        }
+
+        .add-row {
+            display: flex;
+            gap: .75rem;
+            margin-bottom: 1.5rem
+        }
+
+        .add-row input {
+            flex: 1;
+            padding: 1rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem
+        }
+
+        .add-row button {
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #00d9ff, #00b4db);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600
+        }
+
+        .habits {
+            background: #1a1a2e;
+            border-radius: 20px;
+            padding: 1.5rem
+        }
+
+        .habit {
+            background: #252547;
+            border-radius: 15px;
+            padding: 1.25rem;
+            margin-bottom: 1rem
+        }
+
+        .habit-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem
+        }
+
+        .habit-header h3 {
+            color: #fff;
+            font-size: 1.1rem
+        }
+
+        .habit-header button {
+            background: transparent;
+            border: none;
+            color: #ff6b6b;
+            cursor: pointer;
+            font-size: 1.25rem
+        }
+
+        .days {
+            display: flex;
+            gap: .5rem;
+            flex-wrap: wrap
+        }
+
+        .day {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: .75rem;
+            transition: all .2s
+        }
+
+        .day.empty {
+            background: #1a1a2e;
+            color: #444
+        }
+
+        .day.done {
+            background: #2ecc71;
+            color: #fff
+        }
+
+        .day.today {
+            border: 2px solid #00d9ff
+        }
+
+        .streak {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            margin-top: .75rem;
+            font-size: .85rem;
+            color: #888
+        }
+
+        .streak span {
+            color: #ffd700;
+            font-weight: 600
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem
+        }
+
+        .stat {
+            background: #252547;
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #00d9ff
+        }
+
+        .stat-label {
+            font-size: .8rem;
+            color: #888;
+            margin-top: .25rem
+        }
+
+        .empty-msg {
+            text-align: center;
+            color: #666;
+            padding: 2rem
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>📅 Habit Tracker</h1>
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value" id="totalHabits">0</div>
+                <div class="stat-label">Habits</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="todayDone">0</div>
+                <div class="stat-label">Done Today</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="bestStreak">0</div>
+                <div class="stat-label">Best Streak</div>
+            </div>
+        </div>
+        <div class="add-row">
+            <input type="text" id="habitInput" placeholder="Add a new habit..."
+                onkeypress="if(event.key==='Enter')addHabit()">
+            <button onclick="addHabit()">Add Habit</button>
+        </div>
+        <div class="habits" id="habitsContainer"></div>
+    </div>
+    <script>
+        let habits = JSON.parse(localStorage.getItem('habits') || '[]');
+        const today = new Date().toISOString().split('T')[0];
+        function save() { localStorage.setItem('habits', JSON.stringify(habits)) }
+        function getLast7Days() { const days = []; for (let i = 6; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); days.push(d.toISOString().split('T')[0]) } return days }
+        function getStreak(habit) { let streak = 0; const d = new Date(); while (true) { const dateStr = d.toISOString().split('T')[0]; if (habit.done.includes(dateStr)) streak++; else if (dateStr !== today) break; d.setDate(d.getDate() - 1); if (streak > 365) break } return streak }
+        function render() {
+            const container = document.getElementById('habitsContainer');
+            const days = getLast7Days();
+            if (habits.length === 0) { container.innerHTML = '<div class="empty-msg">Add your first habit above!</div>'; return }
+            container.innerHTML = habits.map((h, i) => `
+                <div class="habit">
+                    <div class="habit-header">
+                        <h3>${h.name}</h3>
+                        <button onclick="deleteHabit(${i})">×</button>
+                    </div>
+                    <div class="days">
+                        ${days.map(d => `<div class="day ${h.done.includes(d) ? 'done' : 'empty'} ${d === today ? 'today' : ''}" onclick="toggleDay(${i},'${d}')">${new Date(d).getDate()}</div>`).join('')}
+                    </div>
+                    <div class="streak">🔥 Current streak: <span>${getStreak(h)} days</span></div>
+                </div>
+            `).join('');
+            document.getElementById('totalHabits').textContent = habits.length;
+            document.getElementById('todayDone').textContent = habits.filter(h => h.done.includes(today)).length;
+            document.getElementById('bestStreak').textContent = Math.max(...habits.map(h => getStreak(h)), 0);
+        }
+        function addHabit() {
+            const input = document.getElementById('habitInput');
+            const name = input.value.trim();
+            if (name) { habits.push({ name, done: [] }); input.value = ''; save(); render() }
+        }
+        function toggleDay(i, date) {
+            const idx = habits[i].done.indexOf(date);
+            if (idx === -1) habits[i].done.push(date); else habits[i].done.splice(idx, 1);
+            save(); render();
+        }
+        function deleteHabit(i) { if (confirm('Delete this habit?')) { habits.splice(i, 1); save(); render() } }
+        render();
+    </script>
+</body>
+
+</html>

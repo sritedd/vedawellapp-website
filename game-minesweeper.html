@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minesweeper</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #c6c6c6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            user-select: none;
+        }
+
+        .window {
+            background: #c6c6c6;
+            border: 3px solid #fff;
+            border-right-color: #808080;
+            border-bottom-color: #808080;
+            padding: 6px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .header {
+            background: #c6c6c6;
+            border: 2px solid #808080;
+            border-right-color: #fff;
+            border-bottom-color: #fff;
+            padding: 5px;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .counter {
+            background: black;
+            color: red;
+            font-family: monospace;
+            font-size: 24px;
+            padding: 2px 5px;
+            border: 1px solid #808080;
+            width: 50px;
+            text-align: right;
+        }
+
+        .face-btn {
+            width: 36px;
+            height: 36px;
+            background: #c6c6c6;
+            border: 2px solid #fff;
+            border-right-color: #808080;
+            border-bottom-color: #808080;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .face-btn:active {
+            border: 2px solid #808080;
+            border-right-color: #fff;
+            border-bottom-color: #fff;
+            transform: translate(1px, 1px);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(10, 30px);
+            grid-template-rows: repeat(10, 30px);
+            border: 3px solid #808080;
+            border-right-color: #fff;
+            border-bottom-color: #fff;
+            background: #808080;
+        }
+
+        .cell {
+            width: 30px;
+            height: 30px;
+            background: #c6c6c6;
+            border: 2px solid #fff;
+            border-right-color: #808080;
+            border-bottom-color: #808080;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            cursor: default;
+        }
+
+        .cell.revealed {
+            border: 1px solid #808080;
+            background: #bdbdbd;
+            border-right: none;
+            border-bottom: none;
+            border-left: 1px solid #808080;
+            border-top: 1px solid #808080;
+        }
+
+        .cell:active {
+            border: none;
+            padding: 2px;
+        }
+
+        /* Simplistic pressed effect */
+
+        .n1 {
+            color: blue;
+        }
+
+        .n2 {
+            color: green;
+        }
+
+        .n3 {
+            color: red;
+        }
+
+        .n4 {
+            color: darkblue;
+        }
+
+        .n5 {
+            color: darkred;
+        }
+
+        .n6 {
+            color: teal;
+        }
+
+        .n7 {
+            color: black;
+        }
+
+        .n8 {
+            color: gray;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: #555;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="window">
+        <div class="header">
+            <div class="counter" id="bombCount">010</div>
+            <div class="face-btn" id="face" onclick="init()">🙂</div>
+            <div class="counter" id="timer">000</div>
+        </div>
+        <div class="grid" id="grid"></div>
+    </div>
+
+    <script>
+        const ROWS = 10;
+        const COLS = 10;
+        const MINES = 12;
+
+        let grid = [];
+        let revealedCount = 0;
+        let gameOver = false;
+        let timerId;
+        let time = 0;
+        let flags = MINES;
+
+        // Init
+        function init() {
+            const gridEl = document.getElementById('grid');
+            gridEl.innerHTML = '';
+            grid = [];
+            revealedCount = 0;
+            gameOver = false;
+            time = 0;
+            flags = MINES;
+
+            clearInterval(timerId);
+            timerId = setInterval(() => {
+                if (!gameOver && time < 999) {
+                    time++;
+                    document.getElementById('timer').innerText = time.toString().padStart(3, '0');
+                }
+            }, 1000);
+            document.getElementById('timer').innerText = '000';
+            document.getElementById('bombCount').innerText = flags.toString().padStart(3, '0');
+            document.getElementById('face').innerText = '🙂';
+
+            // Create empty grid
+            for (let r = 0; r < ROWS; r++) {
+                let row = [];
+                for (let c = 0; c < COLS; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.r = r;
+                    cell.dataset.c = c;
+
+                    // events
+                    cell.onclick = () => click(r, c);
+                    cell.oncontextmenu = (e) => { e.preventDefault(); flag(r, c); };
+
+                    gridEl.appendChild(cell);
+                    row.push({
+                        el: cell,
+                        mine: false,
+                        revealed: false,
+                        flagged: false,
+                        count: 0
+                    });
+                }
+                grid.push(row);
+            }
+
+            // Place Mines
+            let tempMines = MINES;
+            while (tempMines > 0) {
+                let r = Math.floor(Math.random() * ROWS);
+                let c = Math.floor(Math.random() * COLS);
+                if (!grid[r][c].mine) {
+                    grid[r][c].mine = true;
+                    tempMines--;
+                }
+            }
+
+            // Calculate numbers
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    if (!grid[r][c].mine) {
+                        let count = 0;
+                        for (let i = -1; i <= 1; i++) {
+                            for (let j = -1; j <= 1; j++) {
+                                if (r + i >= 0 && r + i < ROWS && c + j >= 0 && c + j < COLS && grid[r + i][c + j].mine) {
+                                    count++;
+                                }
+                            }
+                        }
+                        grid[r][c].count = count;
+                    }
+                }
+            }
+        }
+
+        function click(r, c) {
+            if (gameOver || grid[r][c].flagged || grid[r][c].revealed) return;
+
+            const cell = grid[r][c];
+            cell.revealed = true;
+            cell.el.classList.add('revealed');
+            revealedCount++;
+
+            if (cell.mine) {
+                // Boom
+                cell.el.style.backgroundColor = 'red';
+                cell.el.innerText = '💣';
+                endGame(false);
+                revealAllMines();
+            } else {
+                if (cell.count > 0) {
+                    cell.el.innerText = cell.count;
+                    cell.el.classList.add('n' + cell.count);
+                } else {
+                    // Flood fill
+                    for (let i = -1; i <= 1; i++) {
+                        for (let j = -1; j <= 1; j++) {
+                            if (r + i >= 0 && r + i < ROWS && c + j >= 0 && c + j < COLS) {
+                                click(r + i, c + j);
+                            }
+                        }
+                    }
+                }
+
+                // Win check
+                if (revealedCount === (ROWS * COLS) - MINES) {
+                    endGame(true);
+                }
+            }
+        }
+
+        function flag(r, c) {
+            if (gameOver || grid[r][c].revealed) return;
+            const cell = grid[r][c];
+            if (cell.flagged) {
+                cell.flagged = false;
+                cell.el.innerText = '';
+                flags++;
+            } else {
+                cell.flagged = true;
+                cell.el.innerText = '🚩';
+                flags--;
+            }
+            document.getElementById('bombCount').innerText = flags.toString().padStart(3, '0');
+        }
+
+        function revealAllMines() {
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    if (grid[r][c].mine) {
+                        grid[r][c].el.innerText = '💣';
+                    }
+                }
+            }
+        }
+
+        function endGame(win) {
+            gameOver = true;
+            clearInterval(timerId);
+            document.getElementById('face').innerText = win ? '😎' : '😵';
+            if (win) alert("You Win!");
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

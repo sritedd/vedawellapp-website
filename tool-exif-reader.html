@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exif Data Reader</title>
+    <!-- Use exifr library from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/exifr/dist/full.umd.js"></script>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            background: #f0fdf4;
+            color: #166534;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .upload-area {
+            background: white;
+            padding: 3rem;
+            border: 2px dashed #4ade80;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .upload-area:hover {
+            border-color: #16a34a;
+            background: #f0fdf4;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .results {
+            display: none;
+            margin-top: 2rem;
+        }
+
+        .results.active {
+            display: block;
+        }
+
+        .img-preview {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        th,
+        td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #dcfce7;
+        }
+
+        th {
+            background: #dcfce7;
+            font-weight: 600;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        input[type=file] {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1 style="text-align:center">📸 EXIF Data Viewer</h1>
+
+        <div class="upload-area" onclick="document.getElementById('file').click()">
+            <div class="upload-icon">📂</div>
+            <h3>Click to Upload Photo</h3>
+            <p>Supports JPG, PNG, TIFF, HEIC. Local processing only.</p>
+            <input type="file" id="file" accept="image/*" onchange="process(this)">
+        </div>
+
+        <div class="results" id="results">
+            <h3 style="text-align:center">Image Data</h3>
+            <div style="text-align:center"><img id="preview" class="img-preview"></div>
+
+            <table id="table">
+                <thead>
+                    <tr>
+                        <th>Tag</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        async function process(input) {
+            if (!input.files[0]) return;
+            const file = input.files[0];
+
+            // Preview
+            const img = document.getElementById('preview');
+            img.src = URL.createObjectURL(file);
+
+            document.getElementById('results').classList.add('active');
+            const tbody = document.getElementById('tbody');
+            tbody.innerHTML = '<tr><td colspan="2">Reading...</td></tr>';
+
+            try {
+                // Parse EXIF
+                let output = await exifr.parse(file);
+
+                tbody.innerHTML = '';
+                if (!output) {
+                    tbody.innerHTML = '<tr><td colspan="2">No EXIF data found.</td></tr>';
+                    return;
+                }
+
+                // Common fields to prioritize
+                const important = ['Make', 'Model', 'DateTimeOriginal', 'ExposureTime', 'FNumber', 'ISO', 'LensModel', 'GPSLatitude', 'GPSLongitude'];
+
+                // Render
+                Object.keys(output).forEach(key => {
+                    const tr = document.createElement('tr');
+                    const val = output[key] instanceof Date ? output[key].toLocaleString() : output[key];
+
+                    tr.innerHTML = `<td>${key}</td><td>${val}</td>`;
+
+                    if (important.includes(key)) {
+                        tr.style.fontWeight = "bold";
+                        tbody.prepend(tr);
+                    } else {
+                        tbody.appendChild(tr);
+                    }
+                });
+
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = `<tr><td colspan="2" style="color:red">Error reading file: ${err.message}</td></tr>`;
+            }
+        }
+    </script>
+</body>
+
+</html>

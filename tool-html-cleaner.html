@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML Stripper / Cleaner</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            padding: 20px;
+            background: #f3f4f6;
+            color: #111;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            margin: 0;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #374151;
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            gap: 20px;
+        }
+
+        textarea {
+            flex: 1;
+            padding: 15px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1rem;
+            resize: none;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        button.secondary {
+            background: #fff;
+            color: #2563eb;
+            border: 1px solid #2563eb;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🧹 HTML to Text Cleaner</h1>
+
+    <div class="container">
+        <textarea id="input" placeholder="Paste HTML here..."></textarea>
+        <textarea id="output" placeholder="Clean text will appear here..." readonly style="background:#fff;"></textarea>
+    </div>
+
+    <div class="controls">
+        <button onclick="strip()">Extract Text</button>
+        <button class="secondary" onclick="copy()">Copy Text</button>
+        <button class="secondary" onclick="document.getElementById('input').value=''">Clear</button>
+    </div>
+
+    <script>
+        function strip() {
+            const html = document.getElementById('input').value;
+            // Create a temporary element to let the browser parse and strip
+            const tmp = document.createElement("DIV");
+            tmp.innerHTML = html;
+
+            // Use textContent or innerText
+            let text = tmp.innerText || tmp.textContent || "";
+
+            // Initial cleanup
+            // Remove multiple blank lines
+            text = text.replace(/\n\s*\n/g, '\n\n').trim();
+
+            document.getElementById('output').value = text;
+        }
+
+        function copy() {
+            document.getElementById('output').select();
+            document.execCommand('copy');
+        }
+    </script>
+</body>
+
+</html>

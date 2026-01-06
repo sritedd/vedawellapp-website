@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Formatter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: system-ui, sans-serif;
+            background: #1e1e1e;
+            min-height: 100vh;
+            padding: 20px
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto
+        }
+
+        h1 {
+            text-align: center;
+            color: #fff;
+            margin-bottom: 1rem
+        }
+
+        .toolbar {
+            display: flex;
+            gap: .5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap
+        }
+
+        .btn {
+            padding: .5rem 1rem;
+            background: #3c3c3c;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: .9rem
+        }
+
+        .btn:hover {
+            background: #4c4c4c
+        }
+
+        .btn-primary {
+            background: #0078d4
+        }
+
+        .btn-primary:hover {
+            background: #1a86d8
+        }
+
+        .btn-danger {
+            background: #d32f2f
+        }
+
+        .panels {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem
+        }
+
+        @media(max-width:800px) {
+            .panels {
+                grid-template-columns: 1fr
+            }
+        }
+
+        .panel {
+            background: #252526;
+            border-radius: 10px;
+            overflow: hidden
+        }
+
+        .panel-header {
+            background: #3c3c3c;
+            padding: .75rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .panel-header span {
+            color: #ccc;
+            font-size: .9rem
+        }
+
+        .status {
+            font-size: .8rem;
+            padding: .25rem .5rem;
+            border-radius: 4px
+        }
+
+        .status.valid {
+            background: #2e7d32;
+            color: #fff
+        }
+
+        .status.invalid {
+            background: #d32f2f;
+            color: #fff
+        }
+
+        textarea {
+            width: 100%;
+            height: 500px;
+            padding: 1rem;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            border: none;
+            font-family: 'Fira Code', monospace;
+            font-size: .9rem;
+            resize: none
+        }
+
+        textarea:focus {
+            outline: none
+        }
+
+        pre {
+            height: 500px;
+            padding: 1rem;
+            overflow: auto;
+            margin: 0;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            font-family: 'Fira Code', monospace;
+            font-size: .9rem;
+            white-space: pre-wrap
+        }
+
+        .key {
+            color: #9cdcfe
+        }
+
+        .string {
+            color: #ce9178
+        }
+
+        .number {
+            color: #b5cea8
+        }
+
+        .boolean {
+            color: #569cd6
+        }
+
+        .null {
+            color: #569cd6
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>{ } JSON Formatter</h1>
+        <div class="toolbar">
+            <button class="btn btn-primary" onclick="format()">Format</button>
+            <button class="btn" onclick="minify()">Minify</button>
+            <button class="btn" onclick="copy()">Copy</button>
+            <button class="btn" onclick="clear()">Clear</button>
+            <button class="btn" onclick="sample()">Sample</button>
+        </div>
+        <div class="panels">
+            <div class="panel">
+                <div class="panel-header"><span>Input</span><span class="status" id="status">Paste JSON</span></div>
+                <textarea id="input" placeholder="Paste your JSON here..." oninput="validate()"></textarea>
+            </div>
+            <div class="panel">
+                <div class="panel-header"><span>Output</span></div>
+                <pre id="output">Formatted JSON will appear here...</pre>
+            </div>
+        </div>
+    </div>
+    <script>
+        function validate() {
+            const input = document.getElementById('input').value.trim();
+            const status = document.getElementById('status');
+            if (!input) { status.textContent = 'Paste JSON'; status.className = 'status'; return false }
+            try { JSON.parse(input); status.textContent = 'Valid JSON'; status.className = 'status valid'; return true }
+            catch (e) { status.textContent = 'Invalid: ' + e.message.split('at')[0]; status.className = 'status invalid'; return false }
+        }
+        function format() {
+            if (!validate()) return;
+            try {
+                const obj = JSON.parse(document.getElementById('input').value);
+                const formatted = JSON.stringify(obj, null, 2);
+                document.getElementById('output').innerHTML = syntaxHighlight(formatted);
+            } catch (e) { document.getElementById('output').textContent = 'Error: ' + e.message }
+        }
+        function minify() {
+            if (!validate()) return;
+            try {
+                const obj = JSON.parse(document.getElementById('input').value);
+                document.getElementById('output').textContent = JSON.stringify(obj);
+            } catch (e) { }
+        }
+        function syntaxHighlight(json) {
+            return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, match => {
+                let cls = 'number'; if (/^"/.test(match)) { cls = /:$/.test(match) ? 'key' : 'string' }
+                else if (/true|false/.test(match)) cls = 'boolean'; else if (/null/.test(match)) cls = 'null';
+                return `<span class="${cls}">${match}</span>`;
+            });
+        }
+        function copy() { navigator.clipboard.writeText(document.getElementById('output').textContent) }
+        function clear() { document.getElementById('input').value = ''; document.getElementById('output').textContent = ''; validate() }
+        function sample() { document.getElementById('input').value = JSON.stringify({ name: "John Doe", age: 30, email: "john@example.com", isActive: true, roles: ["admin", "user"], address: { city: "New York", zip: "10001" } }, null, 2); format() }
+    </script>
+</body>
+
+</html>

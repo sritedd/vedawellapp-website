@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meeting Cost Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: system-ui, sans-serif;
+            background: linear-gradient(135deg, #e94560, #1a1a2e);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px
+        }
+
+        .card {
+            background: #1a1a2e;
+            border-radius: 24px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .5)
+        }
+
+        h1 {
+            color: #fff;
+            text-align: center;
+            margin-bottom: .5rem
+        }
+
+        .subtitle {
+            color: #888;
+            text-align: center;
+            margin-bottom: 2rem
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem
+        }
+
+        label {
+            display: block;
+            color: #888;
+            font-size: .9rem;
+            margin-bottom: .5rem
+        }
+
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem
+        }
+
+        .slider-row input[type="range"] {
+            flex: 1;
+            accent-color: #e94560
+        }
+
+        .slider-row span {
+            color: #fff;
+            min-width: 80px;
+            text-align: right;
+            font-size: 1.1rem;
+            font-weight: 600
+        }
+
+        .live-cost {
+            background: #252547;
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 1.5rem
+        }
+
+        .live-cost .label {
+            color: #888;
+            font-size: .9rem;
+            margin-bottom: .5rem
+        }
+
+        .live-cost .amount {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: #e94560;
+            font-family: monospace
+        }
+
+        .live-cost .per-min {
+            color: #888;
+            font-size: .9rem
+        }
+
+        .timer-controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem
+        }
+
+        .timer-btn {
+            flex: 1;
+            padding: 1rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer
+        }
+
+        .timer-btn.start {
+            background: #2ecc71;
+            color: #fff
+        }
+
+        .timer-btn.start.running {
+            background: #e74c3c
+        }
+
+        .timer-btn.reset {
+            background: #3a3a5c;
+            color: #fff
+        }
+
+        .timer-display {
+            text-align: center;
+            margin-bottom: 1.5rem
+        }
+
+        .timer-display .time {
+            font-size: 2.5rem;
+            font-family: monospace;
+            color: #fff
+        }
+
+        .summary {
+            background: #252547;
+            border-radius: 15px;
+            padding: 1.25rem
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: .5rem 0;
+            color: #888
+        }
+
+        .summary-row span:last-child {
+            color: #fff;
+            font-weight: 500
+        }
+
+        .fun-fact {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #3a3a5c;
+            border-radius: 10px;
+            text-align: center;
+            color: #888;
+            font-size: .9rem
+        }
+
+        .fun-fact span {
+            color: #ffd700
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1>💸 Meeting Cost Calculator</h1>
+        <p class="subtitle">See how much your meeting really costs</p>
+        <div class="form-group">
+            <label>Number of Attendees</label>
+            <div class="slider-row">
+                <input type="range" id="attendees" min="2" max="50" value="5" oninput="calculate()">
+                <span id="attendeesVal">5 people</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Average Hourly Rate ($)</label>
+            <div class="slider-row">
+                <input type="range" id="rate" min="20" max="500" value="75" step="5" oninput="calculate()">
+                <span id="rateVal">$75/hr</span>
+            </div>
+        </div>
+        <div class="timer-display">
+            <div class="time" id="timerDisplay">00:00:00</div>
+        </div>
+        <div class="timer-controls">
+            <button class="timer-btn start" id="startBtn" onclick="toggleTimer()">▶ Start Meeting</button>
+            <button class="timer-btn reset" onclick="resetTimer()">↺ Reset</button>
+        </div>
+        <div class="live-cost">
+            <div class="label">Meeting Cost So Far</div>
+            <div class="amount" id="totalCost">$0.00</div>
+            <div class="per-min">$<span id="perMin">0.00</span>/minute</div>
+        </div>
+        <div class="summary">
+            <div class="summary-row"><span>Cost per second</span><span id="perSec">$0.00</span></div>
+            <div class="summary-row"><span>Cost per hour</span><span id="perHour">$0.00</span></div>
+            <div class="summary-row"><span>If this was 1 hour</span><span id="oneHour">$0.00</span></div>
+        </div>
+        <div class="fun-fact" id="funFact">Start the timer to see what this meeting could buy! 🛒</div>
+    </div>
+    <script>
+        let running = false, seconds = 0, interval;
+        const funFacts = [
+            { amount: 5, item: '☕ a fancy coffee' },
+            { amount: 15, item: '🍕 a pizza' },
+            { amount: 30, item: '📚 a book' },
+            { amount: 50, item: '🎬 a movie ticket for everyone' },
+            { amount: 100, item: '🍽️ a nice dinner' },
+            { amount: 250, item: '✈️ a budget flight' },
+            { amount: 500, item: '🎸 a guitar' },
+            { amount: 1000, item: '💻 a laptop' },
+            { amount: 5000, item: '🏖️ a vacation' },
+        ];
+        function calculate() {
+            const attendees = parseInt(document.getElementById('attendees').value);
+            const rate = parseInt(document.getElementById('rate').value);
+            document.getElementById('attendeesVal').textContent = attendees + ' people';
+            document.getElementById('rateVal').textContent = '$' + rate + '/hr';
+            const perHour = attendees * rate;
+            const perMin = perHour / 60;
+            const perSec = perMin / 60;
+            const total = perSec * seconds;
+            document.getElementById('perSec').textContent = '$' + perSec.toFixed(3);
+            document.getElementById('perMin').textContent = perMin.toFixed(2);
+            document.getElementById('perHour').textContent = '$' + perHour.toLocaleString();
+            document.getElementById('oneHour').textContent = '$' + perHour.toLocaleString();
+            document.getElementById('totalCost').textContent = '$' + total.toFixed(2);
+            // Fun fact
+            const fact = funFacts.filter(f => total >= f.amount).pop();
+            if (fact) {
+                document.getElementById('funFact').innerHTML = `This meeting could have bought <span>${fact.item}</span>!`;
+            }
+        }
+        function toggleTimer() {
+            running = !running;
+            document.getElementById('startBtn').textContent = running ? '⏸ Pause' : '▶ Start Meeting';
+            document.getElementById('startBtn').classList.toggle('running', running);
+            if (running) { interval = setInterval(() => { seconds++; updateTimer(); calculate() }, 1000) }
+            else { clearInterval(interval) }
+        }
+        function resetTimer() { running = false; clearInterval(interval); seconds = 0; updateTimer(); calculate(); document.getElementById('startBtn').textContent = '▶ Start Meeting'; document.getElementById('startBtn').classList.remove('running'); document.getElementById('funFact').textContent = 'Start the timer to see what this meeting could buy! 🛒' }
+        function updateTimer() {
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = seconds % 60;
+            document.getElementById('timerDisplay').textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+        calculate();
+    </script>
+</body>
+
+</html>

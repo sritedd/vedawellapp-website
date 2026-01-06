@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sudoku</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .board {
+            border: 2px solid #333;
+            display: grid;
+            grid-template-columns: repeat(9, 40px);
+            grid-template-rows: repeat(9, 40px);
+        }
+
+        input {
+            width: 40px;
+            height: 40px;
+            text-align: center;
+            font-size: 1.2rem;
+            border: 1px solid #ccc;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* 3x3 Borders */
+        input:nth-child(3n) {
+            border-right: 2px solid #333;
+        }
+
+        input:nth-child(9n) {
+            border-right: 1px solid #ccc;
+        }
+
+        /* reset end of row */
+        input:nth-child(9n+1) {
+            border-left: 2px solid #333;
+        }
+
+        /* Not really needed with grid */
+
+        /* Row borders - a bit tricky with grid + inputs. Using classes is easier */
+        .thick-bottom {
+            border-bottom: 2px solid #333;
+        }
+
+        .thick-right {
+            border-right: 2px solid #333;
+        }
+
+        .preset {
+            background: #eee;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .correct {
+            color: green;
+        }
+
+        .wrong {
+            color: red;
+            background: #ffebee;
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Sudoku</h1>
+    <span id="msg"></span>
+
+    <div class="board" id="board"></div>
+
+    <div class="controls">
+        <button onclick="newGame()">New Game</button>
+        <button onclick="check()">Check</button>
+        <button onclick="solve()">Solve (Give Up)</button>
+    </div>
+
+    <script>
+        // Simple solver/generator for demo
+        const boardEl = document.getElementById('board');
+        let solution = [];
+        let puzzle = [];
+
+        function newGame() {
+            // Very basic seeding for a valid board (shift rows)
+            // 1 2 3 4 5 6 7 8 9
+            // 4 5 6 7 8 9 1 2 3
+            // 7 8 9 1 2 3 4 5 6
+            // ...
+            const base = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+            solution = [];
+
+            // Generate full solution simply (shifting)
+            // This generates a valid sudoku grid
+            for (let i = 0; i < 9; i++) {
+                let shift = (i % 3) * 3 + Math.floor(i / 3);
+                // e.g. row 0: shift 0. row 1: shift 3. row 2: shift 6.
+                // row 3: shift 1. row 4: shift 4....
+                let row = rotate(base, shift);
+                solution.push(row);
+            }
+
+            // Randomize: swap rows within blocks, cols within blocks, numbers
+            // For now, simpler: just remove numbers
+
+            puzzle = JSON.parse(JSON.stringify(solution));
+
+            // Remove random cells
+            for (let r = 0; r < 9; r++) {
+                for (let c = 0; c < 9; c++) {
+                    if (Math.random() > 0.4) puzzle[r][c] = 0;
+                }
+            }
+
+            render();
+            document.getElementById('msg').innerText = '';
+        }
+
+        function rotate(arr, n) {
+            return [...arr.slice(n), ...arr.slice(0, n)];
+        }
+
+        function render() {
+            boardEl.innerHTML = '';
+            for (let r = 0; r < 9; r++) {
+                for (let c = 0; c < 9; c++) {
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.maxLength = 1;
+
+                    if (c % 3 === 2 && c !== 8) input.style.borderRight = '2px solid #333';
+                    if (r % 3 === 2 && r !== 8) input.style.borderBottom = '2px solid #333';
+
+                    if (puzzle[r][c] !== 0) {
+                        input.value = puzzle[r][c];
+                        input.readOnly = true;
+                        input.className = 'preset';
+                    } else {
+                        input.oninput = (e) => {
+                            e.target.value = e.target.value.replace(/[^1-9]/g, '');
+                            e.target.classList.remove('wrong', 'correct');
+                        };
+                    }
+                    input.dataset.r = r;
+                    input.dataset.c = c;
+                    boardEl.appendChild(input);
+                }
+            }
+        }
+
+        function check() {
+            const inputs = document.querySelectorAll('input:not([readonly])');
+            let allCorrect = true;
+
+            inputs.forEach(inp => {
+                const r = inp.dataset.r;
+                const c = inp.dataset.c;
+                const val = parseInt(inp.value);
+
+                if (!val) {
+                    allCorrect = false;
+                    return;
+                }
+
+                if (val === solution[r][c]) {
+                    inp.classList.add('correct');
+                    inp.classList.remove('wrong');
+                } else {
+                    inp.classList.add('wrong');
+                    inp.classList.remove('correct');
+                    allCorrect = false;
+                }
+            });
+
+            if (allCorrect && document.querySelectorAll('input').length === 81) {
+                document.getElementById('msg').innerText = "Solved! Well done.";
+            }
+        }
+
+        function solve() {
+            const inputs = document.querySelectorAll('input');
+            inputs.forEach(inp => {
+                const r = inp.dataset.r;
+                const c = inp.dataset.c;
+                inp.value = solution[r][c];
+                if (!inp.readOnly) inp.classList.add('correct');
+            });
+        }
+
+        newGame();
+    </script>
+</body>
+
+</html>

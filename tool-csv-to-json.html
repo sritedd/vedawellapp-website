@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV to JSON Converter</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            background: #f0f2f5;
+        }
+
+        .header {
+            background: #2d3748;
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .main {
+            flex: 1;
+            display: flex;
+            padding: 1rem;
+            gap: 1rem;
+        }
+
+        .panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 0.8rem 1rem;
+            background: #edf2f7;
+            border-bottom: 1px solid #e2e8f0;
+            font-weight: 600;
+            color: #4a5568;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        textarea {
+            flex: 1;
+            border: none;
+            padding: 1rem;
+            resize: none;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .controls {
+            width: 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .convert-btn {
+            background: #4299e1;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: transform 0.2s;
+        }
+
+        .convert-btn:hover {
+            transform: scale(1.1);
+            background: #3182ce;
+        }
+
+        .options {
+            font-size: 0.8rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        label {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            cursor: pointer;
+        }
+
+        .download-btn {
+            background: #48bb78;
+            color: white;
+            border: none;
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>📊 CSV to JSON</h1>
+        <div class="options">
+            <label><input type="checkbox" id="headers" checked> First row is header</label>
+            <label><input type="radio" name="format" value="array" checked> Array</label>
+            <label><input type="radio" name="format" value="hash"> Hash (by ID)</label>
+        </div>
+    </div>
+    <div class="main">
+        <div class="panel">
+            <div class="panel-header">
+                Input CSV
+                <button class="download-btn" onclick="document.getElementById('csvInput').value=''">Clear</button>
+            </div>
+            <textarea id="csvInput"
+                placeholder="id,name,age&#10;1,John Doe,30&#10;2,Jane Smith,25">id,name,age&#10;1,John Doe,30&#10;2,Jane Smith,25</textarea>
+        </div>
+
+        <div class="controls">
+            <button class="convert-btn" onclick="convert()">→</button>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">
+                Output JSON
+                <button class="download-btn" onclick="download()">Download</button>
+            </div>
+            <textarea id="jsonOutput" readonly></textarea>
+        </div>
+    </div>
+
+    <script>
+        function convert() {
+            const csv = document.getElementById('csvInput').value;
+            const hasHeader = document.getElementById('headers').checked;
+            const format = document.querySelector('input[name="format"]:checked').value;
+
+            try {
+                const lines = csv.trim().split(/\r?\n/);
+                if (lines.length === 0) return;
+
+                let result;
+
+                if (hasHeader) {
+                    const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+                    const data = [];
+
+                    for (let i = 1; i < lines.length; i++) {
+                        // Simple CSV split (doesn't handle commas inside quotes perfectly, kept simple for standalone tool)
+                        // For better parsing, a regex is needed.
+                        const row = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+                        // Skip empty rows
+                        if (row.length === 1 && row[0] === '') continue;
+
+                        let obj = {};
+                        headers.forEach((h, idx) => {
+                            let val = row[idx];
+                            // Auto number conversion
+                            if (!isNaN(val) && val !== '') val = Number(val);
+                            obj[h] = val;
+                        });
+                        data.push(obj);
+                    }
+
+                    if (format === 'hash' && headers.includes('id')) {
+                        result = {};
+                        data.forEach(item => {
+                            if (item.id) result[item.id] = item;
+                        });
+                    } else {
+                        result = data;
+                    }
+                } else {
+                    // No headers, just array of arrays
+                    result = lines.map(line => line.split(',').map(v => {
+                        let val = v.trim().replace(/^"|"$/g, '');
+                        if (!isNaN(val) && val !== '') val = Number(val);
+                        return val;
+                    }));
+                }
+
+                document.getElementById('jsonOutput').value = JSON.stringify(result, null, 2);
+            } catch (e) {
+                document.getElementById('jsonOutput').value = "Error: " + e.message;
+            }
+        }
+
+        function download() {
+            const content = document.getElementById('jsonOutput').value;
+            if (!content) return;
+            const blob = new Blob([content], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'converted.json';
+            a.click();
+        }
+
+        // Live convert
+        document.getElementById('csvInput').addEventListener('input', convert);
+        convert();
+    </script>
+</body>
+
+</html>

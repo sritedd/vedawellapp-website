@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Box Shadow Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: system-ui, sans-serif;
+            background: #f0f0f0;
+            min-height: 100vh;
+            padding: 20px
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 2rem
+        }
+
+        @media(max-width:800px) {
+            .container {
+                grid-template-columns: 1fr
+            }
+        }
+
+        h1 {
+            grid-column: 1/-1;
+            text-align: center;
+            color: #333;
+            margin-bottom: 1rem
+        }
+
+        .preview-area {
+            background: #fff;
+            border-radius: 20px;
+            padding: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px
+        }
+
+        .preview-box {
+            width: 200px;
+            height: 200px;
+            background: #667eea;
+            border-radius: 15px;
+            transition: all .2s
+        }
+
+        .controls {
+            background: #fff;
+            border-radius: 20px;
+            padding: 1.5rem
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem
+        }
+
+        label {
+            display: block;
+            color: #666;
+            font-size: .85rem;
+            margin-bottom: .5rem
+        }
+
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: .75rem
+        }
+
+        .slider-row input[type="range"] {
+            flex: 1
+        }
+
+        .slider-row span {
+            min-width: 50px;
+            text-align: right;
+            font-weight: 500
+        }
+
+        input[type="color"] {
+            width: 50px;
+            height: 35px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer
+        }
+
+        .color-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem
+        }
+
+        .color-row input[type="text"] {
+            flex: 1;
+            padding: .5rem;
+            border: 1px solid #ddd;
+            border-radius: 6px
+        }
+
+        .toggle {
+            display: flex;
+            align-items: center;
+            gap: .5rem
+        }
+
+        .toggle input {
+            width: 18px;
+            height: 18px
+        }
+
+        .layers {
+            margin-bottom: 1rem
+        }
+
+        .layer {
+            background: #f8f8f8;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: .5rem
+        }
+
+        .layer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: .75rem
+        }
+
+        .layer-header span {
+            font-weight: 600;
+            color: #333
+        }
+
+        .layer-header button {
+            background: #ff6b6b;
+            color: #fff;
+            border: none;
+            padding: .25rem .5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: .75rem
+        }
+
+        .add-layer {
+            width: 100%;
+            padding: .75rem;
+            background: #667eea;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-bottom: 1rem
+        }
+
+        .output {
+            background: #1e1e1e;
+            border-radius: 10px;
+            padding: 1rem
+        }
+
+        .output code {
+            color: #00d9ff;
+            font-family: monospace;
+            font-size: .85rem;
+            word-break: break-all
+        }
+
+        .copy-btn {
+            width: 100%;
+            padding: .75rem;
+            background: #333;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: .75rem
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🎭 Box Shadow Generator</h1>
+        <div class="preview-area">
+            <div class="preview-box" id="previewBox"></div>
+        </div>
+        <div class="controls">
+            <button class="add-layer" onclick="addLayer()">+ Add Shadow Layer</button>
+            <div class="layers" id="layers"></div>
+            <div class="output">
+                <code id="cssOutput">box-shadow: ...</code>
+            </div>
+            <button class="copy-btn" onclick="copy()">Copy CSS</button>
+        </div>
+    </div>
+    <script>
+        let layers = [{ x: 5, y: 5, blur: 15, spread: 0, color: '#00000033', inset: false }];
+        function renderLayers() {
+            document.getElementById('layers').innerHTML = layers.map((l, i) => `
+                <div class="layer">
+                    <div class="layer-header">
+                        <span>Shadow ${i + 1}</span>
+                        ${layers.length > 1 ? `<button onclick="removeLayer(${i})">Remove</button>` : ''}
+                    </div>
+                    <div class="form-group">
+                        <label>X Offset</label>
+                        <div class="slider-row">
+                            <input type="range" min="-50" max="50" value="${l.x}" oninput="update(${i},'x',this.value)">
+                            <span>${l.x}px</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Y Offset</label>
+                        <div class="slider-row">
+                            <input type="range" min="-50" max="50" value="${l.y}" oninput="update(${i},'y',this.value)">
+                            <span>${l.y}px</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Blur</label>
+                        <div class="slider-row">
+                            <input type="range" min="0" max="100" value="${l.blur}" oninput="update(${i},'blur',this.value)">
+                            <span>${l.blur}px</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Spread</label>
+                        <div class="slider-row">
+                            <input type="range" min="-30" max="30" value="${l.spread}" oninput="update(${i},'spread',this.value)">
+                            <span>${l.spread}px</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Color</label>
+                        <div class="color-row">
+                            <input type="color" value="${l.color.slice(0, 7)}" onchange="update(${i},'color',this.value)">
+                            <input type="text" value="${l.color}" onchange="update(${i},'color',this.value)">
+                        </div>
+                    </div>
+                    <label class="toggle"><input type="checkbox" ${l.inset ? 'checked' : ''} onchange="update(${i},'inset',this.checked)"> Inset</label>
+                </div>
+            `).join('');
+            generate();
+        }
+        function update(i, prop, val) {
+            if (prop === 'x' || prop === 'y' || prop === 'blur' || prop === 'spread') val = parseInt(val);
+            if (prop === 'inset') val = !!val;
+            layers[i][prop] = val;
+            renderLayers();
+        }
+        function addLayer() { layers.push({ x: 10, y: 10, blur: 20, spread: 0, color: '#00000022', inset: false }); renderLayers() }
+        function removeLayer(i) { layers.splice(i, 1); renderLayers() }
+        function generate() {
+            const shadows = layers.map(l => `${l.inset ? 'inset ' : ''} ${l.x}px ${l.y}px ${l.blur}px ${l.spread}px ${l.color}`).join(', ');
+            document.getElementById('previewBox').style.boxShadow = shadows;
+            document.getElementById('cssOutput').textContent = `box-shadow: ${shadows};`;
+        }
+        function copy() { navigator.clipboard.writeText(document.getElementById('cssOutput').textContent) }
+        renderLayers();
+    </script>
+</body>
+
+</html>

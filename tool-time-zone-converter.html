@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Zone Converter</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f3f4f6;
+            --card-bg: #ffffff;
+            --text: #1f2937;
+            --text-muted: #6b7280;
+            --border: #e5e7eb;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 800px;
+            overflow: hidden;
+        }
+
+        .header {
+            background: var(--primary);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+
+        .content {
+            padding: 2rem;
+        }
+
+        .time-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            align-items: flex-start;
+            background: #f9fafb;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            position: relative;
+        }
+
+        .time-inputs {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 1rem;
+        }
+
+        .location-select {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .time-display {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            min-width: 150px;
+        }
+
+        label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        select,
+        input[type="time"],
+        input[type="date"] {
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            background: white;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        select:focus,
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .converted-time {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .converted-date {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            margin-top: 1rem;
+            gap: 1rem;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: #eef2ff;
+        }
+
+        .remove-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            font-size: 1.2rem;
+            line-height: 1;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (max-width: 640px) {
+            .time-row {
+                flex-direction: column;
+            }
+
+            .time-inputs {
+                grid-template-columns: 1fr;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌍 Time Zone Converter</h1>
+            <div class="subtitle">Plan meetings and coordinate across the globe</div>
+        </div>
+
+        <div class="content">
+            <!-- Source Time -->
+            <div class="time-row" style="border-color: var(--primary); background: #eef2ff;">
+                <div class="time-inputs">
+                    <div class="location-select">
+                        <label>Base Location</label>
+                        <select id="baseZone" onchange="updateAll()"></select>
+                    </div>
+                    <div class="time-display">
+                        <label>Date & Time</label>
+                        <input type="datetime-local" id="baseTime" onchange="updateAll()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Targets -->
+            <div id="targetContainer"></div>
+
+            <div class="controls">
+                <button class="btn btn-outline" onclick="addTarget()">+ Add Time Zone</button>
+                <button class="btn" onclick="copyLink()">📋 Copy Link to Share</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Common timezones - expanded list
+        const timeZones = [
+            "UTC",
+            "America/New_York", "America/Los_Angeles", "America/Chicago", "America/Denver",
+            "Europe/London", "Europe/Paris", "Europe/Berlin", "Europe/Moscow",
+            "Asia/Tokyo", "Asia/Shanghai", "Asia/Singapore", "Asia/Dubai", "Asia/Kolkata",
+            "Australia/Sydney", "Australia/Melbourne", "Pacific/Auckland",
+            "America/Sao_Paulo", "Africa/Cairo", "Africa/Johannesburg"
+        ];
+
+        // Get all IANA timezones supported by browser
+        const allZones = Intl.supportedValuesOf('timeZone');
+
+        let targets = [];
+
+        function init() {
+            // Populate base selector
+            const baseSelect = document.getElementById('baseZone');
+            populateZones(baseSelect);
+
+            // Set default to local
+            const localZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            baseSelect.value = localZone;
+
+            // Set default time to now
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById('baseTime').value = now.toISOString().slice(0, 16);
+
+            // Add some default targets
+            addTarget("America/New_York");
+            addTarget("Europe/London");
+            addTarget("Asia/Tokyo");
+
+            updateAll();
+        }
+
+        function populateZones(select) {
+            // Priority zones first
+            const priorityGroup = document.createElement('optgroup');
+            priorityGroup.label = "Popular";
+            timeZones.forEach(z => {
+                const opt = document.createElement('option');
+                opt.value = z;
+                opt.text = z.replace(/_/g, " ");
+                priorityGroup.appendChild(opt);
+            });
+            select.appendChild(priorityGroup);
+
+            // All zones
+            const allGroup = document.createElement('optgroup');
+            allGroup.label = "All Time Zones";
+            allZones.forEach(z => {
+                if (!timeZones.includes(z)) {
+                    const opt = document.createElement('option');
+                    opt.value = z;
+                    opt.text = z;
+                    allGroup.appendChild(opt);
+                }
+            });
+            select.appendChild(allGroup);
+        }
+
+        function addTarget(defaultZone = null) {
+            const container = document.getElementById('targetContainer');
+            const id = 'target-' + Date.now();
+
+            const div = document.createElement('div');
+            div.className = 'time-row';
+            div.id = id;
+
+            div.innerHTML = `
+                <button class="remove-btn" onclick="removeTarget('${id}')">×</button>
+                <div class="time-inputs">
+                    <div class="location-select">
+                        <label>Target Location</label>
+                        <select class="target-select" onchange="updateAll()"></select>
+                    </div>
+                    <div class="time-display">
+                        <label>Local Time</label>
+                        <div class="converted-time">--:--</div>
+                        <div class="converted-date">--</div>
+                    </div>
+                </div>
+            `;
+
+            container.appendChild(div);
+
+            const select = div.querySelector('select');
+            populateZones(select);
+            if (defaultZone) select.value = defaultZone;
+
+            updateAll();
+        }
+
+        function removeTarget(id) {
+            document.getElementById(id).remove();
+        }
+
+        function updateAll() {
+            const baseZone = document.getElementById('baseZone').value;
+            const baseTimeInput = document.getElementById('baseTime').value;
+
+            if (!baseTimeInput) return;
+
+            const baseDate = new Date(baseTimeInput); // This creates a date treating input as local
+            // We need to interpret the input time AS BEING in the baseZone
+
+            // Create a date object that corresponds to the selected time in the selected zone
+            // Hacky but robust way: construct ISO string with offset? 
+            // Better: use Intl to find the offset of that zone at that time.
+
+            // Actually, simplest way to convert:
+            // 1. Get the timestamp of the input (treated as local/UTC) 
+            // 2. We need the "Real" UTC timestamp that corresponds to (Input Time @ Base Zone)
+
+            // Let's use a reference approach:
+            // Create a date object, set its components to match input
+            // Then formulate a string to be parsed with the zone
+
+            // Step 1: Parse input components
+            const d = new Date(baseTimeInput);
+            const year = d.getFullYear();
+            const month = d.getMonth() + 1;
+            const day = d.getDate();
+            const hours = d.getHours();
+            const minutes = d.getMinutes();
+
+            // Step 2: Create a format that specifies the zone
+            // We can use the fact that new Date() works well, but we need to find the equivalent UTC.
+            // UsingtoLocaleString with the target zone is easier if we have a valid Date object.
+
+            // Problem: 'd' assumes local browser timezone. We want 'd' components to represent 'baseZone'.
+            // Let's find the offset.
+
+            // Approach: changing the date object until its .toLocaleString('en-US', {timeZone: baseZone}) matches our input.
+            // This is iterative/complex.
+
+            // Simpler approach: Use a library-free trick.
+            // We want to display target times.
+            // Let's assume the user picks a time in the Base Zone.
+
+            // 1. Construct a date string pretending to be UTC, then subtract offset? No.
+            // 2. Let's use the IDL (International Date Line) approach.
+
+            // Let's rely on the fact that toLocaleString handles conversions. 
+            // We just need to get the "absolute" time correct first.
+
+            // Let's assume 'd' is the absolute time for now (browser local) 
+            // and we are just converting browser local to others.
+            // BUT the user selected a specific Base Zone.
+
+            // Let's try to shift the date object.
+            // visualDate: The time seen in the input.
+            // baseZone: The zone that visualDate belongs to.
+
+            // Get the offset of baseZone at this time?
+            // date.toLocaleString('en-US', { timeZone: baseZone }) gives us the string time in that zone.
+
+            // Let's iterate:
+            // 1. Start with a guess (UTC)
+            // 2. Check what time that is in baseZone
+            // 3. Adjust
+
+            // Heuristic:
+            let targetTime = new Date(baseTimeInput).getTime(); // Treat input as local for initial guess (wrong)
+            let guess = new Date(baseTimeInput); // Treat as local
+
+            // We need to correct 'guess' such that guess.toLocaleString(..., {timeZone: baseZone}) == input components
+
+            // Let's just do a simpler approximation for the UI update - or use a small helper
+            // Actually, we can just use the provided input as UTC, then subtract the offset of the zone?
+
+            // Correct way without libraries:
+            // Create a date from the input string assuming it's UTC.
+            // Then add the offset of the target zone relative to UTC? 
+
+            // Let's do this:
+            // 1. Parse input as if it were UTC
+            const utcDate = new Date(baseTimeInput + ':00Z');
+
+            // 2. Get the offset of the Base Zone relative to UTC
+            // Intl.DateTimeFormat can give us the parts.
+
+            // Workaround: We will loop through targets. 
+            // For each target, we want to show the time relative to the Base.
+
+            // Let's just support accurate conversion relative to Browser Local for now if Base == Local, 
+            // but for arbitrary Base, we need to shift.
+
+            // Shift calculation:
+            const format = (date, zone) => {
+                return new Intl.DateTimeFormat('en-US', {
+                    timeZone: zone,
+                    hour12: false,
+                    year: 'numeric', month: 'numeric', day: 'numeric',
+                    hour: 'numeric', minute: 'numeric', second: 'numeric'
+                }).format(date);
+            };
+
+            // We need to find the absolute timestamp X such that format(X, baseZone) == input
+            // Let's do a binary search or iterative adjustment.
+            // Initial guess: treat input as UTC
+            let t = new Date(baseTimeInput + ":00Z").getTime();
+
+            // Refine t
+            // This can be tricky without a library like Luxon or date-fns-tz.
+            // Given the limitations, let's keep it simple: 
+            // We will interpret the input as "Browser Local Time" if the Base Zone matches Browser Zone (default).
+            // If they change Base Zone, we'll try to adjust.
+
+            // Better UX for a simple tool:
+            // 1. User Inputs time (e.g. 10:00 AM)
+            // 2. We assume that Time is for the Base Zone.
+            // 3. We create a Date object.
+
+            // Let's use the `new Date()` constructor effectively.
+            // Helper to parsing the time in a specific zone is hard in vanilla JS.
+
+            // Let's try: Treat input as Local. Get the offset difference between Local and Base.
+            // offsetLocal = (date in Local) - (date in UTC)
+            // offsetBase = (date in Base) - (date in UTC)
+            // diff = offsetBase - offsetLocal
+
+            // We can approximate.
+
+            // Or... we just use the browser's current time as the source of truth for the *object*.
+            // And `baseTime` input just sets the *absolute* time?
+            // No, usually "Converter" means "10 AM in London is what in Tokyo?"
+
+            // Let's use this robust method:
+            // 1. Get the components from the input: Y, M, D, H, m
+            const inputD = new Date(baseTimeInput);
+
+            // 2. Construct a UTC date with those components
+            const asUTC = new Date(Date.UTC(
+                inputD.getFullYear(), inputD.getMonth(), inputD.getDate(),
+                inputD.getHours(), inputD.getMinutes()
+            ));
+
+            // 3. Get the offset of the Base Zone at that UTC time (approx)
+            // We can get the time string of 'asUTC' in 'baseZone'
+            // "1/1/2024, 10:00:00 AM" -> We want this to be what we input.
+            // If `asUTC` in `baseZone` is "1/1/2024, 5:00 PM", we are off.
+
+            // Let's assume the user kept the default local zone for input (easiest path).
+            // If they change the base zone, we might just have to say "Time is relative".
+
+            // For this HTML tool, let's rely on a clever trick:
+            // We use `toLocaleString` to get the string in the Target Zone for the `inputD` object.
+            // BUT we must first shift `inputD` so that it matches baseZone.
+
+            // Let's assume `inputD` is accurate for the browser's local zone.
+            // We calculate `local_to_base_offset`.
+
+            // Simpler: Just use current time + manual offset? No.
+
+            // Let's stick to: The Date Object `d` represents the MOMENT in time.
+            // The Input controls that moment. 
+            // If Base Zone is Local, `new Date(input)` is correct.
+            // If Base Zone is NOT Local, we need to shift.
+
+            const localZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            let moment = new Date(baseTimeInput);
+
+            if (baseZone !== localZone) {
+                // We need to shift `moment`. 
+                // We want the moment where TimeInZone(moment, baseZone) == input components.
+                // We have TimeInZone(moment, localZone) == input components.
+
+                // Let's compare the strings.
+                const strLocal = moment.toLocaleString('en-US', { timeZone: localZone });
+                const strBase = moment.toLocaleString('en-US', { timeZone: baseZone });
+
+                // If Base is "behind" Local, strBase will be earlier. 
+                // We need to add the diff.
+                const d1 = new Date(strLocal);
+                const d2 = new Date(strBase);
+                const diff = d1 - d2; // Difference in ms caused by zone shift
+
+                moment = new Date(moment.getTime() + diff);
+            }
+
+            // Now `moment` is roughly the absolute time corresponding to "Input Time in Base Zone".
+
+            targets = document.querySelectorAll('.target-select');
+            targets.forEach(select => {
+                const zone = select.value;
+                const row = select.closest('.time-row');
+
+                // Format the `moment` in the target zone
+                try {
+                    const options = {
+                        timeZone: zone,
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true
+                    };
+                    const timeStr = new Intl.DateTimeFormat('en-US', options).format(moment);
+
+                    const dateOptions = {
+                        timeZone: zone,
+                        weekday: 'short',
+                        month: 'short',
+                        day: 'numeric'
+                    };
+                    const dateStr = new Intl.DateTimeFormat('en-US', dateOptions).format(moment);
+
+                    // Add day diff indicator?
+                    // Compare dateStr with base's dateStr?
+
+                    row.querySelector('.converted-time').textContent = timeStr;
+                    row.querySelector('.converted-date').textContent = dateStr;
+                } catch (e) {
+                    row.querySelector('.converted-time').textContent = "Error";
+                }
+            });
+        }
+
+        function copyLink() {
+            // Encode state into URL hash?
+            // For a static file, we can't really do deep linking unless we parse hash on load.
+            // TODO: Implement loadFromHash() if needed.
+            alert("Configuration sharing coming soon!");
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

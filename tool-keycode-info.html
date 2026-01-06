@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript Keycode Info</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            background: #e0e7ff;
+            color: #3730a3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        .main-key {
+            font-size: 10rem;
+            font-weight: bold;
+            background: white;
+            padding: 2rem 4rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(55, 48, 163, 0.2);
+            margin-bottom: 2rem;
+            display: inline-block;
+            min-width: 300px;
+        }
+
+        .label {
+            font-size: 1.2rem;
+            opacity: 0.6;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+            letter-spacing: 2px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .card-val {
+            font-size: 1.5rem;
+            font-weight: bold;
+            font-family: monospace;
+            color: #4338ca;
+        }
+
+        .card-label {
+            font-size: 0.8rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            margin-top: 5px;
+        }
+
+        .hint {
+            margin-top: 3rem;
+            font-size: 1.5rem;
+            color: #6366f1;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 0.5;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0.5;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="welcome" class="hint">Press any key to get keycode info</div>
+
+    <div id="content" class="container hidden">
+        <div class="label">JavaScript Key Code</div>
+        <div class="main-key" id="mainKey">65</div>
+
+        <div class="grid">
+            <div class="card">
+                <div class="card-val" id="keyKey">a</div>
+                <div class="card-label">event.key</div>
+            </div>
+            <div class="card">
+                <div class="card-val" id="keyCode">KeyA</div>
+                <div class="card-label">event.code</div>
+            </div>
+            <div class="card">
+                <div class="card-val" id="keyWhich">65</div>
+                <div class="card-label">event.which</div>
+            </div>
+            <div class="card">
+                <div class="card-val" id="keyLoc">0</div>
+                <div class="card-label">event.location</div>
+            </div>
+            <div class="card">
+                <div class="card-val" id="keyMeta">false</div>
+                <div class="card-label">Meta Keys</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.addEventListener('keydown', (e) => {
+            e.preventDefault();
+
+            document.getElementById('welcome').classList.add('hidden');
+            document.getElementById('content').classList.remove('hidden');
+
+            document.getElementById('mainKey').textContent = e.which || e.keyCode;
+
+            document.getElementById('keyKey').textContent = e.key === ' ' ? '(Space)' : e.key;
+            document.getElementById('keyCode').textContent = e.code;
+            document.getElementById('keyWhich').textContent = e.which;
+            document.getElementById('keyLoc').textContent = e.location; // 0=Standard, 1=Left, 2=Right, 3=Numpad
+
+            const metas = [];
+            if (e.ctrlKey) metas.push('Ctrl');
+            if (e.shiftKey) metas.push('Shift');
+            if (e.altKey) metas.push('Alt');
+            if (e.metaKey) metas.push('Meta');
+
+            document.getElementById('keyMeta').textContent = metas.length ? metas.join(' + ') : 'None';
+        });
+    </script>
+</body>
+
+</html>

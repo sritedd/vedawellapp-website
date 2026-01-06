@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>White Noise Generator</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            background: #e0f2fe;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            color: #0c4a6e;
+        }
+
+        .card {
+            background: white;
+            padding: 3rem;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 40px -10px rgba(12, 74, 110, 0.2);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h1 {
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .play-btn {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: #0ea5e9;
+            border: none;
+            color: white;
+            font-size: 3rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 2rem auto;
+            box-shadow: 0 10px 20px rgba(14, 165, 233, 0.3);
+        }
+
+        .play-btn:hover {
+            transform: scale(1.05);
+            background: #0284c7;
+        }
+
+        .play-btn.active {
+            background: #ef4444;
+            box-shadow: 0 10px 20px rgba(239, 68, 68, 0.3);
+        }
+
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        input[type=range] {
+            accent-color: #0ea5e9;
+            width: 200px;
+        }
+
+        .status {
+            margin-top: 1rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+            height: 1.5rem;
+        }
+
+        .type-select {
+            margin-bottom: 2rem;
+        }
+
+        select {
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1>🌊 Focus Noise</h1>
+
+        <div class="type-select">
+            <select id="noiseType" onchange="changeType()">
+                <option value="white">White Noise (Static)</option>
+                <option value="pink">Pink Noise (Balanced)</option>
+                <option value="brown">Brown Noise (Deep)</option>
+            </select>
+        </div>
+
+        <button class="play-btn" id="btn" onclick="toggle()">▶</button>
+        <div class="status" id="status">Stopped</div>
+
+        <div class="volume-control">
+            <span>🔈</span>
+            <input type="range" min="0" max="1" step="0.01" value="0.5" oninput="setVolume(this.value)">
+            <span>🔊</span>
+        </div>
+    </div>
+
+    <script>
+        let audioCtx;
+        let bufferSource;
+        let gainNode;
+        let isPlaying = false;
+
+        function createNoiseBuffer(type) {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const bufferSize = 2 * audioCtx.sampleRate;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const output = buffer.getChannelData(0);
+
+            for (let i = 0; i < bufferSize; i++) {
+                let white = Math.random() * 2 - 1;
+                output[i] = (function () {
+                    switch (type) {
+                        case 'white': return white;
+                        case 'pink':
+                            var b0, b1, b2, b3, b4, b5, b6;
+                            b0 = b1 = b2 = b3 = b4 = b5 = b6 = 0.0;
+                            // Pink noise algorithm (Paul Kellet's refined method approximation)
+                            // Simplified for brevity:
+                            // Actually pink/brown generation is complex. 
+                            // Let's use simple White for now, others might require complex logic.
+                            return white;
+                        case 'brown':
+                            // Simple Brown integration
+                            // val += white * 0.02; val /= 1.02; (Example)
+                            return white;
+                    }
+                    return white;
+                })();
+            }
+
+            // NOTE: True Pink/Brown noise generation is non-trivial for this snippet.
+            // For this simple tool, let's Stick to White Noise primarily, 
+            // or use a BiquadFilter to shape White Noise into Pink/Brown.
+            // That is the Web Audio API way!
+            return buffer;
+        }
+
+        async function toggle() {
+            if (isPlaying) {
+                stop();
+            } else {
+                start();
+            }
+        }
+
+        function start() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+            // Source: White Noise
+            const bufferSize = 2 * audioCtx.sampleRate;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+
+            bufferSource = audioCtx.createBufferSource();
+            bufferSource.buffer = buffer;
+            bufferSource.loop = true;
+
+            // Filter for Color
+            const type = document.getElementById('noiseType').value;
+            let lastNode = bufferSource;
+
+            if (type !== 'white') {
+                // Approximate Pink/Brown with LowPass filter
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.value = type === 'pink' ? 500 : 150; // Brown is deeper
+                bufferSource.connect(filter);
+                lastNode = filter;
+            }
+
+            // Volume
+            gainNode = audioCtx.createGain();
+            const vol = document.querySelector('input[type=range]').value;
+            gainNode.gain.value = vol;
+            lastNode.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            bufferSource.start();
+            isPlaying = true;
+
+            document.getElementById('btn').textContent = '⏸';
+            document.getElementById('btn').classList.add('active');
+            document.getElementById('status').textContent = 'Playing ' + type.charAt(0).toUpperCase() + type.slice(1) + ' Noise';
+        }
+
+        function stop() {
+            if (bufferSource) bufferSource.stop();
+            isPlaying = false;
+            document.getElementById('btn').textContent = '▶';
+            document.getElementById('btn').classList.remove('active');
+            document.getElementById('status').textContent = 'Stopped';
+        }
+
+        function changeType() {
+            if (isPlaying) {
+                stop();
+                start();
+            }
+        }
+
+        function setVolume(val) {
+            if (gainNode) gainNode.gain.value = val;
+        }
+    </script>
+</body>
+
+</html>

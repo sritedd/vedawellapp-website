@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Number Base Converter</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0f172a;
+            color: #4ade80;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .card {
+            background: #1e293b;
+            padding: 2rem;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            color: #4ade80;
+            text-align: center;
+            margin-top: 0;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 1rem;
+        }
+
+        .row {
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        label {
+            widdth: 80px;
+            font-weight: bold;
+            color: #94a3b8;
+            text-transform: uppercase;
+            text-align: right;
+        }
+
+        input {
+            flex: 1;
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: white;
+            padding: 1rem;
+            font-family: inherit;
+            font-size: 1.2rem;
+            border-radius: 6px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #4ade80;
+        }
+
+        .copy {
+            cursor: pointer;
+            opacity: 0.5;
+            font-size: 1.2rem;
+        }
+
+        .copy:hover {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1>0110 Number Base 0xFE</h1>
+
+        <div class="row">
+            <label>DEC</label>
+            <input type="text" id="dec" placeholder="10" oninput="convert('dec')">
+            <span class="copy" onclick="copy('dec')">📋</span>
+        </div>
+
+        <div class="row">
+            <label>HEX</label>
+            <input type="text" id="hex" placeholder="A" oninput="convert('hex')">
+            <span class="copy" onclick="copy('hex')">📋</span>
+        </div>
+
+        <div class="row">
+            <label>BIN</label>
+            <input type="text" id="bin" placeholder="1010" oninput="convert('bin')">
+            <span class="copy" onclick="copy('bin')">📋</span>
+        </div>
+
+        <div class="row">
+            <label>OCT</label>
+            <input type="text" id="oct" placeholder="12" oninput="convert('oct')">
+            <span class="copy" onclick="copy('oct')">📋</span>
+        </div>
+    </div>
+
+    <script>
+        function convert(source) {
+            const els = {
+                dec: document.getElementById('dec'),
+                hex: document.getElementById('hex'),
+                bin: document.getElementById('bin'),
+                oct: document.getElementById('oct')
+            };
+
+            let val = parseInt(els[source].value, getBase(source));
+
+            if (isNaN(val)) {
+                // Clear others if invalid (unless empty)
+                if (els[source].value === '') Object.values(els).forEach(e => e.value = '');
+                return;
+            }
+
+            if (source !== 'dec') els.dec.value = val.toString(10);
+            if (source !== 'hex') els.hex.value = val.toString(16).toUpperCase();
+            if (source !== 'bin') els.bin.value = val.toString(2);
+            if (source !== 'oct') els.oct.value = val.toString(8);
+        }
+
+        function getBase(type) {
+            switch (type) {
+                case 'dec': return 10;
+                case 'hex': return 16;
+                case 'bin': return 2;
+                case 'oct': return 8;
+            }
+        }
+
+        function copy(id) {
+            const el = document.getElementById(id);
+            el.select();
+            document.execCommand('copy');
+        }
+    </script>
+</body>
+
+</html>

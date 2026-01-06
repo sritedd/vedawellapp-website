@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Countdown Timer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: system-ui, sans-serif;
+            background: linear-gradient(135deg, #e94560, #1a1a2e);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px
+        }
+
+        .card {
+            background: #1a1a2e;
+            border-radius: 24px;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .5);
+            text-align: center
+        }
+
+        h1 {
+            color: #fff;
+            margin-bottom: .5rem
+        }
+
+        .subtitle {
+            color: #888;
+            margin-bottom: 2rem
+        }
+
+        .date-input {
+            margin-bottom: 2rem
+        }
+
+        .date-input input {
+            padding: 1rem;
+            font-size: 1.25rem;
+            border: none;
+            border-radius: 10px;
+            text-align: center
+        }
+
+        .countdown {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 2rem
+        }
+
+        .time-box {
+            background: linear-gradient(135deg, #e94560, #ff6b6b);
+            border-radius: 15px;
+            padding: 1.5rem 1rem;
+            min-width: 100px
+        }
+
+        .time-value {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #fff
+        }
+
+        .time-label {
+            font-size: .85rem;
+            color: rgba(255, 255, 255, .8);
+            text-transform: uppercase
+        }
+
+        .presets {
+            display: flex;
+            gap: .75rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 2rem
+        }
+
+        .preset {
+            padding: .75rem 1.25rem;
+            background: #2a2a4a;
+            border: none;
+            border-radius: 25px;
+            color: #ccc;
+            cursor: pointer;
+            font-size: .9rem
+        }
+
+        .preset:hover {
+            background: #3a3a5c
+        }
+
+        .message {
+            background: #2a2a4a;
+            border-radius: 10px;
+            padding: 1rem;
+            color: #888;
+            font-size: .9rem
+        }
+
+        #eventName {
+            width: 100%;
+            max-width: 300px;
+            padding: .75rem;
+            border: none;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 1rem
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1>⏰ Countdown Timer</h1>
+        <p class="subtitle">Count down to any date and time</p>
+        <input type="text" id="eventName" placeholder="Event name (optional)">
+        <div class="date-input">
+            <input type="datetime-local" id="targetDate">
+        </div>
+        <div class="presets">
+            <button class="preset" onclick="setPreset(1,'Tomorrow')">Tomorrow</button>
+            <button class="preset" onclick="setPreset(7,'Next Week')">Next Week</button>
+            <button class="preset" onclick="setPreset(30,'Next Month')">Next Month</button>
+            <button class="preset" onclick="setNewYear()">New Year</button>
+        </div>
+        <div class="countdown">
+            <div class="time-box">
+                <div class="time-value" id="days">00</div>
+                <div class="time-label">Days</div>
+            </div>
+            <div class="time-box">
+                <div class="time-value" id="hours">00</div>
+                <div class="time-label">Hours</div>
+            </div>
+            <div class="time-box">
+                <div class="time-value" id="minutes">00</div>
+                <div class="time-label">Minutes</div>
+            </div>
+            <div class="time-box">
+                <div class="time-value" id="seconds">00</div>
+                <div class="time-label">Seconds</div>
+            </div>
+        </div>
+        <div class="message" id="message">Select a date above to start counting down</div>
+    </div>
+    <script>
+        function update() {
+            const target = new Date(document.getElementById('targetDate').value);
+            const now = new Date();
+            const diff = target - now;
+            if (isNaN(target) || diff < 0) {
+                document.getElementById('days').textContent = '00';
+                document.getElementById('hours').textContent = '00';
+                document.getElementById('minutes').textContent = '00';
+                document.getElementById('seconds').textContent = '00';
+                document.getElementById('message').textContent = diff < 0 ? '🎉 Event has passed!' : 'Select a date above';
+                return;
+            }
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const secs = Math.floor((diff % (1000 * 60)) / 1000);
+            document.getElementById('days').textContent = String(days).padStart(2, '0');
+            document.getElementById('hours').textContent = String(hours).padStart(2, '0');
+            document.getElementById('minutes').textContent = String(mins).padStart(2, '0');
+            document.getElementById('seconds').textContent = String(secs).padStart(2, '0');
+            const name = document.getElementById('eventName').value || 'your event';
+            document.getElementById('message').textContent = `${days} days, ${hours} hours until ${name}!`;
+        }
+        function setPreset(days, name) {
+            const date = new Date(); date.setDate(date.getDate() + days); date.setHours(0, 0, 0, 0);
+            document.getElementById('targetDate').value = date.toISOString().slice(0, 16);
+            document.getElementById('eventName').value = name;
+            update();
+        }
+        function setNewYear() {
+            const year = new Date().getFullYear() + 1;
+            document.getElementById('targetDate').value = `${year}-01-01T00:00`;
+            document.getElementById('eventName').value = `New Year ${year}`;
+            update();
+        }
+        document.getElementById('targetDate').addEventListener('change', update);
+        document.getElementById('eventName').addEventListener('input', update);
+        setInterval(update, 1000);
+        // Set default to tomorrow
+        setPreset(1, 'Tomorrow');
+    </script>
+</body>
+
+</html>

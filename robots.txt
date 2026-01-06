@@ -1,0 +1,11 @@
+# VedaWell Tools Website
+# https://vedawelltools.netlify.app
+
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://vedawelltools.netlify.app/sitemap.xml
+
+# Crawl-delay (optional, be respectful)
+Crawl-delay: 1

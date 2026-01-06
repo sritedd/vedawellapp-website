@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aspect Ratio Calculator</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            background: #fff1f2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            color: #be123c;
+        }
+
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(190, 18, 60, 0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+
+        h1 {
+            margin-top: 0;
+            text-align: center;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: #881337;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #fecdd3;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            box-sizing: border-box;
+            color: #881337;
+            font-weight: bold;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #be123c;
+        }
+
+        .ratio-select {
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+
+        .chip {
+            background: #ffe4e6;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .chip:hover {
+            background: #fda4af;
+        }
+
+        .chip.active {
+            background: #be123c;
+            color: white;
+        }
+
+        .preview {
+            width: 100%;
+            height: 150px;
+            background: #fff1f2;
+            border: 2px dashed #fda4af;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .preview-box {
+            background: #be123c;
+            opacity: 0.2;
+            position: absolute;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1>📐 Aspect Ratio Calc</h1>
+
+        <div class="ratio-select">
+            <div class="chip active" onclick="setRatio(16,9)">16:9</div>
+            <div class="chip" onclick="setRatio(4,3)">4:3</div>
+            <div class="chip" onclick="setRatio(1,1)">1:1</div>
+            <div class="chip" onclick="setRatio(21,9)">21:9</div>
+            <div class="chip" onclick="setRatio(9,16)">9:16</div>
+        </div>
+
+        <div class="grid">
+            <div class="input-group">
+                <label>Width (px)</label>
+                <input type="number" id="w" value="1920" oninput="calc('w')">
+            </div>
+            <div class="input-group">
+                <label>Height (px)</label>
+                <input type="number" id="h" value="1080" oninput="calc('h')">
+            </div>
+        </div>
+
+        <div class="preview" id="previewContainer">
+            <div style="z-index:1; color:#be123c">Preview</div>
+            <div class="preview-box" id="previewBox" style="width:160px; height:90px;"></div>
+        </div>
+    </div>
+
+    <script>
+        let ratioW = 16;
+        let ratioH = 9;
+
+        function setRatio(w, h) {
+            ratioW = w;
+            ratioH = h;
+
+            // Highlight chip
+            document.querySelectorAll('.chip').forEach(c => {
+                c.classList.toggle('active', c.textContent === `${w}:${h}`);
+            });
+
+            // Recalc based on width
+            calc('w');
+        }
+
+        function calc(source) {
+            const wInput = document.getElementById('w');
+            const hInput = document.getElementById('h');
+
+            if (source === 'w') {
+                const w = parseFloat(wInput.value);
+                if (w) hInput.value = Math.round(w * (ratioH / ratioW));
+            } else {
+                const h = parseFloat(hInput.value);
+                if (h) wInput.value = Math.round(h * (ratioW / ratioH));
+            }
+
+            updatePreview();
+        }
+
+        function updatePreview() {
+            const box = document.getElementById('previewBox');
+            // Max size 200px
+            const max = 150;
+            let w, h;
+
+            if (ratioW > ratioH) {
+                w = max;
+                h = max * (ratioH / ratioW);
+            } else {
+                h = max;
+                w = max * (ratioW / ratioH);
+            }
+
+            box.style.width = w + 'px';
+            box.style.height = h + 'px';
+        }
+
+        calc('w');
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Percentage Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: system-ui, sans-serif;
+            background: linear-gradient(135deg, #fa709a, #fee140);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .3)
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 1.5rem
+        }
+
+        .calc-type {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem
+        }
+
+        .calc-type h3 {
+            font-size: .9rem;
+            color: #666;
+            margin-bottom: 1rem
+        }
+
+        .calc-row {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            flex-wrap: wrap
+        }
+
+        .calc-row input {
+            width: 80px;
+            padding: .5rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            text-align: center
+        }
+
+        .calc-row input:focus {
+            outline: none;
+            border-color: #fa709a
+        }
+
+        .calc-row span {
+            color: #666
+        }
+
+        .result-inline {
+            background: #fa709a;
+            color: #fff;
+            padding: .5rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            min-width: 80px;
+            text-align: center
+        }
+
+        .btn {
+            padding: .5rem 1rem;
+            background: #fa709a;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1>📊 Percentage Calculator</h1>
+        <div class="calc-type">
+            <h3>What is X% of Y?</h3>
+            <div class="calc-row">
+                <span>What is</span>
+                <input type="number" id="p1" value="25" oninput="calc1()">
+                <span>% of</span>
+                <input type="number" id="v1" value="200" oninput="calc1()">
+                <span>=</span>
+                <div class="result-inline" id="r1">50</div>
+            </div>
+        </div>
+        <div class="calc-type">
+            <h3>X is what % of Y?</h3>
+            <div class="calc-row">
+                <input type="number" id="v2" value="50" oninput="calc2()">
+                <span>is what % of</span>
+                <input type="number" id="t2" value="200" oninput="calc2()">
+                <span>=</span>
+                <div class="result-inline" id="r2">25%</div>
+            </div>
+        </div>
+        <div class="calc-type">
+            <h3>Percentage Change</h3>
+            <div class="calc-row">
+                <span>From</span>
+                <input type="number" id="from" value="100" oninput="calc3()">
+                <span>to</span>
+                <input type="number" id="to" value="150" oninput="calc3()">
+                <span>=</span>
+                <div class="result-inline" id="r3">+50%</div>
+            </div>
+        </div>
+        <div class="calc-type">
+            <h3>Increase/Decrease by %</h3>
+            <div class="calc-row">
+                <input type="number" id="base" value="100" oninput="calc4()">
+                <select id="op" onchange="calc4()">
+                    <option value="1">+ increase</option>
+                    <option value="-1">- decrease</option>
+                </select>
+                <input type="number" id="pct" value="20" oninput="calc4()">
+                <span>% =</span>
+                <div class="result-inline" id="r4">120</div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function calc1() { const p = parseFloat(document.getElementById('p1').value) || 0; const v = parseFloat(document.getElementById('v1').value) || 0; document.getElementById('r1').textContent = (v * p / 100).toFixed(2) }
+        function calc2() { const v = parseFloat(document.getElementById('v2').value) || 0; const t = parseFloat(document.getElementById('t2').value) || 1; document.getElementById('r2').textContent = (v / t * 100).toFixed(2) + '%' }
+        function calc3() { const f = parseFloat(document.getElementById('from').value) || 0; const t = parseFloat(document.getElementById('to').value) || 0; const c = ((t - f) / Math.abs(f)) * 100; document.getElementById('r3').textContent = (c >= 0 ? '+' : '') + c.toFixed(2) + '%' }
+        function calc4() { const b = parseFloat(document.getElementById('base').value) || 0; const o = parseInt(document.getElementById('op').value); const p = parseFloat(document.getElementById('pct').value) || 0; document.getElementById('r4').textContent = (b + b * p / 100 * o).toFixed(2) }
+        calc1(); calc2(); calc3(); calc4();
+    </script>
+</body>
+
+</html>

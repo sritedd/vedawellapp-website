@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whack-a-Mole</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: #8bc34a;
+            text-align: center;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin: 10px 0;
+            color: #33691e;
+        }
+
+        .score-board {
+            background: #fff;
+            padding: 10px 30px;
+            border-radius: 50px;
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            display: inline-block;
+            border: 4px solid #33691e;
+        }
+
+        .game {
+            width: 600px;
+            height: 400px;
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 auto;
+        }
+
+        .hole {
+            flex: 1 0 33.33%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .hole:after {
+            content: '';
+            display: block;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 50"><ellipse cx="50" cy="25" rx="40" ry="10" fill="%235d4037" /></svg>') no-repeat bottom center;
+            background-size: contain;
+            width: 100%;
+            height: 70px;
+            position: absolute;
+            bottom: -30px;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .mole {
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="%23795548"/><circle cx="35" cy="40" r="5" fill="black"/><circle cx="65" cy="40" r="5" fill="black"/><ellipse cx="50" cy="60" rx="10" ry="15" fill="%23ffab91"/><path d="M40 70 Q50 80 60 70" stroke="black" fill="none"/></svg>') bottom center no-repeat;
+            background-size: 60%;
+            position: absolute;
+            top: 100%;
+            width: 100%;
+            height: 100%;
+            transition: top 0.4s;
+            pointer-events: auto;
+            cursor: crosshair;
+        }
+
+        .hole.up .mole {
+            top: 0;
+        }
+
+        button {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 1rem 3rem;
+            font-size: 1.5rem;
+            border-radius: 50px;
+            cursor: pointer;
+            border-bottom: 5px solid #b71c1c;
+            font-family: inherit;
+        }
+
+        button:active {
+            transform: translateY(5px);
+            border-bottom: none;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Whack-a-Mole!</h1>
+    <div class="score-board">Score: <span id="score">0</span></div>
+
+    <div class="game">
+        <div class="hole hole1">
+            <div class="mole"></div>
+        </div>
+        <div class="hole hole2">
+            <div class="mole"></div>
+        </div>
+        <div class="hole hole3">
+            <div class="mole"></div>
+        </div>
+        <div class="hole hole4">
+            <div class="mole"></div>
+        </div>
+        <div class="hole hole5">
+            <div class="mole"></div>
+        </div>
+        <div class="hole hole6">
+            <div class="mole"></div>
+        </div>
+    </div>
+
+    <button onclick="startGame()">Start Game!</button>
+
+    <script>
+        const holes = document.querySelectorAll('.hole');
+        const scoreBoard = document.querySelector('#score');
+        const moles = document.querySelectorAll('.mole');
+        let lastHole;
+        let timeUp = false;
+        let score = 0;
+
+        function randomTime(min, max) {
+            return Math.round(Math.random() * (max - min) + min);
+        }
+
+        function randomHole(holes) {
+            const idx = Math.floor(Math.random() * holes.length);
+            const hole = holes[idx];
+            if (hole === lastHole) {
+                return randomHole(holes);
+            }
+            lastHole = hole;
+            return hole;
+        }
+
+        function peep() {
+            const time = randomTime(200, 1000);
+            const hole = randomHole(holes);
+            hole.classList.add('up');
+            setTimeout(() => {
+                hole.classList.remove('up');
+                if (!timeUp) peep();
+            }, time);
+        }
+
+        function startGame() {
+            scoreBoard.textContent = 0;
+            score = 0;
+            timeUp = false;
+            peep();
+            setTimeout(() => timeUp = true, 15000); // 15 seconds game
+        }
+
+        function bonk(e) {
+            if (!e.isTrusted) return; // cheater!
+            score++;
+            this.parentNode.classList.remove('up');
+            scoreBoard.textContent = score;
+        }
+
+        moles.forEach(mole => mole.addEventListener('mousedown', bonk));
+        moles.forEach(mole => mole.addEventListener('touchstart', bonk));
+    </script>
+</body>
+
+</html>

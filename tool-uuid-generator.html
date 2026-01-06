@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UUID Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: system-ui, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px
+        }
+
+        .card {
+            background: #252547;
+            border-radius: 24px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .5)
+        }
+
+        h1 {
+            color: #fff;
+            text-align: center;
+            margin-bottom: 1.5rem
+        }
+
+        .main-uuid {
+            background: #1a1a2e;
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            margin-bottom: 1.5rem
+        }
+
+        .uuid-display {
+            font-family: monospace;
+            font-size: 1.5rem;
+            color: #00d9ff;
+            word-break: break-all;
+            margin-bottom: 1rem
+        }
+
+        .btn-row {
+            display: flex;
+            gap: .75rem;
+            justify-content: center
+        }
+
+        .btn {
+            padding: .75rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: .95rem
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00d9ff, #00b4db);
+            color: #0f0f23
+        }
+
+        .btn-secondary {
+            background: #3a3a5c;
+            color: #fff
+        }
+
+        .options {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            color: #aaa;
+            font-size: .9rem
+        }
+
+        .option input {
+            width: 18px;
+            height: 18px;
+            accent-color: #00d9ff
+        }
+
+        .option select,
+        .option input[type="number"] {
+            background: #1a1a2e;
+            border: none;
+            padding: .5rem;
+            border-radius: 6px;
+            color: #fff
+        }
+
+        .bulk-section {
+            background: #1a1a2e;
+            border-radius: 15px;
+            padding: 1.25rem
+        }
+
+        .bulk-section h3 {
+            color: #888;
+            font-size: .85rem;
+            margin-bottom: .75rem
+        }
+
+        .bulk-list {
+            max-height: 300px;
+            overflow-y: auto
+        }
+
+        .uuid-item {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            padding: .5rem;
+            background: #252547;
+            border-radius: 8px;
+            margin-bottom: .5rem
+        }
+
+        .uuid-item code {
+            flex: 1;
+            font-family: monospace;
+            color: #d4d4d4;
+            font-size: .85rem
+        }
+
+        .uuid-item button {
+            background: #00d9ff;
+            color: #0f0f23;
+            border: none;
+            padding: .25rem .5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: .75rem
+        }
+
+        .copy-all {
+            width: 100%;
+            padding: .75rem;
+            background: #3a3a5c;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: .75rem
+        }
+
+        .stats {
+            text-align: center;
+            color: #666;
+            font-size: .85rem;
+            margin-top: 1rem
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1>🔑 UUID Generator</h1>
+        <div class="main-uuid">
+            <div class="uuid-display" id="mainUuid">Click Generate</div>
+            <div class="btn-row">
+                <button class="btn btn-primary" onclick="generateOne()">Generate</button>
+                <button class="btn btn-secondary" onclick="copyMain()">Copy</button>
+            </div>
+        </div>
+        <div class="options">
+            <label class="option">
+                Version:
+                <select id="version" onchange="generateOne()">
+                    <option value="4">v4 (Random)</option>
+                    <option value="1">v1 (Timestamp)</option>
+                </select>
+            </label>
+            <label class="option"><input type="checkbox" id="uppercase" onchange="generateOne()"> Uppercase</label>
+            <label class="option"><input type="checkbox" id="noDashes" onchange="generateOne()"> No Dashes</label>
+        </div>
+        <div class="bulk-section">
+            <h3>Bulk Generate</h3>
+            <div class="options" style="margin-bottom:.75rem">
+                <label class="option">
+                    Count: <input type="number" id="count" value="5" min="1" max="100" style="width:60px">
+                </label>
+                <button class="btn btn-primary" onclick="generateBulk()">Generate Bulk</button>
+            </div>
+            <div class="bulk-list" id="bulkList"></div>
+            <button class="copy-all" onclick="copyAll()">Copy All</button>
+        </div>
+        <div class="stats">Total generated this session: <span id="totalCount">0</span></div>
+    </div>
+    <script>
+        let totalGenerated = 0;
+        let bulkUuids = [];
+        function uuidv4() { return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16) }) }
+        function uuidv1() { const now = Date.now(); const uuid = 'xxxxxxxx-xxxx-1xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c, i) => { if (i < 8) return ((now >> (28 - i * 4)) & 0xf).toString(16); const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16) }); return uuid }
+        function generate() {
+            const v = document.getElementById('version').value;
+            let uuid = v === '1' ? uuidv1() : uuidv4();
+            if (document.getElementById('uppercase').checked) uuid = uuid.toUpperCase();
+            if (document.getElementById('noDashes').checked) uuid = uuid.replace(/-/g, '');
+            return uuid;
+        }
+        function generateOne() {
+            const uuid = generate();
+            document.getElementById('mainUuid').textContent = uuid;
+            totalGenerated++;
+            updateStats();
+        }
+        function generateBulk() {
+            const count = Math.min(parseInt(document.getElementById('count').value) || 5, 100);
+            bulkUuids = [];
+            for (let i = 0; i < count; i++)bulkUuids.push(generate());
+            renderBulk();
+            totalGenerated += count;
+            updateStats();
+        }
+        function renderBulk() {
+            document.getElementById('bulkList').innerHTML = bulkUuids.map((u, i) => `
+                <div class="uuid-item">
+                    <code>${u}</code>
+                    <button onclick="copyOne(${i})">Copy</button>
+                </div>
+            `).join('');
+        }
+        function copyMain() { navigator.clipboard.writeText(document.getElementById('mainUuid').textContent) }
+        function copyOne(i) { navigator.clipboard.writeText(bulkUuids[i]) }
+        function copyAll() { navigator.clipboard.writeText(bulkUuids.join('\n')) }
+        function updateStats() { document.getElementById('totalCount').textContent = totalGenerated }
+        generateOne();
+    </script>
+</body>
+
+</html>

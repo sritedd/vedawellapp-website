@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speed Reader</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: system-ui, sans-serif;
+            background: #1a1a2e;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px
+        }
+
+        .card {
+            background: #252547;
+            border-radius: 24px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 700px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .5)
+        }
+
+        h1 {
+            color: #fff;
+            text-align: center;
+            margin-bottom: 1.5rem
+        }
+
+        .reader-display {
+            background: #1a1a2e;
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center
+        }
+
+        .word {
+            font-size: 4rem;
+            font-weight: 700;
+            color: #fff
+        }
+
+        .word .focus {
+            color: #00d9ff
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 1.5rem
+        }
+
+        .ctrl-btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: 600
+        }
+
+        .ctrl-btn.play {
+            background: #2ecc71;
+            color: #fff
+        }
+
+        .ctrl-btn.play.running {
+            background: #e74c3c
+        }
+
+        .ctrl-btn.reset {
+            background: #3a3a5c;
+            color: #fff
+        }
+
+        .settings {
+            margin-bottom: 1.5rem
+        }
+
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem
+        }
+
+        .slider-row label {
+            color: #888;
+            min-width: 60px
+        }
+
+        .slider-row input[type="range"] {
+            flex: 1;
+            accent-color: #00d9ff
+        }
+
+        .slider-row span {
+            color: #00d9ff;
+            min-width: 80px;
+            text-align: right;
+            font-weight: 600
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: #1a1a2e;
+            border-radius: 3px;
+            margin-bottom: 1rem;
+            overflow: hidden
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #00d9ff;
+            transition: width .1s
+        }
+
+        .stats {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            color: #888;
+            font-size: .9rem;
+            margin-bottom: 1.5rem
+        }
+
+        .stats span {
+            color: #00d9ff
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 1rem;
+            background: #1a1a2e;
+            border: none;
+            border-radius: 12px;
+            color: #d4d4d4;
+            font-size: 1rem;
+            resize: vertical
+        }
+
+        textarea:focus {
+            outline: 2px solid #00d9ff
+        }
+
+        .presets {
+            display: flex;
+            gap: .5rem;
+            margin-bottom: .75rem;
+            flex-wrap: wrap
+        }
+
+        .preset {
+            padding: .5rem 1rem;
+            background: #3a3a5c;
+            border: none;
+            border-radius: 20px;
+            color: #888;
+            cursor: pointer;
+            font-size: .8rem
+        }
+
+        .preset:hover {
+            background: #4a4a6c;
+            color: #fff
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1>⚡ Speed Reader</h1>
+        <div class="reader-display">
+            <div class="word" id="wordDisplay">Click Play to Start</div>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="controls">
+            <button class="ctrl-btn play" id="playBtn" onclick="togglePlay()">▶ Play</button>
+            <button class="ctrl-btn reset" onclick="reset()">↺ Reset</button>
+        </div>
+        <div class="settings">
+            <div class="slider-row">
+                <label>Speed</label>
+                <input type="range" id="wpm" min="100" max="1000" value="300" step="50" oninput="updateWpm()">
+                <span id="wpmVal">300 WPM</span>
+            </div>
+            <div class="slider-row">
+                <label>Chunk</label>
+                <input type="range" id="chunk" min="1" max="5" value="1" oninput="updateChunk()">
+                <span id="chunkVal">1 word</span>
+            </div>
+        </div>
+        <div class="stats">
+            <div>Words: <span id="wordCount">0</span></div>
+            <div>Progress: <span id="progressPct">0%</span></div>
+            <div>Time left: <span id="timeLeft">0:00</span></div>
+        </div>
+        <div class="presets">
+            <button class="preset" onclick="setWpm(200)">Slow (200)</button>
+            <button class="preset" onclick="setWpm(300)">Normal (300)</button>
+            <button class="preset" onclick="setWpm(500)">Fast (500)</button>
+            <button class="preset" onclick="setWpm(800)">Turbo (800)</button>
+        </div>
+        <textarea id="textInput"
+            placeholder="Paste your text here to speed read...">Speed reading is a technique used to improve one's ability to read quickly while maintaining good comprehension. The average person reads about 200-250 words per minute, but with practice, you can read 500-800 words per minute or even faster. This tool helps you practice by showing words one at a time at your chosen speed. The key is to trust your brain to absorb the information without subvocalizing (saying the words in your head). Try increasing the speed gradually as you get comfortable!</textarea>
+    </div>
+    <script>
+        let words = [], currentIndex = 0, running = false, interval;
+        function getWords() { return document.getElementById('textInput').value.trim().split(/\s+/).filter(w => w.length > 0) }
+        function updateWpm() { document.getElementById('wpmVal').textContent = document.getElementById('wpm').value + ' WPM' }
+        function updateChunk() { document.getElementById('chunkVal').textContent = document.getElementById('chunk').value + ' word' + (document.getElementById('chunk').value > 1 ? 's' : '') }
+        function setWpm(v) { document.getElementById('wpm').value = v; updateWpm() }
+        function togglePlay() {
+            if (running) { stopPlay() }
+            else { startPlay() }
+        }
+        function startPlay() {
+            words = getWords();
+            if (words.length === 0) return;
+            running = true;
+            document.getElementById('playBtn').textContent = '⏸ Pause';
+            document.getElementById('playBtn').classList.add('running');
+            const wpm = parseInt(document.getElementById('wpm').value);
+            const chunk = parseInt(document.getElementById('chunk').value);
+            const delay = 60000 / wpm * chunk;
+            interval = setInterval(() => {
+                if (currentIndex >= words.length) { stopPlay(); return }
+                const wordGroup = words.slice(currentIndex, currentIndex + chunk).join(' ');
+                displayWord(wordGroup);
+                currentIndex += chunk;
+                updateProgress();
+            }, delay);
+        }
+        function stopPlay() {
+            running = false;
+            clearInterval(interval);
+            document.getElementById('playBtn').textContent = '▶ Play';
+            document.getElementById('playBtn').classList.remove('running');
+        }
+        function reset() {
+            stopPlay();
+            currentIndex = 0;
+            document.getElementById('wordDisplay').innerHTML = 'Click Play to Start';
+            document.getElementById('progressFill').style.width = '0%';
+            document.getElementById('progressPct').textContent = '0%';
+            updateStats();
+        }
+        function displayWord(word) {
+            if (word.length <= 3) {
+                document.getElementById('wordDisplay').innerHTML = `<span class="focus">${word}</span>`;
+            } else {
+                const focusIdx = Math.floor(word.length * 0.3);
+                const before = word.slice(0, focusIdx);
+                const focus = word[focusIdx];
+                const after = word.slice(focusIdx + 1);
+                document.getElementById('wordDisplay').innerHTML = `${before}<span class="focus">${focus}</span>${after}`;
+            }
+        }
+        function updateProgress() {
+            const pct = (currentIndex / words.length * 100);
+            document.getElementById('progressFill').style.width = pct + '%';
+            document.getElementById('progressPct').textContent = Math.round(pct) + '%';
+            const wpm = parseInt(document.getElementById('wpm').value);
+            const remaining = words.length - currentIndex;
+            const secsLeft = Math.ceil(remaining / wpm * 60);
+            document.getElementById('timeLeft').textContent = Math.floor(secsLeft / 60) + ':' + String(secsLeft % 60).padStart(2, '0');
+        }
+        function updateStats() {
+            const w = getWords();
+            document.getElementById('wordCount').textContent = w.length;
+            const wpm = parseInt(document.getElementById('wpm').value);
+            const secs = Math.ceil(w.length / wpm * 60);
+            document.getElementById('timeLeft').textContent = Math.floor(secs / 60) + ':' + String(secs % 60).padStart(2, '0');
+        }
+        document.getElementById('textInput').addEventListener('input', updateStats);
+        updateStats();
+    </script>
+</body>
+
+</html>

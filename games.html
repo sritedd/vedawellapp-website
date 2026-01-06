@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Browser Games - Snake, 2048, Tetris & More | VedaWell Games</title>
+    <meta name="description"
+        content="Play free browser games including Snake, 2048, Flappy Bird, Memory Match, and Tetris. No downloads, just instant fun!">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://vedawelltools.netlify.app/games">
+    <meta property="og:title" content="Free Browser Games - VedaWell Games">
+    <meta property="og:description"
+        content="Play free browser games. Snake, 2048, Tetris, and more - no downloads needed!">
+
+    <!-- Favicon -->
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles/main.css">
+
+    <!-- Google AdSense -->
+    <!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXX" crossorigin="anonymous"></script> -->
+
+    <style>
+        /* Page-specific styles */
+        .games-hero {
+            padding: 4rem 0 3rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .games-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(236, 72, 153, 0.2), transparent 60%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .games-hero h1 {
+            font-size: var(--font-size-5xl);
+            font-weight: 800;
+            margin-bottom: var(--space-md);
+            line-height: 1.1;
+        }
+
+        .games-hero p {
+            color: var(--text-secondary);
+            font-size: var(--font-size-xl);
+            max-width: 600px;
+            margin: 0 auto var(--space-xl);
+        }
+
+        .games-stats {
+            display: flex;
+            justify-content: center;
+            gap: 4rem;
+            margin-top: var(--space-xl);
+        }
+
+        .games-stat {
+            text-align: center;
+        }
+
+        .games-stat-value {
+            font-size: var(--font-size-4xl);
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent-tertiary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .games-stat-label {
+            font-size: var(--font-size-sm);
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        .games-section {
+            padding: var(--space-xl) 0 var(--space-3xl);
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-xl);
+        }
+
+        @media (max-width: 900px) {
+            .games-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .games-hero h1 {
+                font-size: var(--font-size-4xl);
+            }
+
+            .games-stats {
+                gap: 2rem;
+                flex-wrap: wrap;
+            }
+        }
+
+        .game-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-2xl);
+            overflow: hidden;
+            transition: all var(--transition-normal);
+            display: block;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .game-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-lg), 0 0 80px var(--glow-secondary);
+            border-color: var(--accent-secondary);
+        }
+
+        .game-preview {
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-preview::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0.3;
+        }
+
+        .game-card.snake .game-preview::before {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+        }
+
+        .game-card.puzzle-2048 .game-preview::before {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        .game-card.flappy .game-preview::before {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        }
+
+        .game-card.memory .game-preview::before {
+            background: linear-gradient(135deg, #9333ea, #7c3aed);
+        }
+
+        .game-card.tetris .game-preview::before {
+            background: linear-gradient(135deg, #ec4899, #db2777);
+        }
+
+        .game-card.pong .game-preview::before {
+            background: linear-gradient(135deg, #64748b, #475569);
+        }
+
+        .game-card.breakout .game-preview::before {
+            background: linear-gradient(135deg, #e91e63, #ad1457);
+        }
+
+        .game-card.minesweeper .game-preview::before {
+            background: linear-gradient(135deg, #607d8b, #455a64);
+        }
+
+        .game-card.tictactoe .game-preview::before {
+            background: linear-gradient(135deg, #00bcd4, #0097a7);
+        }
+
+        .game-card.connect4 .game-preview::before {
+            background: linear-gradient(135deg, #4caf50, #388e3c);
+        }
+
+        .game-card.whackamole .game-preview::before {
+            background: linear-gradient(135deg, #8bc34a, #689f38);
+        }
+
+        .game-card.simonsays .game-preview::before {
+            background: linear-gradient(135deg, #e91e63, #c2185b);
+        }
+
+        .game-card.hangman .game-preview::before {
+            background: linear-gradient(135deg, #795548, #5d4037);
+        }
+
+        .game-card.sudoku .game-preview::before {
+            background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+        }
+
+        .game-preview-icon {
+            position: relative;
+            z-index: 1;
+            animation: bounce 2s infinite ease-in-out;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .game-play-btn {
+            position: absolute;
+            bottom: var(--space-md);
+            right: var(--space-md);
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            color: #000;
+            border-radius: var(--radius-full);
+            font-weight: 600;
+            font-size: var(--font-size-sm);
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all var(--transition-fast);
+        }
+
+        .game-card:hover .game-play-btn {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .game-info {
+            padding: var(--space-xl);
+        }
+
+        .game-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--space-md);
+        }
+
+        .game-title {
+            font-size: var(--font-size-2xl);
+            font-weight: 700;
+        }
+
+        .game-difficulty {
+            display: flex;
+            gap: 4px;
+        }
+
+        .game-difficulty span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--border);
+        }
+
+        .game-difficulty span.active {
+            background: var(--accent-warning);
+        }
+
+        .game-description {
+            color: var(--text-secondary);
+            font-size: var(--font-size-base);
+            line-height: 1.6;
+            margin-bottom: var(--space-lg);
+        }
+
+        .game-meta {
+            display: flex;
+            gap: var(--space-lg);
+            padding-top: var(--space-md);
+            border-top: 1px solid var(--border);
+        }
+
+        .game-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: var(--font-size-sm);
+            color: var(--text-muted);
+        }
+
+        .game-meta-item.high-score {
+            color: var(--accent-warning);
+            font-weight: 600;
+        }
+
+        /* Coming Soon Section */
+        .coming-soon {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: var(--radius-2xl);
+            padding: var(--space-3xl);
+            text-align: center;
+            margin-top: var(--space-xl);
+        }
+
+        .coming-soon h3 {
+            font-size: var(--font-size-2xl);
+            margin-bottom: var(--space-md);
+        }
+
+        .coming-soon p {
+            color: var(--text-secondary);
+            max-width: 500px;
+            margin: 0 auto var(--space-xl);
+        }
+
+        .coming-soon-games {
+            display: flex;
+            justify-content: center;
+            gap: var(--space-lg);
+            flex-wrap: wrap;
+        }
+
+        .coming-soon-item {
+            background: var(--bg-card);
+            border: 1px dashed var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            text-align: center;
+            min-width: 120px;
+        }
+
+        .coming-soon-item .icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .coming-soon-item .name {
+            font-size: var(--font-size-sm);
+            color: var(--text-muted);
+        }
+
+        /* Leaderboard */
+        .leaderboard-section {
+            padding: var(--space-3xl) 0;
+            border-top: 1px solid var(--border);
+        }
+
+        .leaderboard-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: var(--space-lg);
+        }
+
+        @media (max-width: 1024px) {
+            .leaderboard-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .leaderboard-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .leaderboard-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            text-align: center;
+        }
+
+        .leaderboard-game {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .leaderboard-name {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .leaderboard-score {
+            font-size: var(--font-size-xl);
+            font-weight: 700;
+            color: var(--accent-warning);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-gradient"></div>
+
+    <div class="container">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">🛠️</div>
+                VedaWell Tools
+            </a>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="tools.html">Tools</a>
+                <a href="games.html" class="active">Games</a>
+                <a href="about.html">About</a>
+                <a href="https://buymeacoffee.com/vedawell" target="_blank" class="nav-cta">☕ Support</a>
+            </div>
+            <button class="mobile-menu-btn" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
+        </nav>
+
+        <!-- Hero -->
+        <section class="games-hero">
+            <div class="badge">
+                <span class="badge-dot"></span>
+                Free Browser Games
+            </div>
+            <h1>🎮 Game <span class="text-gradient">Arcade</span></h1>
+            <p>Take a break and have some fun! Classic games that run right in your browser — no downloads needed.</p>
+
+            <div class="games-stats">
+                <div class="games-stat">
+                    <div class="games-stat-value">14</div>
+                    <div class="games-stat-label">Games</div>
+                </div>
+                <div class="games-stat">
+                    <div class="games-stat-value">∞</div>
+                    <div class="games-stat-label">Play Time</div>
+                </div>
+                <div class="games-stat">
+                    <div class="games-stat-value">0</div>
+                    <div class="games-stat-label">Downloads</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Ad Banner -->
+        <div class="ad-container">
+            <div class="ad-placeholder">
+                <p>📢 Advertisement</p>
+                <small>Support us by <a href="https://buymeacoffee.com/vedawell" target="_blank">buying us a
+                        coffee</a></small>
+            </div>
+        </div>
+
+        <!-- Games Section -->
+        <section class="games-section">
+            <div class="games-grid">
+
+                <!-- Snake -->
+                <a href="game-snake.html" class="game-card snake reveal">
+                    <div class="game-preview">
+                        <span class="game-preview-icon">🐍</span>
+                        <div class="game-play-btn">▶ Play Now</div>
+                    </div>
+                    <div class="game-info">
+                        <div class="game-header">
+                            <h3 class="game-title">Snake</h3>
+                            <div class="game-difficulty" title="Easy">
+                                <span class="active"></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                        </div>
+                        <p class="game-description">The classic snake game! Eat food, grow longer, and avoid hitting the
+                            walls or yourself. How long can you survive?</p>
+                        <div class="game-meta">
+                            <div class="game-meta-item">🎯 Classic</div>
+                            <div class="game-meta-item">⌨️ Arrow Keys</div>
+                            <div class="game-meta-item high-score" id="snakeScore">🏆 Best: --</div>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- 2048 -->
+                <a href="game-2048.html" class="game-card puzzle-2048 reveal">
+                    <div class="game-preview">
+                        <span class="game-preview-icon">🔢</span>
+                        <div class="game-play-btn">▶ Play Now</div>
+                    </div>
+                    <div class="game-info">
+                        <div class="game-header">
+                            <h3 class="game-title">2048</h3>
+                            <div class="game-difficulty" title="Medium">
+                                <span class="active"></span>
+                                <span class="active"></span>
+                                <span></span>
+                            </div>
+                        </div>
+                        <p class="game-description">Slide and combine numbered tiles to reach 2048! A simple yet
+                            addictive puzzle game that tests your strategic thinking.</p>
+                        <div class="game-meta">
+                            <div class="game-meta-item">🧩 Puzzle</div>
+                            <div class="game-meta-item">⌨️ Arrow Keys</div>
+                            <div class="game-meta-item high-score" id="2048Score">🏆 Best: --</div>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Flappy Bird -->
+                <a href="game-flappy-bird.html" class="game-card flappy reveal">
+                    <div class="game-preview">
+                        <span class="game-preview-icon">🐦</span>
+                        <div class="game-play-btn">▶ Play Now</div>
+                    </div>
+                    <div class="game-info">
+                        <div class="game-header">
+                            <h3 class="game-title">Flappy Bird</h3>
+                            <div class="game-difficulty" title="Hard">
+                                <span class="active"></span>
+                                <span class="active"></span>
+                                <span class="active"></span>
+                            </div>
+                        </div>
+                        <p class="game-description">Tap to fly through the pipes! The infamous rage-inducing game that
+                            will test your timing and patience.</p>
+                        <div class="game-meta">
+                            <div class="game-meta-item">🎯 Arcade</div>
+                            <div class="game-meta-item">👆 Tap/Space</div>
+                            <div class="game-meta-item high-score" id="flappyScore">🏆 Best: --</div>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Memory Match -->
+                <a href="game-memory-match.html" class="game-card memory reveal">
+                    <div class="game-preview">
+                        <span class="game-preview-icon">🧠</span>
+                        <div class="game-play-btn">▶ Play Now</div>
+                    </div>
+                    <div class="game-info">
+                        <div class="game-header">
+                            <h3 class="game-title">Memory Match</h3>
+                            <div class="game-difficulty" title="Easy">
+                                <span class="active"></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                        </div>
+                        <p class="game-description">Flip cards and find matching pairs! Train your memory and try to
+                            complete the board with the fewest moves.</p>
+                        <div class="game-meta">
+                            <div class="game-meta-item">🧠 Brain</div>
+                            <div class="game-meta-item">🖱️ Click</div>
+                            <div class="game-meta-item high-score" id="memoryScore">🏆 Best: --</div>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Tetris -->
+                <a href="game-tetris.html" class="game-card tetris reveal">
+                    <div class="game-preview">
+                        <span class="game-preview-icon">🧱</span>
+                        <div class="game-play-btn">▶ Play Now</div>
+                    </div>
+                    <div class="game-info">
+                        <div class="game-header">
+                            <h3 class="game-title">Tetris</h3>
+                            <div class="game-difficulty" title="Medium">
+                                <span class="active"></span>
+                                <span class="active"></span>
+                                <span></span>
+                            </div>
+                        </div>
+                        <p class="game-description">The iconic block-stacking game! Rotate and place falling Tetriminos
+                            to clear lines. How many can you clear?</p>
+                        <div class="game-meta">
+                            <div class="game-meta-item">🧩 Puzzle</div>
+                            <div class="game-meta-item">⌨️ Arrow Keys</div>
+                            <div class="game-meta-item high-score" id="tetrisScore">🏆 Best: --</div>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Pong -->
+                <a href="game-pong.html" class="game-card pong reveal">
+                    <div class="game-preview">
+                        <span class="game-preview-icon">🏓</span>
+                        <div class="game-play-btn">▶ Play Now</div>
+                    </div>
+                    <div class="game-info">
+                        <div class="game-header">
+                            <h3 class="game-title">Pong</h3>
+                            <div class="game-difficulty" title="Easy">
+                                <span class="active"></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                        </div>
+                        <p class="game-description">The classic arcade game! Control your paddle and beat the AI in this
+                            timeless table tennis battle.</p>
+                        <div class="game-meta">
+                            <div class="game-meta-item">🎯 Arcade</div>
+                            <div class="game-meta-item">🖱️ Mouse</div>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Breakout -->
+                <a href="game-breakout.html" class="game-card breakout reveal">
+                    <div class="game-preview">
+                        <span class="game-preview-icon">🧱</span>
+                        <div class="game-play-btn">▶ Play Now</div>
+                    </div>
+                    <div class="game-info">
+                        <div class="game-header">
+                            <h3 class="game-title">Breakout</h3>
+                            <div class="game-difficulty" title="Medium">
+                                <span class="active"></span>
+                                <span class="active"></span>
+                                <span></span>
+                            </div>
+                        </div>
+                        <p class="game-description">Smash all the bricks with your ball and paddle! A classic
+                            brick-breaking arcade game with colorful rows.</p>
+                        <div class="game-meta">
+                            <div class="game-meta-item">🎯 Arcade</div>
+                            <div class="game-meta-item">🖱️ Mouse/Arrows</div>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Minesweeper -->
+                <a href="game-minesweeper.html" class="game-card minesweeper reveal">
+                    <div class="game-preview">
+                        <span class="game-preview-icon">💣</span>
+                        <div class="game-play-btn">▶ Play Now</div>
+                    </div>
+                    <div class="game-info">
+                        <div class="game-header">
+                            <h3 class="game-title">Minesweeper</h3>
+                            <div class="game-difficulty" title="Hard">
+                                <span class="active"></span>
+                                <span class="active"></span>
+                                <span class="active"></span>
+                            </div>
+                        </div>
+                        <p class="game-description">Clear the minefield without hitting any bombs! Use logic to figure
+                            out where the mines are hidden.</p>
+                        <div class="game-meta">
+                            <div class="game-meta-item">🧩 Logic</div>
+                            <div class="game-meta-item">🖱️ Click/Right-Click</div>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Tic-Tac-Toe -->
+                <a href="game-tic-tac-toe.html" class="game-card tictactoe reveal">
+                    <div class="game-preview">
+                        <span class="game-preview-icon">⭕</span>
+                        <div class="game-play-btn">▶ Play Now</div>
+                    </div>
+                    <div class="game-info">
+                        <div class="game-header">
+                            <h3 class="game-title">Tic-Tac-Toe</h3>
+                            <div class="game-difficulty" title="Easy">
+                                <span class="active"></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                        </div>
+                        <p class="game-description">The classic X's and O's game! Get three in a row before your
+                            opponent does.</p>
+                        <div class="game-meta">
+                            <div class="game-meta-item">🎯 Strategy</div>
+                            <div class="game-meta-item">🖱️ Click</div>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Connect 4 -->
+                <a href="game-connect-4.html" class="game-card connect4 reveal">
+                    <div class="game-preview">
+                        <span class="game-preview-icon">🔴</span>
+                        <div class="game-play-btn">▶ Play Now</div>
+                    </div>
+                    <div class="game-info">
+                        <div class="game-header">
+                            <h3 class="game-title">Connect 4</h3>
+                            <div class="game-difficulty" title="Medium">
+                                <span class="active"></span>
+                                <span class="active"></span>
+                                <span></span>
+                            </div>
+                        </div>
+                        <p class="game-description">Drop your discs and connect four in a row — horizontally,
+                            vertically, or diagonally!</p>
+                        <div class="game-meta">
+                            <div class="game-meta-item">🎯 Strategy</div>
+                            <div class="game-meta-item">🖱️ Click</div>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Whack-a-Mole -->
+                <a href="game-whack-a-mole.html" class="game-card whackamole reveal">
+                    <div class="game-preview">
+                        <span class="game-preview-icon">🐹</span>
+                        <div class="game-play-btn">▶ Play Now</div>
+                    </div>
+                    <div class="game-info">
+                        <div class="game-header">
+                            <h3 class="game-title">Whack-a-Mole</h3>
+                            <div class="game-difficulty" title="Easy">
+                                <span class="active"></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                        </div>
+                        <p class="game-description">Hit the moles as fast as you can when they pop up! Test your
+                            reflexes in this arcade classic.</p>
+                        <div class="game-meta">
+                            <div class="game-meta-item">⚡ Reflex</div>
+                            <div class="game-meta-item">🖱️ Click</div>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Simon Says -->
+                <a href="game-simon-says.html" class="game-card simonsays reveal">
+                    <div class="game-preview">
+                        <span class="game-preview-icon">🎨</span>
+                        <div class="game-play-btn">▶ Play Now</div>
+                    </div>
+                    <div class="game-info">
+                        <div class="game-header">
+                            <h3 class="game-title">Simon Says</h3>
+                            <div class="game-difficulty" title="Medium">
+                                <span class="active"></span>
+                                <span class="active"></span>
+                                <span></span>
+                            </div>
+                        </div>
+                        <p class="game-description">Test your memory! Watch the color sequence and repeat it. How far
+                            can you go?</p>
+                        <div class="game-meta">
+                            <div class="game-meta-item">🧠 Memory</div>
+                            <div class="game-meta-item">🖱️ Click</div>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Hangman -->
+                <a href="game-hangman.html" class="game-card hangman reveal">
+                    <div class="game-preview">
+                        <span class="game-preview-icon">📝</span>
+                        <div class="game-play-btn">▶ Play Now</div>
+                    </div>
+                    <div class="game-info">
+                        <div class="game-header">
+                            <h3 class="game-title">Hangman</h3>
+                            <div class="game-difficulty" title="Easy">
+                                <span class="active"></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                        </div>
+                        <p class="game-description">Guess the hidden word one letter at a time! But be careful — too
+                            many wrong guesses and you lose!</p>
+                        <div class="game-meta">
+                            <div class="game-meta-item">📖 Word</div>
+                            <div class="game-meta-item">⌨️ Keyboard</div>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Sudoku -->
+                <a href="game-sudoku.html" class="game-card sudoku reveal">
+                    <div class="game-preview">
+                        <span class="game-preview-icon">🔢</span>
+                        <div class="game-play-btn">▶ Play Now</div>
+                    </div>
+                    <div class="game-info">
+                        <div class="game-header">
+                            <h3 class="game-title">Sudoku</h3>
+                            <div class="game-difficulty" title="Hard">
+                                <span class="active"></span>
+                                <span class="active"></span>
+                                <span class="active"></span>
+                            </div>
+                        </div>
+                        <p class="game-description">The classic number puzzle! Fill the 9x9 grid so each row, column,
+                            and box contains 1-9.</p>
+                        <div class="game-meta">
+                            <div class="game-meta-item">🧩 Puzzle</div>
+                            <div class="game-meta-item">🖱️ Click/Type</div>
+                        </div>
+                    </div>
+                </a>
+
+            </div>
+
+            <!-- Coming Soon -->
+            <div class="coming-soon reveal">
+                <h3>🚀 More Games Coming Soon!</h3>
+                <p>We're working on new games to add to the arcade. Have a suggestion? Let us know!</p>
+                <div class="coming-soon-games">
+                    <div class="coming-soon-item">
+                        <div class="icon">🎰</div>
+                        <div class="name">Slot Machine</div>
+                    </div>
+                    <div class="coming-soon-item">
+                        <div class="icon">🎲</div>
+                        <div class="name">Dice Game</div>
+                    </div>
+                    <div class="coming-soon-item">
+                        <div class="icon">🃏</div>
+                        <div class="name">Solitaire</div>
+                    </div>
+                    <div class="coming-soon-item">
+                        <div class="icon">♟️</div>
+                        <div class="name">Chess</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Leaderboard Section -->
+        <section class="leaderboard-section">
+            <div class="section-header">
+                <h2 class="section-title">🏆 Your High Scores</h2>
+                <p class="section-subtitle">Your personal best scores are saved locally in your browser.</p>
+            </div>
+            <div class="leaderboard-grid">
+                <div class="leaderboard-card reveal">
+                    <div class="leaderboard-game">🐍</div>
+                    <div class="leaderboard-name">Snake</div>
+                    <div class="leaderboard-score" id="snakeLeaderboard">--</div>
+                </div>
+                <div class="leaderboard-card reveal">
+                    <div class="leaderboard-game">🔢</div>
+                    <div class="leaderboard-name">2048</div>
+                    <div class="leaderboard-score" id="2048Leaderboard">--</div>
+                </div>
+                <div class="leaderboard-card reveal">
+                    <div class="leaderboard-game">🐦</div>
+                    <div class="leaderboard-name">Flappy Bird</div>
+                    <div class="leaderboard-score" id="flappyLeaderboard">--</div>
+                </div>
+                <div class="leaderboard-card reveal">
+                    <div class="leaderboard-game">🧠</div>
+                    <div class="leaderboard-name">Memory Match</div>
+                    <div class="leaderboard-score" id="memoryLeaderboard">--</div>
+                </div>
+                <div class="leaderboard-card reveal">
+                    <div class="leaderboard-game">🧱</div>
+                    <div class="leaderboard-name">Tetris</div>
+                    <div class="leaderboard-score" id="tetrisLeaderboard">--</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="section" style="border-top: 1px solid var(--border);">
+            <div class="section-header">
+                <h2 class="section-title">🛠️ Need Productivity Tools?</h2>
+                <p class="section-subtitle">Check out our collection of 65+ free tools for work and personal use!</p>
+            </div>
+            <div class="text-center">
+                <a href="tools.html" class="btn btn-primary">Browse Tools →</a>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <a href="index.html" class="logo">
+                        <div class="logo-icon">🛠️</div>
+                        VedaWell Tools
+                    </a>
+                    <p>Free, browser-based productivity tools and games. No sign-ups, no downloads — everything runs
+                        locally in your browser.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="tools.html">All Tools</a></li>
+                        <li><a href="games.html">Games</a></li>
+                        <li><a href="about.html">About</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Support</h4>
+                    <ul>
+                        <li><a href="https://buymeacoffee.com/vedawell" target="_blank">Buy Me a Coffee</a></li>
+                        <li><a href="https://kothandan.gumroad.com/" target="_blank">Premium Products</a></li>
+                        <li><a href="mailto:support@vedawellapp.com">Contact Us</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="privacy-policy.html">Privacy Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2025 VedaWell. All rights reserved.</p>
+                <div class="footer-social">
+                    <a href="https://buymeacoffee.com/vedawell" target="_blank" title="Buy Me a Coffee">☕</a>
+                    <a href="https://kothandan.gumroad.com/" target="_blank" title="Gumroad">🛒</a>
+                    <a href="mailto:support@vedawellapp.com" title="Email">📧</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/main.js"></script>
+    <script>
+        // Load high scores from localStorage
+        document.addEventListener('DOMContentLoaded', () => {
+            // Snake
+            const snakeHigh = localStorage.getItem('snakeHigh') || '--';
+            document.getElementById('snakeScore').textContent = `🏆 Best: ${snakeHigh}`;
+            document.getElementById('snakeLeaderboard').textContent = snakeHigh;
+
+            // 2048
+            const game2048High = localStorage.getItem('2048High') || '--';
+            document.getElementById('2048Score').textContent = `🏆 Best: ${game2048High}`;
+            document.getElementById('2048Leaderboard').textContent = game2048High;
+
+            // Flappy Bird
+            const flappyHigh = localStorage.getItem('flappyHigh') || '--';
+            document.getElementById('flappyScore').textContent = `🏆 Best: ${flappyHigh}`;
+            document.getElementById('flappyLeaderboard').textContent = flappyHigh;
+
+            // Memory Match
+            const memoryHigh = localStorage.getItem('memoryHigh') || '--';
+            document.getElementById('memoryScore').textContent = `🏆 Best: ${memoryHigh}`;
+            document.getElementById('memoryLeaderboard').textContent = memoryHigh;
+
+            // Tetris
+            const tetrisHigh = localStorage.getItem('tetrisHigh') || '--';
+            document.getElementById('tetrisScore').textContent = `🏆 Best: ${tetrisHigh}`;
+            document.getElementById('tetrisLeaderboard').textContent = tetrisHigh;
+        });
+    </script>
+</body>
+
+</html>

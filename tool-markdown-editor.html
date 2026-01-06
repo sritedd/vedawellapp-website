@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown Editor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: system-ui, sans-serif;
+            background: #1e1e1e;
+            min-height: 100vh
+        }
+
+        .toolbar {
+            background: #2d2d2d;
+            padding: .75rem;
+            display: flex;
+            gap: .5rem;
+            flex-wrap: wrap
+        }
+
+        .toolbar button {
+            background: #3c3c3c;
+            color: #ccc;
+            border: none;
+            padding: .5rem .75rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: .9rem
+        }
+
+        .toolbar button:hover {
+            background: #4c4c4c
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            height: calc(100vh - 52px)
+        }
+
+        @media(max-width:800px) {
+            .container {
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr 1fr
+            }
+        }
+
+        .panel {
+            display: flex;
+            flex-direction: column
+        }
+
+        .panel-header {
+            background: #2d2d2d;
+            padding: .5rem 1rem;
+            font-size: .8rem;
+            color: #888;
+            text-transform: uppercase
+        }
+
+        #editor {
+            flex: 1;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            border: none;
+            padding: 1rem;
+            font-family: 'Fira Code', monospace;
+            font-size: .95rem;
+            resize: none;
+            line-height: 1.6
+        }
+
+        #editor:focus {
+            outline: none
+        }
+
+        #preview {
+            flex: 1;
+            background: #fff;
+            padding: 1.5rem;
+            overflow-y: auto;
+            line-height: 1.7
+        }
+
+        #preview h1,
+        #preview h2,
+        #preview h3 {
+            margin: 1rem 0 .5rem;
+            color: #333
+        }
+
+        #preview h1 {
+            font-size: 2rem;
+            border-bottom: 2px solid #eee;
+            padding-bottom: .5rem
+        }
+
+        #preview h2 {
+            font-size: 1.5rem
+        }
+
+        #preview h3 {
+            font-size: 1.25rem
+        }
+
+        #preview p {
+            margin: .75rem 0;
+            color: #444
+        }
+
+        #preview code {
+            background: #f4f4f4;
+            padding: .2rem .4rem;
+            border-radius: 4px;
+            font-family: monospace
+        }
+
+        #preview pre {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1rem 0
+        }
+
+        #preview pre code {
+            background: none;
+            padding: 0
+        }
+
+        #preview blockquote {
+            border-left: 4px solid #667eea;
+            padding-left: 1rem;
+            margin: 1rem 0;
+            color: #666;
+            font-style: italic
+        }
+
+        #preview ul,
+        #preview ol {
+            margin: 1rem 0;
+            padding-left: 2rem
+        }
+
+        #preview li {
+            margin: .25rem 0
+        }
+
+        #preview a {
+            color: #667eea
+        }
+
+        #preview img {
+            max-width: 100%;
+            border-radius: 8px
+        }
+
+        #preview table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1rem 0
+        }
+
+        #preview th,
+        #preview td {
+            border: 1px solid #ddd;
+            padding: .5rem
+        }
+
+        #preview th {
+            background: #f4f4f4
+        }
+
+        #preview hr {
+            border: none;
+            border-top: 2px solid #eee;
+            margin: 1.5rem 0
+        }
+    </style>
+</head>
+
+<body>
+    <div class="toolbar">
+        <button onclick="insert('# ','')">H1</button>
+        <button onclick="insert('## ','')">H2</button>
+        <button onclick="insert('### ','')">H3</button>
+        <button onclick="insert('**','**')">Bold</button>
+        <button onclick="insert('*','*')">Italic</button>
+        <button onclick="insert('~~','~~')">Strike</button>
+        <button onclick="insert('`','`')">Code</button>
+        <button onclick="insert('```\n','\n```')">Block</button>
+        <button onclick="insert('[','](<url>)')">Link</button>
+        <button onclick="insert('![alt](',')')">Image</button>
+        <button onclick="insert('- ','')">List</button>
+        <button onclick="insert('1. ','')">Num</button>
+        <button onclick="insert('> ','')">Quote</button>
+        <button onclick="insert('---\n','')">Line</button>
+        <button onclick="insert('| Col | Col |\n|-----|-----|\n| ','  |     |')">Table</button>
+    </div>
+    <div class="container">
+        <div class="panel">
+            <div class="panel-header">Markdown</div>
+            <textarea id="editor" oninput="render()"></textarea>
+        </div>
+        <div class="panel">
+            <div class="panel-header">Preview</div>
+            <div id="preview"></div>
+        </div>
+    </div>
+    <script>
+        const defaultMd = `# Welcome to Markdown Editor\n\nType on the left, see preview on the right!\n\n## Features\n\n- **Bold** and *italic* text\n- \`inline code\` and code blocks\n- Lists and tables\n- Links and images\n\n### Code Example\n\n\`\`\`javascript\nconsole.log("Hello World!");\n\`\`\`\n\n> This is a blockquote\n\n| Name | Value |\n|------|-------|\n| Foo  | Bar   |\n\n---\n\nHappy writing! ✍️`;
+        document.getElementById('editor').value = localStorage.getItem('md-editor') || defaultMd;
+        function render() {
+            const md = document.getElementById('editor').value;
+            localStorage.setItem('md-editor', md);
+            let html = md
+                .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+                .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+                .replace(/^# (.*$)/gm, '<h1>$1</h1>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/~~(.*?)~~/g, '<del>$1</del>')
+                .replace(/`([^`]+)`/g, '<code>$1</code>')
+                .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
+                .replace(/^\> (.*$)/gm, '<blockquote>$1</blockquote>')
+                .replace(/^\- (.*$)/gm, '<li>$1</li>')
+                .replace(/^\d+\. (.*$)/gm, '<li>$1</li>')
+                .replace(/\!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">')
+                .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
+                .replace(/^---$/gm, '<hr>')
+                .replace(/\|(.+)\|/g, (m, p) => '<tr>' + p.split('|').map(c => '<td>' + c.trim() + '</td>').join('') + '</tr>')
+                .replace(/(<tr>.*?<\/tr>)/gs, '<table>$1</table>')
+                .replace(/<\/table>\s*<table>/g, '')
+                .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
+                .replace(/<\/ul>\s*<ul>/g, '')
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/\n/g, '<br>');
+            html = '<p>' + html + '</p>';
+            document.getElementById('preview').innerHTML = html;
+        }
+        function insert(before, after) {
+            const e = document.getElementById('editor');
+            const start = e.selectionStart, end = e.selectionEnd;
+            const sel = e.value.substring(start, end);
+            e.value = e.value.substring(0, start) + before + sel + after + e.value.substring(end);
+            e.focus(); e.selectionStart = e.selectionEnd = start + before.length + sel.length;
+            render();
+        }
+        render();
+    </script>
+</body>
+
+</html>

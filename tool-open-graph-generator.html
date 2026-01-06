@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Open Graph Generator</title>
+    <style>
+        :root {
+            --fb-blue: #1877F2;
+            --text: #1c1e21;
+            --bg: #f0f2f5;
+        }
+
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            margin: 0;
+            padding: 20px;
+            color: var(--text);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 2rem;
+        }
+
+        @media (max-width: 800px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+        }
+
+        h1 {
+            color: var(--fb-blue);
+            margin-top: 0;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #dddfe2;
+            border-radius: 6px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .preview-card {
+            background: white;
+            border: 1px solid #dddfe2;
+            border-radius: 8px;
+            overflow: hidden;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .og-image {
+            width: 100%;
+            height: 260px;
+            background: #eaebed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #90949c;
+            font-size: 0.9rem;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .og-text {
+            padding: 10px 12px;
+            background: #f2f3f5;
+            border-top: 1px solid #dddfe2;
+        }
+
+        .og-site {
+            text-transform: uppercase;
+            color: #606770;
+            font-size: 12px;
+            margin-bottom: 5px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .og-title {
+            font-family: Georgia, serif;
+            font-weight: 600;
+            font-size: 16px;
+            color: #1d2129;
+            margin-bottom: 5px;
+            line-height: 20px;
+            max-height: 40px;
+            overflow: hidden;
+        }
+
+        .og-desc {
+            font-size: 14px;
+            color: #606770;
+            line-height: 20px;
+            max-height: 20px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .code-box {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 1rem;
+            border-radius: 6px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            margin-top: 1rem;
+            position: relative;
+            font-size: 0.85rem;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>Open Graph Generator</h1>
+            <div class="form-group">
+                <label>Site Name</label>
+                <input type="text" id="site_name" placeholder="My Website" oninput="update()">
+            </div>
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text" id="title" placeholder="Article Title" oninput="update()">
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="desc" placeholder="Brief description..." oninput="update()"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Image URL</label>
+                <input type="text" id="image" placeholder="https://example.com/image.jpg" oninput="update()">
+            </div>
+            <div class="form-group">
+                <label>Page URL</label>
+                <input type="text" id="url" placeholder="https://example.com/page" oninput="update()">
+            </div>
+            <div class="form-group">
+                <label>Type</label>
+                <select id="type" onchange="update()">
+                    <option value="website">Website</option>
+                    <option value="article">Article</option>
+                    <option value="video">Video</option>
+                    <option value="music">Music</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Twitter Card</label>
+                <select id="twitter" onchange="update()">
+                    <option value="summary_large_image">Summary Large Image</option>
+                    <option value="summary">Summary</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-top:0">Facebook / LinkedIn Preview</h3>
+            <div class="preview-card">
+                <div class="og-image" id="prev-img">No Image<br>1200x630px Recommended</div>
+                <div class="og-text">
+                    <div class="og-site" id="prev-site">EXAMPLE.COM</div>
+                    <div class="og-title" id="prev-title">Article Title Placeholder</div>
+                    <div class="og-desc" id="prev-desc">Description of the content will appear here...</div>
+                </div>
+            </div>
+
+            <h3 style="margin-top:2rem">Generated Code</h3>
+            <div class="code-box">
+                <button class="copy-btn" onclick="copy()">Copy</button>
+                <code id="output"></code>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function update() {
+            const data = {
+                site: document.getElementById('site_name').value || 'Site Name',
+                title: document.getElementById('title').value || 'Page Title',
+                desc: document.getElementById('desc').value || 'Page Description',
+                image: document.getElementById('image').value,
+                url: document.getElementById('url').value || 'https://example.com',
+                type: document.getElementById('type').value,
+                twitter: document.getElementById('twitter').value
+            };
+
+            // Preview
+            document.getElementById('prev-site').textContent = new URL(data.url).hostname.toUpperCase();
+            document.getElementById('prev-title').textContent = data.title;
+            document.getElementById('prev-desc').textContent = data.desc;
+
+            const imgDiv = document.getElementById('prev-img');
+            if (data.image) {
+                imgDiv.style.backgroundImage = `url('${data.image}')`;
+                imgDiv.textContent = '';
+            } else {
+                imgDiv.style.backgroundImage = 'none';
+                imgDiv.innerHTML = 'No Image<br>1200x630px Recommended';
+            }
+
+            // Code
+            let html = `<!-- Open Graph / Facebook -->
+<meta property="og:type" content="${data.type}">
+<meta property="og:url" content="${data.url}">
+<meta property="og:title" content="${data.title}">
+<meta property="og:description" content="${data.desc}">
+<meta property="og:image" content="${data.image}">
+<meta property="og:site_name" content="${data.site}">
+
+<!-- Twitter -->
+<meta property="twitter:card" content="${data.twitter}">
+<meta property="twitter:url" content="${data.url}">
+<meta property="twitter:title" content="${data.title}">
+<meta property="twitter:description" content="${data.desc}">
+<meta property="twitter:image" content="${data.image}">`;
+
+            document.getElementById('output').textContent = html;
+        }
+
+        function copy() {
+            navigator.clipboard.writeText(document.getElementById('output').textContent);
+            document.querySelector('.copy-btn').textContent = 'Copied!';
+            setTimeout(() => document.querySelector('.copy-btn').textContent = 'Copy', 2000);
+        }
+
+        // Initial
+        update();
+    </script>
+</body>
+
+</html>

@@ -4,249 +4,1031 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VedaWell - Ayurvedic Wellness App</title>
+    <title>VedaWell Tools - Free Productivity Tools, Games & Ayurvedic Wellness</title>
     <meta name="description"
-        content="VedaWell - Your personalized journey to wellness through ancient Ayurvedic wisdom. Daily horoscope, Prakriti quiz, healing recipes & rituals.">
+        content="65+ free online tools for productivity - calculators, converters, generators, and games. Plus, discover VedaWell - your upcoming Ayurvedic wellness app.">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://vedawellapp.com/">
-    <meta property="og:title" content="VedaWell - Ayurvedic Wellness App">
-    <meta property="og:description" content="Your personalized journey to wellness through ancient Ayurvedic wisdom.">
-    <meta property="og:image" content="https://vedawellapp.com/og-image.png">
+    <meta property="og:url" content="https://vedawelltools.netlify.app/">
+    <meta property="og:title" content="VedaWell Tools - Free Productivity Tools & Games">
+    <meta property="og:description"
+        content="65+ free browser-based tools and games. Plus, discover VedaWell - your upcoming Ayurvedic wellness app.">
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="VedaWell - Ayurvedic Wellness App">
-    <meta name="twitter:description" content="Your personalized journey to wellness through ancient Ayurvedic wisdom.">
+    <meta name="twitter:title" content="VedaWell Tools - Free Productivity Tools & Games">
+    <meta name="twitter:description"
+        content="65+ free browser-based tools and games. Plus, discover VedaWell - your upcoming Ayurvedic wellness app.">
 
-    <!-- Favicon (emoji as fallback) -->
+    <!-- Favicon -->
     <link rel="icon"
-        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛠️</text></svg>">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles/main.css">
+
+    <!-- Google AdSense - Replace with your AdSense code -->
+    <!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script> -->
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: #333;
-        }
-
+        /* Hero Section */
         .hero {
             text-align: center;
-            padding: 80px 20px;
-            color: white;
+            padding: 5rem 0 4rem;
+            position: relative;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -20%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.2), transparent 60%);
+            pointer-events: none;
+            z-index: -1;
         }
 
         .hero h1 {
-            font-size: 3.5rem;
-            font-weight: 700;
-            margin-bottom: 20px;
+            font-size: 4.5rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
-        .hero .tagline {
-            font-size: 1.5rem;
-            opacity: 0.9;
-            margin-bottom: 40px;
+        .hero h1 span {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-tertiary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
-        .hero .app-icon {
-            width: 150px;
-            height: 150px;
-            background: white;
-            border-radius: 32px;
-            margin: 0 auto 30px;
+        .hero p {
+            font-size: 1.35rem;
+            color: var(--text-secondary);
+            max-width: 650px;
+            margin: 0 auto 2.5rem;
+            line-height: 1.7;
+        }
+
+        .hero-cta {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 5rem;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.75rem;
+            }
+
+            .hero p {
+                font-size: 1.1rem;
+            }
+
+            .hero-stats {
+                flex-wrap: wrap;
+                gap: 2.5rem;
+            }
+
+            .hero-cta {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        /* Quick Nav Section */
+        .quick-nav {
+            padding: 2rem 0;
+        }
+
+        .quick-nav-grid {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .quick-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-full);
+            color: var(--text-secondary);
+            font-weight: 500;
+            transition: all var(--transition-fast);
+        }
+
+        .quick-nav-item:hover {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* Featured Tools Section */
+        .featured-tools {
+            padding: var(--space-3xl) 0;
+        }
+
+        .featured-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-lg);
+        }
+
+        @media (max-width: 900px) {
+            .featured-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .featured-card {
+            position: relative;
+        }
+
+        .featured-badge {
+            position: absolute;
+            top: -10px;
+            right: 20px;
+            padding: 0.35rem 0.75rem;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: white;
+            z-index: 10;
+        }
+
+        /* Games Preview Section */
+        .games-preview {
+            padding: var(--space-3xl) 0;
+            border-top: 1px solid var(--border);
+        }
+
+        .games-scroll {
+            display: flex;
+            gap: var(--space-lg);
+            overflow-x: auto;
+            padding: var(--space-md) 0;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .games-scroll::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .games-scroll::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        .game-preview-card {
+            flex: 0 0 280px;
+            scroll-snap-align: start;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            transition: all var(--transition-normal);
+        }
+
+        .game-preview-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--accent-secondary);
+        }
+
+        .game-preview-image {
+            height: 140px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 80px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            font-size: 4rem;
+            position: relative;
         }
 
-        .cta-buttons {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 30px;
+        .game-preview-card:nth-child(1) .game-preview-image {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.3), rgba(22, 163, 74, 0.3));
         }
 
-        .cta-btn {
-            padding: 16px 40px;
-            border-radius: 30px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            text-decoration: none;
-            transition: transform 0.3s;
+        .game-preview-card:nth-child(2) .game-preview-image {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.3), rgba(217, 119, 6, 0.3));
         }
 
-        .cta-btn:hover {
-            transform: translateY(-3px);
+        .game-preview-card:nth-child(3) .game-preview-image {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(29, 78, 216, 0.3));
         }
 
-        .cta-primary {
-            background: white;
-            color: #667eea;
+        .game-preview-card:nth-child(4) .game-preview-image {
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.3), rgba(124, 58, 237, 0.3));
         }
 
-        .cta-secondary {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: 2px solid white;
+        .game-preview-card:nth-child(5) .game-preview-image {
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.3), rgba(219, 39, 119, 0.3));
         }
 
-        .features {
-            background: white;
-            padding: 80px 20px;
+        .game-preview-content {
+            padding: var(--space-lg);
         }
 
-        .features h2 {
-            text-align: center;
-            font-size: 2.5rem;
-            margin-bottom: 60px;
-            color: #333;
+        .game-preview-title {
+            font-size: var(--font-size-lg);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
         }
 
-        .features-grid {
+        .game-preview-desc {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* Categories Section */
+        .categories-section {
+            padding: var(--space-3xl) 0;
+            border-top: 1px solid var(--border);
+        }
+
+        .categories-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 40px;
-            max-width: 1200px;
-            margin: 0 auto;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--space-lg);
         }
 
-        .feature-card {
+        @media (max-width: 1024px) {
+            .categories-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .categories-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .category-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: var(--space-xl);
             text-align: center;
-            padding: 30px;
-            border-radius: 20px;
-            background: #f8f9fa;
+            transition: all var(--transition-normal);
         }
 
-        .feature-card .icon {
-            font-size: 50px;
-            margin-bottom: 20px;
+        .category-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--accent-primary);
         }
 
-        .feature-card h3 {
-            font-size: 1.4rem;
-            margin-bottom: 15px;
-            color: #667eea;
-        }
-
-        .feature-card p {
-            color: #666;
-            line-height: 1.6;
-        }
-
-        .about {
-            background: #f8f9fa;
-            padding: 80px 20px;
-            text-align: center;
-        }
-
-        .about h2 {
+        .category-icon {
             font-size: 2.5rem;
-            margin-bottom: 30px;
-            color: #333;
+            margin-bottom: var(--space-md);
         }
 
-        .about p {
-            max-width: 800px;
-            margin: 0 auto;
-            font-size: 1.2rem;
-            color: #666;
-            line-height: 1.8;
+        .category-card h3 {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
         }
 
-        footer {
-            background: #333;
+        .category-count {
+            color: var(--text-muted);
+            font-size: var(--font-size-sm);
+        }
+
+        /* App Section */
+        .app-section {
+            padding: var(--space-3xl) 0;
+            border-top: 1px solid var(--border);
+        }
+
+        .app-card {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: var(--radius-2xl);
+            padding: var(--space-3xl);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-3xl);
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @media (max-width: 900px) {
+            .app-card {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+        }
+
+        .app-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.2), transparent 60%);
+            pointer-events: none;
+        }
+
+        .app-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .coming-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: var(--radius-full);
+            font-size: 0.85rem;
+            font-weight: 600;
             color: white;
-            padding: 40px 20px;
+            margin-bottom: 1.5rem;
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+
+            0%,
+            100% {
+                box-shadow: 0 0 20px var(--glow-primary);
+            }
+
+            50% {
+                box-shadow: 0 0 40px var(--glow-secondary);
+            }
+        }
+
+        .app-content h2 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        @media (max-width: 900px) {
+            .app-content h2 {
+                justify-content: center;
+            }
+        }
+
+        .app-content>p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            line-height: 1.7;
+            margin-bottom: 2rem;
+        }
+
+        .app-features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 500px) {
+            .app-features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .app-feature-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        .app-feature-item .check {
+            width: 24px;
+            height: 24px;
+            background: rgba(99, 102, 241, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        .beta-signup {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+        }
+
+        .beta-signup h4 {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .beta-signup>p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .beta-form {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .beta-form input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        .beta-form input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+
+        .beta-form button {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border: none;
+            border-radius: var(--radius-md);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .beta-form button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px var(--glow-primary);
+        }
+
+        .beta-success {
+            display: none;
+            color: var(--accent-success);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        @media (max-width: 500px) {
+            .beta-form {
+                flex-direction: column;
+            }
+        }
+
+        .app-visual {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .app-mockup {
+            width: 200px;
+            height: 400px;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            border-radius: 30px;
+            padding: 10px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4), 0 0 80px var(--glow-primary);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        .app-mockup-inner {
+            width: 100%;
+            height: 100%;
+            background: white;
+            border-radius: 22px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
             text-align: center;
         }
 
-        footer a {
-            color: #667eea;
-            text-decoration: none;
+        .app-mockup-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
         }
 
-        footer p {
-            margin: 10px 0;
+        .app-mockup-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .app-mockup-subtitle {
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        /* Support Section */
+        .support-section {
+            padding: var(--space-3xl) 0;
+            border-top: 1px solid var(--border);
+        }
+
+        .support-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-lg);
+        }
+
+        @media (max-width: 768px) {
+            .support-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .support-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: var(--space-xl);
+            text-align: center;
+            transition: all var(--transition-normal);
+        }
+
+        .support-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .support-icon {
+            font-size: 3rem;
+            margin-bottom: var(--space-md);
+        }
+
+        .support-card h3 {
+            font-size: var(--font-size-xl);
+            margin-bottom: 0.5rem;
+        }
+
+        .support-card p {
+            color: var(--text-secondary);
+            font-size: var(--font-size-base);
+            margin-bottom: var(--space-lg);
         }
     </style>
 </head>
 
 <body>
-    <!-- HERO SECTION -->
-    <section class="hero">
-        <div class="app-icon">🌿</div>
-        <h1>VedaWell</h1>
-        <p class="tagline">Your personalized journey to wellness through ancient Ayurvedic wisdom</p>
+    <div class="bg-gradient"></div>
 
-        <div class="cta-buttons">
-            <a href="#" class="cta-btn cta-primary">📱 Download on Play Store</a>
-            <a href="#features" class="cta-btn cta-secondary">✨ Learn More</a>
+    <div class="container">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">🛠️</div>
+                VedaWell Tools
+            </a>
+            <div class="nav-links">
+                <a href="index.html" class="active">Home</a>
+                <a href="tools.html">Tools</a>
+                <a href="games.html">Games</a>
+                <a href="about.html">About</a>
+                <a href="https://buymeacoffee.com/vedawell" target="_blank" class="nav-cta">☕ Support</a>
+            </div>
+            <button class="mobile-menu-btn" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
+        </nav>
+
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="badge">
+                <span class="badge-dot"></span>
+                Free & Open Source Tools
+            </div>
+            <h1>Productivity tools<br>that <span>just work</span></h1>
+            <p>65+ free, browser-based tools and games to boost your productivity. No sign-ups, no downloads —
+                everything runs right in your browser.</p>
+
+            <div class="hero-cta">
+                <a href="tools.html" class="btn btn-primary">🧰 Explore Tools</a>
+                <a href="games.html" class="btn btn-secondary">🎮 Play Games</a>
+                <a href="https://buymeacoffee.com/vedawell" target="_blank" class="btn btn-coffee">☕ Support Us</a>
+            </div>
+
+            <div class="hero-stats">
+                <div class="stat">
+                    <div class="stat-value" data-count="65">65+</div>
+                    <div class="stat-label">Free Tools</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">14</div>
+                    <div class="stat-label">Fun Games</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">100%</div>
+                    <div class="stat-label">Browser-Based</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">0</div>
+                    <div class="stat-label">Data Collected</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Ad Banner -->
+        <div class="ad-container">
+            <div class="ad-placeholder">
+                <p>📢 Advertisement</p>
+                <small>Support us by <a href="https://buymeacoffee.com/vedawell" target="_blank">buying us a
+                        coffee</a></small>
+            </div>
         </div>
-    </section>
 
-    <!-- FEATURES SECTION -->
-    <section class="features" id="features">
-        <h2>🪷 What VedaWell Offers</h2>
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="icon">☀️</div>
-                <h3>Daily Panchang</h3>
-                <p>Get accurate daily almanac with Tithi, Nakshatra, Yoga, and auspicious timings based on your
-                    location.</p>
+        <!-- Quick Nav -->
+        <section class="quick-nav">
+            <div class="quick-nav-grid">
+                <a href="tools.html?category=calculator" class="quick-nav-item">💰 Calculators</a>
+                <a href="tools.html?category=converter" class="quick-nav-item">🔄 Converters</a>
+                <a href="tools.html?category=generator" class="quick-nav-item">⚡ Generators</a>
+                <a href="tools.html?category=productivity" class="quick-nav-item">📝 Productivity</a>
+                <a href="tools.html?category=developer" class="quick-nav-item">🛠️ Developer</a>
+                <a href="games.html" class="quick-nav-item">🎮 Games</a>
             </div>
-            <div class="feature-card">
-                <div class="icon">🌟</div>
-                <h3>Vedic Horoscope</h3>
-                <p>Personalized daily predictions based on your Moon Sign (Rashi) and Birth Star (Nakshatra).</p>
+        </section>
+
+        <!-- Featured Tools Section -->
+        <section class="featured-tools section">
+            <div class="section-header">
+                <h2 class="section-title">⭐ Featured Tools</h2>
+                <p class="section-subtitle">Our most popular tools for work and personal productivity.</p>
             </div>
-            <div class="feature-card">
-                <div class="icon">🧬</div>
-                <h3>Prakriti Quiz</h3>
-                <p>Discover your unique mind-body constitution (Vata, Pitta, Kapha) with our 20-question assessment.</p>
+
+            <div class="featured-grid">
+                <!-- Focus Timer -->
+                <a href="tool-focus-timer.html" class="card featured-card red reveal">
+                    <span class="featured-badge">Popular</span>
+                    <div class="card-icon">🍅</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Focus Timer Pro</h3>
+                    <p class="card-description">Pomodoro-style productivity timer with customizable sessions, task
+                        tracking, and streak counting to help you stay focused.</p>
+                    <div class="tool-tags" style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                        <span class="tag">Pomodoro</span>
+                        <span class="tag">Task List</span>
+                        <span class="tag">Statistics</span>
+                    </div>
+                </a>
+
+                <!-- Invoice Generator -->
+                <a href="tool-invoice-generator.html" class="card featured-card blue reveal">
+                    <span class="featured-badge">Pro</span>
+                    <div class="card-icon">📄</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Invoice Generator Pro</h3>
+                    <p class="card-description">Create professional invoices in seconds. Add your logo, client details,
+                        line items, and export to PDF — all for free.</p>
+                    <div class="tool-tags" style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                        <span class="tag">PDF Export</span>
+                        <span class="tag">Custom Logo</span>
+                        <span class="tag">Multi-Currency</span>
+                    </div>
+                </a>
+
+                <!-- Image Watermarker -->
+                <a href="tool-image-watermarker.html" class="card featured-card purple reveal">
+                    <div class="card-icon">🖼️</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">Image Watermarker Pro</h3>
+                    <p class="card-description">Protect your images with text or image watermarks. Batch process
+                        multiple files with customizable opacity and positioning.</p>
+                    <div class="tool-tags" style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                        <span class="tag">Text & Image</span>
+                        <span class="tag">Batch Process</span>
+                        <span class="tag">9 Positions</span>
+                    </div>
+                </a>
+
+                <!-- Tax Calculator -->
+                <a href="tool-tax-calculator.html" class="card featured-card green reveal">
+                    <span class="featured-badge">2025-26</span>
+                    <div class="card-icon">💰</div>
+                    <span class="card-arrow">→</span>
+                    <h3 class="card-title">AU Tax Calculator</h3>
+                    <p class="card-description">Calculate your Australian freelancer tax for 2025-26. Includes income
+                        tax, Medicare levy, HECS repayments, and quarterly estimates.</p>
+                    <div class="tool-tags" style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                        <span class="tag">Australia</span>
+                        <span class="tag">HECS/HELP</span>
+                        <span class="tag">Medicare</span>
+                    </div>
+                </a>
             </div>
-            <div class="feature-card">
-                <div class="icon">🍲</div>
-                <h3>Ayurvedic Kitchen</h3>
-                <p>200+ herbal remedies, healing recipes, and dosha-balancing foods for everyday wellness.</p>
+
+            <div class="text-center mt-xl">
+                <a href="tools.html" class="btn btn-secondary">View All 65+ Tools →</a>
             </div>
-            <div class="feature-card">
-                <div class="icon">🔥</div>
-                <h3>Daily Rituals</h3>
-                <p>Guided morning and evening practices with streak tracking and wellness points.</p>
+        </section>
+
+        <!-- Games Preview Section -->
+        <section class="games-preview">
+            <div class="section-header">
+                <h2 class="section-title">🎮 Games Arcade</h2>
+                <p class="section-subtitle">Take a break and have some fun! Classic games that run in your browser.</p>
             </div>
-            <div class="feature-card">
-                <div class="icon">🎉</div>
-                <h3>Festival Calendar</h3>
-                <p>Never miss important Hindu festivals with advance notifications and ritual guides.</p>
+
+            <div class="games-scroll">
+                <a href="game-snake.html" class="game-preview-card reveal">
+                    <div class="game-preview-image">🐍</div>
+                    <div class="game-preview-content">
+                        <h3 class="game-preview-title">Snake</h3>
+                        <p class="game-preview-desc">The classic snake game! Eat, grow, survive.</p>
+                    </div>
+                </a>
+
+                <a href="game-2048.html" class="game-preview-card reveal">
+                    <div class="game-preview-image">🔢</div>
+                    <div class="game-preview-content">
+                        <h3 class="game-preview-title">2048</h3>
+                        <p class="game-preview-desc">Slide and combine to reach 2048!</p>
+                    </div>
+                </a>
+
+                <a href="game-flappy-bird.html" class="game-preview-card reveal">
+                    <div class="game-preview-image">🐦</div>
+                    <div class="game-preview-content">
+                        <h3 class="game-preview-title">Flappy Bird</h3>
+                        <p class="game-preview-desc">Tap to fly through the pipes!</p>
+                    </div>
+                </a>
+
+                <a href="game-memory-match.html" class="game-preview-card reveal">
+                    <div class="game-preview-image">🧠</div>
+                    <div class="game-preview-content">
+                        <h3 class="game-preview-title">Memory Match</h3>
+                        <p class="game-preview-desc">Flip cards and find matching pairs.</p>
+                    </div>
+                </a>
+
+                <a href="game-tetris.html" class="game-preview-card reveal">
+                    <div class="game-preview-image">🧱</div>
+                    <div class="game-preview-content">
+                        <h3 class="game-preview-title">Tetris</h3>
+                        <p class="game-preview-desc">The iconic block-stacking puzzle!</p>
+                    </div>
+                </a>
+            </div>
+
+            <div class="text-center mt-xl">
+                <a href="games.html" class="btn btn-primary">🎮 Enter Arcade →</a>
+            </div>
+        </section>
+
+        <!-- Categories Section -->
+        <section class="categories-section">
+            <div class="section-header">
+                <h2 class="section-title">🗂️ Browse by Category</h2>
+                <p class="section-subtitle">Find the perfect tool for your needs.</p>
+            </div>
+
+            <div class="categories-grid">
+                <a href="tools.html?category=calculator" class="category-card reveal">
+                    <div class="category-icon">💰</div>
+                    <h3>Calculators</h3>
+                    <p class="category-count">8 tools</p>
+                </a>
+                <a href="tools.html?category=converter" class="category-card reveal">
+                    <div class="category-icon">🔄</div>
+                    <h3>Converters</h3>
+                    <p class="category-count">4 tools</p>
+                </a>
+                <a href="tools.html?category=generator" class="category-card reveal">
+                    <div class="category-icon">⚡</div>
+                    <h3>Generators</h3>
+                    <p class="category-count">7 tools</p>
+                </a>
+                <a href="tools.html?category=productivity" class="category-card reveal">
+                    <div class="category-icon">📝</div>
+                    <h3>Productivity</h3>
+                    <p class="category-count">8 tools</p>
+                </a>
+            </div>
+        </section>
+
+        <!-- Ad Banner -->
+        <div class="ad-container">
+            <div class="ad-placeholder">
+                <p>📢 Advertisement</p>
+                <small>Support us by <a href="https://buymeacoffee.com/vedawell" target="_blank">buying us a
+                        coffee</a></small>
             </div>
         </div>
-    </section>
 
-    <!-- ABOUT SECTION -->
-    <section class="about">
-        <h2>🙏 About VedaWell</h2>
-        <p>VedaWell brings the ancient wisdom of Ayurveda and Vedic astrology to your fingertips. Our mission is to help
-            you live in harmony with nature's rhythms through personalized wellness guidance, authentic Panchang
-            calculations, and traditional remedies passed down through generations.</p>
-    </section>
+        <!-- VedaWell App Section -->
+        <section class="app-section" id="app">
+            <div class="app-card">
+                <div class="app-content">
+                    <div class="coming-badge">
+                        ✨ Coming Soon to Play Store
+                    </div>
+                    <h2><span>🌿</span> VedaWell</h2>
+                    <p>Your personalized journey to wellness through ancient Ayurvedic wisdom. VedaWell brings
+                        traditional remedies, Vedic astrology, and daily wellness practices to your fingertips.</p>
 
-    <!-- FOOTER -->
-    <footer>
-        <p>© 2025 VedaWell. All rights reserved.</p>
-        <p><a href="/privacy-policy">Privacy Policy</a> | <a href="mailto:support@vedawellapp.com">Contact Us</a></p>
-        <p>📧 support@vedawellapp.com</p>
-    </footer>
+                    <div class="app-features-grid">
+                        <div class="app-feature-item">
+                            <span class="check">☀️</span>
+                            Daily Panchang
+                        </div>
+                        <div class="app-feature-item">
+                            <span class="check">🌟</span>
+                            Vedic Horoscope
+                        </div>
+                        <div class="app-feature-item">
+                            <span class="check">🧬</span>
+                            Prakriti Quiz
+                        </div>
+                        <div class="app-feature-item">
+                            <span class="check">🍲</span>
+                            Ayurvedic Kitchen
+                        </div>
+                        <div class="app-feature-item">
+                            <span class="check">🔥</span>
+                            Daily Rituals
+                        </div>
+                        <div class="app-feature-item">
+                            <span class="check">🎉</span>
+                            Festival Calendar
+                        </div>
+                    </div>
+
+                    <!-- Beta Signup -->
+                    <div class="beta-signup">
+                        <h4>🚀 Join the Beta Testing Program</h4>
+                        <p>Be among the first to experience VedaWell! Get early access and help shape the app.</p>
+                        <form class="beta-form" id="betaForm">
+                            <input type="email" placeholder="Enter your email" required id="betaEmail">
+                            <button type="submit">Join Beta</button>
+                        </form>
+                        <p class="beta-success" id="betaSuccess">✅ Thanks! We'll notify you when beta access is
+                            available.</p>
+                    </div>
+                </div>
+
+                <div class="app-visual">
+                    <div class="app-mockup">
+                        <div class="app-mockup-inner">
+                            <div class="app-mockup-icon">🌿</div>
+                            <div class="app-mockup-title">VedaWell</div>
+                            <div class="app-mockup-subtitle">Ayurvedic Wellness</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Support Section -->
+        <section class="support-section">
+            <div class="section-header">
+                <h2 class="section-title">💝 Support Our Work</h2>
+                <p class="section-subtitle">Help us keep the tools free and ad-light for everyone.</p>
+            </div>
+
+            <div class="support-grid">
+                <div class="support-card reveal">
+                    <div class="support-icon">☕</div>
+                    <h3>Buy Me a Coffee</h3>
+                    <p>A one-time or monthly contribution helps cover hosting and development costs.</p>
+                    <a href="https://buymeacoffee.com/vedawell" target="_blank" class="btn btn-coffee">☕ Buy a
+                        Coffee</a>
+                </div>
+                <div class="support-card reveal">
+                    <div class="support-icon">🛒</div>
+                    <h3>Premium Products</h3>
+                    <p>Check out our premium digital products, templates, and resources on Gumroad.</p>
+                    <a href="https://kothandan.gumroad.com/" target="_blank" class="btn btn-gumroad">🚀 Visit Store</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <a href="index.html" class="logo">
+                        <div class="logo-icon">🛠️</div>
+                        VedaWell Tools
+                    </a>
+                    <p>Free, browser-based productivity tools and games. No sign-ups, no downloads — everything runs
+                        locally in your browser.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="tools.html">All Tools</a></li>
+                        <li><a href="games.html">Games</a></li>
+                        <li><a href="about.html">About</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Support</h4>
+                    <ul>
+                        <li><a href="https://buymeacoffee.com/vedawell" target="_blank">Buy Me a Coffee</a></li>
+                        <li><a href="https://kothandan.gumroad.com/" target="_blank">Premium Products</a></li>
+                        <li><a href="mailto:support@vedawellapp.com">Contact Us</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="privacy-policy.html">Privacy Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2025 VedaWell. All rights reserved.</p>
+                <div class="footer-social">
+                    <a href="https://buymeacoffee.com/vedawell" target="_blank" title="Buy Me a Coffee">☕</a>
+                    <a href="https://kothandan.gumroad.com/" target="_blank" title="Gumroad">🛒</a>
+                    <a href="mailto:support@vedawellapp.com" title="Email">📧</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/main.js"></script>
 </body>
 
 </html>

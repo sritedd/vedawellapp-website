@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focus Timer Pro | Pomodoro Productivity</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #0f0f23;
+            --card: #1a1a2e;
+            --accent: #e94560;
+            --accent-light: #ff6b6b;
+            --success: #00d9ff;
+            --text: #eaeaea;
+            --text-muted: #6c7086;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, var(--bg) 0%, #16213e 100%);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(90deg, var(--accent), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+        }
+
+        /* Timer Display */
+        .timer-container {
+            background: var(--card);
+            border-radius: 24px;
+            padding: 3rem 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .timer-ring {
+            width: 280px;
+            height: 280px;
+            margin: 0 auto 1.5rem;
+            position: relative;
+        }
+
+        .timer-ring svg {
+            transform: rotate(-90deg);
+            width: 100%;
+            height: 100%;
+        }
+
+        .timer-ring circle {
+            fill: none;
+            stroke-width: 8;
+        }
+
+        .timer-ring .bg-ring {
+            stroke: #2a2a4a;
+        }
+
+        .timer-ring .progress-ring {
+            stroke: var(--accent);
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.5s ease;
+        }
+
+        .timer-ring.break .progress-ring {
+            stroke: var(--success);
+        }
+
+        .timer-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .time {
+            font-size: 4rem;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 4px;
+        }
+
+        .session-type {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 0.5rem;
+        }
+
+        .session-type.work {
+            color: var(--accent);
+        }
+
+        .session-type.break {
+            color: var(--success);
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            color: white;
+            min-width: 140px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(233, 69, 96, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--card);
+            color: var(--text);
+            border: 1px solid #3a3a5a;
+        }
+
+        .btn-secondary:hover {
+            background: #2a2a4a;
+        }
+
+        /* Mode Tabs */
+        .mode-tabs {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+            background: var(--card);
+            padding: 0.5rem;
+            border-radius: 12px;
+        }
+
+        .mode-tab {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .mode-tab.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .mode-tab.break-tab.active {
+            background: var(--success);
+        }
+
+        /* Stats */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat {
+            background: var(--card);
+            padding: 1rem;
+            border-radius: 12px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        /* Settings */
+        .settings {
+            background: var(--card);
+            padding: 1.5rem;
+            border-radius: 16px;
+            text-align: left;
+        }
+
+        .settings h3 {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #2a2a4a;
+        }
+
+        .setting-row:last-child {
+            border-bottom: none;
+        }
+
+        .setting-row label {
+            font-size: 0.9rem;
+        }
+
+        .setting-row input {
+            width: 80px;
+            padding: 0.5rem;
+            background: #2a2a4a;
+            border: 1px solid #3a3a5a;
+            border-radius: 6px;
+            color: var(--text);
+            text-align: center;
+            font-size: 1rem;
+        }
+
+        .setting-row input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--accent);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 100;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.break {
+            background: var(--success);
+        }
+
+        /* Task List */
+        .tasks {
+            background: var(--card);
+            padding: 1.5rem;
+            border-radius: 16px;
+            margin-top: 1rem;
+            text-align: left;
+        }
+
+        .tasks h3 {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .task-input {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .task-input input {
+            flex: 1;
+            padding: 0.75rem;
+            background: #2a2a4a;
+            border: 1px solid #3a3a5a;
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+
+        .task-input button {
+            padding: 0.75rem 1rem;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .task-list {
+            list-style: none;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: #2a2a4a;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        .task-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--success);
+        }
+
+        .task-item.done span {
+            text-decoration: line-through;
+            color: var(--text-muted);
+        }
+
+        .task-item button {
+            margin-left: auto;
+            background: none;
+            border: none;
+            color: #ff6b6b;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+        footer {
+            margin-top: 2rem;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🍅 Focus Timer Pro</h1>
+        <p class="subtitle">Stay focused. Get more done.</p>
+
+        <!-- Mode Tabs -->
+        <div class="mode-tabs">
+            <button class="mode-tab active" onclick="setMode('work')">Focus</button>
+            <button class="mode-tab break-tab" onclick="setMode('shortBreak')">Short Break</button>
+            <button class="mode-tab break-tab" onclick="setMode('longBreak')">Long Break</button>
+        </div>
+
+        <!-- Timer -->
+        <div class="timer-container" id="timerContainer">
+            <div class="timer-ring" id="timerRing">
+                <svg viewBox="0 0 280 280">
+                    <circle class="bg-ring" cx="140" cy="140" r="130"></circle>
+                    <circle class="progress-ring" id="progressRing" cx="140" cy="140" r="130" stroke-dasharray="816.8"
+                        stroke-dashoffset="0"></circle>
+                </svg>
+                <div class="timer-display">
+                    <div class="time" id="timeDisplay">25:00</div>
+                    <div class="session-type work" id="sessionType">FOCUS TIME</div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-primary" id="startBtn" onclick="toggleTimer()">Start</button>
+                <button class="btn btn-secondary" onclick="resetTimer()">Reset</button>
+                <button class="btn btn-secondary" onclick="skipSession()">Skip</button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value" id="sessionsCompleted">0</div>
+                <div class="stat-label">Sessions</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="totalFocusTime">0m</div>
+                <div class="stat-label">Focus Time</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="currentStreak">0</div>
+                <div class="stat-label">Streak</div>
+            </div>
+        </div>
+
+        <!-- Tasks -->
+        <div class="tasks">
+            <h3>📝 Today's Tasks</h3>
+            <div class="task-input">
+                <input type="text" id="taskInput" placeholder="What are you working on?"
+                    onkeypress="if(event.key==='Enter')addTask()">
+                <button onclick="addTask()">Add</button>
+            </div>
+            <ul class="task-list" id="taskList"></ul>
+        </div>
+
+        <!-- Settings -->
+        <div class="settings">
+            <h3>⚙️ Timer Settings (minutes)</h3>
+            <div class="setting-row">
+                <label>Focus Duration</label>
+                <input type="number" id="workDuration" value="25" min="1" max="120" onchange="updateSettings()">
+            </div>
+            <div class="setting-row">
+                <label>Short Break</label>
+                <input type="number" id="shortBreakDuration" value="5" min="1" max="30" onchange="updateSettings()">
+            </div>
+            <div class="setting-row">
+                <label>Long Break</label>
+                <input type="number" id="longBreakDuration" value="15" min="1" max="60" onchange="updateSettings()">
+            </div>
+            <div class="setting-row">
+                <label>Sessions until Long Break</label>
+                <input type="number" id="sessionsUntilLong" value="4" min="1" max="10" onchange="updateSettings()">
+            </div>
+        </div>
+
+        <footer>
+            Focus Timer Pro | Press Space to Start/Pause
+        </footer>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        <span id="notificationText">Time's up!</span>
+    </div>
+
+    <!-- Audio -->
+    <audio id="alarmSound" preload="auto">
+        <source
+            src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2teleVNPZqS8t5ZMPB0aRoihwLSRZEQuHDZlmby1mG9KPTU5V4Gpva+PWUI8PkZfj6u5soxgS0RFSlRumLe/qYNcT0tLUFhecJm6wqqDXk9NTlNZZXaTucOphV9QTk9UWWRxkLbEqYdhUU9QVVlkboyxw6qIZFNRUVVZY2uKrsOri2dVU1JWWmRqh6vBrI1pV1VTV1pkaYWov66PbFlWVFdaZGeDoL2xkW9bWFZYW2Vnf5y5tJRxXVlYWVxnZ3uYtLaWc19bWVpcaGh4k6+3mHVhXFpcXWhpdI+qt5p3Y15bXV5paXKLprecdWNeXF5fammviKOznXdkX11eX2prcIWfsZ94ZWBfYGBranCBmq6gfGhiYGFhbGtwfZWroX5qY2FhYmxscXqRpp+AamRiYmNtbXV4jaOegmxlY2NkbW11domfn4RtZmRkZW5udXWGmp+GbmdlZWZub3Z0g5adiG9oZmZnam5YNilvc4mNbVhXX3eMi29aR0dheImPhnBhW1xmcoeLhnRqZWRgYGdweX+DfXVwa2djYGFkanuBfndxbGdkYmJkaXR8fndxbWlnZWRlaG54e3dxbmpoZ2VmZ2x0eXZwb2tqaGdobHF1dHBvbGtqaWpscHN0cG9tbGtrbG5xcnBvbm1sbG1ucHFwb29ubW1ubm9wcG9vb25ubm5vb29vb29vb29ub29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vbw=="
+            type="audio/wav">
+    </audio>
+
+    <script>
+        // State
+        let isRunning = false;
+        let timeLeft = 25 * 60; // seconds
+        let totalTime = 25 * 60;
+        let currentMode = 'work';
+        let interval = null;
+        let sessionsCompleted = 0;
+        let totalFocusSeconds = 0;
+        let currentStreak = 0;
+        let tasks = [];
+
+        // Settings
+        const settings = {
+            work: 25,
+            shortBreak: 5,
+            longBreak: 15,
+            sessionsUntilLong: 4
+        };
+
+        // Circumference of progress ring
+        const circumference = 2 * Math.PI * 130;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            updateDisplay();
+            renderTasks();
+
+            // Keyboard shortcut
+            document.addEventListener('keydown', (e) => {
+                if (e.code === 'Space' && e.target.tagName !== 'INPUT') {
+                    e.preventDefault();
+                    toggleTimer();
+                }
+            });
+        });
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-tab').forEach(tab => tab.classList.remove('active'));
+
+            if (mode === 'work') {
+                timeLeft = settings.work * 60;
+                document.querySelector('.mode-tab:nth-child(1)').classList.add('active');
+                document.getElementById('sessionType').textContent = 'FOCUS TIME';
+                document.getElementById('sessionType').className = 'session-type work';
+                document.getElementById('timerRing').classList.remove('break');
+            } else if (mode === 'shortBreak') {
+                timeLeft = settings.shortBreak * 60;
+                document.querySelector('.mode-tab:nth-child(2)').classList.add('active');
+                document.getElementById('sessionType').textContent = 'SHORT BREAK';
+                document.getElementById('sessionType').className = 'session-type break';
+                document.getElementById('timerRing').classList.add('break');
+            } else {
+                timeLeft = settings.longBreak * 60;
+                document.querySelector('.mode-tab:nth-child(3)').classList.add('active');
+                document.getElementById('sessionType').textContent = 'LONG BREAK';
+                document.getElementById('sessionType').className = 'session-type break';
+                document.getElementById('timerRing').classList.add('break');
+            }
+
+            totalTime = timeLeft;
+            stopTimer();
+            updateDisplay();
+        }
+
+        function toggleTimer() {
+            if (isRunning) {
+                stopTimer();
+            } else {
+                startTimer();
+            }
+        }
+
+        function startTimer() {
+            isRunning = true;
+            document.getElementById('startBtn').textContent = 'Pause';
+
+            interval = setInterval(() => {
+                timeLeft--;
+
+                if (currentMode === 'work') {
+                    totalFocusSeconds++;
+                }
+
+                updateDisplay();
+
+                if (timeLeft <= 0) {
+                    completeSession();
+                }
+            }, 1000);
+        }
+
+        function stopTimer() {
+            isRunning = false;
+            document.getElementById('startBtn').textContent = 'Start';
+            if (interval) {
+                clearInterval(interval);
+                interval = null;
+            }
+        }
+
+        function resetTimer() {
+            stopTimer();
+            setMode(currentMode);
+        }
+
+        function skipSession() {
+            completeSession();
+        }
+
+        function completeSession() {
+            stopTimer();
+            playAlarm();
+
+            if (currentMode === 'work') {
+                sessionsCompleted++;
+                currentStreak++;
+                showNotification('Great work! Take a break. 🎉', false);
+
+                // Check if long break
+                if (sessionsCompleted % settings.sessionsUntilLong === 0) {
+                    setMode('longBreak');
+                } else {
+                    setMode('shortBreak');
+                }
+            } else {
+                showNotification('Break over! Time to focus. 💪', true);
+                setMode('work');
+            }
+
+            updateStats();
+            saveData();
+        }
+
+        function updateDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById('timeDisplay').textContent =
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+            // Update progress ring
+            const progress = timeLeft / totalTime;
+            const offset = circumference * (1 - progress);
+            document.getElementById('progressRing').style.strokeDashoffset = offset;
+
+            // Update page title
+            document.title = `${minutes}:${seconds.toString().padStart(2, '0')} - Focus Timer`;
+        }
+
+        function updateStats() {
+            document.getElementById('sessionsCompleted').textContent = sessionsCompleted;
+            document.getElementById('totalFocusTime').textContent = formatTime(totalFocusSeconds);
+            document.getElementById('currentStreak').textContent = currentStreak;
+        }
+
+        function formatTime(seconds) {
+            if (seconds < 60) return `${seconds}s`;
+            if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
+            return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
+        }
+
+        function updateSettings() {
+            settings.work = parseInt(document.getElementById('workDuration').value) || 25;
+            settings.shortBreak = parseInt(document.getElementById('shortBreakDuration').value) || 5;
+            settings.longBreak = parseInt(document.getElementById('longBreakDuration').value) || 15;
+            settings.sessionsUntilLong = parseInt(document.getElementById('sessionsUntilLong').value) || 4;
+
+            setMode(currentMode);
+            saveData();
+        }
+
+        function showNotification(text, isWork) {
+            const notification = document.getElementById('notification');
+            document.getElementById('notificationText').textContent = text;
+            notification.className = isWork ? 'notification show' : 'notification show break';
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 5000);
+        }
+
+        function playAlarm() {
+            const audio = document.getElementById('alarmSound');
+            audio.currentTime = 0;
+            audio.play().catch(() => { });
+        }
+
+        // Tasks
+        function addTask() {
+            const input = document.getElementById('taskInput');
+            const text = input.value.trim();
+            if (text) {
+                tasks.push({ text, done: false });
+                input.value = '';
+                renderTasks();
+                saveData();
+            }
+        }
+
+        function toggleTask(index) {
+            tasks[index].done = !tasks[index].done;
+            renderTasks();
+            saveData();
+        }
+
+        function removeTask(index) {
+            tasks.splice(index, 1);
+            renderTasks();
+            saveData();
+        }
+
+        function renderTasks() {
+            const list = document.getElementById('taskList');
+            list.innerHTML = tasks.map((task, i) => `
+                <li class="task-item ${task.done ? 'done' : ''}">
+                    <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask(${i})">
+                    <span>${task.text}</span>
+                    <button onclick="removeTask(${i})">×</button>
+                </li>
+            `).join('');
+        }
+
+        // Persistence
+        function saveData() {
+            const data = { sessionsCompleted, totalFocusSeconds, currentStreak, tasks, settings };
+            localStorage.setItem('focusTimerData', JSON.stringify(data));
+        }
+
+        function loadData() {
+            const stored = localStorage.getItem('focusTimerData');
+            if (stored) {
+                const data = JSON.parse(stored);
+                sessionsCompleted = data.sessionsCompleted || 0;
+                totalFocusSeconds = data.totalFocusSeconds || 0;
+                currentStreak = data.currentStreak || 0;
+                tasks = data.tasks || [];
+
+                if (data.settings) {
+                    Object.assign(settings, data.settings);
+                    document.getElementById('workDuration').value = settings.work;
+                    document.getElementById('shortBreakDuration').value = settings.shortBreak;
+                    document.getElementById('longBreakDuration').value = settings.longBreak;
+                    document.getElementById('sessionsUntilLong').value = settings.sessionsUntilLong;
+                }
+
+                updateStats();
+            }
+        }
+    </script>
+</body>
+
+</html>

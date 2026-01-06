@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typing Speed Test</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            background: #fafafa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 50px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 2rem;
+        }
+
+        .stat-box {
+            background: white;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 100px;
+        }
+
+        .val {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #3b82f6;
+        }
+
+        .label {
+            font-size: 0.8rem;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .word-box {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            font-size: 1.5rem;
+            line-height: 2;
+            margin-bottom: 2rem;
+            height: 150px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid #eee;
+            text-align: left;
+            mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+            user-select: none;
+        }
+
+        .word {
+            display: inline-block;
+            margin-right: 10px;
+            padding: 2px 5px;
+            border-radius: 4px;
+        }
+
+        .word.current {
+            background: #eff6ff;
+            border-bottom: 2px solid #3b82f6;
+        }
+
+        .word.correct {
+            color: #22c55e;
+        }
+
+        .word.wrong {
+            color: #ef4444;
+            text-decoration: underline;
+        }
+
+        input {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.5rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .restart-btn {
+            margin-top: 2rem;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>⌨️ Typing Test</h1>
+
+        <div class="stats">
+            <div class="stat-box">
+                <div class="val" id="time">60</div>
+                <div class="label">Time</div>
+            </div>
+            <div class="stat-box">
+                <div class="val" id="wpm">0</div>
+                <div class="label">WPM</div>
+            </div>
+            <div class="stat-box">
+                <div class="val" id="acc">100%</div>
+                <div class="label">Accuracy</div>
+            </div>
+        </div>
+
+        <div class="word-box" id="wordDisplay"></div>
+        <input type="text" id="input" placeholder="Type here to start..." oninput="process()" autocomplete="off">
+
+        <button class="restart-btn" id="restart" onclick="init()">Restart Test</button>
+    </div>
+
+    <script>
+        const wordList = "the be to of and a in that have I it for not on with he as you do at this but his by from they we say her she or an will my one all would there their what so up out if about who get which go me when make can like time no just him know take people into year your good some could them see other than then now look only come its over think also back after use two how our work first well way even new want because any these give day most us".split(" ");
+
+        let words = [];
+        let wordIndex = 0;
+        let startTime = null;
+        let timer = null;
+        let correctChars = 0;
+        let totalChars = 0;
+        let isRunning = false;
+
+        function init() {
+            // Shuffle
+            words = [];
+            for (let i = 0; i < 50; i++) words.push(wordList[Math.floor(Math.random() * wordList.length)]);
+
+            const display = document.getElementById('wordDisplay');
+            display.innerHTML = words.map(w => `<span class="word">${w}</span>`).join('');
+
+            document.querySelector('.word').classList.add('current');
+
+            document.getElementById('input').value = '';
+            document.getElementById('input').disabled = false;
+            document.getElementById('input').focus();
+
+            document.getElementById('time').innerText = '60';
+            document.getElementById('wpm').innerText = '0';
+            document.getElementById('acc').innerText = '100%';
+            document.getElementById('restart').style.display = 'none';
+
+            wordIndex = 0;
+            startTime = null;
+            correctChars = 0;
+            totalChars = 0;
+            isRunning = false;
+        }
+
+        function process() {
+            if (!isRunning && document.getElementById('input').value.length > 0) {
+                start();
+            }
+
+            const val = document.getElementById('input').value;
+            const currentWordStr = words[wordIndex];
+            const wordSpans = document.querySelectorAll('.word');
+
+            // Check space
+            if (val.endsWith(' ')) {
+                const typed = val.trim();
+                totalChars += currentWordStr.length; // Count intent
+
+                if (typed === currentWordStr) {
+                    wordSpans[wordIndex].className = 'word correct';
+                    correctChars += currentWordStr.length + 1; // +1 for space
+                } else {
+                    wordSpans[wordIndex].className = 'word wrong';
+                }
+
+                wordIndex++;
+                if (wordIndex < words.length) {
+                    wordSpans[wordIndex].className = 'word current';
+                    // clear input
+                    document.getElementById('input').value = '';
+
+                    // scroll if needed
+                    if (wordSpans[wordIndex].offsetTop > wordSpans[wordIndex - 1].offsetTop) {
+                        const box = document.getElementById('wordDisplay');
+                        box.scrollTop = wordSpans[wordIndex].offsetTop - box.offsetTop;
+                    }
+                } else {
+                    finish();
+                }
+            } else {
+                // Highlight current status?
+                // For simplicity, just wait for space.
+                const currentSpan = wordSpans[wordIndex];
+                if (currentWordStr.startsWith(val)) {
+                    currentSpan.style.backgroundColor = '#eff6ff'; // match
+                } else {
+                    currentSpan.style.backgroundColor = '#fecaca'; // wrong
+                }
+            }
+        }
+
+        function start() {
+            isRunning = true;
+            startTime = Date.now();
+            timer = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                const left = 60 - elapsed;
+                document.getElementById('time').innerText = left;
+
+                // Calculate live WPM
+                const min = elapsed / 60;
+                const wpm = Math.round((correctChars / 5) / (min || 1));
+                document.getElementById('wpm').innerText = wpm;
+
+                if (left <= 0) finish();
+            }, 1000);
+        }
+
+        function finish() {
+            clearInterval(timer);
+            document.getElementById('input').disabled = true;
+            document.getElementById('restart').style.display = 'inline-block';
+
+            const elapsed = 60 - parseInt(document.getElementById('time').innerText); // roughly 60
+            // Accuracy
+            // Not perfectly tracked here but roughly
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

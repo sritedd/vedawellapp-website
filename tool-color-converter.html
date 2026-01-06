@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Converter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: system-ui, sans-serif;
+            background: linear-gradient(135deg, #ee0979, #ff6a00);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .3)
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 1.5rem
+        }
+
+        .preview {
+            width: 100%;
+            height: 120px;
+            border-radius: 15px;
+            margin-bottom: 1.5rem;
+            transition: background .2s
+        }
+
+        .form-group {
+            margin-bottom: 1rem
+        }
+
+        label {
+            display: block;
+            color: #666;
+            font-size: .9rem;
+            margin-bottom: .25rem
+        }
+
+        .input-row {
+            display: flex;
+            gap: .5rem
+        }
+
+        input {
+            flex: 1;
+            padding: .75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-family: monospace
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #ee0979
+        }
+
+        .copy {
+            padding: .75rem;
+            background: #ee0979;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer
+        }
+
+        .color-picker {
+            width: 60px;
+            height: 45px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            padding: 0
+        }
+
+        .sliders {
+            margin-top: 1.5rem
+        }
+
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            margin-bottom: .75rem
+        }
+
+        .slider-row span {
+            width: 30px;
+            font-weight: 600
+        }
+
+        .slider-row input[type="range"] {
+            flex: 1
+        }
+
+        .slider-row input[type="number"] {
+            width: 60px;
+            text-align: center
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1>🎨 Color Converter</h1>
+        <div class="preview" id="preview" style="background:#ee0979"></div>
+        <div class="form-group">
+            <label>Pick Color</label>
+            <input type="color" class="color-picker" id="picker" value="#ee0979" oninput="fromPicker()">
+        </div>
+        <div class="form-group">
+            <label>HEX</label>
+            <div class="input-row">
+                <input type="text" id="hex" value="#ee0979" oninput="fromHex()">
+                <button class="copy" onclick="copy('hex')">Copy</button>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>RGB</label>
+            <div class="input-row">
+                <input type="text" id="rgb" value="rgb(238, 9, 121)" oninput="fromRgb()">
+                <button class="copy" onclick="copy('rgb')">Copy</button>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>HSL</label>
+            <div class="input-row">
+                <input type="text" id="hsl" value="hsl(331, 93%, 48%)" oninput="fromHsl()">
+                <button class="copy" onclick="copy('hsl')">Copy</button>
+            </div>
+        </div>
+        <div class="sliders">
+            <div class="slider-row"><span>R</span><input type="range" id="rSlider" min="0" max="255" value="238"
+                    oninput="fromSliders()"><input type="number" id="rNum" min="0" max="255" value="238"
+                    oninput="fromSliders()"></div>
+            <div class="slider-row"><span>G</span><input type="range" id="gSlider" min="0" max="255" value="9"
+                    oninput="fromSliders()"><input type="number" id="gNum" min="0" max="255" value="9"
+                    oninput="fromSliders()"></div>
+            <div class="slider-row"><span>B</span><input type="range" id="bSlider" min="0" max="255" value="121"
+                    oninput="fromSliders()"><input type="number" id="bNum" min="0" max="255" value="121"
+                    oninput="fromSliders()"></div>
+        </div>
+    </div>
+    <script>
+        function updateAll(r, g, b) {
+            document.getElementById('preview').style.background = `rgb(${r},${g},${b})`;
+            document.getElementById('picker').value = rgbToHex(r, g, b);
+            document.getElementById('hex').value = rgbToHex(r, g, b);
+            document.getElementById('rgb').value = `rgb(${r}, ${g}, ${b})`;
+            const [h, s, l] = rgbToHsl(r, g, b);
+            document.getElementById('hsl').value = `hsl(${h}, ${s}%, ${l}%)`;
+            document.getElementById('rSlider').value = document.getElementById('rNum').value = r;
+            document.getElementById('gSlider').value = document.getElementById('gNum').value = g;
+            document.getElementById('bSlider').value = document.getElementById('bNum').value = b;
+        }
+        function fromPicker() { const v = document.getElementById('picker').value; const [r, g, b] = hexToRgb(v); updateAll(r, g, b) }
+        function fromHex() { const v = document.getElementById('hex').value; const rgb = hexToRgb(v); if (rgb) updateAll(...rgb) }
+        function fromRgb() { const m = document.getElementById('rgb').value.match(/(\d+)/g); if (m && m.length >= 3) updateAll(parseInt(m[0]), parseInt(m[1]), parseInt(m[2])) }
+        function fromHsl() { const m = document.getElementById('hsl').value.match(/(\d+)/g); if (m && m.length >= 3) { const [r, g, b] = hslToRgb(parseInt(m[0]), parseInt(m[1]), parseInt(m[2])); updateAll(r, g, b) } }
+        function fromSliders() { updateAll(parseInt(document.getElementById('rSlider').value), parseInt(document.getElementById('gSlider').value), parseInt(document.getElementById('bSlider').value)) }
+        function copy(id) { navigator.clipboard.writeText(document.getElementById(id).value) }
+        function rgbToHex(r, g, b) { return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('') }
+        function hexToRgb(h) { const m = h.match(/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i); return m ? [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)] : null }
+        function rgbToHsl(r, g, b) { r /= 255; g /= 255; b /= 255; const max = Math.max(r, g, b), min = Math.min(r, g, b); let h, s, l = (max + min) / 2; if (max === min) { h = s = 0 } else { const d = max - min; s = l > .5 ? d / (2 - max - min) : d / (max + min); switch (max) { case r: h = (g - b) / d + (g < b ? 6 : 0); break; case g: h = (b - r) / d + 2; break; case b: h = (r - g) / d + 4 }h /= 6 } return [Math.round(h * 360), Math.round(s * 100), Math.round(l * 100)] }
+        function hslToRgb(h, s, l) { h /= 360; s /= 100; l /= 100; let r, g, b; if (s === 0) { r = g = b = l } else { const hue2rgb = (p, q, t) => { if (t < 0) t += 1; if (t > 1) t -= 1; if (t < 1 / 6) return p + (q - p) * 6 * t; if (t < 1 / 2) return q; if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6; return p }; const q = l < .5 ? l * (1 + s) : l + s - l * s; const p = 2 * l - q; r = hue2rgb(p, q, h + 1 / 3); g = hue2rgb(p, q, h); b = hue2rgb(p, q, h - 1 / 3) } return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)] }
+    </script>
+</body>
+
+</html>

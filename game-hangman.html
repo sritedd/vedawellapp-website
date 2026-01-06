@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hangman</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #fff;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        svg {
+            width: 200px;
+            height: 250px;
+        }
+
+        .part {
+            stroke: #333;
+            stroke-width: 4;
+            fill: none;
+            display: none;
+        }
+
+        .base {
+            display: block;
+        }
+
+        .word-display {
+            font-size: 3rem;
+            margin: 2rem 0;
+            letter-spacing: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        .keyboard {
+            display: flex;
+            flex-wrap: wrap;
+            max-width: 600px;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .key {
+            width: 40px;
+            height: 40px;
+            background: #eee;
+            border: 1px solid #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .key:hover {
+            background: #ddd;
+        }
+
+        .key.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .key.correct {
+            background: #4ade80;
+            color: #064e3b;
+            border-color: #22c55e;
+        }
+
+        .key.wrong {
+            background: #f87171;
+            color: #7f1d1d;
+            border-color: #ef4444;
+        }
+
+        button#reset {
+            margin-top: 2rem;
+            padding: 10px 30px;
+            background: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            display: none;
+        }
+
+        .status {
+            height: 1.5rem;
+            color: #f44336;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Hangman</h1>
+
+    <svg viewBox="0 0 200 250">
+        <!-- Gallows -->
+        <line x1="20" y1="230" x2="180" y2="230" class="part base" />
+        <line x1="50" y1="230" x2="50" y2="20" class="part base" />
+        <line x1="50" y1="20" x2="120" y2="20" class="part base" />
+        <line x1="120" y1="20" x2="120" y2="50" class="part base" />
+
+        <!-- Man -->
+        <circle cx="120" cy="70" r="20" class="part" id="head" />
+        <line x1="120" y1="90" x2="120" y2="150" class="part" id="body" />
+        <line x1="120" y1="100" x2="90" y2="130" class="part" id="l-arm" />
+        <line x1="120" y1="100" x2="150" y2="130" class="part" id="r-arm" />
+        <line x1="120" y1="150" x2="100" y2="190" class="part" id="l-leg" />
+        <line x1="120" y1="150" x2="140" y2="190" class="part" id="r-leg" />
+    </svg>
+
+    <div class="status" id="status"></div>
+    <div class="word-display" id="word">_ _ _ _ _</div>
+
+    <div class="keyboard" id="keyboard"></div>
+
+    <button id="reset" onclick="init()">Play Again</button>
+
+    <script>
+        const words = ['JAVASCRIPT', 'HTML', 'BROWSER', 'DEVELOPER', 'PYTHON', 'REACT', 'VARIABLE', 'FUNCTION', 'ARRAY', 'OBJECT', 'PROMISE', 'INTERFACE', 'COMPONENT', 'BACKEND', 'DATABASE'];
+
+        let answer = '';
+        let guessed = [];
+        let mistakes = 0;
+        const maxMistakes = 6;
+        const parts = ['head', 'body', 'l-arm', 'r-arm', 'l-leg', 'r-leg'];
+
+        function init() {
+            answer = words[Math.floor(Math.random() * words.length)];
+            guessed = [];
+            mistakes = 0;
+
+            document.getElementById('status').innerText = '';
+            document.getElementById('reset').style.display = 'none';
+
+            // Reset Drawing
+            parts.forEach(id => document.getElementById(id).style.display = 'none');
+
+            // Build Keyboard
+            const kb = document.getElementById('keyboard');
+            kb.innerHTML = '';
+            for (let i = 65; i <= 90; i++) {
+                const letter = String.fromCharCode(i);
+                const key = document.createElement('div');
+                key.className = 'key';
+                key.innerText = letter;
+                key.onclick = () => handleGuess(letter, key);
+                kb.appendChild(key);
+            }
+
+            updateWord();
+        }
+
+        function handleGuess(letter, keyEl) {
+            if (mistakes >= maxMistakes || guessed.includes(letter) || answer.split('').every(l => guessed.includes(l))) return;
+
+            guessed.push(letter);
+            keyEl.classList.add('disabled');
+
+            if (answer.includes(letter)) {
+                keyEl.classList.add('correct');
+                updateWord();
+            } else {
+                keyEl.classList.add('wrong');
+                mistakes++;
+                drawPart();
+            }
+
+            checkGame();
+        }
+
+        function updateWord() {
+            const display = answer.split('').map(l => guessed.includes(l) ? l : '_').join(' ');
+            document.getElementById('word').innerText = display;
+        }
+
+        function drawPart() {
+            if (mistakes > 0 && mistakes <= maxMistakes) {
+                document.getElementById(parts[mistakes - 1]).style.display = 'block';
+            }
+        }
+
+        function checkGame() {
+            if (answer.split('').every(l => guessed.includes(l))) {
+                document.getElementById('status').style.color = 'green';
+                document.getElementById('status').innerText = 'YOU WON!';
+                document.getElementById('reset').style.display = 'block';
+            } else if (mistakes >= maxMistakes) {
+                document.getElementById('status').style.color = 'red';
+                document.getElementById('status').innerText = `GAME OVER! Word was: ${answer}`;
+                document.getElementById('word').innerText = answer.split('').join(' ');
+                document.getElementById('reset').style.display = 'block';
+            }
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

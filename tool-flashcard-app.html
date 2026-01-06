@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcard App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: system-ui, sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            min-height: 100vh;
+            padding: 20px
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto
+        }
+
+        h1 {
+            color: #fff;
+            text-align: center;
+            margin-bottom: 1.5rem
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 1.5rem
+        }
+
+        .tab {
+            flex: 1;
+            padding: 1rem;
+            background: rgba(255, 255, 255, .1);
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            font-size: 1rem
+        }
+
+        .tab:first-child {
+            border-radius: 10px 0 0 10px
+        }
+
+        .tab:last-child {
+            border-radius: 0 10px 10px 0
+        }
+
+        .tab.active {
+            background: #fff;
+            color: #667eea
+        }
+
+        .study-area {
+            display: none
+        }
+
+        .study-area.active {
+            display: block
+        }
+
+        .card-container {
+            perspective: 1000px;
+            margin-bottom: 1.5rem
+        }
+
+        .flashcard {
+            width: 100%;
+            height: 300px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform .6s;
+            cursor: pointer
+        }
+
+        .flashcard.flipped {
+            transform: rotateY(180deg)
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            font-size: 1.5rem;
+            text-align: center
+        }
+
+        .card-front {
+            background: #fff;
+            color: #333
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            color: #fff;
+            transform: rotateY(180deg)
+        }
+
+        .nav-btns {
+            display: flex;
+            gap: 1rem
+        }
+
+        .nav-btn {
+            flex: 1;
+            padding: 1rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer
+        }
+
+        .nav-btn.prev {
+            background: rgba(255, 255, 255, .2);
+            color: #fff
+        }
+
+        .nav-btn.next {
+            background: #fff;
+            color: #667eea
+        }
+
+        .progress {
+            text-align: center;
+            color: rgba(255, 255, 255, .8);
+            margin-top: 1rem
+        }
+
+        .create-area {
+            display: none;
+            background: #fff;
+            border-radius: 20px;
+            padding: 1.5rem
+        }
+
+        .create-area.active {
+            display: block
+        }
+
+        .form-group {
+            margin-bottom: 1rem
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: .5rem;
+            color: #666
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: .75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem
+        }
+
+        .form-group textarea {
+            min-height: 80px
+        }
+
+        .btn {
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: 600
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff
+        }
+
+        .cards-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 1rem
+        }
+
+        .card-item {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: .5rem;
+            display: flex;
+            justify-content: space-between
+        }
+
+        .card-item .front {
+            font-weight: 500
+        }
+
+        .card-item button {
+            background: #ff6b6b;
+            color: #fff;
+            border: none;
+            padding: .25rem .5rem;
+            border-radius: 4px;
+            cursor: pointer
+        }
+
+        .empty {
+            text-align: center;
+            color: #888;
+            padding: 2rem
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>📚 Flashcard App</h1>
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('study')">Study</button>
+            <button class="tab" onclick="showTab('create')">Create</button>
+        </div>
+        <div class="study-area active" id="studyArea">
+            <div class="card-container">
+                <div class="flashcard" id="flashcard" onclick="flip()">
+                    <div class="card-face card-front" id="cardFront">Click to flip</div>
+                    <div class="card-face card-back" id="cardBack">Answer here</div>
+                </div>
+            </div>
+            <div class="nav-btns">
+                <button class="nav-btn prev" onclick="prev()">← Previous</button>
+                <button class="nav-btn next" onclick="next()">Next →</button>
+            </div>
+            <div class="progress"><span id="current">0</span> / <span id="total">0</span></div>
+        </div>
+        <div class="create-area" id="createArea">
+            <div class="form-group">
+                <label>Question (Front)</label>
+                <textarea id="frontInput" placeholder="Enter question..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Answer (Back)</label>
+                <textarea id="backInput" placeholder="Enter answer..."></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="addCard()">+ Add Card</button>
+            <div class="cards-list" id="cardsList"></div>
+        </div>
+    </div>
+    <script>
+        let cards = JSON.parse(localStorage.getItem('flashcards') || '[]');
+        let currentIndex = 0;
+        if (cards.length === 0) { cards = [{ front: 'What is the capital of France?', back: 'Paris' }, { front: 'What is 2 + 2?', back: '4' }, { front: 'H2O is the chemical formula for?', back: 'Water' }] }
+        function save() { localStorage.setItem('flashcards', JSON.stringify(cards)) }
+        function showTab(tab) {
+            document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === (tab === 'study' ? 0 : 1)));
+            document.getElementById('studyArea').classList.toggle('active', tab === 'study');
+            document.getElementById('createArea').classList.toggle('active', tab === 'create');
+            if (tab === 'study') showCard();
+            else renderList();
+        }
+        function showCard() {
+            if (cards.length === 0) {
+                document.getElementById('cardFront').textContent = 'No cards yet!';
+                document.getElementById('cardBack').textContent = 'Create some cards';
+                document.getElementById('current').textContent = '0';
+                document.getElementById('total').textContent = '0';
+                return;
+            }
+            document.getElementById('flashcard').classList.remove('flipped');
+            document.getElementById('cardFront').textContent = cards[currentIndex].front;
+            document.getElementById('cardBack').textContent = cards[currentIndex].back;
+            document.getElementById('current').textContent = currentIndex + 1;
+            document.getElementById('total').textContent = cards.length;
+        }
+        function flip() { document.getElementById('flashcard').classList.toggle('flipped') }
+        function next() { if (cards.length) { currentIndex = (currentIndex + 1) % cards.length; showCard() } }
+        function prev() { if (cards.length) { currentIndex = (currentIndex - 1 + cards.length) % cards.length; showCard() } }
+        function addCard() {
+            const front = document.getElementById('frontInput').value.trim();
+            const back = document.getElementById('backInput').value.trim();
+            if (front && back) {
+                cards.push({ front, back });
+                document.getElementById('frontInput').value = '';
+                document.getElementById('backInput').value = '';
+                save(); renderList();
+            }
+        }
+        function deleteCard(i) { cards.splice(i, 1); if (currentIndex >= cards.length) currentIndex = Math.max(0, cards.length - 1); save(); renderList() }
+        function renderList() {
+            document.getElementById('cardsList').innerHTML = cards.length ? cards.map((c, i) => `
+                <div class="card-item">
+                    <span class="front">${c.front}</span>
+                    <button onclick="deleteCard(${i})">×</button>
+                </div>
+            `).join('') : '<div class="empty">No cards yet</div>';
+        }
+        showCard();
+    </script>
+</body>
+
+</html>

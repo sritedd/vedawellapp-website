@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Date Calculator</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            background: #fff0f5;
+            display: flex;
+            justify-content: center;
+            padding-top: 50px;
+        }
+
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+
+        h1 {
+            color: #be185d;
+            text-align: center;
+            margin-top: 0;
+        }
+
+        .section {
+            margin-top: 2rem;
+            border-top: 1px solid #eee;
+            padding-top: 1rem;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: #555;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .result {
+            background: #fdf2f8;
+            color: #be185d;
+            padding: 1rem;
+            text-align: center;
+            border-radius: 8px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            width: 100%;
+            background: #be185d;
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background: #9d174d;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1>📅 Date Calculator</h1>
+
+        <div class="section" style="border:none">
+            <h3>Days Between Dates</h3>
+            <label>Start Date</label>
+            <input type="date" id="start" onchange="calcDiff()">
+            <label>End Date</label>
+            <input type="date" id="end" onchange="calcDiff()">
+            <div class="result" id="diffResult">0 days</div>
+        </div>
+
+        <div class="section">
+            <h3>Add/Subtract Days</h3>
+            <label>Start Date</label>
+            <input type="date" id="addStart" onchange="calcAdd()">
+            <label>Days to Add (+/-)</label>
+            <input type="number" id="daysToAdd" value="30" onchange="calcAdd()">
+            <div class="result" id="addResult">-</div>
+        </div>
+    </div>
+
+    <script>
+        const now = new Date();
+        document.getElementById('start').valueAsDate = now;
+        document.getElementById('end').valueAsDate = new Date(now.getTime() + 86400000);
+        document.getElementById('addStart').valueAsDate = now;
+
+        function calcDiff() {
+            const d1 = new Date(document.getElementById('start').value);
+            const d2 = new Date(document.getElementById('end').value);
+
+            const diffTime = Math.abs(d2 - d1);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            // Business days could be added later
+            const desc = diffDays === 1 ? 'day' : 'days';
+            document.getElementById('diffResult').textContent = `${diffDays} ${desc}`;
+        }
+
+        function calcAdd() {
+            const result = new Date(document.getElementById('addStart').value);
+            const days = parseInt(document.getElementById('daysToAdd').value) || 0;
+
+            result.setDate(result.getDate() + days);
+            document.getElementById('addResult').textContent = result.toDateString();
+        }
+
+        calcDiff();
+        calcAdd();
+    </script>
+</body>
+
+</html>

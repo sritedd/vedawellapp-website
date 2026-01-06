@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Notes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: system-ui, sans-serif;
+            background: #1a1a2e;
+            min-height: 100vh;
+            padding: 20px
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem
+        }
+
+        h1 {
+            color: #fff
+        }
+
+        .add-btn {
+            padding: .75rem 1.5rem;
+            background: linear-gradient(135deg, #00d9ff, #00b4db);
+            color: #0f0f23;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600
+        }
+
+        .notes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem
+        }
+
+        .note {
+            background: #252547;
+            border-radius: 15px;
+            padding: 1.25rem;
+            position: relative
+        }
+
+        .note-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: .75rem
+        }
+
+        .note-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #fff;
+            background: transparent;
+            border: none;
+            width: 100%;
+            outline: none
+        }
+
+        .note-actions button {
+            background: transparent;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            padding: .25rem;
+            font-size: 1rem
+        }
+
+        .note-actions button:hover {
+            color: #ff6b6b
+        }
+
+        .note-content {
+            color: #aaa;
+            font-size: .95rem;
+            line-height: 1.6;
+            background: transparent;
+            border: none;
+            width: 100%;
+            min-height: 100px;
+            resize: none;
+            outline: none
+        }
+
+        .note-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
+            font-size: .75rem;
+            color: #666
+        }
+
+        .color-picker {
+            display: flex;
+            gap: .25rem
+        }
+
+        .color-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent
+        }
+
+        .color-dot:hover,
+        .color-dot.active {
+            border-color: #fff
+        }
+
+        .search-box {
+            background: #252547;
+            border: none;
+            padding: .75rem 1rem;
+            border-radius: 10px;
+            color: #fff;
+            width: 250px
+        }
+
+        .search-box:focus {
+            outline: 2px solid #00d9ff
+        }
+
+        .empty {
+            text-align: center;
+            color: #666;
+            padding: 3rem
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>📝 Quick Notes</h1>
+            <div style="display:flex;gap:1rem">
+                <input type="text" class="search-box" placeholder="Search notes..." id="search" oninput="render()">
+                <button class="add-btn" onclick="addNote()">+ New Note</button>
+            </div>
+        </header>
+        <div class="notes-grid" id="notesGrid"></div>
+    </div>
+    <script>
+        const colors = ['#252547', '#2d4a3e', '#4a2d4a', '#4a3d2d', '#2d3d4a', '#4a2d2d'];
+        let notes = JSON.parse(localStorage.getItem('quicknotes') || '[]');
+        function save() { localStorage.setItem('quicknotes', JSON.stringify(notes)) }
+        function render() {
+            const search = document.getElementById('search').value.toLowerCase();
+            const filtered = notes.filter(n => n.title.toLowerCase().includes(search) || n.content.toLowerCase().includes(search));
+            const grid = document.getElementById('notesGrid');
+            if (filtered.length === 0) { grid.innerHTML = '<div class="empty">' + (search ? 'No notes found' : 'Click "+ New Note" to get started') + '</div>'; return }
+            grid.innerHTML = filtered.map((n, i) => `
+                <div class="note" style="background:${n.color || colors[0]}">
+                    <div class="note-header">
+                        <input type="text" class="note-title" value="${n.title}" placeholder="Title" onchange="updateNote(${notes.indexOf(n)},'title',this.value)">
+                        <div class="note-actions"><button onclick="deleteNote(${notes.indexOf(n)})">🗑️</button></div>
+                    </div>
+                    <textarea class="note-content" placeholder="Write something..." onchange="updateNote(${notes.indexOf(n)},'content',this.value)">${n.content}</textarea>
+                    <div class="note-footer">
+                        <span>${formatDate(n.updated)}</span>
+                        <div class="color-picker">
+                            ${colors.map(c => `<div class="color-dot ${n.color === c ? 'active' : ''}" style="background:${c}" onclick="updateNote(${notes.indexOf(n)},'color','${c}')"></div>`).join('')}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        function addNote() { notes.unshift({ title: '', content: '', color: colors[0], created: Date.now(), updated: Date.now() }); save(); render() }
+        function updateNote(i, field, value) { notes[i][field] = value; notes[i].updated = Date.now(); save(); render() }
+        function deleteNote(i) { if (confirm('Delete this note?')) { notes.splice(i, 1); save(); render() } }
+        function formatDate(ts) { const d = new Date(ts); return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
+        render();
+    </script>
+</body>
+
+</html>

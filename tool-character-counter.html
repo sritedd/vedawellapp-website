@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Character Counter</title>
+    <style>
+        :root {
+            --blue: #1DA1F2;
+            --insta: #E1306C;
+            --linkedin: #0A66C2;
+            --bg: #f5f8fa;
+        }
+
+        body {
+            font-family: -apple-system, system-ui, sans-serif;
+            background: var(--bg);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 700px;
+            width: 100%;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            text-align: center;
+            color: #14171a;
+            margin-bottom: 1.5rem;
+        }
+
+        .social-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+
+        .tab {
+            border: none;
+            background: white;
+            border: 1px solid #e1e8ed;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #657786;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            background: #f5f8fa;
+        }
+
+        .tab.active {
+            background: var(--blue);
+            color: white;
+            border-color: var(--blue);
+        }
+
+        .tab.insta.active {
+            background: var(--insta);
+            border-color: var(--insta);
+        }
+
+        .tab.linkedin.active {
+            background: var(--linkedin);
+            border-color: var(--linkedin);
+        }
+
+        textarea {
+            width: 100%;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            padding: 1rem;
+            font-size: 1.1rem;
+            min-height: 150px;
+            resize: vertical;
+            display: block;
+            box-sizing: border-box;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--blue);
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
+            align-items: center;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-val {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #14171a;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #657786;
+            text-transform: uppercase;
+        }
+
+        .progress-container {
+            margin-top: 1rem;
+            background: #e1e8ed;
+            height: 6px;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--blue);
+            width: 0%;
+            transition: width 0.3s, background 0.3s;
+        }
+
+        .limit-info {
+            text-align: right;
+            font-size: 0.9rem;
+            color: #657786;
+            margin-top: 0.5rem;
+        }
+
+        .warning {
+            color: #ffad1f;
+        }
+
+        .danger {
+            color: #e0245e;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            background: #e1e8ed;
+            color: #657786;
+        }
+
+        .action-btn:hover {
+            background: #ccd6dd;
+        }
+
+        .copy-btn {
+            background: var(--blue);
+            color: white;
+        }
+
+        .copy-btn:hover {
+            background: #1a91da;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>📝 Social Character Counter</h1>
+
+        <div class="social-tabs">
+            <button class="tab active" onclick="setPlatform('twitter', 280, '#1DA1F2')">X (Twitter)</button>
+            <button class="tab insta" onclick="setPlatform('instagram', 2200, '#E1306C')">Instagram</button>
+            <button class="tab linkedin" onclick="setPlatform('linkedin', 3000, '#0A66C2')">LinkedIn</button>
+            <button class="tab" onclick="setPlatform('tiktok', 2200, '#000000')">TikTok</button>
+            <button class="tab" onclick="setPlatform('facebook', 63206, '#1877F2')">Facebook</button>
+            <button class="tab" onclick="setPlatform('sms', 160, '#34C759')">SMS</button>
+        </div>
+
+        <div class="card">
+            <textarea id="input" placeholder="Start typing..." oninput="update()"></textarea>
+
+            <div class="progress-container">
+                <div class="progress-bar" id="bar"></div>
+            </div>
+            <div class="limit-info">
+                <span id="remaining">280</span> characters remaining
+            </div>
+
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-val" id="charCount">0</div>
+                    <div class="stat-label">Characters</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-val" id="wordCount">0</div>
+                    <div class="stat-label">Words</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-val" id="lineCount">0</div>
+                    <div class="stat-label">Lines</div>
+                </div>
+            </div>
+
+            <div class="btn-row">
+                <button class="action-btn" onclick="clearText()">Clear</button>
+                <button class="action-btn" onclick="sentenceCase()">Sentence Case</button>
+                <button class="action-btn copy-btn" onclick="copy()">Copy Text</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let maxChars = 280;
+        let color = '#1DA1F2';
+
+        function setPlatform(name, limit, col) {
+            maxChars = limit;
+            color = col;
+
+            // Update tabs
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`.tab[onclick*="${name}"]`).classList.add('active');
+
+            // Update UI colors
+            document.querySelector('.copy-btn').style.background = col;
+            document.querySelector(':root').style.setProperty('--blue', col);
+
+            update();
+        }
+
+        function update() {
+            const text = document.getElementById('input').value;
+            const len = text.length;
+            const remaining = maxChars - len;
+
+            // Counts
+            document.getElementById('charCount').textContent = len;
+            document.getElementById('wordCount').textContent = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+            document.getElementById('lineCount').textContent = text === '' ? 0 : text.split(/\r\n|\r|\n/).length;
+            document.getElementById('remaining').textContent = remaining;
+
+            // Styling
+            const info = document.querySelector('.limit-info');
+            const bar = document.getElementById('bar');
+
+            const pct = Math.min((len / maxChars) * 100, 100);
+            bar.style.width = pct + '%';
+            bar.style.background = color;
+
+            if (remaining < 20 && remaining >= 0) {
+                bar.style.background = '#ffad1f';
+                info.style.color = '#ffad1f';
+            } else if (remaining < 0) {
+                bar.style.background = '#e0245e';
+                info.style.color = '#e0245e';
+            } else {
+                info.style.color = '#657786';
+            }
+        }
+
+        function clearText() {
+            document.getElementById('input').value = '';
+            update();
+        }
+
+        function sentenceCase() {
+            let text = document.getElementById('input').value;
+            text = text.toLowerCase().replace(/(^\s*\w|[\.\!\?]\s*\w)/g, c => c.toUpperCase());
+            document.getElementById('input').value = text;
+            update();
+        }
+
+        function copy() {
+            document.getElementById('input').select();
+            document.execCommand('copy');
+        }
+
+        update();
+    </script>
+</body>
+
+</html>

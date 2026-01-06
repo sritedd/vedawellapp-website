@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Watermarker Pro | Protect Your Images</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #0c0c1d;
+            --card: #1a1a2e;
+            --accent: #9333ea;
+            --accent-light: #a855f7;
+            --success: #22c55e;
+            --text: #f1f5f9;
+            --text-muted: #64748b;
+            --border: #334155;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, var(--bg) 0%, #1e1b4b 100%);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            background: linear-gradient(90deg, var(--accent), #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            color: var(--text-muted);
+        }
+
+        .app-grid {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 1000px) {
+            .app-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 1.5rem;
+            height: fit-content;
+        }
+
+        .section {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .section h3 {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            margin-bottom: 0.25rem;
+            color: var(--text-muted);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.625rem;
+            background: #0f172a;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+
+        .slider-group {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .slider-group input[type="range"] {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 6px;
+            background: #0f172a;
+            border-radius: 3px;
+        }
+
+        .slider-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .slider-group span {
+            min-width: 45px;
+            text-align: right;
+            font-size: 0.9rem;
+        }
+
+        .position-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+        }
+
+        .position-btn {
+            padding: 0.75rem;
+            background: #0f172a;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+        }
+
+        .position-btn:hover {
+            background: var(--border);
+        }
+
+        .position-btn.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(147, 51, 234, 0.4);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-block {
+            width: 100%;
+        }
+
+        /* Main Area */
+        .main-area {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .upload-zone {
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 3rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 1.5rem;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--accent);
+            background: rgba(147, 51, 234, 0.1);
+        }
+
+        .upload-zone.drag-over {
+            border-color: var(--accent);
+            background: rgba(147, 51, 234, 0.2);
+        }
+
+        .upload-zone .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .upload-zone h3 {
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-zone p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .preview-container {
+            background: #0f172a;
+            border-radius: 12px;
+            padding: 1rem;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .preview-container canvas {
+            max-width: 100%;
+            max-height: 600px;
+            border-radius: 8px;
+        }
+
+        .preview-placeholder {
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        .preview-placeholder .icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+
+        /* Image Grid */
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .image-thumb {
+            position: relative;
+            background: #0f172a;
+            border-radius: 8px;
+            overflow: hidden;
+            aspect-ratio: 1;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .image-thumb.active {
+            border-color: var(--accent);
+        }
+
+        .image-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-thumb .remove {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 24px;
+            height: 24px;
+            background: rgba(239, 68, 68, 0.9);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .actions .btn {
+            flex: 1;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>🖼️ Image Watermarker Pro</h1>
+            <p>Add text or image watermarks to protect your work</p>
+        </header>
+
+        <div class="app-grid">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Watermark Type -->
+                <div class="section">
+                    <h3>Watermark Type</h3>
+                    <div class="form-row">
+                        <button class="btn btn-primary btn-block" id="textModeBtn"
+                            onclick="setWatermarkMode('text')">Text</button>
+                        <button class="btn btn-block" id="imageModeBtn" style="background:#0f172a;color:var(--text)"
+                            onclick="setWatermarkMode('image')">Image</button>
+                    </div>
+                </div>
+
+                <!-- Text Watermark -->
+                <div class="section" id="textSettings">
+                    <h3>Text Watermark</h3>
+                    <div class="form-group">
+                        <label>Watermark Text</label>
+                        <input type="text" id="watermarkText" value="© Your Name" oninput="updatePreview()">
+                    </div>
+                    <div class="form-group">
+                        <label>Font</label>
+                        <select id="fontFamily" onchange="updatePreview()">
+                            <option value="Arial">Arial</option>
+                            <option value="Georgia">Georgia</option>
+                            <option value="Times New Roman">Times New Roman</option>
+                            <option value="Courier New">Courier New</option>
+                            <option value="Verdana">Verdana</option>
+                            <option value="Impact">Impact</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Font Size</label>
+                            <input type="number" id="fontSize" value="48" min="12" max="200" onchange="updatePreview()">
+                        </div>
+                        <div class="form-group">
+                            <label>Color</label>
+                            <input type="color" id="textColor" value="#ffffff" onchange="updatePreview()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Image Watermark -->
+                <div class="section" id="imageSettings" style="display:none">
+                    <h3>Image Watermark</h3>
+                    <div class="form-group">
+                        <label>Upload Watermark Image (PNG recommended)</label>
+                        <input type="file" id="watermarkImage" accept="image/*" onchange="handleWatermarkImage(event)">
+                    </div>
+                    <div class="form-group">
+                        <label>Watermark Size</label>
+                        <div class="slider-group">
+                            <input type="range" id="watermarkScale" min="5" max="50" value="20"
+                                oninput="updatePreview(); document.getElementById('scaleValue').textContent = this.value + '%'">
+                            <span id="scaleValue">20%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Position -->
+                <div class="section">
+                    <h3>Position</h3>
+                    <div class="position-grid">
+                        <button class="position-btn" data-pos="top-left" onclick="setPosition('top-left')">↖ Top
+                            Left</button>
+                        <button class="position-btn" data-pos="top-center" onclick="setPosition('top-center')">↑
+                            Top</button>
+                        <button class="position-btn" data-pos="top-right" onclick="setPosition('top-right')">↗ Top
+                            Right</button>
+                        <button class="position-btn" data-pos="center-left" onclick="setPosition('center-left')">←
+                            Left</button>
+                        <button class="position-btn active" data-pos="center" onclick="setPosition('center')">●
+                            Center</button>
+                        <button class="position-btn" data-pos="center-right" onclick="setPosition('center-right')">→
+                            Right</button>
+                        <button class="position-btn" data-pos="bottom-left" onclick="setPosition('bottom-left')">↙ Bot
+                            Left</button>
+                        <button class="position-btn" data-pos="bottom-center" onclick="setPosition('bottom-center')">↓
+                            Bottom</button>
+                        <button class="position-btn" data-pos="bottom-right" onclick="setPosition('bottom-right')">↘ Bot
+                            Right</button>
+                    </div>
+                </div>
+
+                <!-- Opacity -->
+                <div class="section">
+                    <h3>Opacity</h3>
+                    <div class="slider-group">
+                        <input type="range" id="opacity" min="10" max="100" value="50"
+                            oninput="updatePreview(); document.getElementById('opacityValue').textContent = this.value + '%'">
+                        <span id="opacityValue">50%</span>
+                    </div>
+                </div>
+
+                <!-- Tile Pattern -->
+                <div class="section">
+                    <h3>Pattern</h3>
+                    <div class="form-group">
+                        <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer">
+                            <input type="checkbox" id="tilePattern" onchange="updatePreview()">
+                            <span>Repeat watermark across image</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Area -->
+            <div class="main-area">
+                <!-- Upload -->
+                <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+                    <input type="file" id="fileInput" accept="image/*" multiple style="display:none"
+                        onchange="handleFiles(event)">
+                    <div class="icon">📁</div>
+                    <h3>Drop images here or click to upload</h3>
+                    <p>Supports JPG, PNG, WebP • Multiple files supported</p>
+                </div>
+
+                <!-- Preview -->
+                <div class="preview-container" id="previewContainer">
+                    <div class="preview-placeholder">
+                        <div class="icon">🖼️</div>
+                        <p>Upload images to preview watermark</p>
+                    </div>
+                </div>
+
+                <!-- Image Thumbnails -->
+                <div class="image-grid" id="imageGrid"></div>
+
+                <!-- Actions -->
+                <div class="actions">
+                    <button class="btn btn-success" onclick="downloadCurrent()">💾 Save Current</button>
+                    <button class="btn btn-primary" onclick="downloadAll()">📦 Download All</button>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            Image Watermarker Pro | All processing happens locally in your browser
+        </footer>
+    </div>
+
+    <script>
+        // State
+        let images = [];
+        let currentIndex = 0;
+        let watermarkMode = 'text';
+        let watermarkImage = null;
+        let position = 'center';
+        let canvas, ctx;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            canvas = document.createElement('canvas');
+            ctx = canvas.getContext('2d');
+
+            // Drag and drop
+            const uploadZone = document.getElementById('uploadZone');
+            uploadZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadZone.classList.add('drag-over');
+            });
+            uploadZone.addEventListener('dragleave', () => {
+                uploadZone.classList.remove('drag-over');
+            });
+            uploadZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadZone.classList.remove('drag-over');
+                handleFiles({ target: { files: e.dataTransfer.files } });
+            });
+        });
+
+        function setWatermarkMode(mode) {
+            watermarkMode = mode;
+            document.getElementById('textModeBtn').style.background = mode === 'text' ? '' : '#0f172a';
+            document.getElementById('textModeBtn').className = mode === 'text' ? 'btn btn-primary btn-block' : 'btn btn-block';
+            document.getElementById('imageModeBtn').style.background = mode === 'image' ? '' : '#0f172a';
+            document.getElementById('imageModeBtn').className = mode === 'image' ? 'btn btn-primary btn-block' : 'btn btn-block';
+            document.getElementById('textSettings').style.display = mode === 'text' ? 'block' : 'none';
+            document.getElementById('imageSettings').style.display = mode === 'image' ? 'block' : 'none';
+            updatePreview();
+        }
+
+        function setPosition(pos) {
+            position = pos;
+            document.querySelectorAll('.position-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.pos === pos);
+            });
+            updatePreview();
+        }
+
+        function handleFiles(event) {
+            const files = Array.from(event.target.files);
+            files.forEach(file => {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            images.push({ src: e.target.result, img, name: file.name });
+                            renderThumbnails();
+                            if (images.length === 1) {
+                                selectImage(0);
+                            }
+                        };
+                        img.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        function handleWatermarkImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    watermarkImage = new Image();
+                    watermarkImage.onload = () => updatePreview();
+                    watermarkImage.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function renderThumbnails() {
+            const grid = document.getElementById('imageGrid');
+            grid.innerHTML = images.map((img, i) => `
+                <div class="image-thumb ${i === currentIndex ? 'active' : ''}" onclick="selectImage(${i})">
+                    <img src="${img.src}" alt="${img.name}">
+                    <button class="remove" onclick="event.stopPropagation(); removeImage(${i})">×</button>
+                </div>
+            `).join('');
+        }
+
+        function selectImage(index) {
+            currentIndex = index;
+            renderThumbnails();
+            updatePreview();
+        }
+
+        function removeImage(index) {
+            images.splice(index, 1);
+            if (currentIndex >= images.length) currentIndex = Math.max(0, images.length - 1);
+            renderThumbnails();
+            if (images.length > 0) {
+                updatePreview();
+            } else {
+                document.getElementById('previewContainer').innerHTML = `
+                    <div class="preview-placeholder">
+                        <div class="icon">🖼️</div>
+                        <p>Upload images to preview watermark</p>
+                    </div>
+                `;
+            }
+        }
+
+        function updatePreview() {
+            if (images.length === 0) return;
+
+            const currentImage = images[currentIndex];
+            const img = currentImage.img;
+
+            canvas.width = img.width;
+            canvas.height = img.height;
+
+            // Draw original image
+            ctx.drawImage(img, 0, 0);
+
+            // Apply watermark
+            const opacity = parseInt(document.getElementById('opacity').value) / 100;
+            const tilePattern = document.getElementById('tilePattern').checked;
+
+            ctx.globalAlpha = opacity;
+
+            if (tilePattern) {
+                drawTiledWatermark(img);
+            } else {
+                drawSingleWatermark(img);
+            }
+
+            ctx.globalAlpha = 1;
+
+            // Display preview
+            const previewCanvas = canvas.cloneNode();
+            previewCanvas.getContext('2d').drawImage(canvas, 0, 0);
+            document.getElementById('previewContainer').innerHTML = '';
+            document.getElementById('previewContainer').appendChild(previewCanvas);
+        }
+
+        function drawSingleWatermark(img) {
+            const { x, y } = getPosition(img.width, img.height);
+
+            if (watermarkMode === 'text') {
+                drawTextWatermark(x, y, img.width);
+            } else if (watermarkImage) {
+                drawImageWatermark(x, y, img.width);
+            }
+        }
+
+        function drawTiledWatermark(img) {
+            const spacing = watermarkMode === 'text' ? 200 : 150;
+            ctx.save();
+            ctx.rotate(-30 * Math.PI / 180);
+
+            for (let y = -img.height; y < img.height * 2; y += spacing) {
+                for (let x = -img.width; x < img.width * 2; x += spacing) {
+                    if (watermarkMode === 'text') {
+                        drawTextWatermark(x, y, img.width, true);
+                    } else if (watermarkImage) {
+                        drawImageWatermark(x, y, img.width, true);
+                    }
+                }
+            }
+            ctx.restore();
+        }
+
+        function drawTextWatermark(x, y, imgWidth, small = false) {
+            const text = document.getElementById('watermarkText').value;
+            const font = document.getElementById('fontFamily').value;
+            let fontSize = parseInt(document.getElementById('fontSize').value);
+            const color = document.getElementById('textColor').value;
+
+            if (small) fontSize = fontSize * 0.6;
+
+            ctx.font = `bold ${fontSize}px ${font}`;
+            ctx.fillStyle = color;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            // Shadow for visibility
+            ctx.shadowColor = 'rgba(0,0,0,0.5)';
+            ctx.shadowBlur = 4;
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 2;
+
+            ctx.fillText(text, x, y);
+
+            ctx.shadowColor = 'transparent';
+        }
+
+        function drawImageWatermark(x, y, imgWidth, small = false) {
+            if (!watermarkImage) return;
+
+            let scale = parseInt(document.getElementById('watermarkScale').value) / 100;
+            if (small) scale *= 0.6;
+
+            const w = imgWidth * scale;
+            const h = (watermarkImage.height / watermarkImage.width) * w;
+
+            ctx.drawImage(watermarkImage, x - w / 2, y - h / 2, w, h);
+        }
+
+        function getPosition(imgWidth, imgHeight) {
+            const padding = 50;
+            const positions = {
+                'top-left': { x: padding + 100, y: padding + 30 },
+                'top-center': { x: imgWidth / 2, y: padding + 30 },
+                'top-right': { x: imgWidth - padding - 100, y: padding + 30 },
+                'center-left': { x: padding + 100, y: imgHeight / 2 },
+                'center': { x: imgWidth / 2, y: imgHeight / 2 },
+                'center-right': { x: imgWidth - padding - 100, y: imgHeight / 2 },
+                'bottom-left': { x: padding + 100, y: imgHeight - padding - 30 },
+                'bottom-center': { x: imgWidth / 2, y: imgHeight - padding - 30 },
+                'bottom-right': { x: imgWidth - padding - 100, y: imgHeight - padding - 30 }
+            };
+            return positions[position] || positions.center;
+        }
+
+        function downloadCurrent() {
+            if (images.length === 0) {
+                alert('Please upload an image first');
+                return;
+            }
+
+            updatePreview();
+            const link = document.createElement('a');
+            link.download = `watermarked-${images[currentIndex].name}`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        function downloadAll() {
+            if (images.length === 0) {
+                alert('Please upload images first');
+                return;
+            }
+
+            images.forEach((img, i) => {
+                currentIndex = i;
+                updatePreview();
+
+                setTimeout(() => {
+                    const link = document.createElement('a');
+                    link.download = `watermarked-${img.name}`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                }, i * 500);
+            });
+
+            currentIndex = 0;
+            renderThumbnails();
+            updatePreview();
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Border Radius Preview</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            background: #333;
+            color: white;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+        }
+
+        .container {
+            display: flex;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .box {
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(135deg, #00C9FF 0%, #92FE9D 100%);
+            border: 2px solid white;
+            transition: all 0.2s;
+        }
+
+        .controls {
+            display: grid;
+            gap: 1rem;
+            background: #222;
+            padding: 2rem;
+            border-radius: 12px;
+        }
+
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+            color: #aaa;
+        }
+
+        input[type=range] {
+            width: 200px;
+            accent-color: #00C9FF;
+        }
+
+        .code {
+            background: #111;
+            padding: 1rem;
+            border-radius: 6px;
+            font-family: monospace;
+            margin-top: 1rem;
+            position: relative;
+        }
+
+        .copy-btn {
+            position: absolute;
+            right: 5px;
+            top: 5px;
+            font-size: 0.7rem;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- 4 corners control -->
+        <div class="controls">
+            <div class="slider-group">
+                <label>Top Left: <span id="tl-val">0</span>%</label>
+                <input type="range" id="tl" min="0" max="100" value="0" oninput="update()">
+            </div>
+            <div class="slider-group">
+                <label>Top Right: <span id="tr-val">0</span>%</label>
+                <input type="range" id="tr" min="0" max="100" value="0" oninput="update()">
+            </div>
+            <div class="slider-group">
+                <label>Bottom Right: <span id="br-val">0</span>%</label>
+                <input type="range" id="br" min="0" max="100" value="0" oninput="update()">
+            </div>
+            <div class="slider-group">
+                <label>Bottom Left: <span id="bl-val">0</span>%</label>
+                <input type="range" id="bl" min="0" max="100" value="0" oninput="update()">
+            </div>
+
+            <div class="code">
+                <div class="copy-btn" onclick="copy()">COPY</div>
+                <div id="output">border-radius: 0% 0% 0% 0%;</div>
+            </div>
+        </div>
+
+        <div class="box" id="box"></div>
+    </div>
+
+    <script>
+        function update() {
+            const tl = document.getElementById('tl').value;
+            const tr = document.getElementById('tr').value;
+            const br = document.getElementById('br').value;
+            const bl = document.getElementById('bl').value;
+
+            // Update labels
+            document.getElementById('tl-val').innerText = tl;
+            document.getElementById('tr-val').innerText = tr;
+            document.getElementById('br-val').innerText = br;
+            document.getElementById('bl-val').innerText = bl;
+
+            // Apply
+            const val = `${tl}% ${tr}% ${br}% ${bl}%`;
+            document.getElementById('box').style.borderRadius = val;
+
+            // Code
+            document.getElementById('output').innerText = `border-radius: ${val};`;
+        }
+
+        function copy() {
+            navigator.clipboard.writeText(document.getElementById('output').innerText);
+            alert('Copied!');
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JWT Decoder</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            background: #202020;
+            color: #fff;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid #333;
+        }
+
+        .logo {
+            font-weight: 900;
+            font-size: 2rem;
+            background: linear-gradient(45deg, #fb0058, #a800ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .main {
+            display: flex;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .pane {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            border-right: 1px solid #333;
+        }
+
+        .pane:last-child {
+            border: none;
+        }
+
+        h3 {
+            color: #888;
+            text-transform: uppercase;
+            margin-top: 0;
+            font-size: 0.9rem;
+        }
+
+        textarea {
+            flex: 1;
+            background: #111;
+            color: #fb0058;
+            border: 1px solid #333;
+            padding: 20px;
+            font-family: monospace;
+            font-size: 1.1rem;
+            resize: none;
+            border-radius: 8px;
+            outline: none;
+            line-height: 1.4;
+            word-break: break-all;
+        }
+
+        textarea:focus {
+            border-color: #fb0058;
+        }
+
+        .output {
+            flex: 1;
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            overflow: auto;
+            font-family: monospace;
+        }
+
+        .token-header {
+            color: #fb0058;
+        }
+
+        .token-payload {
+            color: #a800ff;
+        }
+
+        .token-signature {
+            color: #00b9f1;
+        }
+
+        pre {
+            margin: 0;
+            font-size: 1rem;
+        }
+
+        .error {
+            color: #ff3333;
+            padding: 1rem;
+            background: rgba(255, 50, 50, 0.1);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="logo">JWT IO</div>
+        <div style="font-size: 0.8rem; color: #666; margin-top: 5px;">Client-side only. No tokens sent to server.</div>
+    </header>
+
+    <div class="main">
+        <div class="pane">
+            <h3>Encoded</h3>
+            <textarea id="input" placeholder="Paste JWT here..." oninput="decode()"></textarea>
+        </div>
+        <div class="pane">
+            <h3>Decoded</h3>
+            <div class="output" id="output">
+                Start by pasting a token on the left.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function decode() {
+            const token = document.getElementById('input').value.trim();
+            const output = document.getElementById('output');
+
+            if (!token) {
+                output.innerHTML = 'Start by pasting a token on the left.';
+                return;
+            }
+
+            const parts = token.split('.');
+            if (parts.length !== 3) {
+                output.innerHTML = '<div class="error">Invalid JWT format. Must have 3 parts separated by dots.</div>';
+                return;
+            }
+
+            try {
+                const header = JSON.parse(atob(parts[0]));
+                const payload = JSON.parse(atob(parts[1]));
+
+                let html = '';
+
+                html += '<span class="token-header">// Header</span>\n';
+                html += JSON.stringify(header, null, 2) + '\n\n';
+
+                html += '<span class="token-payload">// Payload</span>\n';
+                html += JSON.stringify(payload, null, 2) + '\n\n';
+
+                html += '<span class="token-signature">// Signature</span>\n';
+                html += 'HMACSHA256(\n  base64UrlEncode(header) + "." +\n  base64UrlEncode(payload),\n  your-256-bit-secret\n)';
+
+                output.innerHTML = '<pre>' + html + '</pre>';
+            } catch (e) {
+                output.innerHTML = '<div class="error">Error decoding base64: ' + e.message + '</div>';
+            }
+        }
+    </script>
+</body>
+
+</html>

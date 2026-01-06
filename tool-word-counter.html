@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Counter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: system-ui, sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 700px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .3)
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 1.5rem
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem
+        }
+
+        .stat {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 12px;
+            text-align: center
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #302b63
+        }
+
+        .stat-label {
+            font-size: .75rem;
+            color: #666;
+            text-transform: uppercase
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 300px;
+            padding: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: vertical
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #302b63
+        }
+
+        .extras {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1.5rem
+        }
+
+        .extra {
+            background: #f0f0f0;
+            padding: .75rem;
+            border-radius: 8px;
+            text-align: center;
+            font-size: .85rem
+        }
+
+        .extra span {
+            font-weight: 600;
+            color: #302b63
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1>📝 Word Counter</h1>
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value" id="words">0</div>
+                <div class="stat-label">Words</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="chars">0</div>
+                <div class="stat-label">Characters</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="sentences">0</div>
+                <div class="stat-label">Sentences</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="paragraphs">0</div>
+                <div class="stat-label">Paragraphs</div>
+            </div>
+        </div>
+        <textarea id="text" placeholder="Start typing or paste your text here..." oninput="count()"></textarea>
+        <div class="extras">
+            <div class="extra">Reading time: <span id="readTime">0 min</span></div>
+            <div class="extra">Speaking time: <span id="speakTime">0 min</span></div>
+            <div class="extra">Chars (no spaces): <span id="charsNoSpace">0</span></div>
+        </div>
+    </div>
+    <script>
+        function count() {
+            const text = document.getElementById('text').value;
+            const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+            const chars = text.length;
+            const charsNoSpace = text.replace(/\s/g, '').length;
+            const sentences = (text.match(/[.!?]+/g) || []).length;
+            const paragraphs = text.trim() ? text.trim().split(/\n\s*\n/).length : 0;
+            document.getElementById('words').textContent = words.toLocaleString();
+            document.getElementById('chars').textContent = chars.toLocaleString();
+            document.getElementById('sentences').textContent = sentences;
+            document.getElementById('paragraphs').textContent = paragraphs;
+            document.getElementById('charsNoSpace').textContent = charsNoSpace.toLocaleString();
+            document.getElementById('readTime').textContent = Math.ceil(words / 200) + ' min';
+            document.getElementById('speakTime').textContent = Math.ceil(words / 150) + ' min';
+        }
+    </script>
+</body>
+
+</html>

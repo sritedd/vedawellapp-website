@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flexbox Generator</title>
+    <style>
+        :root {
+            --accent: #8b5cf6;
+        }
+
+        body {
+            font-family: system-ui, sans-serif;
+            margin: 0;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            height: 100vh;
+            overflow: hidden;
+            background: #1e1e2e;
+            color: #cdd6f4;
+        }
+
+        .sidebar {
+            background: #181825;
+            padding: 1.5rem;
+            overflow-y: auto;
+            border-right: 1px solid #313244;
+        }
+
+        .sidebar h2 {
+            color: var(--accent);
+            margin-top: 0;
+        }
+
+        .control-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: #a6adc8;
+        }
+
+        select,
+        input[type="number"] {
+            width: 100%;
+            background: #313244;
+            border: 1px solid #45475a;
+            color: white;
+            padding: 0.5rem;
+            border-radius: 4px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .prop-btn {
+            flex: 1;
+            background: #313244;
+            border: 1px solid transparent;
+            color: #a6adc8;
+            padding: 0.5rem;
+            font-size: 0.8rem;
+            cursor: pointer;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+
+        .prop-btn:hover {
+            background: #45475a;
+        }
+
+        .prop-btn.active {
+            background: rgba(139, 92, 246, 0.2);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .main {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .preview-area {
+            flex: 1;
+            background: #1e1e2e;
+            padding: 2rem;
+            overflow: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-image: radial-gradient(#313244 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .flex-container {
+            background: white;
+            width: 100%;
+            min-height: 400px;
+            display: flex;
+            resize: both;
+            overflow: auto;
+            border-radius: 8px;
+            transition: all 0.3s;
+            padding: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .item {
+            background: var(--accent);
+            color: white;
+            width: 80px;
+            height: 80px;
+            margin: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border-radius: 6px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .item:nth-child(2n) {
+            background: #f38ba8;
+        }
+
+        .item:nth-child(3n) {
+            background: #89b4fa;
+        }
+
+        .code-panel {
+            height: 150px;
+            background: #11111b;
+            padding: 1rem;
+            border-top: 1px solid #313244;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            overflow-y: auto;
+            color: #a6e3a1;
+            position: relative;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: #313244;
+            color: white;
+            border: none;
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <h2>🛠️ Flexbox</h2>
+
+        <div class="control-group">
+            <label>Items</label>
+            <input type="number" id="itemCount" value="4" min="1" max="20" onchange="updateItems()">
+        </div>
+
+        <div class="control-group">
+            <label>flex-direction</label>
+            <div class="btn-group" id="flexDirection">
+                <button class="prop-btn active" onclick="setProp('flexDirection', 'row')">row</button>
+                <button class="prop-btn" onclick="setProp('flexDirection', 'column')">col</button>
+                <button class="prop-btn" onclick="setProp('flexDirection', 'row-reverse')">row-rev</button>
+                <button class="prop-btn" onclick="setProp('flexDirection', 'column-reverse')">col-rev</button>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label>justify-content</label>
+            <div class="btn-group" id="justifyContent">
+                <button class="prop-btn active" onclick="setProp('justifyContent', 'flex-start')">start</button>
+                <button class="prop-btn" onclick="setProp('justifyContent', 'center')">center</button>
+                <button class="prop-btn" onclick="setProp('justifyContent', 'flex-end')">end</button>
+                <button class="prop-btn" onclick="setProp('justifyContent', 'space-between')">between</button>
+                <button class="prop-btn" onclick="setProp('justifyContent', 'space-around')">around</button>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label>align-items</label>
+            <div class="btn-group" id="alignItems">
+                <button class="prop-btn active" onclick="setProp('alignItems', 'stretch')">stretch</button>
+                <button class="prop-btn" onclick="setProp('alignItems', 'flex-start')">start</button>
+                <button class="prop-btn" onclick="setProp('alignItems', 'center')">center</button>
+                <button class="prop-btn" onclick="setProp('alignItems', 'flex-end')">end</button>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label>flex-wrap</label>
+            <div class="btn-group" id="flexWrap">
+                <button class="prop-btn active" onclick="setProp('flexWrap', 'nowrap')">nowrap</button>
+                <button class="prop-btn" onclick="setProp('flexWrap', 'wrap')">wrap</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="preview-area">
+            <div class="flex-container" id="container">
+                <div class="item">1</div>
+                <div class="item">2</div>
+                <div class="item">3</div>
+                <div class="item">4</div>
+            </div>
+        </div>
+        <div class="code-panel">
+            <button class="copy-btn" onclick="copyCSS()">Copy CSS</button>
+            <pre id="cssOutput">
+.container {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: stretch;
+  flex-wrap: nowrap;
+}</pre>
+        </div>
+    </div>
+
+    <script>
+        const props = {
+            flexDirection: 'row',
+            justifyContent: 'flex-start',
+            alignItems: 'stretch',
+            flexWrap: 'nowrap'
+        };
+
+        function setProp(prop, val) {
+            props[prop] = val;
+
+            // Update UI
+            document.querySelectorAll(`#${prop} .prop-btn`).forEach(btn => {
+                btn.classList.toggle('active', btn.textContent.includes(val) || (val === 'flex-start' && btn.textContent === 'start'));
+                // Simple matching fix for labels
+                if (btn.onclick.toString().includes(`'${val}'`)) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+
+            updateContainer();
+        }
+
+        function updateContainer() {
+            const el = document.getElementById('container');
+            Object.keys(props).forEach(k => el.style[k] = props[k]);
+
+            // Update CSS Text
+            const css = `.container {
+  display: flex;
+  flex-direction: ${props.flexDirection};
+  justify-content: ${props.justifyContent};
+  align-items: ${props.alignItems};
+  flex-wrap: ${props.flexWrap};
+}`;
+            document.getElementById('cssOutput').textContent = css;
+        }
+
+        function updateItems() {
+            const count = document.getElementById('itemCount').value;
+            const container = document.getElementById('container');
+            container.innerHTML = '';
+            for (let i = 1; i <= count; i++) {
+                const div = document.createElement('div');
+                div.className = 'item';
+                div.textContent = i;
+                container.appendChild(div);
+            }
+        }
+
+        function copyCSS() {
+            navigator.clipboard.writeText(document.getElementById('cssOutput').textContent);
+        }
+    </script>
+</body>
+
+</html>
