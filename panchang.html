@@ -98,6 +98,10 @@
             font-size: var(--font-size-sm);
         }
 
+        .location-wrapper {
+            position: relative;
+        }
+
         .location-display {
             display: flex;
             align-items: center;
@@ -117,6 +121,92 @@
 
         .location-display.detecting {
             opacity: 0.7;
+        }
+
+        .location-arrow {
+            font-size: 0.6rem;
+            margin-left: 0.25rem;
+            opacity: 0.6;
+            transition: transform 0.2s ease;
+        }
+
+        .location-wrapper.open .location-arrow {
+            transform: rotate(180deg);
+        }
+
+        .city-dropdown {
+            position: absolute;
+            top: calc(100% + 0.5rem);
+            right: 0;
+            min-width: 220px;
+            max-height: 350px;
+            overflow-y: auto;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            z-index: 100;
+            display: none;
+        }
+
+        .location-wrapper.open .city-dropdown {
+            display: block;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .city-dropdown-header {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .retry-geo-btn {
+            width: 100%;
+            padding: 0.6rem 1rem;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border: none;
+            border-radius: var(--radius-md);
+            color: white;
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .retry-geo-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px var(--glow-primary);
+        }
+
+        .city-list {
+            padding: 0.5rem 0;
+        }
+
+        .city-option {
+            padding: 0.6rem 1rem;
+            cursor: pointer;
+            transition: background 0.15s ease;
+            font-size: var(--font-size-sm);
+        }
+
+        .city-option:hover {
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .city-option.selected {
+            background: rgba(99, 102, 241, 0.2);
+            font-weight: 600;
         }
 
         /* First View - Hero Cards */
@@ -542,9 +632,51 @@
                         <button id="todayBtn" title="Today"
                             style="width: auto; padding: 0 0.75rem; border-radius: var(--radius-md);">Today</button>
                     </div>
-                    <div class="location-display" id="locationDisplay" title="Click to detect your location">
-                        <span>📍</span>
-                        <span id="locationText">Detecting...</span>
+                    <div class="location-wrapper">
+                        <div class="location-display" id="locationDisplay" title="Click to detect your location">
+                            <span>📍</span>
+                            <span id="locationText">Detecting...</span>
+                            <span class="location-arrow">▼</span>
+                        </div>
+                        <div class="city-dropdown" id="cityDropdown">
+                            <div class="city-dropdown-header">
+                                <button id="retryGeoBtn" class="retry-geo-btn">🔄 Detect My Location</button>
+                            </div>
+                            <div class="city-list">
+                                <div class="city-option" data-lat="28.6139" data-lng="77.2090" data-tz="5.5"
+                                    data-name="New Delhi">🇮🇳 New Delhi</div>
+                                <div class="city-option" data-lat="19.0760" data-lng="72.8777" data-tz="5.5"
+                                    data-name="Mumbai">🇮🇳 Mumbai</div>
+                                <div class="city-option" data-lat="13.0827" data-lng="80.2707" data-tz="5.5"
+                                    data-name="Chennai">🇮🇳 Chennai</div>
+                                <div class="city-option" data-lat="12.9716" data-lng="77.5946" data-tz="5.5"
+                                    data-name="Bengaluru">🇮🇳 Bengaluru</div>
+                                <div class="city-option" data-lat="22.5726" data-lng="88.3639" data-tz="5.5"
+                                    data-name="Kolkata">🇮🇳 Kolkata</div>
+                                <div class="city-option" data-lat="23.0225" data-lng="72.5714" data-tz="5.5"
+                                    data-name="Ahmedabad">🇮🇳 Ahmedabad</div>
+                                <div class="city-option" data-lat="17.3850" data-lng="78.4867" data-tz="5.5"
+                                    data-name="Hyderabad">🇮🇳 Hyderabad</div>
+                                <div class="city-option" data-lat="18.5204" data-lng="73.8567" data-tz="5.5"
+                                    data-name="Pune">🇮🇳 Pune</div>
+                                <div class="city-option" data-lat="26.9124" data-lng="75.7873" data-tz="5.5"
+                                    data-name="Jaipur">🇮🇳 Jaipur</div>
+                                <div class="city-option" data-lat="-33.8688" data-lng="151.2093" data-tz="11"
+                                    data-name="Sydney">🇦🇺 Sydney</div>
+                                <div class="city-option" data-lat="-37.8136" data-lng="144.9631" data-tz="11"
+                                    data-name="Melbourne">🇦🇺 Melbourne</div>
+                                <div class="city-option" data-lat="40.7128" data-lng="-74.0060" data-tz="-5"
+                                    data-name="New York">🇺🇸 New York</div>
+                                <div class="city-option" data-lat="34.0522" data-lng="-118.2437" data-tz="-8"
+                                    data-name="Los Angeles">🇺🇸 Los Angeles</div>
+                                <div class="city-option" data-lat="51.5074" data-lng="-0.1278" data-tz="0"
+                                    data-name="London">🇬🇧 London</div>
+                                <div class="city-option" data-lat="1.3521" data-lng="103.8198" data-tz="8"
+                                    data-name="Singapore">🇸🇬 Singapore</div>
+                                <div class="city-option" data-lat="25.2048" data-lng="55.2708" data-tz="4"
+                                    data-name="Dubai">🇦🇪 Dubai</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -869,14 +1001,57 @@
                     this.calculateAndRender();
                 });
 
-                document.getElementById('locationDisplay').addEventListener('click', () => {
+                // Location dropdown toggle
+                const locationWrapper = document.querySelector('.location-wrapper');
+                const locationDisplay = document.getElementById('locationDisplay');
+
+                locationDisplay.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    locationWrapper.classList.toggle('open');
+                });
+
+                // Retry geolocation button
+                document.getElementById('retryGeoBtn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    locationWrapper.classList.remove('open');
                     this.detectLocation();
+                });
+
+                // City selection
+                document.querySelectorAll('.city-option').forEach(option => {
+                    option.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const lat = parseFloat(option.dataset.lat);
+                        const lng = parseFloat(option.dataset.lng);
+                        const tz = parseFloat(option.dataset.tz);
+                        const name = option.dataset.name;
+
+                        this.setCity(lat, lng, tz, name);
+                        locationWrapper.classList.remove('open');
+
+                        // Mark as selected
+                        document.querySelectorAll('.city-option').forEach(o => o.classList.remove('selected'));
+                        option.classList.add('selected');
+                    });
+                });
+
+                // Close dropdown when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!locationWrapper.contains(e.target)) {
+                        locationWrapper.classList.remove('open');
+                    }
                 });
             },
 
             setDateInput() {
                 const dateStr = this.currentDate.toISOString().split('T')[0];
                 document.getElementById('dateInput').value = dateStr;
+            },
+
+            setCity(lat, lng, tz, name) {
+                this.location = { lat, lng, tz, name };
+                document.getElementById('locationText').textContent = name;
+                this.calculateAndRender();
             },
 
             detectLocation() {
@@ -886,58 +1061,82 @@
                 locationDisplay.classList.add('detecting');
                 locationText.textContent = 'Detecting...';
 
-                // Check if running on file:// protocol (geolocation won't work)
+                // Check if running on file:// protocol
                 if (window.location.protocol === 'file:') {
-                    console.warn('Geolocation not supported on file:// URLs. Using default.');
-                    this.useDefaultLocation(locationText, locationDisplay, 'Mumbai (local file)');
+                    console.warn('Geolocation not supported on file:// URLs.');
+                    this.handleGeoError('local');
                     return;
                 }
 
-                if ('geolocation' in navigator) {
-                    navigator.geolocation.getCurrentPosition(
-                        (position) => {
-                            // Success - use detected coordinates
-                            const lat = position.coords.latitude;
-                            const lng = position.coords.longitude;
-                            const tz = -new Date().getTimezoneOffset() / 60;
-
-                            this.location = {
-                                lat: lat,
-                                lng: lng,
-                                name: 'Your Location',
-                                tz: tz
-                            };
-
-                            console.log('Geolocation success:', this.location);
-                            locationText.textContent = `📍 ${lat.toFixed(2)}°, ${lng.toFixed(2)}°`;
-                            locationDisplay.classList.remove('detecting');
-                            this.calculateAndRender();
-                        },
-                        (error) => {
-                            console.warn('Geolocation error:', error.code, error.message);
-                            let reason = 'denied';
-                            if (error.code === 1) reason = 'denied';
-                            else if (error.code === 2) reason = 'unavailable';
-                            else if (error.code === 3) reason = 'timeout';
-
-                            this.useDefaultLocation(locationText, locationDisplay, `Mumbai (${reason})`);
-                        },
-                        { enableHighAccuracy: false, timeout: 8000 }
-                    );
-                } else {
-                    this.useDefaultLocation(locationText, locationDisplay, 'Mumbai (no GPS)');
+                // Check if geolocation is available
+                if (!('geolocation' in navigator)) {
+                    console.warn('Geolocation not supported by browser.');
+                    this.handleGeoError('unsupported');
+                    return;
                 }
+
+                // Request geolocation with timeout
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        // Success - use detected coordinates
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        const tz = -new Date().getTimezoneOffset() / 60;
+
+                        this.location = {
+                            lat: lat,
+                            lng: lng,
+                            name: 'Your Location',
+                            tz: tz
+                        };
+
+                        console.log('Geolocation success:', this.location);
+                        locationText.textContent = `📍 ${lat.toFixed(2)}°, ${lng.toFixed(2)}°`;
+                        locationDisplay.classList.remove('detecting');
+                        this.calculateAndRender();
+                    },
+                    (error) => {
+                        console.warn('Geolocation error:', error.code, error.message);
+                        let reason = 'error';
+                        if (error.code === 1) reason = 'denied';
+                        else if (error.code === 2) reason = 'unavailable';
+                        else if (error.code === 3) reason = 'timeout';
+
+                        this.handleGeoError(reason);
+                    },
+                    {
+                        enableHighAccuracy: false,
+                        timeout: 10000,
+                        maximumAge: 300000 // Cache for 5 minutes
+                    }
+                );
             },
 
-            useDefaultLocation(locationText, locationDisplay, label) {
+            handleGeoError(reason) {
+                const locationDisplay = document.getElementById('locationDisplay');
+                const locationText = document.getElementById('locationText');
+
+                // Default to Mumbai
                 this.location = {
                     lat: 19.0760,
                     lng: 72.8777,
                     name: 'Mumbai',
                     tz: 5.5
                 };
-                locationText.textContent = label;
+
+                // Show user-friendly message and hint to use dropdown
+                const messages = {
+                    'denied': 'Mumbai ▼',
+                    'unavailable': 'Mumbai ▼',
+                    'timeout': 'Mumbai ▼',
+                    'local': 'Mumbai ▼',
+                    'unsupported': 'Mumbai ▼',
+                    'error': 'Mumbai ▼'
+                };
+
+                locationText.textContent = messages[reason] || 'Mumbai ▼';
                 locationDisplay.classList.remove('detecting');
+                locationDisplay.title = 'Click to select a city';
                 this.calculateAndRender();
             },
 
