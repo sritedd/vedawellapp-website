@@ -196,15 +196,15 @@ const AstronomicalCalculator = {
      * Get Moon phase name
      */
     getMoonPhaseName(phase) {
-        if (phase < 0.0625) return { name: 'New Moon', emoji: '🌑' };
-        if (phase < 0.1875) return { name: 'Waxing Crescent', emoji: '🌒' };
-        if (phase < 0.3125) return { name: 'First Quarter', emoji: '🌓' };
-        if (phase < 0.4375) return { name: 'Waxing Gibbous', emoji: '🌔' };
-        if (phase < 0.5625) return { name: 'Full Moon', emoji: '🌕' };
-        if (phase < 0.6875) return { name: 'Waning Gibbous', emoji: '🌖' };
-        if (phase < 0.8125) return { name: 'Last Quarter', emoji: '🌗' };
-        if (phase < 0.9375) return { name: 'Waning Crescent', emoji: '🌘' };
-        return { name: 'New Moon', emoji: '🌑' };
+        if (phase < 0.0625) return { name: 'New Moon (Amavasya)', emoji: '🌑' };
+        if (phase < 0.1875) return { name: 'Waxing Crescent (Shukla Paksha)', emoji: '🌒' };
+        if (phase < 0.3125) return { name: 'First Quarter (Shukla Paksha)', emoji: '🌓' };
+        if (phase < 0.4375) return { name: 'Waxing Gibbous (Shukla Paksha)', emoji: '🌔' };
+        if (phase < 0.5625) return { name: 'Full Moon (Purnima)', emoji: '🌕' };
+        if (phase < 0.6875) return { name: 'Waning Gibbous (Krishna Paksha)', emoji: '🌖' };
+        if (phase < 0.8125) return { name: 'Last Quarter (Krishna Paksha)', emoji: '🌗' };
+        if (phase < 0.9375) return { name: 'Waning Crescent (Krishna Paksha)', emoji: '🌘' };
+        return { name: 'New Moon (Amavasya)', emoji: '🌑' };
     }
 };
 
