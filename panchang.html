@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Panchang - Hindu Calendar, Tithi, Nakshatra | VedaWell Tools</title>
+    <link rel="canonical" href="https://vedawelltools.netlify.app/panchang.html">
+    <meta name="description"
+        content="Calculate today's accurate Hindu Panchang. Get Tithi, Nakshatra, Rahu Kaal, Yoga, and Auspicious timings for any city worldwide. VedaWell's advanced Vedic calendar.">
+    <meta name="keywords"
+        content="Panchang, Hindu Calendar, Tithi, Nakshatra, Rahu Kaal, Vedic Astrology, Indian Calendar, Daily Panchang">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://vedawelltools.netlify.app/panchang.html">
+    <meta property="og:title" content="Daily Panchang - Hindu Calendar & Tithi Calculator">
+    <meta property="og:description"
+        content="Get accurate daily Tithi, Nakshatra, Yoga, and auspicious timings (Rahu Kaal, Abhijit Muhurta) for your exact location.">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Daily Panchang - VedaWell Tools">
+    <meta name="twitter:description"
+        content="Accurate Hindu Panchang with Tithi, Nakshatra, and Rahu Kaal for any location.">
+
+    <!-- Favicon -->
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪔</text></svg>">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles/main.css">
+
+    <style>
+        /* Condensed Panchang Styles */
+        .panchang-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-md) 0;
+            flex-wrap: wrap;
+            gap: var(--space-md);
+        }
+
+        .panchang-title {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .panchang-title h1 {
+            font-size: var(--font-size-2xl);
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .panchang-controls {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            flex-wrap: wrap;
+        }
+
+        .date-nav {
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+        }
+
+        .date-nav button {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            font-size: 0.875rem;
+        }
+
+        .date-nav button:hover {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+        }
+
+        .date-nav input {
+            padding: 0.5rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-size: var(--font-size-sm);
+        }
+
+        .location-display {
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+            padding: 0.5rem 0.75rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-sm);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .location-display:hover {
+            border-color: var(--accent-primary);
+        }
+
+        .location-display.detecting {
+            opacity: 0.7;
+        }
+
+        /* First View - Hero Cards */
+        .panchang-hero-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: var(--space-lg);
+            margin: var(--space-lg) 0;
+        }
+
+        @media (max-width: 900px) {
+            .panchang-hero-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .moon-card {
+                grid-column: 1 / -1;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .panchang-hero-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Moon Phase Card */
+        .moon-card {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15));
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: var(--radius-xl);
+            padding: var(--space-lg);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .moon-emoji {
+            font-size: 4rem;
+            line-height: 1;
+            margin-bottom: var(--space-sm);
+            filter: drop-shadow(0 0 20px rgba(255, 255, 200, 0.4));
+        }
+
+        .moon-phase-name {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+        }
+
+        .moon-illumination {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+        }
+
+        /* Main Panchang Card */
+        .main-panchang-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: var(--space-lg);
+        }
+
+        .panchang-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-md);
+            margin-bottom: var(--space-md);
+        }
+
+        @media (max-width: 500px) {
+            .panchang-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panchang-item {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-sm);
+        }
+
+        .panchang-item-icon {
+            font-size: 1.25rem;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            flex-shrink: 0;
+        }
+
+        .panchang-item-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .panchang-item-label {
+            font-size: var(--font-size-xs);
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .panchang-item-value {
+            font-weight: 600;
+            font-size: var(--font-size-base);
+        }
+
+        .panchang-item-sub {
+            font-size: var(--font-size-xs);
+            color: var(--text-secondary);
+        }
+
+        /* Sun Times Card */
+        .sun-times-card {
+            background: linear-gradient(135deg, rgba(251, 146, 60, 0.15), rgba(245, 158, 11, 0.15));
+            border: 1px solid rgba(251, 146, 60, 0.3);
+            border-radius: var(--radius-xl);
+            padding: var(--space-lg);
+        }
+
+        .sun-times-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-sm);
+        }
+
+        .sun-time {
+            text-align: center;
+            padding: var(--space-sm);
+        }
+
+        .sun-time-icon {
+            font-size: 1.5rem;
+            margin-bottom: var(--space-xs);
+        }
+
+        .sun-time-label {
+            font-size: var(--font-size-xs);
+            color: var(--text-muted);
+        }
+
+        .sun-time-value {
+            font-weight: 700;
+            font-size: var(--font-size-lg);
+        }
+
+        /* Critical Times Section */
+        .critical-times {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-md);
+            margin: var(--space-lg) 0;
+        }
+
+        @media (max-width: 768px) {
+            .critical-times {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .time-card {
+            border-radius: var(--radius-lg);
+            padding: var(--space-md);
+        }
+
+        .time-card.auspicious {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .time-card.inauspicious {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .time-card-header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-sm);
+        }
+
+        .time-card-title {
+            font-weight: 600;
+            font-size: var(--font-size-sm);
+        }
+
+        .time-card.auspicious .time-card-title {
+            color: var(--accent-success);
+        }
+
+        .time-card.inauspicious .time-card-title {
+            color: var(--accent-danger);
+        }
+
+        .time-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-xs);
+        }
+
+        .time-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: var(--font-size-sm);
+        }
+
+        .time-name {
+            color: var(--text-secondary);
+        }
+
+        .time-value {
+            font-weight: 500;
+        }
+
+        /* Weekday Display */
+        .weekday-display {
+            text-align: center;
+            padding: var(--space-sm);
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--space-md);
+        }
+
+        .weekday-hindi {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+        }
+
+        .weekday-english {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+        }
+
+        /* Auxiliary Section (Below Fold) */
+        .auxiliary-section {
+            padding-top: var(--space-2xl);
+            border-top: 1px solid var(--border);
+            margin-top: var(--space-xl);
+        }
+
+        .auxiliary-title {
+            font-size: var(--font-size-xl);
+            font-weight: 700;
+            margin-bottom: var(--space-lg);
+            color: var(--text-secondary);
+        }
+
+        .auxiliary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-lg);
+        }
+
+        @media (max-width: 768px) {
+            .auxiliary-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .aux-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+        }
+
+        .aux-card-header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-md);
+        }
+
+        .aux-card-icon {
+            font-size: 1.5rem;
+        }
+
+        .aux-card-title {
+            font-weight: 600;
+        }
+
+        .aux-value {
+            font-size: var(--font-size-lg);
+            font-weight: 700;
+            margin-bottom: var(--space-xs);
+        }
+
+        .aux-sub {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: var(--border);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+            margin-top: var(--space-sm);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: var(--radius-full);
+            transition: width 0.5s ease;
+        }
+
+        /* Loading */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading-content {
+            text-align: center;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto var(--space-md);
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+
+    <!-- Schema.org Markup -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Daily Panchang Calculator",
+      "url": "https://vedawelltools.netlify.app/panchang.html",
+      "description": "Free online Hindu Panchang calculator. Calculate Tithi, Nakshatra, Yoga, Karana, and auspicious times (Rahu Kaal) for any location worldwide.",
+      "applicationCategory": "UtilitiesApplication",
+      "operatingSystem": "Any",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "author": {
+        "@type": "Organization",
+        "name": "VedaWell"
+      },
+      "featureList": "Tithi Calculation, Nakshatra Calculation, Rahu Kaal, Geolocation Support"
+    }
+    </script>
+</head>
+
+<body>
+    <div class="bg-gradient"></div>
+
+    <div class="container">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">🛠️</div>
+                VedaWell Tools
+            </a>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="tools.html">Tools</a>
+                <a href="games.html">Games</a>
+                <a href="panchang.html" class="active">Panchang</a>
+                <a href="about.html">About</a>
+                <a href="https://buymeacoffee.com/vedawell" target="_blank" rel="noopener noreferrer" class="nav-cta">☕
+                    Support</a>
+            </div>
+            <button class="mobile-menu-btn" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
+        </nav>
+
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay" class="loading-overlay">
+            <div class="loading-content">
+                <div class="loading-spinner"></div>
+                <p>Calculating Panchang...</p>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main id="panchangContent" class="hidden">
+            <!-- Header with Controls -->
+            <header class="panchang-header">
+                <div class="panchang-title">
+                    <span style="font-size: 1.5rem;">🪔</span>
+                    <h1>Daily Panchang</h1>
+                </div>
+                <div class="panchang-controls">
+                    <div class="date-nav">
+                        <button id="prevDay" title="Previous Day">←</button>
+                        <input type="date" id="dateInput">
+                        <button id="nextDay" title="Next Day">→</button>
+                        <button id="todayBtn" title="Today"
+                            style="width: auto; padding: 0 0.75rem; border-radius: var(--radius-md);">Today</button>
+                    </div>
+                    <div class="location-display" id="locationDisplay" title="Click to detect your location">
+                        <span>📍</span>
+                        <span id="locationText">Detecting...</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Hindu Calendar Summary -->
+            <div class="weekday-display"
+                style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-md); text-align: center;">
+                <div>
+                    <div style="font-size: var(--font-size-xs); color: var(--text-muted); text-transform: uppercase;">
+                        Weekday</div>
+                    <div class="weekday-hindi" id="weekdayHindi" style="font-size: var(--font-size-base);">सोमवार</div>
+                    <div style="font-size: var(--font-size-xs); color: var(--text-secondary);" id="weekdayEnglish">
+                        Monday</div>
+                </div>
+                <div>
+                    <div style="font-size: var(--font-size-xs); color: var(--text-muted); text-transform: uppercase;">
+                        Hindu Month</div>
+                    <div style="font-weight: 600; font-size: var(--font-size-base);" id="hinduMonth">पौष</div>
+                    <div style="font-size: var(--font-size-xs); color: var(--text-secondary);" id="hinduMonthEnglish">
+                        Pausha</div>
+                </div>
+                <div>
+                    <div style="font-size: var(--font-size-xs); color: var(--text-muted); text-transform: uppercase;">
+                        Paksha</div>
+                    <div style="font-weight: 600; font-size: var(--font-size-base);" id="pakshaDisplay">शुक्ल पक्ष</div>
+                    <div style="font-size: var(--font-size-xs); color: var(--text-secondary);" id="pakshaEnglish">Bright
+                        Half</div>
+                </div>
+                <div>
+                    <div style="font-size: var(--font-size-xs); color: var(--text-muted); text-transform: uppercase;">
+                        Samvat</div>
+                    <div style="font-weight: 600; font-size: var(--font-size-base);" id="samvatYear">2082</div>
+                    <div style="font-size: var(--font-size-xs); color: var(--text-secondary);">Vikram</div>
+                </div>
+            </div>
+
+            <!-- Hero Grid - First View -->
+            <div class="panchang-hero-grid">
+                <!-- Moon Phase -->
+                <div class="moon-card">
+                    <div class="moon-emoji" id="moonEmoji">🌕</div>
+                    <div class="moon-phase-name" id="moonPhaseName">Full Moon</div>
+                    <div class="moon-illumination" id="moonIllumination">100%</div>
+                </div>
+
+                <!-- Main Panchang Info -->
+                <div class="main-panchang-card">
+                    <div class="panchang-row">
+                        <div class="panchang-item">
+                            <div class="panchang-item-icon">🌙</div>
+                            <div class="panchang-item-content">
+                                <div class="panchang-item-label">Tithi</div>
+                                <div class="panchang-item-value" id="tithiValue">शुक्ल प्रतिपदा</div>
+                                <div class="panchang-item-sub" id="tithiSub">Shukla Pratipada • Auspicious</div>
+                            </div>
+                        </div>
+                        <div class="panchang-item">
+                            <div class="panchang-item-icon">⭐</div>
+                            <div class="panchang-item-content">
+                                <div class="panchang-item-label">Nakshatra</div>
+                                <div class="panchang-item-value" id="nakshatraValue">अश्विनी</div>
+                                <div class="panchang-item-sub" id="nakshatraSub">Ashwini • Pada 1</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panchang-row">
+                        <div class="panchang-item">
+                            <div class="panchang-item-icon">☯️</div>
+                            <div class="panchang-item-content">
+                                <div class="panchang-item-label">Yoga</div>
+                                <div class="panchang-item-value" id="yogaValue">सिद्धि</div>
+                                <div class="panchang-item-sub" id="yogaSub">Siddhi • Auspicious</div>
+                            </div>
+                        </div>
+                        <div class="panchang-item">
+                            <div class="panchang-item-icon">🔄</div>
+                            <div class="panchang-item-content">
+                                <div class="panchang-item-label">Karana</div>
+                                <div class="panchang-item-value" id="karanaValue">बव</div>
+                                <div class="panchang-item-sub" id="karanaSub">Bava • Auspicious</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sun Times -->
+                <div class="sun-times-card">
+                    <div class="sun-times-grid">
+                        <div class="sun-time">
+                            <div class="sun-time-icon">🌅</div>
+                            <div class="sun-time-label">Sunrise</div>
+                            <div class="sun-time-value" id="sunrise">6:30 AM</div>
+                        </div>
+                        <div class="sun-time">
+                            <div class="sun-time-icon">🌇</div>
+                            <div class="sun-time-label">Sunset</div>
+                            <div class="sun-time-value" id="sunset">6:30 PM</div>
+                        </div>
+                        <div class="sun-time">
+                            <div class="sun-time-icon">☀️</div>
+                            <div class="sun-time-label">Noon</div>
+                            <div class="sun-time-value" id="solarNoon">12:30 PM</div>
+                        </div>
+                        <div class="sun-time">
+                            <div class="sun-time-icon">⏱️</div>
+                            <div class="sun-time-label">Day</div>
+                            <div class="sun-time-value" id="dayLength">12h</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Critical Times - Auspicious/Inauspicious -->
+            <div class="critical-times">
+                <div class="time-card auspicious">
+                    <div class="time-card-header">
+                        <span>✨</span>
+                        <span class="time-card-title">Auspicious Times</span>
+                    </div>
+                    <div class="time-list">
+                        <div class="time-row">
+                            <span class="time-name">Abhijit Muhurta</span>
+                            <span class="time-value" id="abhijit">12:00 - 12:48 PM</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="time-card inauspicious">
+                    <div class="time-card-header">
+                        <span>⚠️</span>
+                        <span class="time-card-title">Inauspicious Times (Avoid)</span>
+                    </div>
+                    <div class="time-list">
+                        <div class="time-row">
+                            <span class="time-name">Rahu Kaal</span>
+                            <span class="time-value" id="rahuKaal">7:30 - 9:00 AM</span>
+                        </div>
+                        <div class="time-row">
+                            <span class="time-name">Yamaganda</span>
+                            <span class="time-value" id="yamaganda">10:30 - 12:00 PM</span>
+                        </div>
+                        <div class="time-row">
+                            <span class="time-name">Gulika Kaal</span>
+                            <span class="time-value" id="gulikaKaal">1:30 - 3:00 PM</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ad Banner (Top) -->
+            <div class="ad-container" style="margin: 2rem 0;">
+                <div class="ad-placeholder">
+                    <p>📢 Advertisement</p>
+                    <small>Support us by <a href="https://buymeacoffee.com/vedawell" target="_blank"
+                            rel="noopener noreferrer">buying us a coffee</a></small>
+                </div>
+            </div>
+
+            <!-- Auxiliary Section (Scroll for more) -->
+            <section class="auxiliary-section">
+                <h2 class="auxiliary-title">📊 Detailed Information</h2>
+
+                <div class="auxiliary-grid">
+                    <!-- Moon Sign -->
+                    <div class="aux-card">
+                        <div class="aux-card-header">
+                            <span class="aux-card-icon" id="moonSignSymbol">♈</span>
+                            <span class="aux-card-title">Moon Sign (Rashi)</span>
+                        </div>
+                        <div class="aux-value" id="moonSign">Aries / मेष</div>
+                        <div class="aux-sub" id="moonSignDetails">Element: Fire • Ruler: Mars</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="moonSignProgress" style="width: 50%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Sun Sign -->
+                    <div class="aux-card">
+                        <div class="aux-card-header">
+                            <span class="aux-card-icon" id="sunSignSymbol">♑</span>
+                            <span class="aux-card-title">Sun Sign (Rashi)</span>
+                        </div>
+                        <div class="aux-value" id="sunSign">Capricorn / मकर</div>
+                        <div class="aux-sub" id="sunSignDetails">Element: Earth • Ruler: Saturn</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="sunSignProgress" style="width: 50%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Positions -->
+                    <div class="aux-card">
+                        <div class="aux-card-header">
+                            <span class="aux-card-icon">🔭</span>
+                            <span class="aux-card-title">Astronomical Data</span>
+                        </div>
+                        <div class="aux-sub">
+                            <div style="margin-bottom: var(--space-xs);">☀️ Sun: <strong
+                                    id="sunLongitude">280.5°</strong></div>
+                            <div style="margin-bottom: var(--space-xs);">🌙 Moon: <strong
+                                    id="moonLongitude">45.2°</strong></div>
+                            <div>📐 Elongation: <strong id="elongation">124.7°</strong></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Details -->
+                <div class="auxiliary-grid" style="margin-top: var(--space-lg);">
+                    <!-- Tithi Details -->
+                    <div class="aux-card">
+                        <div class="aux-card-header">
+                            <span class="aux-card-icon">🌙</span>
+                            <span class="aux-card-title">Tithi Details</span>
+                        </div>
+                        <div class="aux-sub">
+                            <div style="margin-bottom: var(--space-xs);">Paksha: <strong
+                                    id="tithiPaksha">Shukla</strong></div>
+                            <div style="margin-bottom: var(--space-xs);">Lord: <strong id="tithiLord">Agni</strong>
+                            </div>
+                            <div>Number: <strong id="tithiNumber">1</strong> of 30</div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="tithiProgress" style="width: 50%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Nakshatra Details -->
+                    <div class="aux-card">
+                        <div class="aux-card-header">
+                            <span class="aux-card-icon" id="nakshatraSymbol">🐴</span>
+                            <span class="aux-card-title">Nakshatra Details</span>
+                        </div>
+                        <div class="aux-sub">
+                            <div style="margin-bottom: var(--space-xs);">Deity: <strong id="nakshatraDeity">Ashwini
+                                    Kumaras</strong></div>
+                            <div style="margin-bottom: var(--space-xs);">Planet: <strong
+                                    id="nakshatraPlanet">Ketu</strong></div>
+                            <div>Gana: <strong id="nakshatraGana">Deva</strong></div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="nakshatraProgress" style="width: 50%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Yoga Details -->
+                    <div class="aux-card">
+                        <div class="aux-card-header">
+                            <span class="aux-card-icon">☯️</span>
+                            <span class="aux-card-title">Yoga Details</span>
+                        </div>
+                        <div class="aux-sub">
+                            <div style="margin-bottom: var(--space-xs);">Meaning: <strong
+                                    id="yogaMeaning">Accomplishment</strong></div>
+                            <div>Nature: <strong id="yogaNature">Auspicious</strong></div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="yogaProgress" style="width: 50%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Ad Banner (Bottom) -->
+            <div class="ad-container" style="margin: 2rem 0;">
+                <div class="ad-placeholder">
+                    <p>📢 Advertisement</p>
+                    <small>Support us by <a href="https://buymeacoffee.com/vedawell" target="_blank"
+                            rel="noopener noreferrer">buying us a coffee</a></small>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer" style="margin-top: var(--space-3xl);">
+            <div class="footer-bottom">
+                <p>© 2025 VedaWell. All rights reserved. | <a href="privacy.html">Privacy</a></p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Panchang Scripts -->
+    <script src="js/panchang/astronomicalCalculator.js"></script>
+    <script src="js/panchang/sunTimesCalculator.js"></script>
+    <script src="js/panchang/models/tithi.js"></script>
+    <script src="js/panchang/models/nakshatra.js"></script>
+    <script src="js/panchang/models/yoga.js"></script>
+    <script src="js/panchang/models/karana.js"></script>
+    <script src="js/panchang/models/rashi.js"></script>
+    <script src="js/panchang/panchangEngine.js"></script>
+
+    <script>
+        // Panchang UI Controller with Geolocation
+        const PanchangUI = {
+            currentDate: new Date(),
+            location: { lat: 19.0760, lng: 72.8777, name: 'Mumbai', tz: 5.5 },
+
+            init() {
+                this.setupEventListeners();
+                this.setDateInput();
+                this.detectLocation();
+            },
+
+            setupEventListeners() {
+                document.getElementById('dateInput').addEventListener('change', (e) => {
+                    this.currentDate = new Date(e.target.value);
+                    this.calculateAndRender();
+                });
+
+                document.getElementById('prevDay').addEventListener('click', () => {
+                    this.currentDate.setDate(this.currentDate.getDate() - 1);
+                    this.setDateInput();
+                    this.calculateAndRender();
+                });
+
+                document.getElementById('nextDay').addEventListener('click', () => {
+                    this.currentDate.setDate(this.currentDate.getDate() + 1);
+                    this.setDateInput();
+                    this.calculateAndRender();
+                });
+
+                document.getElementById('todayBtn').addEventListener('click', () => {
+                    this.currentDate = new Date();
+                    this.setDateInput();
+                    this.calculateAndRender();
+                });
+
+                document.getElementById('locationDisplay').addEventListener('click', () => {
+                    this.detectLocation();
+                });
+            },
+
+            setDateInput() {
+                const dateStr = this.currentDate.toISOString().split('T')[0];
+                document.getElementById('dateInput').value = dateStr;
+            },
+
+            detectLocation() {
+                const locationDisplay = document.getElementById('locationDisplay');
+                const locationText = document.getElementById('locationText');
+
+                locationDisplay.classList.add('detecting');
+                locationText.textContent = 'Detecting...';
+
+                // Check if running on file:// protocol (geolocation won't work)
+                if (window.location.protocol === 'file:') {
+                    console.warn('Geolocation not supported on file:// URLs. Using default.');
+                    this.useDefaultLocation(locationText, locationDisplay, 'Mumbai (local file)');
+                    return;
+                }
+
+                if ('geolocation' in navigator) {
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            // Success - use detected coordinates
+                            const lat = position.coords.latitude;
+                            const lng = position.coords.longitude;
+                            const tz = -new Date().getTimezoneOffset() / 60;
+
+                            this.location = {
+                                lat: lat,
+                                lng: lng,
+                                name: 'Your Location',
+                                tz: tz
+                            };
+
+                            console.log('Geolocation success:', this.location);
+                            locationText.textContent = `📍 ${lat.toFixed(2)}°, ${lng.toFixed(2)}°`;
+                            locationDisplay.classList.remove('detecting');
+                            this.calculateAndRender();
+                        },
+                        (error) => {
+                            console.warn('Geolocation error:', error.code, error.message);
+                            let reason = 'denied';
+                            if (error.code === 1) reason = 'denied';
+                            else if (error.code === 2) reason = 'unavailable';
+                            else if (error.code === 3) reason = 'timeout';
+
+                            this.useDefaultLocation(locationText, locationDisplay, `Mumbai (${reason})`);
+                        },
+                        { enableHighAccuracy: false, timeout: 8000 }
+                    );
+                } else {
+                    this.useDefaultLocation(locationText, locationDisplay, 'Mumbai (no GPS)');
+                }
+            },
+
+            useDefaultLocation(locationText, locationDisplay, label) {
+                this.location = {
+                    lat: 19.0760,
+                    lng: 72.8777,
+                    name: 'Mumbai',
+                    tz: 5.5
+                };
+                locationText.textContent = label;
+                locationDisplay.classList.remove('detecting');
+                this.calculateAndRender();
+            },
+
+            calculateAndRender() {
+                try {
+                    const panchang = PanchangEngine.calculate(
+                        this.currentDate,
+                        this.location.lat,
+                        this.location.lng,
+                        this.location.tz
+                    );
+                    this.render(panchang);
+                } catch (e) {
+                    console.error('Panchang calculation failed:', e);
+                } finally {
+                    document.getElementById('loadingOverlay').classList.add('hidden');
+                    document.getElementById('panchangContent').classList.remove('hidden');
+                }
+            },
+
+            render(p) {
+                // Weekday
+                document.getElementById('weekdayHindi').textContent = p.date.weekday.hindi;
+                document.getElementById('weekdayEnglish').textContent = p.date.weekday.english;
+
+                // Hindu Calendar (Masa, Paksha, Samvat)
+                document.getElementById('hinduMonth').textContent = p.hinduCalendar.masa.sanskrit;
+                document.getElementById('hinduMonthEnglish').textContent = p.hinduCalendar.masa.english;
+                document.getElementById('pakshaDisplay').textContent = p.hinduCalendar.paksha.sanskrit;
+                document.getElementById('pakshaEnglish').textContent = p.hinduCalendar.paksha.english;
+                document.getElementById('samvatYear').textContent = p.hinduCalendar.samvat;
+
+                // Moon Phase
+                document.getElementById('moonEmoji').textContent = p.moonPhase.emoji;
+                document.getElementById('moonPhaseName').textContent = p.moonPhase.name;
+                document.getElementById('moonIllumination').textContent = `${p.moonPhase.illumination}% illuminated`;
+
+                // Main Panchang - Tithi
+                document.getElementById('tithiValue').textContent = p.tithi.sanskrit;
+                document.getElementById('tithiSub').textContent = `${p.tithi.transliteration} • ${p.tithi.nature}`;
+
+                // Main Panchang - Nakshatra
+                document.getElementById('nakshatraValue').textContent = p.nakshatra.sanskrit;
+                document.getElementById('nakshatraSub').textContent = `${p.nakshatra.english} • Pada ${p.nakshatra.pada}`;
+
+                // Main Panchang - Yoga
+                document.getElementById('yogaValue').textContent = p.yoga.sanskrit;
+                document.getElementById('yogaSub').textContent = `${p.yoga.transliteration} • ${p.yoga.nature}`;
+
+                // Main Panchang - Karana
+                document.getElementById('karanaValue').textContent = p.karana.sanskrit;
+                document.getElementById('karanaSub').textContent = `${p.karana.english} • ${p.karana.nature}`;
+
+                // Sun Times
+                document.getElementById('sunrise').textContent = p.sunTimes.sunrise?.formatted || '--';
+                document.getElementById('sunset').textContent = p.sunTimes.sunset?.formatted || '--';
+                document.getElementById('solarNoon').textContent = p.sunTimes.solarNoon?.formatted || '--';
+                document.getElementById('dayLength').textContent = p.sunTimes.dayLength
+                    ? `${p.sunTimes.dayLength.hours}h ${p.sunTimes.dayLength.minutes}m`
+                    : '--';
+
+                // Critical Times
+                document.getElementById('abhijit').textContent = p.auspiciousTimes.abhijit
+                    ? `${p.auspiciousTimes.abhijit.start} - ${p.auspiciousTimes.abhijit.end}`
+                    : '--';
+                document.getElementById('rahuKaal').textContent = p.inauspiciousTimes.rahuKaal
+                    ? `${p.inauspiciousTimes.rahuKaal.start} - ${p.inauspiciousTimes.rahuKaal.end}`
+                    : '--';
+                document.getElementById('yamaganda').textContent = p.inauspiciousTimes.yamaganda
+                    ? `${p.inauspiciousTimes.yamaganda.start} - ${p.inauspiciousTimes.yamaganda.end}`
+                    : '--';
+                document.getElementById('gulikaKaal').textContent = p.inauspiciousTimes.gulikaKaal
+                    ? `${p.inauspiciousTimes.gulikaKaal.start} - ${p.inauspiciousTimes.gulikaKaal.end}`
+                    : '--';
+
+                // Auxiliary - Moon Sign
+                document.getElementById('moonSignSymbol').textContent = p.moonSign.symbol;
+                document.getElementById('moonSign').textContent = `${p.moonSign.english} / ${p.moonSign.sanskrit}`;
+                document.getElementById('moonSignDetails').textContent = `Element: ${p.moonSign.element} • Ruler: ${p.moonSign.ruler}`;
+                document.getElementById('moonSignProgress').style.width = `${p.moonSign.progress * 100}%`;
+
+                // Auxiliary - Sun Sign
+                document.getElementById('sunSignSymbol').textContent = p.sunSign.symbol;
+                document.getElementById('sunSign').textContent = `${p.sunSign.english} / ${p.sunSign.sanskrit}`;
+                document.getElementById('sunSignDetails').textContent = `Element: ${p.sunSign.element} • Ruler: ${p.sunSign.ruler}`;
+                document.getElementById('sunSignProgress').style.width = `${p.sunSign.progress * 100}%`;
+
+                // Astronomical Data
+                document.getElementById('sunLongitude').textContent = `${p.positions.sunLongitude}°`;
+                document.getElementById('moonLongitude').textContent = `${p.positions.moonLongitude}°`;
+                document.getElementById('elongation').textContent = `${p.positions.elongation}°`;
+
+                // Tithi Details
+                document.getElementById('tithiPaksha').textContent = p.tithi.paksha;
+                document.getElementById('tithiLord').textContent = p.tithi.lord;
+                document.getElementById('tithiNumber').textContent = p.tithi.number || (p.tithi.index + 1);
+                document.getElementById('tithiProgress').style.width = `${p.tithi.progress * 100}%`;
+
+                // Nakshatra Details
+                document.getElementById('nakshatraSymbol').textContent = p.nakshatra.symbol;
+                document.getElementById('nakshatraDeity').textContent = p.nakshatra.deity;
+                document.getElementById('nakshatraPlanet').textContent = p.nakshatra.planet;
+                document.getElementById('nakshatraGana').textContent = p.nakshatra.gana;
+                document.getElementById('nakshatraProgress').style.width = `${p.nakshatra.progress * 100}%`;
+
+                // Yoga Details
+                document.getElementById('yogaMeaning').textContent = p.yoga.meaning;
+                document.getElementById('yogaNature').textContent = p.yoga.nature;
+                document.getElementById('yogaProgress').style.width = `${p.yoga.progress * 100}%`;
+            }
+        };
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            PanchangUI.init();
+        });
+    </script>
+
+    <!-- Shared Scripts -->
+    <script src="js/main.js"></script>
+</body>
+
+</html>

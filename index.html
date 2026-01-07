@@ -664,8 +664,10 @@
                 <a href="index.html" class="active">Home</a>
                 <a href="tools.html">Tools</a>
                 <a href="games.html">Games</a>
+                <a href="panchang.html">Panchang</a>
                 <a href="about.html">About</a>
-                <a href="https://buymeacoffee.com/vedawell" target="_blank" class="nav-cta">☕ Support</a>
+                <a href="https://buymeacoffee.com/vedawell" target="_blank" rel="noopener noreferrer" class="nav-cta">☕
+                    Support</a>
             </div>
             <button class="mobile-menu-btn" aria-label="Menu">
                 <span></span><span></span><span></span>
@@ -721,6 +723,7 @@
         <!-- Quick Nav -->
         <section class="quick-nav">
             <div class="quick-nav-grid">
+                <a href="panchang.html" class="quick-nav-item">🪔 Panchang</a>
                 <a href="tools.html?category=calculator" class="quick-nav-item">💰 Calculators</a>
                 <a href="tools.html?category=converter" class="quick-nav-item">🔄 Converters</a>
                 <a href="tools.html?category=generator" class="quick-nav-item">⚡ Generators</a>
@@ -728,6 +731,28 @@
                 <a href="tools.html?category=developer" class="quick-nav-item">🛠️ Developer</a>
                 <a href="games.html" class="quick-nav-item">🎮 Games</a>
             </div>
+        </section>
+
+        <!-- Streak Badge Container -->
+        <div id="streak-container" style="display: none; text-align: center; padding: var(--space-md) 0;"></div>
+
+        <!-- Tool of the Day -->
+        <section id="tool-of-day" class="tool-of-day" style="display: block;"></section>
+
+        <!-- Recently Used Section -->
+        <section id="recently-used-section" class="dynamic-section" style="display: none;">
+            <div class="dynamic-section-header">
+                <h3>🕐 Recently Used</h3>
+            </div>
+            <div class="tools-scroll"></div>
+        </section>
+
+        <!-- Favorites Section -->
+        <section id="favorites-section" class="dynamic-section" style="display: none;">
+            <div class="dynamic-section-header">
+                <h3>⭐ Your Favorites</h3>
+            </div>
+            <div class="tools-scroll"></div>
         </section>
 
         <!-- Featured Tools Section -->
