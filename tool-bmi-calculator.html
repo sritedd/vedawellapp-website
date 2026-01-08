@@ -4,218 +4,492 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BMI Calculator</title>
+    <title>BMI Calculator with Ayurvedic Insights | VedaWell Tools</title>
+    <meta name="description"
+        content="Advanced BMI Calculator with ideal weight range, visual health gauge, and personalized Ayurvedic wellness tips based on your body metrics.">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles/main.css">
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box
+        /* Page-Specific Styles */
+        .bmi-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: var(--space-xl) var(--space-md);
         }
 
-        body {
-            font-family: system-ui, sans-serif;
-            background: linear-gradient(135deg, #f093fb, #f5576c);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px
+        .bmi-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 2rem;
+            align-items: start;
         }
 
-        .card {
-            background: #fff;
-            border-radius: 20px;
+        @media (max-width: 768px) {
+            .bmi-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Glass Cards */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-xl);
             padding: 2rem;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, .3)
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        body[data-theme='light'] .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            border-color: rgba(0, 0, 0, 0.05);
         }
 
         h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 1.5rem
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        .tabs {
+        .unit-toggle {
             display: flex;
-            margin-bottom: 1.5rem;
-            background: #f0f0f0;
-            border-radius: 10px;
-            padding: 4px
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0.25rem;
+            border-radius: var(--radius-lg);
+            margin-bottom: 2rem;
         }
 
-        .tab {
+        body[data-theme='light'] .unit-toggle {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .toggle-btn {
             flex: 1;
-            padding: .75rem;
-            text-align: center;
+            padding: 0.75rem;
             border: none;
             background: transparent;
+            color: var(--text-muted);
+            border-radius: var(--radius-md);
             cursor: pointer;
-            border-radius: 8px;
-            font-weight: 500
+            font-weight: 600;
+            transition: all 0.3s ease;
         }
 
-        .tab.active {
-            background: #fff;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, .1)
+        .toggle-btn.active {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
-        .form-group {
-            margin-bottom: 1.25rem
+        .input-group {
+            margin-bottom: 1.5rem;
         }
 
-        label {
+        .input-group label {
             display: block;
-            color: #666;
-            font-size: .9rem;
-            margin-bottom: .5rem
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
         }
 
-        input {
+        .input-row {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .input-field {
             width: 100%;
-            padding: .75rem;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 1rem
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            padding: 1rem;
+            border-radius: var(--radius-lg);
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            transition: all 0.3s;
         }
 
-        input:focus {
+        body[data-theme='light'] .input-field {
+            background: rgba(0, 0, 0, 0.02);
+        }
+
+        .input-field:focus {
             outline: none;
-            border-color: #f5576c
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
         }
 
-        .row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem
-        }
-
-        .result {
-            text-align: center;
-            padding: 2rem;
-            background: #f8f9fa;
-            border-radius: 15px;
-            margin-top: 1rem
-        }
-
-        .bmi-value {
-            font-size: 3rem;
-            font-weight: 700
-        }
-
-        .bmi-label {
-            font-size: 1.25rem;
-            margin-top: .5rem
-        }
-
-        .scale {
-            display: flex;
-            height: 8px;
-            border-radius: 4px;
+        /* Gauge */
+        .gauge-container {
+            position: relative;
+            width: 280px;
+            height: 140px;
+            margin: 0 auto 2rem;
             overflow: hidden;
-            margin-top: 1.5rem
         }
 
-        .scale div {
-            flex: 1
+        .gauge-bg {
+            width: 280px;
+            height: 140px;
+            border-radius: 140px 140px 0 0;
+            background: conic-gradient(from 180deg,
+                    #3498db 0deg 45deg,
+                    /* Underweight */
+                    #2ecc71 45deg 90deg,
+                    /* Normal */
+                    #f1c40f 90deg 135deg,
+                    /* Overweight */
+                    #e74c3c 135deg 180deg
+                    /* Obese */
+                );
+            mask: radial-gradient(transparent 90px, black 91px);
+            -webkit-mask: radial-gradient(transparent 90px, black 91px);
         }
 
-        .s1 {
-            background: #3498db
+        .gauge-needle {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 4px;
+            height: 130px;
+            background: var(--text-primary);
+            transform-origin: bottom center;
+            transform: rotate(-90deg);
+            /* Start at -90 (0 on gauge) */
+            border-radius: 4px;
+            transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 2;
         }
 
-        .s2 {
-            background: #2ecc71
+        .gauge-center {
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 20px;
+            background: var(--text-primary);
+            border-radius: 50%;
+            z-index: 3;
         }
 
-        .s3 {
-            background: #f1c40f
+        .bmi-result-text {
+            text-align: center;
         }
 
-        .s4 {
-            background: #e74c3c
+        .bmi-number {
+            font-size: 4rem;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+            font-family: 'Outfit', sans-serif;
         }
 
-        .scale-labels {
+        .bmi-category {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .ideal-weight-box {
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: var(--radius-lg);
+            padding: 1rem;
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+
+        .ideal-weight-box h4 {
+            color: var(--accent-primary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .ideal-weight-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        /* Ayurvedic Tip */
+        .ayurveda-tip {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .ayurveda-tip h3 {
             display: flex;
-            font-size: .7rem;
-            color: #666;
-            margin-top: .25rem
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
         }
 
-        .scale-labels span {
-            flex: 1;
-            text-align: center
+        .tip-content {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
         }
 
-        .marker {
-            width: 0;
-            height: 0;
-            border-left: 8px solid transparent;
-            border-right: 8px solid transparent;
-            border-bottom: 12px solid #333;
-            margin: -4px auto 0;
-            transition: margin-left .3s
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: var(--accent-primary);
         }
     </style>
 </head>
 
 <body>
-    <div class="card">
-        <h1>⚖️ BMI Calculator</h1>
-        <div class="tabs">
-            <button class="tab active" onclick="setUnit('metric')">Metric</button>
-            <button class="tab" onclick="setUnit('imperial')">Imperial</button>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <a href="index.html" class="logo">
+            <div class="logo-icon">🛠️</div>
+            VedaWell Tools
+        </a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="tools.html" class="active">Tools</a>
+            <a href="games.html">Games</a>
+            <a href="panchang.html">Panchang</a>
+            <a href="about.html">About</a>
+            <a href="https://buymeacoffee.com/vedawell" target="_blank" rel="noopener noreferrer" class="nav-cta">☕
+                Support</a>
         </div>
-        <div id="metricInputs">
-            <div class="form-group"><label>Height (cm)</label><input type="number" id="heightCm" value="170"
-                    oninput="calculate()"></div>
-            <div class="form-group"><label>Weight (kg)</label><input type="number" id="weightKg" value="70"
-                    oninput="calculate()"></div>
-        </div>
-        <div id="imperialInputs" style="display:none">
-            <div class="row">
-                <div class="form-group"><label>Height (ft)</label><input type="number" id="heightFt" value="5"
-                        oninput="calculate()"></div>
-                <div class="form-group"><label>Height (in)</label><input type="number" id="heightIn" value="7"
-                        oninput="calculate()"></div>
+        <button class="mobile-menu-btn" aria-label="Menu">
+            <span></span><span></span><span></span>
+        </button>
+    </nav>
+
+    <div class="bmi-container">
+        <a href="tools.html" class="back-link">← Back to Tools</a>
+
+        <header style="margin-bottom: 2rem;">
+            <h1>BMI Health Insight</h1>
+            <p style="color: var(--text-secondary); max-width: 600px;">
+                Calculate your Body Mass Index (BMI) and discover your ideal weight range combined with Ayurvedic
+                wellness tips.
+            </p>
+        </header>
+
+        <div class="bmi-grid">
+            <!-- Inputs -->
+            <div class="glass-card">
+                <div class="unit-toggle">
+                    <button class="toggle-btn active" onclick="setUnit('metric')">Metric (kg/cm)</button>
+                    <button class="toggle-btn" onclick="setUnit('imperial')">Imperial (lbs/ft)</button>
+                </div>
+
+                <!-- Metric Inputs -->
+                <div id="metricInputs">
+                    <div class="input-group">
+                        <label>Height (cm)</label>
+                        <input type="number" class="input-field" id="heightCm" value="170" placeholder="e.g. 170"
+                            oninput="calculate()">
+                    </div>
+                    <div class="input-group">
+                        <label>Weight (kg)</label>
+                        <input type="number" class="input-field" id="weightKg" value="70" placeholder="e.g. 70"
+                            oninput="calculate()">
+                    </div>
+                </div>
+
+                <!-- Imperial Inputs -->
+                <div id="imperialInputs" style="display: none;">
+                    <div class="input-group">
+                        <label>Height</label>
+                        <div class="input-row">
+                            <input type="number" class="input-field" id="heightFt" value="5" placeholder="ft"
+                                oninput="calculate()">
+                            <input type="number" class="input-field" id="heightIn" value="7" placeholder="in"
+                                oninput="calculate()">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Weight (lbs)</label>
+                        <input type="number" class="input-field" id="weightLbs" value="154" placeholder="e.g. 154"
+                            oninput="calculate()">
+                    </div>
+                </div>
+
+                <div
+                    style="margin-top: 2rem; padding: 1rem; background: rgba(255,255,255,0.03); border-radius: var(--radius-md); font-size: 0.85rem; color: var(--text-muted);">
+                    ℹ️ BMI is a screening tool. For a full health assessment, please consult a medical professional.
+                </div>
             </div>
-            <div class="form-group"><label>Weight (lbs)</label><input type="number" id="weightLbs" value="154"
-                    oninput="calculate()"></div>
+
+            <!-- Results -->
+            <div class="glass-card">
+                <div class="gauge-container">
+                    <div class="gauge-bg"></div>
+                    <div class="gauge-needle" id="gaugeNeedle"></div>
+                    <div class="gauge-center"></div>
+                </div>
+
+                <div class="bmi-result-text">
+                    <div class="bmi-number" id="bmiValue">24.2</div>
+                    <div class="bmi-category" id="bmiLabel" style="color: #2ecc71;">Normal Weight</div>
+                </div>
+
+                <div class="ideal-weight-box">
+                    <h4>Target Healthy Range</h4>
+                    <div class="ideal-weight-value" id="idealWeight">53.5 kg - 72.3 kg</div>
+                </div>
+
+                <div class="ayurveda-tip">
+                    <h3>🌿 Ayurvedic Insight</h3>
+                    <p class="tip-content" id="ayurvedaTip">
+                        Your weight is balanced. In Ayurveda, this suggests good Agni (digestive fire).
+                        To maintain this, follow a balanced diet suitable for your Dosha and stay active.
+                    </p>
+                </div>
+            </div>
         </div>
-        <div class="result">
-            <div class="bmi-value" id="bmiValue">24.2</div>
-            <div class="bmi-label" id="bmiLabel">Normal weight</div>
-            <div style="position:relative;margin-top:1.5rem">
-                <div class="marker" id="marker"></div>
-                <div class="scale">
-                    <div class="s1"></div>
-                    <div class="s2"></div>
-                    <div class="s3"></div>
-                    <div class="s4"></div>
-                </div>
-                <div class="scale-labels"><span>&lt;18.5</span><span>18.5-25</span><span>25-30</span><span>&gt;30</span>
-                </div>
+
+        <!-- Ad Banner Placeholder -->
+        <div class="ad-container" style="margin-top: 3rem;">
+            <div class="ad-placeholder">
+                <p>📢 Advertisement</p>
+                <small>Support us by <a href="https://buymeacoffee.com/vedawell" target="_blank"
+                        rel="noopener noreferrer">buying us a coffee</a></small>
             </div>
         </div>
     </div>
+
+    <!-- Scripts -->
+    <script src="js/main.js"></script>
     <script>
         let unit = 'metric';
-        function setUnit(u) { unit = u; document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === (u === 'metric' ? 0 : 1))); document.getElementById('metricInputs').style.display = u === 'metric' ? 'block' : 'none'; document.getElementById('imperialInputs').style.display = u === 'imperial' ? 'block' : 'none'; calculate() }
-        function calculate() {
-            let bmi;
-            if (unit === 'metric') { const h = parseFloat(document.getElementById('heightCm').value) / 100 || 1; const w = parseFloat(document.getElementById('weightKg').value) || 0; bmi = w / (h * h) }
-            else { const ft = parseFloat(document.getElementById('heightFt').value) || 0; const inch = parseFloat(document.getElementById('heightIn').value) || 0; const h = (ft * 12 + inch); const w = parseFloat(document.getElementById('weightLbs').value) || 0; bmi = (w / (h * h)) * 703 }
-            let label, color;
-            if (bmi < 18.5) { label = 'Underweight'; color = '#3498db' }
-            else if (bmi < 25) { label = 'Normal weight'; color = '#2ecc71' }
-            else if (bmi < 30) { label = 'Overweight'; color = '#f1c40f' }
-            else { label = 'Obese'; color = '#e74c3c' }
-            document.getElementById('bmiValue').textContent = bmi.toFixed(1); document.getElementById('bmiValue').style.color = color;
-            document.getElementById('bmiLabel').textContent = label; document.getElementById('bmiLabel').style.color = color;
-            const pos = Math.min(Math.max((bmi - 15) / (35 - 15) * 100, 0), 100); document.getElementById('marker').style.marginLeft = `calc(${pos}% - 8px)`;
+
+        function setUnit(u) {
+            unit = u;
+            // Update Toggles
+            const btns = document.querySelectorAll('.toggle-btn');
+            btns[0].classList.toggle('active', u === 'metric');
+            btns[1].classList.toggle('active', u === 'imperial');
+
+            // Show/Hide Fields
+            document.getElementById('metricInputs').style.display = u === 'metric' ? 'block' : 'none';
+            document.getElementById('imperialInputs').style.display = u === 'imperial' ? 'block' : 'none';
+
+            calculate();
         }
+
+        function calculate() {
+            let h, w, bmi;
+
+            if (unit === 'metric') {
+                const heightCm = parseFloat(document.getElementById('heightCm').value);
+                const weightKg = parseFloat(document.getElementById('weightKg').value);
+
+                if (!heightCm || !weightKg) return;
+
+                h = heightCm / 100; // meters
+                w = weightKg;
+                bmi = w / (h * h);
+            } else {
+                const ft = parseFloat(document.getElementById('heightFt').value) || 0;
+                const inch = parseFloat(document.getElementById('heightIn').value) || 0;
+                const lbs = parseFloat(document.getElementById('weightLbs').value);
+
+                if ((!ft && !inch) || !lbs) return;
+
+                const heightInches = (ft * 12) + inch;
+                bmi = (lbs / (heightInches * heightInches)) * 703;
+
+                // For ideal weight calculation
+                h = heightInches * 0.0254; // meters
+            }
+
+            // Update BMI Display
+            const bmiFixed = bmi.toFixed(1);
+            document.getElementById('bmiValue').textContent = bmiFixed;
+
+            // Determine Category & Color
+            let label, color, rotation;
+            let tip = "";
+
+            if (bmi < 18.5) {
+                label = 'Underweight';
+                color = '#3498db';
+                // Map 0-18.5 => -90 to -45 deg (0-45 deg range)
+                // Normalize 15-18.5 for needle movement mainly
+                rotation = -90 + (Math.max(bmi, 15) - 15) / (18.5 - 15) * 45;
+                rotation = Math.min(Math.max(rotation, -90), -45);
+
+                tip = "In Ayurveda, low weight may indicate elevated Vata. Focus on warm, nourishing foods like soups, stews, grains, and root vegetables using ghee or healthy oils to build grounding energy.";
+            } else if (bmi < 25) {
+                label = 'Normal Weight';
+                color = '#2ecc71';
+                // Map 18.5-25 => -45 to 0 deg
+                rotation = -45 + (bmi - 18.5) / (25 - 18.5) * 45;
+
+                tip = "Great balance! This suggests good Ojas (vitality). Maintain your health by eating seasonal foods and following a daily routine (Dinacharya) that aligns with nature's rhythm.";
+            } else if (bmi < 30) {
+                label = 'Overweight';
+                color = '#f1c40f';
+                // Map 25-30 => 0 to 45 deg
+                rotation = 0 + (bmi - 25) / (30 - 25) * 45;
+
+                tip = "Excess weight often links to Kapha accumulation. Prioritize light, warm, and spicy foods. Avoid heavy, oily, or cold foods. Regular vigorous exercise helps stimulate metabolism (Agni).";
+            } else {
+                label = 'Obese';
+                color = '#e74c3c';
+                // Map 30-40 => 45 to 90 deg
+                rotation = 45 + (Math.min(bmi, 40) - 30) / (40 - 30) * 45;
+
+                tip = "This may indicate a significant Kapha imbalance or slow metabolism. Focus on 'Langhana' (lightening) therapies: warm water, ginger tea, bitter/astringent foods (leafy greens), and active movement.";
+            }
+
+            document.getElementById('bmiLabel').textContent = label;
+            document.getElementById('bmiLabel').style.color = color;
+            document.getElementById('bmiValue').style.color = color;
+
+            // Animate Needle
+            document.getElementById('gaugeNeedle').style.transform = `rotate(${rotation}deg)`;
+
+            // Update Tip
+            document.getElementById('ayurvedaTip').textContent = tip;
+
+            // Calculate Ideal Weight (BMI 18.5 - 24.9)
+            // Weight = BMI * h * h
+            const minWeight = 18.5 * h * h;
+            const maxWeight = 24.9 * h * h;
+
+            let weightRange = "";
+            if (unit === 'metric') {
+                weightRange = `${minWeight.toFixed(1)} kg - ${maxWeight.toFixed(1)} kg`;
+            } else {
+                const minLbs = minWeight * 2.20462;
+                const maxLbs = maxWeight * 2.20462;
+                weightRange = `${minLbs.toFixed(1)} lbs - ${maxLbs.toFixed(1)} lbs`;
+            }
+            document.getElementById('idealWeight').textContent = weightRange;
+        }
+
+        // Initial Calculation
         calculate();
     </script>
 </body>
