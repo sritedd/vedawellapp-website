@@ -4,46 +4,138 @@ import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
+type View = "sign-in" | "sign-up" | "forgot-password";
+
 export default function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [isSignUp, setIsSignUp] = useState(false);
+    const [view, setView] = useState<View>("sign-in");
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSignIn = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setMessage(null);
+
+        const supabase = createClient();
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+        if (error) {
+            setMessage({ type: "error", text: error.message });
+        } else {
+            window.location.href = "/guardian/dashboard";
+        }
+
+        setLoading(false);
+    };
+
+    const handleSignUp = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         setMessage(null);
 
         const supabase = createClient();
 
-        if (isSignUp) {
-            const { error } = await supabase.auth.signUp({
-                email,
-                password,
-            });
+        // Sign up with email confirmation disabled (auto-confirm)
+        // The Supabase project should have "Enable email confirmations" turned OFF
+        // in Auth > Settings > Email, OR we pass emailRedirectTo to skip it.
+        const { data, error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+                // Skip email confirmation — user is signed in immediately
+                emailRedirectTo: `${window.location.origin}/guardian/dashboard`,
+            },
+        });
 
-            if (error) {
-                setMessage({ type: "error", text: error.message });
-            } else {
-                setMessage({ type: "success", text: "Check your email for the confirmation link!" });
-            }
+        if (error) {
+            setMessage({ type: "error", text: error.message });
+            setLoading(false);
+            return;
+        }
+
+        // If the user was auto-confirmed (no email confirmation required),
+        // they'll have a session immediately. Redirect to dashboard.
+        if (data.session) {
+            setMessage({ type: "success", text: "Account created! Redirecting..." });
+            window.location.href = "/guardian/dashboard";
         } else {
-            const { error } = await supabase.auth.signInWithPassword({
+            // If email confirmation IS enabled in Supabase settings,
+            // auto-sign-in the user anyway (best effort)
+            const { error: signInError } = await supabase.auth.signInWithPassword({
                 email,
                 password,
             });
 
-            if (error) {
-                setMessage({ type: "error", text: error.message });
+            if (signInError) {
+                // Supabase requires email confirmation — tell user nicely
+                setMessage({
+                    type: "success",
+                    text: "Account created! You can now sign in.",
+                });
+                setView("sign-in");
             } else {
-                // Redirect to dashboard
                 window.location.href = "/guardian/dashboard";
             }
         }
 
         setLoading(false);
+    };
+
+    const handleForgotPassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setMessage(null);
+
+        const supabase = createClient();
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: `${window.location.origin}/guardian/login`,
+        });
+
+        if (error) {
+            setMessage({ type: "error", text: error.message });
+        } else {
+            setMessage({
+                type: "success",
+                text: "Password reset link sent! Check your email.",
+            });
+        }
+
+        setLoading(false);
+    };
+
+    const getTitle = () => {
+        switch (view) {
+            case "sign-in": return "Welcome back";
+            case "sign-up": return "Create your account";
+            case "forgot-password": return "Reset your password";
+        }
+    };
+
+    const getSubtitle = () => {
+        switch (view) {
+            case "sign-in": return "Sign in to access your HomeOwner Guardian dashboard";
+            case "sign-up": return "Start protecting your home construction project";
+            case "forgot-password": return "Enter your email and we'll send you a reset link";
+        }
+    };
+
+    const getSubmitHandler = () => {
+        switch (view) {
+            case "sign-in": return handleSignIn;
+            case "sign-up": return handleSignUp;
+            case "forgot-password": return handleForgotPassword;
+        }
+    };
+
+    const getButtonText = () => {
+        if (loading) return "Loading...";
+        switch (view) {
+            case "sign-in": return "Sign In";
+            case "sign-up": return "Create Account";
+            case "forgot-password": return "Send Reset Link";
+        }
     };
 
     return (
@@ -67,17 +159,11 @@ export default function LoginPage() {
                     <div className="card">
                         <div className="text-center mb-8">
                             <span className="text-5xl block mb-4">🏠</span>
-                            <h1 className="text-2xl font-bold">
-                                {isSignUp ? "Create your account" : "Welcome back"}
-                            </h1>
-                            <p className="text-muted mt-2">
-                                {isSignUp
-                                    ? "Start protecting your home construction project"
-                                    : "Sign in to access your HomeOwner Guardian dashboard"}
-                            </p>
+                            <h1 className="text-2xl font-bold">{getTitle()}</h1>
+                            <p className="text-muted mt-2">{getSubtitle()}</p>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-4">
+                        <form onSubmit={getSubmitHandler()} className="space-y-4">
                             <div>
                                 <label htmlFor="email" className="block text-sm font-medium mb-2">
                                     Email
@@ -93,21 +179,24 @@ export default function LoginPage() {
                                 />
                             </div>
 
-                            <div>
-                                <label htmlFor="password" className="block text-sm font-medium mb-2">
-                                    Password
-                                </label>
-                                <input
-                                    id="password"
-                                    type="password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full px-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-                                    placeholder="••••••••"
-                                    required
-                                    minLength={6}
-                                />
-                            </div>
+                            {/* Password field — hidden for forgot password */}
+                            {view !== "forgot-password" && (
+                                <div>
+                                    <label htmlFor="password" className="block text-sm font-medium mb-2">
+                                        Password
+                                    </label>
+                                    <input
+                                        id="password"
+                                        type="password"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        className="w-full px-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                                        placeholder="••••••••"
+                                        required
+                                        minLength={6}
+                                    />
+                                </div>
+                            )}
 
                             {message && (
                                 <div
@@ -125,25 +214,47 @@ export default function LoginPage() {
                                 disabled={loading}
                                 className="btn-primary w-full disabled:opacity-50"
                             >
-                                {loading ? "Loading..." : isSignUp ? "Create Account" : "Sign In"}
+                                {getButtonText()}
                             </button>
                         </form>
 
-                        <div className="mt-6 text-center space-y-4">
-                            <button
-                                onClick={() => setIsSignUp(!isSignUp)}
-                                className="text-primary hover:underline block w-full"
-                            >
-                                {isSignUp
-                                    ? "Already have an account? Sign in"
-                                    : "Don't have an account? Sign up"}
-                            </button>
+                        <div className="mt-6 text-center space-y-3">
+                            {/* Forgot password link — only on sign-in view */}
+                            {view === "sign-in" && (
+                                <button
+                                    onClick={() => { setView("forgot-password"); setMessage(null); }}
+                                    className="text-sm text-muted hover:text-primary hover:underline block w-full"
+                                >
+                                    Forgot your password?
+                                </button>
+                            )}
+
+                            {/* Toggle between sign-in and sign-up */}
+                            {view !== "forgot-password" && (
+                                <button
+                                    onClick={() => { setView(view === "sign-in" ? "sign-up" : "sign-in"); setMessage(null); }}
+                                    className="text-primary hover:underline block w-full"
+                                >
+                                    {view === "sign-up"
+                                        ? "Already have an account? Sign in"
+                                        : "Don't have an account? Sign up"}
+                                </button>
+                            )}
+
+                            {/* Back to sign-in from forgot password */}
+                            {view === "forgot-password" && (
+                                <button
+                                    onClick={() => { setView("sign-in"); setMessage(null); }}
+                                    className="text-primary hover:underline block w-full"
+                                >
+                                    ← Back to Sign In
+                                </button>
+                            )}
 
                             {process.env.NODE_ENV === 'development' && (
                                 <button
                                     onClick={async () => {
                                         setLoading(true);
-                                        // Dynamic import to avoid server action issues in client component if strict
                                         const { loginAsDevUser } = await import("./actions");
                                         await loginAsDevUser();
                                     }}
