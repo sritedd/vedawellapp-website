@@ -1,0 +1,837 @@
+{
+    "contractChecklist": [
+        {
+            "category": "Builder Details",
+            "items": [
+                {
+                    "id": "c1",
+                    "text": "Builder's full legal name and ABN verified",
+                    "critical": true
+                },
+                {
+                    "id": "c2",
+                    "text": "Builder's license number verified on Fair Trading website",
+                    "critical": true
+                },
+                {
+                    "id": "c3",
+                    "text": "Home warranty insurance certificate sighted (HBCF/DBI)",
+                    "critical": true
+                },
+                {
+                    "id": "c4",
+                    "text": "Builder's public liability insurance confirmed",
+                    "critical": false
+                },
+                {
+                    "id": "c5",
+                    "text": "Builder's workers compensation insurance confirmed",
+                    "critical": false
+                }
+            ]
+        },
+        {
+            "category": "Contract Price & Payments",
+            "items": [
+                {
+                    "id": "p1",
+                    "text": "Total contract price is clearly stated",
+                    "critical": true
+                },
+                {
+                    "id": "p2",
+                    "text": "Payment schedule matches statutory limits (deposit ≤10%)",
+                    "critical": true
+                },
+                {
+                    "id": "p3",
+                    "text": "Progress payment stages are clearly defined",
+                    "critical": true
+                },
+                {
+                    "id": "p4",
+                    "text": "Final payment conditions specified",
+                    "critical": true
+                },
+                {
+                    "id": "p5",
+                    "text": "What's included in the price is detailed",
+                    "critical": true
+                },
+                {
+                    "id": "p6",
+                    "text": "What's excluded is clearly listed",
+                    "critical": true
+                },
+                {
+                    "id": "p7",
+                    "text": "GST is shown separately",
+                    "critical": false
+                }
+            ]
+        },
+        {
+            "category": "Prime Cost & Provisional Sums",
+            "items": [
+                {
+                    "id": "pc1",
+                    "text": "All PC items are listed with allowances",
+                    "critical": true
+                },
+                {
+                    "id": "pc2",
+                    "text": "PC allowances are realistic for quality desired",
+                    "critical": true
+                },
+                {
+                    "id": "pc3",
+                    "text": "Provisional sums are clearly explained",
+                    "critical": true
+                },
+                {
+                    "id": "pc4",
+                    "text": "Process for exceeding allowances is stated",
+                    "critical": true
+                }
+            ]
+        },
+        {
+            "category": "Scope of Works",
+            "items": [
+                {
+                    "id": "s1",
+                    "text": "Detailed specifications document attached",
+                    "critical": true
+                },
+                {
+                    "id": "s2",
+                    "text": "Approved plans and drawings attached",
+                    "critical": true
+                },
+                {
+                    "id": "s3",
+                    "text": "Site works scope defined (cut/fill, retaining)",
+                    "critical": true
+                },
+                {
+                    "id": "s4",
+                    "text": "Landscaping scope (if included) detailed",
+                    "critical": false
+                },
+                {
+                    "id": "s5",
+                    "text": "Driveway and paths scope defined",
+                    "critical": false
+                },
+                {
+                    "id": "s6",
+                    "text": "Fencing scope (if included) specified",
+                    "critical": false
+                }
+            ]
+        },
+        {
+            "category": "Timeline",
+            "items": [
+                {
+                    "id": "t1",
+                    "text": "Commencement date or trigger is stated",
+                    "critical": true
+                },
+                {
+                    "id": "t2",
+                    "text": "Estimated construction period is provided",
+                    "critical": true
+                },
+                {
+                    "id": "t3",
+                    "text": "Delay provisions and extensions of time explained",
+                    "critical": true
+                },
+                {
+                    "id": "t4",
+                    "text": "Liquidated damages clause reviewed (if any)",
+                    "critical": false
+                }
+            ]
+        },
+        {
+            "category": "Variations",
+            "items": [
+                {
+                    "id": "v1",
+                    "text": "Variation process is clearly documented",
+                    "critical": true
+                },
+                {
+                    "id": "v2",
+                    "text": "Written approval required before variations proceed",
+                    "critical": true
+                },
+                {
+                    "id": "v3",
+                    "text": "Variation pricing methodology explained",
+                    "critical": true
+                },
+                {
+                    "id": "v4",
+                    "text": "Builder margin on variations is stated",
+                    "critical": false
+                }
+            ]
+        },
+        {
+            "category": "Defects & Warranties",
+            "items": [
+                {
+                    "id": "d1",
+                    "text": "Defect liability period stated (typically 90 days)",
+                    "critical": true
+                },
+                {
+                    "id": "d2",
+                    "text": "Statutory warranty periods acknowledged",
+                    "critical": true
+                },
+                {
+                    "id": "d3",
+                    "text": "Defect notification process explained",
+                    "critical": true
+                },
+                {
+                    "id": "d4",
+                    "text": "Builder's obligations for rectification stated",
+                    "critical": true
+                }
+            ]
+        },
+        {
+            "category": "Dispute Resolution",
+            "items": [
+                {
+                    "id": "dr1",
+                    "text": "Dispute resolution process is outlined",
+                    "critical": true
+                },
+                {
+                    "id": "dr2",
+                    "text": "No unfair limitation on your rights to Fair Trading/NCAT",
+                    "critical": true
+                },
+                {
+                    "id": "dr3",
+                    "text": "Mediation process explained",
+                    "critical": false
+                }
+            ]
+        },
+        {
+            "category": "Termination",
+            "items": [
+                {
+                    "id": "term1",
+                    "text": "Grounds for termination by either party stated",
+                    "critical": true
+                },
+                {
+                    "id": "term2",
+                    "text": "Process for termination outlined",
+                    "critical": true
+                },
+                {
+                    "id": "term3",
+                    "text": "Payment obligations on termination clear",
+                    "critical": true
+                }
+            ]
+        },
+        {
+            "category": "Cooling Off",
+            "items": [
+                {
+                    "id": "cool1",
+                    "text": "5-day cooling off period acknowledged (NSW)",
+                    "critical": true
+                },
+                {
+                    "id": "cool2",
+                    "text": "No pressure to waive cooling off period",
+                    "critical": true
+                }
+            ]
+        }
+    ],
+    "preHandoverChecklist": [
+        {
+            "category": "Exterior - General",
+            "items": [
+                {
+                    "id": "ext1",
+                    "text": "Render/cladding complete with no cracks or damage"
+                },
+                {
+                    "id": "ext2",
+                    "text": "Paintwork complete and even"
+                },
+                {
+                    "id": "ext3",
+                    "text": "Brickwork clean with consistent mortar joints"
+                },
+                {
+                    "id": "ext4",
+                    "text": "Weep holes present and unblocked"
+                },
+                {
+                    "id": "ext5",
+                    "text": "All external light fittings working"
+                },
+                {
+                    "id": "ext6",
+                    "text": "House numbers installed"
+                }
+            ]
+        },
+        {
+            "category": "Exterior - Roof & Gutters",
+            "items": [
+                {
+                    "id": "roof1",
+                    "text": "Roof tiles/sheeting properly fixed"
+                },
+                {
+                    "id": "roof2",
+                    "text": "Ridge capping secure"
+                },
+                {
+                    "id": "roof3",
+                    "text": "Gutters straight and properly fixed"
+                },
+                {
+                    "id": "roof4",
+                    "text": "Downpipes connected and draining correctly"
+                },
+                {
+                    "id": "roof5",
+                    "text": "Flashings properly sealed"
+                },
+                {
+                    "id": "roof6",
+                    "text": "No debris in gutters"
+                }
+            ]
+        },
+        {
+            "category": "Exterior - Windows & Doors",
+            "items": [
+                {
+                    "id": "win1",
+                    "text": "All windows open, close and lock properly"
+                },
+                {
+                    "id": "win2",
+                    "text": "Window seals intact"
+                },
+                {
+                    "id": "win3",
+                    "text": "Flyscreens fitted and undamaged"
+                },
+                {
+                    "id": "win4",
+                    "text": "External doors open and close smoothly"
+                },
+                {
+                    "id": "win5",
+                    "text": "Door locks and handles work correctly"
+                },
+                {
+                    "id": "win6",
+                    "text": "Garage door operates correctly with remote"
+                },
+                {
+                    "id": "win7",
+                    "text": "No scratches or marks on glass"
+                }
+            ]
+        },
+        {
+            "category": "Exterior - Driveway & Paths",
+            "items": [
+                {
+                    "id": "drive1",
+                    "text": "Driveway complete with proper fall for drainage"
+                },
+                {
+                    "id": "drive2",
+                    "text": "No cracks in concrete"
+                },
+                {
+                    "id": "drive3",
+                    "text": "Paths complete and level"
+                },
+                {
+                    "id": "drive4",
+                    "text": "Steps consistent height with handrails (if required)"
+                }
+            ]
+        },
+        {
+            "category": "Interior - Walls & Ceilings",
+            "items": [
+                {
+                    "id": "wall1",
+                    "text": "Walls straight and plumb"
+                },
+                {
+                    "id": "wall2",
+                    "text": "No visible cracks"
+                },
+                {
+                    "id": "wall3",
+                    "text": "Paint finish even with no runs or misses"
+                },
+                {
+                    "id": "wall4",
+                    "text": "Cornices straight and neatly joined"
+                },
+                {
+                    "id": "wall5",
+                    "text": "Skirting boards tight to wall and floor"
+                },
+                {
+                    "id": "wall6",
+                    "text": "Architraves neatly fitted around doors/windows"
+                },
+                {
+                    "id": "wall7",
+                    "text": "No nail pops or plaster imperfections"
+                }
+            ]
+        },
+        {
+            "category": "Interior - Floors",
+            "items": [
+                {
+                    "id": "floor1",
+                    "text": "Tiles level with consistent grout lines"
+                },
+                {
+                    "id": "floor2",
+                    "text": "No cracked or chipped tiles"
+                },
+                {
+                    "id": "floor3",
+                    "text": "Timber/laminate floor level and squeak-free"
+                },
+                {
+                    "id": "floor4",
+                    "text": "Carpet laid flat with no bubbles"
+                },
+                {
+                    "id": "floor5",
+                    "text": "Floor coverings extend properly to walls"
+                },
+                {
+                    "id": "floor6",
+                    "text": "Transition strips fitted between floor types"
+                }
+            ]
+        },
+        {
+            "category": "Interior - Doors",
+            "items": [
+                {
+                    "id": "door1",
+                    "text": "All doors open and close smoothly"
+                },
+                {
+                    "id": "door2",
+                    "text": "Door handles and locks work correctly"
+                },
+                {
+                    "id": "door3",
+                    "text": "Even gaps around door frames"
+                },
+                {
+                    "id": "door4",
+                    "text": "No paint drips or marks on doors"
+                },
+                {
+                    "id": "door5",
+                    "text": "Sliding doors glide smoothly"
+                },
+                {
+                    "id": "door6",
+                    "text": "Bi-fold doors operate correctly"
+                }
+            ]
+        },
+        {
+            "category": "Kitchen",
+            "items": [
+                {
+                    "id": "kit1",
+                    "text": "Benchtops level and properly sealed to wall"
+                },
+                {
+                    "id": "kit2",
+                    "text": "All drawers open and close smoothly"
+                },
+                {
+                    "id": "kit3",
+                    "text": "Cabinet doors aligned and close properly"
+                },
+                {
+                    "id": "kit4",
+                    "text": "Soft-close mechanisms working"
+                },
+                {
+                    "id": "kit5",
+                    "text": "Splashback properly fitted and sealed"
+                },
+                {
+                    "id": "kit6",
+                    "text": "Sink and taps work correctly, no leaks"
+                },
+                {
+                    "id": "kit7",
+                    "text": "Dishwasher connected and working"
+                },
+                {
+                    "id": "kit8",
+                    "text": "Rangehood/exhaust fan working"
+                },
+                {
+                    "id": "kit9",
+                    "text": "Oven and cooktop working"
+                },
+                {
+                    "id": "kit10",
+                    "text": "All appliances have manuals"
+                }
+            ]
+        },
+        {
+            "category": "Bathrooms & Laundry",
+            "items": [
+                {
+                    "id": "bath1",
+                    "text": "Taps and mixers work correctly"
+                },
+                {
+                    "id": "bath2",
+                    "text": "Hot water reaching all outlets"
+                },
+                {
+                    "id": "bath3",
+                    "text": "Toilets flush correctly and fill properly"
+                },
+                {
+                    "id": "bath4",
+                    "text": "Shower screens properly sealed"
+                },
+                {
+                    "id": "bath5",
+                    "text": "No water pooling (floors drain correctly)"
+                },
+                {
+                    "id": "bath6",
+                    "text": "Exhaust fans working"
+                },
+                {
+                    "id": "bath7",
+                    "text": "Mirrors properly fixed"
+                },
+                {
+                    "id": "bath8",
+                    "text": "Towel rails and accessories secure"
+                },
+                {
+                    "id": "bath9",
+                    "text": "Silicone seals complete and neat"
+                },
+                {
+                    "id": "bath10",
+                    "text": "Laundry tub drains correctly"
+                }
+            ]
+        },
+        {
+            "category": "Electrical",
+            "items": [
+                {
+                    "id": "elec1",
+                    "text": "All power points working"
+                },
+                {
+                    "id": "elec2",
+                    "text": "All light switches working"
+                },
+                {
+                    "id": "elec3",
+                    "text": "Light fittings properly installed"
+                },
+                {
+                    "id": "elec4",
+                    "text": "Smoke alarms installed and working"
+                },
+                {
+                    "id": "elec5",
+                    "text": "Safety switches (RCDs) installed"
+                },
+                {
+                    "id": "elec6",
+                    "text": "TV/data points in correct locations"
+                },
+                {
+                    "id": "elec7",
+                    "text": "Switchboard properly labelled"
+                },
+                {
+                    "id": "elec8",
+                    "text": "EICC (electrical certificate) provided"
+                }
+            ]
+        },
+        {
+            "category": "Plumbing & Gas",
+            "items": [
+                {
+                    "id": "plumb1",
+                    "text": "No leaks under any sinks"
+                },
+                {
+                    "id": "plumb2",
+                    "text": "Hot water system working"
+                },
+                {
+                    "id": "plumb3",
+                    "text": "Water pressure adequate at all outlets"
+                },
+                {
+                    "id": "plumb4",
+                    "text": "Isolation valves accessible"
+                },
+                {
+                    "id": "plumb5",
+                    "text": "Gas bayonet (if applicable) working"
+                },
+                {
+                    "id": "plumb6",
+                    "text": "Plumbing certificate provided"
+                },
+                {
+                    "id": "plumb7",
+                    "text": "Gas certificate provided (if applicable)"
+                }
+            ]
+        },
+        {
+            "category": "Heating & Cooling",
+            "items": [
+                {
+                    "id": "hvac1",
+                    "text": "Air conditioning working (heating and cooling)"
+                },
+                {
+                    "id": "hvac2",
+                    "text": "All zones operating correctly"
+                },
+                {
+                    "id": "hvac3",
+                    "text": "Vents properly fitted"
+                },
+                {
+                    "id": "hvac4",
+                    "text": "Remote controls provided"
+                },
+                {
+                    "id": "hvac5",
+                    "text": "Filter cleaning instructions provided"
+                }
+            ]
+        },
+        {
+            "category": "Garage",
+            "items": [
+                {
+                    "id": "gar1",
+                    "text": "Floor even and properly finished"
+                },
+                {
+                    "id": "gar2",
+                    "text": "Internal access door works correctly"
+                },
+                {
+                    "id": "gar3",
+                    "text": "Power points working"
+                },
+                {
+                    "id": "gar4",
+                    "text": "Light working"
+                },
+                {
+                    "id": "gar5",
+                    "text": "Garage door remotes provided"
+                }
+            ]
+        },
+        {
+            "category": "Safety & Compliance",
+            "items": [
+                {
+                    "id": "safe1",
+                    "text": "Smoke alarms in all required locations"
+                },
+                {
+                    "id": "safe2",
+                    "text": "Pool fence compliant (if applicable)"
+                },
+                {
+                    "id": "safe3",
+                    "text": "Handrails secure on all stairs"
+                },
+                {
+                    "id": "safe4",
+                    "text": "Balustrades meet height requirements"
+                },
+                {
+                    "id": "safe5",
+                    "text": "Safety glass in required locations"
+                },
+                {
+                    "id": "safe6",
+                    "text": "Fire extinguisher provided (if in contract)"
+                }
+            ]
+        },
+        {
+            "category": "Documentation",
+            "items": [
+                {
+                    "id": "doc1",
+                    "text": "Occupation Certificate (OC) provided"
+                },
+                {
+                    "id": "doc2",
+                    "text": "EICC (Electrical Certificate) provided"
+                },
+                {
+                    "id": "doc3",
+                    "text": "Plumbing Certificate provided"
+                },
+                {
+                    "id": "doc4",
+                    "text": "Gas Compliance Certificate provided"
+                },
+                {
+                    "id": "doc5",
+                    "text": "Waterproofing Certificate provided"
+                },
+                {
+                    "id": "doc6",
+                    "text": "Survey plan/as-built drawings provided"
+                },
+                {
+                    "id": "doc7",
+                    "text": "All appliance manuals provided"
+                },
+                {
+                    "id": "doc8",
+                    "text": "Warranty information for all items"
+                },
+                {
+                    "id": "doc9",
+                    "text": "Paint colours and codes documented"
+                },
+                {
+                    "id": "doc10",
+                    "text": "Spare tiles provided"
+                },
+                {
+                    "id": "doc11",
+                    "text": "All keys provided (house, garage, meter box)"
+                }
+            ]
+        }
+    ],
+    "questionsByStage": {
+        "pre-construction": [
+            "When exactly will construction start?",
+            "Who is my main point of contact during the build?",
+            "How often will I receive progress updates?",
+            "Can I visit the site during construction? What notice is required?",
+            "What happens if there are delays due to weather?",
+            "How are variations handled and priced?",
+            "When do I need to make my colour and fixture selections?",
+            "What is your defect rectification process after handover?"
+        ],
+        "slab": [
+            "Has the soil test revealed any issues?",
+            "Is the slab engineering approved?",
+            "Can I see the footing inspection certificate?",
+            "Are there any variations to the original slab design?",
+            "When will the slab cure before frame goes up?"
+        ],
+        "frame": [
+            "Has the frame inspection been booked?",
+            "Any issues found during frame inspection?",
+            "Are there any changes to the approved plans?",
+            "When will windows be installed?",
+            "What's the expected lockup date?"
+        ],
+        "lockup": [
+            "Are all windows and external doors installed?",
+            "Has the roof been completed and sealed?",
+            "Can I do a walkthrough at lockup stage?",
+            "When will plastering begin?",
+            "Are there any variations since frame stage?"
+        ],
+        "pre-plasterboard": [
+            "Has insulation been installed to required R-values?",
+            "Can I photograph behind the walls before plastering?",
+            "Has waterproofing been done in wet areas?",
+            "Can I see the waterproofing certificate?",
+            "Are all electrical and plumbing rough-ins complete?"
+        ],
+        "fixing": [
+            "When will kitchen cabinets be installed?",
+            "Are my colour selections all confirmed?",
+            "When will tiles be laid?",
+            "Any lead time issues with fixtures or fittings?"
+        ],
+        "practical-completion": [
+            "When is the practical completion inspection?",
+            "What items are on the defect list?",
+            "When will defects be rectified?",
+            "Can you provide a commitment date for all certificates?",
+            "When will I receive the Occupation Certificate?",
+            "What is the handover process?"
+        ]
+    },
+    "messageTemplates": {
+        "requestUpdate": {
+            "subject": "Weekly Progress Update Request - [PROJECT ADDRESS]",
+            "body": "Dear [BUILDER NAME],\n\nI hope this email finds you well.\n\nI would appreciate a brief update on the progress of our build at [PROJECT ADDRESS].\n\nSpecifically, I would like to know:\n1. What work was completed this week?\n2. What is scheduled for next week?\n3. Are there any issues or delays I should be aware of?\n4. Are there any decisions required from me?\n\nThank you for keeping me informed.\n\nKind regards,\n[YOUR NAME]\n[YOUR PHONE]"
+        },
+        "variationConcern": {
+            "subject": "Clarification Required - Variation [VARIATION NUMBER]",
+            "body": "Dear [BUILDER NAME],\n\nThank you for sending through the variation for [VARIATION DESCRIPTION].\n\nBefore I can approve this variation, I need clarification on the following:\n\n1. Why is this work necessary? Was this not covered in the original scope?\n2. Can you provide a breakdown of labour and materials costs?\n3. Is there a more cost-effective alternative?\n\nAs per our contract, I require written variations with clear pricing before any additional work proceeds.\n\nPlease provide this information within [X] days.\n\nKind regards,\n[YOUR NAME]"
+        },
+        "defectNotification": {
+            "subject": "Defect Notification - [PROJECT ADDRESS]",
+            "body": "Dear [BUILDER NAME],\n\nI am writing to formally notify you of the following defect(s) at [PROJECT ADDRESS]:\n\nDefect 1: [DESCRIPTION]\nLocation: [LOCATION]\nSeverity: [MINOR/MAJOR/CRITICAL]\n\n[REPEAT FOR ADDITIONAL DEFECTS]\n\nPhotographic evidence is attached.\n\nUnder the statutory warranty provisions, I request that these defects be rectified within a reasonable timeframe.\n\nPlease confirm:\n1. When will you inspect these defects?\n2. What is your proposed rectification timeline?\n\nI look forward to your response within 7 days.\n\nKind regards,\n[YOUR NAME]"
+        },
+        "paymentQuery": {
+            "subject": "Query Regarding Progress Claim - Stage [X]",
+            "body": "Dear [BUILDER NAME],\n\nI have received your progress claim for Stage [X].\n\nBefore I can process this payment, I need confirmation of the following:\n\n1. Has the relevant inspection been completed and passed?\n2. Can you provide the inspection certificate?\n3. Are all items in this stage complete to contract specifications?\n\nAs per our contract, progress payments are contingent on completed work and inspections.\n\nPlease provide the required documentation.\n\nKind regards,\n[YOUR NAME]"
+        },
+        "siteVisitRequest": {
+            "subject": "Site Visit Request - [DATE]",
+            "body": "Dear [BUILDER NAME],\n\nI would like to schedule a site visit at [PROJECT ADDRESS] on [PROPOSED DATE/TIME].\n\nThe purpose of my visit is to:\n[  ] General progress inspection\n[  ] Review specific work: [DETAILS]\n[  ] Pre-stage inspection\n[  ] Address concerns: [DETAILS]\n\nPlease confirm if this time suits or suggest an alternative.\n\nKind regards,\n[YOUR NAME]"
+        },
+        "escalationNotice": {
+            "subject": "Formal Notice - Unresolved Issue [ISSUE DESCRIPTION]",
+            "body": "Dear [BUILDER NAME],\n\nI am writing to formally put you on notice regarding [ISSUE DESCRIPTION].\n\nBackground:\n- I first raised this issue on [DATE]\n- Despite [X] communications, it remains unresolved\n- This is affecting [IMPACT]\n\nI require this matter to be resolved by [DATE], failing which I will:\n1. Escalate to NSW Fair Trading\n2. Seek independent expert assessment\n3. [OTHER ACTIONS]\n\nPlease treat this as a formal notice under our contract.\n\nI look forward to your urgent response.\n\nKind regards,\n[YOUR NAME]"
+        }
+    }
+}

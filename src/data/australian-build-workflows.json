@@ -1,0 +1,796 @@
+{
+    "buildCategories": [
+        {
+            "id": "new_build",
+            "name": "New Home Build",
+            "description": "Construction of a new dwelling on vacant land or knockdown-rebuild",
+            "icon": "🏠",
+            "color": "primary"
+        },
+        {
+            "id": "extension",
+            "name": "Home Extension",
+            "description": "Adding rooms, second storey, or major structural additions to existing home",
+            "icon": "🔨",
+            "color": "blue"
+        },
+        {
+            "id": "granny_flat",
+            "name": "Granny Flat / Secondary Dwelling",
+            "description": "Self-contained secondary dwelling on existing residential property (≤60sqm)",
+            "icon": "🏡",
+            "color": "green"
+        }
+    ],
+    "states": [
+        {
+            "code": "NSW",
+            "name": "New South Wales",
+            "regulator": "NSW Fair Trading",
+            "regulatorUrl": "https://www.fairtrading.nsw.gov.au",
+            "insuranceScheme": "HBCF (Home Building Compensation Fund)",
+            "insuranceThreshold": 20000,
+            "warrantyPeriods": {
+                "structural": 6,
+                "nonStructural": 2
+            },
+            "approvalAuthorities": [
+                "Private Certifier",
+                "Local Council"
+            ],
+            "planningPortal": "NSW Planning Portal",
+            "planningPortalUrl": "https://www.planningportal.nsw.gov.au"
+        },
+        {
+            "code": "VIC",
+            "name": "Victoria",
+            "regulator": "Victorian Building Authority (VBA) → VBPC from April 2025",
+            "regulatorUrl": "https://www.vba.vic.gov.au",
+            "insuranceScheme": "Domestic Building Insurance (DBI)",
+            "insuranceThreshold": 16000,
+            "warrantyPeriods": {
+                "structural": 6,
+                "nonStructural": 2
+            },
+            "approvalAuthorities": [
+                "Registered Building Surveyor",
+                "Council Building Surveyor"
+            ],
+            "planningPortal": "VicSmart / Council Planning",
+            "planningPortalUrl": "https://www.planning.vic.gov.au"
+        },
+        {
+            "code": "QLD",
+            "name": "Queensland",
+            "regulator": "QBCC (Queensland Building and Construction Commission)",
+            "regulatorUrl": "https://www.qbcc.qld.gov.au",
+            "insuranceScheme": "QBCC Home Warranty Insurance",
+            "insuranceThreshold": 3300,
+            "warrantyPeriods": {
+                "structural": 6.5,
+                "nonStructural": 0.5
+            },
+            "maxCoverage": 200000,
+            "optionalMaxCoverage": 300000,
+            "approvalAuthorities": [
+                "Private Certifier",
+                "Local Council"
+            ],
+            "notes": "QBCC insurance is mandatory before work begins"
+        },
+        {
+            "code": "WA",
+            "name": "Western Australia",
+            "regulator": "DMIRS Building Commission",
+            "regulatorUrl": "https://www.commerce.wa.gov.au/building-commission",
+            "insuranceScheme": "Home Indemnity Insurance",
+            "insuranceThreshold": 20000,
+            "warrantyPeriods": {
+                "structural": 6,
+                "nonStructural": 2
+            },
+            "approvalAuthorities": [
+                "Private Building Surveyor",
+                "Local Government"
+            ],
+            "permitTypes": {
+                "BA1": {
+                    "name": "Certified Application",
+                    "days": 10
+                },
+                "BA2": {
+                    "name": "Uncertified Application",
+                    "days": 25
+                }
+            }
+        },
+        {
+            "code": "SA",
+            "name": "South Australia",
+            "regulator": "Office of the Technical Regulator",
+            "regulatorUrl": "https://www.plan.sa.gov.au",
+            "insuranceScheme": "Builder's Indemnity Insurance",
+            "insuranceThreshold": 12000,
+            "warrantyPeriods": {
+                "structural": 5,
+                "nonStructural": 1
+            },
+            "approvalAuthorities": [
+                "Private Certifier",
+                "Council"
+            ],
+            "planningPortal": "PlanSA",
+            "planningPortalUrl": "https://plan.sa.gov.au",
+            "notes": "7-star NatHERS mandatory from Oct 2024"
+        }
+    ],
+    "workflows": {
+        "new_build": {
+            "NSW": {
+                "approvalPathways": [
+                    {
+                        "id": "cdc",
+                        "name": "Complying Development Certificate (CDC)",
+                        "avgDays": "10-20 business days",
+                        "suitableFor": "Standard 1-2 storey homes on unconstrained sites",
+                        "requirements": [
+                            "Land zoned residential (R1, R2, R3, R4)",
+                            "Not heritage listed",
+                            "Not bushfire BAL-40 or FZ",
+                            "Not flood prone (1% AEP)",
+                            "Meets all setback requirements",
+                            "Under height limits"
+                        ],
+                        "documents": [
+                            "Section 10.7 Planning Certificate",
+                            "Architectural Plans (to Codes SEPP)",
+                            "BASIX Certificate (7-star NatHERS)",
+                            "Structural Engineering",
+                            "Survey Plan"
+                        ],
+                        "approvalBody": "Private Certifier or Council"
+                    },
+                    {
+                        "id": "da",
+                        "name": "Development Application (DA)",
+                        "avgDays": "8-20 weeks",
+                        "suitableFor": "Custom designs, constrained sites, heritage areas",
+                        "requirements": [
+                            "Required when CDC criteria not met",
+                            "Heritage properties",
+                            "Bushfire BAL-40 or FZ",
+                            "Flood prone land",
+                            "Significant vegetation"
+                        ],
+                        "documents": [
+                            "Statement of Environmental Effects (SEE)",
+                            "Architectural Plans",
+                            "BASIX Certificate",
+                            "Site Analysis",
+                            "Shadow Diagrams",
+                            "Bushfire/Flood Reports (if applicable)"
+                        ],
+                        "approvalBody": "Local Council",
+                        "postApproval": "Requires separate Construction Certificate (CC)"
+                    }
+                ],
+                "stages": [
+                    {
+                        "id": "site_start",
+                        "name": "Site Start",
+                        "description": "Site preparation, excavation, piering (if required)",
+                        "paymentMilestone": "Base Stage (10%)",
+                        "inspections": [
+                            "Site Set-out"
+                        ],
+                        "certificates": [],
+                        "dodgyBuilderWarnings": [
+                            "🚨 'Piering costs extra' after contract signed - should be in soil report",
+                            "🚨 Excavation started without inspection booking"
+                        ]
+                    },
+                    {
+                        "id": "slab",
+                        "name": "Slab / Footings",
+                        "description": "Foundation concrete slab or strip footings poured",
+                        "paymentMilestone": "Base Stage (additional or combined)",
+                        "inspections": [
+                            "Footings/Reinforcement (BEFORE pour)",
+                            "Plumbing Rough-in"
+                        ],
+                        "certificates": [
+                            "Plumbing Rough-in Certificate"
+                        ],
+                        "dodgyBuilderWarnings": [
+                            "🚨🚨 Concrete poured BEFORE inspection - MAJOR RED FLAG",
+                            "🚨 Weekend pour to avoid inspector",
+                            "🚨 'Inspector was here yesterday' with no certificate"
+                        ]
+                    },
+                    {
+                        "id": "frame",
+                        "name": "Frame Stage",
+                        "description": "Wall frames, roof trusses, and structural steel erected",
+                        "paymentMilestone": "Frame Stage (15-20%)",
+                        "inspections": [
+                            "Frame Inspection"
+                        ],
+                        "certificates": [
+                            "Frame Inspection Certificate",
+                            "Truss Engineering Certificate"
+                        ],
+                        "dodgyBuilderWarnings": [
+                            "🚨 Cladding started before frame inspection",
+                            "🚨 Window openings don't match contract plans",
+                            "🚨 Damaged or twisted timber in frames"
+                        ]
+                    },
+                    {
+                        "id": "lockup",
+                        "name": "Lockup / Enclosed",
+                        "description": "Roof complete, external walls clad, windows and doors installed",
+                        "paymentMilestone": "Lockup Stage (35%)",
+                        "inspections": [
+                            "Pre-Cladding (if applicable)",
+                            "Waterproofing (wet areas)"
+                        ],
+                        "certificates": [
+                            "EICC (Electrical Rough-in)"
+                        ],
+                        "dodgyBuilderWarnings": [
+                            "🚨 Demanding lockup payment without EICC certificate",
+                            "🚨 Windows not sealed properly - check for gaps",
+                            "🚨 No termite barrier/protection installed"
+                        ]
+                    },
+                    {
+                        "id": "pre_plasterboard",
+                        "name": "Pre-Plasterboard",
+                        "description": "CRITICAL STAGE - Last chance to see inside walls",
+                        "paymentMilestone": null,
+                        "critical": true,
+                        "inspections": [
+                            "Pre-Plasterboard Inspection"
+                        ],
+                        "certificates": [
+                            "EICC (Final)",
+                            "Plumbing Certificate"
+                        ],
+                        "checklist": [
+                            {
+                                "item": "Ceiling insulation batts installed",
+                                "critical": true,
+                                "requiresPhoto": true,
+                                "rValue": "R4.0 minimum"
+                            },
+                            {
+                                "item": "Wall insulation installed (if contracted)",
+                                "critical": true,
+                                "requiresPhoto": true
+                            },
+                            {
+                                "item": "Sarking/reflective foil under roof",
+                                "critical": true,
+                                "requiresPhoto": true
+                            },
+                            {
+                                "item": "Electrical cables visible in walls",
+                                "critical": false,
+                                "requiresPhoto": true
+                            },
+                            {
+                                "item": "Plumbing pipes capped and tested",
+                                "critical": false,
+                                "requiresPhoto": true
+                            },
+                            {
+                                "item": "HVAC ducting installed",
+                                "critical": false,
+                                "requiresPhoto": true
+                            },
+                            {
+                                "item": "Window flashings correctly installed",
+                                "critical": true,
+                                "requiresPhoto": true
+                            },
+                            {
+                                "item": "Fire collars at penetrations",
+                                "critical": true,
+                                "requiresPhoto": true
+                            },
+                            {
+                                "item": "Wet area waterproofing membrane",
+                                "critical": true,
+                                "requiresPhoto": true
+                            }
+                        ],
+                        "dodgyBuilderWarnings": [
+                            "🚨🚨🚨 MISSING CEILING BATTS - #1 most common defect in Australia!",
+                            "🚨🚨 'We'll do insulation after plaster' - NO! It must be done NOW",
+                            "🚨 Rushing to close walls = hiding defects",
+                            "🚨 No moisture barrier in bathrooms"
+                        ]
+                    },
+                    {
+                        "id": "fixing",
+                        "name": "Fixing Stage",
+                        "description": "Internal fit-out: plasterboard, tiling, cabinetry, second fix electrical/plumbing",
+                        "paymentMilestone": "Fixing Stage (25%)",
+                        "inspections": [
+                            "Waterproofing (before tiling)"
+                        ],
+                        "certificates": [
+                            "Waterproofing Warranty Certificate"
+                        ],
+                        "dodgyBuilderWarnings": [
+                            "🚨 Tiles installed before waterproofing certified",
+                            "🚨 Cabinet quality lower than spec in contract"
+                        ]
+                    },
+                    {
+                        "id": "practical_completion",
+                        "name": "Practical Completion (PC)",
+                        "description": "Build complete, ready for handover inspection",
+                        "paymentMilestone": "Final Stage / Practical Completion (5-10%)",
+                        "inspections": [
+                            "Final Inspection",
+                            "OC Inspection"
+                        ],
+                        "certificates": [
+                            "Occupation Certificate (OC)",
+                            "EICC (Final)",
+                            "Plumbing Final Certificate",
+                            "Gas Compliance Certificate (if applicable)",
+                            "Smoke Alarm Certificate",
+                            "Pool Certificate (if applicable)",
+                            "Termite Certificate"
+                        ],
+                        "dodgyBuilderWarnings": [
+                            "🚨🚨 Demanding final payment before Occupation Certificate - ILLEGAL",
+                            "🚨 'Sign here and we'll fix defects later' - NEVER DO THIS",
+                            "🚨 Missing any of the required certificates",
+                            "🚨 Keys handed over before formal sign-off"
+                        ]
+                    },
+                    {
+                        "id": "warranty",
+                        "name": "Warranty Period",
+                        "description": "6 years structural, 2 years non-structural",
+                        "paymentMilestone": null,
+                        "inspections": [
+                            "6-month inspection (recommended)",
+                            "12-month inspection (recommended)"
+                        ],
+                        "yourRights": [
+                            "2-year warranty for minor defects (cosmetic, waterproofing, paintwork)",
+                            "6-year warranty for major structural defects (foundations, load-bearing)",
+                            "HBCF insurance covers you if builder dies, disappears, or becomes insolvent",
+                            "Maximum claim $340,000 (2024 NSW)",
+                            "Lodge claims via Service NSW or NCAT"
+                        ]
+                    }
+                ]
+            },
+            "VIC": {
+                "approvalPathways": [
+                    {
+                        "id": "planning_permit",
+                        "name": "Planning Permit + Building Permit",
+                        "avgDays": "4-12 weeks (planning) + 2-4 weeks (building)",
+                        "notes": "Planning permit assessed by Council, Building permit by registered surveyor"
+                    }
+                ],
+                "stages": [
+                    {
+                        "id": "planning",
+                        "name": "Planning Permit",
+                        "description": "Council assesses land use and development proposal"
+                    },
+                    {
+                        "id": "building_permit",
+                        "name": "Building Permit",
+                        "description": "Registered Building Surveyor issues permit confirming BCA compliance"
+                    }
+                ],
+                "notes": "From April 2025, VBA becomes VBPC with stricter enforcement"
+            },
+            "QLD": {
+                "approvalPathways": [
+                    {
+                        "id": "building_approval",
+                        "name": "Building Approval (Private Certifier)",
+                        "avgDays": "10-20 business days"
+                    }
+                ],
+                "insurance": {
+                    "mandatory": true,
+                    "threshold": 3300,
+                    "maxCover": 200000,
+                    "structuralPeriod": "6 years 6 months",
+                    "nonStructuralPeriod": "6 months from completion"
+                }
+            }
+        },
+        "granny_flat": {
+            "NSW": {
+                "approvalPathways": [
+                    {
+                        "id": "cdc",
+                        "name": "Complying Development Certificate",
+                        "avgDays": "10-20 business days",
+                        "requirements": [
+                            {
+                                "check": "Maximum floor area",
+                                "value": "60sqm internal",
+                                "critical": true
+                            },
+                            {
+                                "check": "Minimum lot size",
+                                "value": "450sqm",
+                                "critical": true
+                            },
+                            {
+                                "check": "Minimum lot frontage",
+                                "value": "12m at building line",
+                                "critical": true
+                            },
+                            {
+                                "check": "Rear setback",
+                                "value": "3m minimum",
+                                "critical": true
+                            },
+                            {
+                                "check": "Side setback",
+                                "value": "0.9m minimum",
+                                "critical": true
+                            },
+                            {
+                                "check": "Distance from trees >6m",
+                                "value": "3m minimum",
+                                "critical": false
+                            },
+                            {
+                                "check": "Maximum height",
+                                "value": "8.5m",
+                                "critical": true
+                            },
+                            {
+                                "check": "Private open space",
+                                "value": "24sqm with 4m width",
+                                "critical": true
+                            },
+                            {
+                                "check": "Zoning",
+                                "values": [
+                                    "R1",
+                                    "R2",
+                                    "R3",
+                                    "R4"
+                                ],
+                                "critical": true
+                            },
+                            {
+                                "check": "Not bushfire BAL-40 or FZ",
+                                "critical": true
+                            },
+                            {
+                                "check": "Not flood prone",
+                                "critical": true
+                            },
+                            {
+                                "check": "Only one secondary dwelling per lot",
+                                "critical": true
+                            }
+                        ],
+                        "restrictions": [
+                            "Cannot be subdivided from main dwelling",
+                            "Cannot be strata titled separately",
+                            "Must be on same title as principal dwelling"
+                        ]
+                    },
+                    {
+                        "id": "da",
+                        "name": "Development Application",
+                        "avgDays": "8-20 weeks",
+                        "requiredWhen": [
+                            "Floor area exceeds 60sqm",
+                            "Lot size under 450sqm",
+                            "Frontage under 12m",
+                            "Bushfire BAL-40 or FZ zone",
+                            "Flood prone land",
+                            "Heritage listed"
+                        ]
+                    }
+                ],
+                "stages": [
+                    {
+                        "id": "approval",
+                        "name": "Approval (CDC or DA)"
+                    },
+                    {
+                        "id": "slab",
+                        "name": "Slab"
+                    },
+                    {
+                        "id": "frame",
+                        "name": "Frame"
+                    },
+                    {
+                        "id": "lockup",
+                        "name": "Lockup"
+                    },
+                    {
+                        "id": "pre_plasterboard",
+                        "name": "Pre-Plasterboard",
+                        "critical": true
+                    },
+                    {
+                        "id": "fixing",
+                        "name": "Fixing"
+                    },
+                    {
+                        "id": "completion",
+                        "name": "Final Inspection + OC"
+                    }
+                ],
+                "typicalCost": {
+                    "turnkey": {
+                        "min": 120000,
+                        "max": 200000
+                    },
+                    "kitHome": {
+                        "min": 60000,
+                        "max": 100000
+                    }
+                }
+            },
+            "VIC": {
+                "approvalPathways": [
+                    {
+                        "id": "building_permit_only",
+                        "name": "Building Permit (No Planning Permit)",
+                        "avgDays": "2-4 weeks",
+                        "requirements": [
+                            {
+                                "check": "Maximum floor area",
+                                "value": "60sqm",
+                                "critical": true
+                            },
+                            {
+                                "check": "Since July 2024, no planning permit required for ≤60sqm"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        "extension": {
+            "NSW": {
+                "approvalPathways": [
+                    {
+                        "id": "cdc",
+                        "name": "Complying Development Certificate",
+                        "avgDays": "10-20 business days",
+                        "suitableFor": "Single storey rear extensions, minor additions meeting setbacks"
+                    },
+                    {
+                        "id": "da",
+                        "name": "Development Application",
+                        "avgDays": "6-20 weeks",
+                        "suitableFor": "Second storey additions, heritage properties, complex designs"
+                    }
+                ],
+                "stages": [
+                    {
+                        "id": "demolition",
+                        "name": "Demolition (if required)"
+                    },
+                    {
+                        "id": "excavation",
+                        "name": "Excavation / Underpinning"
+                    },
+                    {
+                        "id": "footings",
+                        "name": "Footings"
+                    },
+                    {
+                        "id": "frame",
+                        "name": "Framing"
+                    },
+                    {
+                        "id": "lockup",
+                        "name": "Lockup"
+                    },
+                    {
+                        "id": "pre_plasterboard",
+                        "name": "Pre-Plasterboard",
+                        "critical": true
+                    },
+                    {
+                        "id": "fixing",
+                        "name": "Fixing"
+                    },
+                    {
+                        "id": "completion",
+                        "name": "Final Inspection"
+                    }
+                ],
+                "inspections": [
+                    "Footings (before pour)",
+                    "Frame",
+                    "Waterproofing",
+                    "Pre-Plasterboard",
+                    "Final"
+                ]
+            }
+        }
+    },
+    "mandatoryCertificates": {
+        "NSW": [
+            {
+                "id": "eicc",
+                "name": "Electrical Installation Compliance Certificate (EICC)",
+                "stage": "lockup",
+                "critical": true
+            },
+            {
+                "id": "plumbing",
+                "name": "Plumbing Permit/Certificate of Compliance",
+                "stage": "completion",
+                "critical": true
+            },
+            {
+                "id": "gas",
+                "name": "Gas Compliance Certificate",
+                "stage": "completion",
+                "conditional": "if gas connected"
+            },
+            {
+                "id": "smoke",
+                "name": "Smoke Alarm Compliance Certificate",
+                "stage": "completion",
+                "critical": true
+            },
+            {
+                "id": "waterproofing",
+                "name": "Waterproofing Warranty Certificate",
+                "stage": "fixing",
+                "critical": true
+            },
+            {
+                "id": "pool",
+                "name": "Pool Safety Certificate",
+                "stage": "completion",
+                "conditional": "if pool/spa"
+            },
+            {
+                "id": "termite",
+                "name": "Termite Protection Certificate",
+                "stage": "completion",
+                "critical": true
+            },
+            {
+                "id": "oc",
+                "name": "Occupation Certificate (OC)",
+                "stage": "completion",
+                "critical": true
+            }
+        ],
+        "VIC": [
+            {
+                "id": "building_permit",
+                "name": "Building Permit",
+                "stage": "pre-construction",
+                "critical": true
+            },
+            {
+                "id": "ewn",
+                "name": "Essential Safety Measures Certificate",
+                "stage": "completion",
+                "critical": true
+            },
+            {
+                "id": "oc",
+                "name": "Occupancy Permit or Certificate of Final Inspection",
+                "stage": "completion",
+                "critical": true
+            }
+        ],
+        "QLD": [
+            {
+                "id": "qbcc_insurance",
+                "name": "QBCC Home Warranty Insurance Certificate",
+                "stage": "pre-construction",
+                "critical": true
+            },
+            {
+                "id": "form_15",
+                "name": "Form 15 - Final Inspection Certificate",
+                "stage": "completion",
+                "critical": true
+            }
+        ]
+    },
+    "redFlags": {
+        "preContract": [
+            {
+                "warning": "Builder won't provide HBCF/Home Warranty Insurance certificate before signing",
+                "severity": "critical",
+                "action": "Do NOT sign contract without valid insurance certificate dated for your project"
+            },
+            {
+                "warning": "'Site costs not included' in fixed price contract",
+                "severity": "high",
+                "action": "Get soil test and site report BEFORE signing, negotiate fixed site costs"
+            },
+            {
+                "warning": "Builder pressuring you to sign quickly",
+                "severity": "high",
+                "action": "Good builders don't pressure. Take 5-day cooling off period in NSW"
+            },
+            {
+                "warning": "Verbal promises not in contract",
+                "severity": "critical",
+                "action": "If it's not in writing, it doesn't exist. Get everything in the contract"
+            }
+        ],
+        "duringConstruction": [
+            {
+                "warning": "Inspection requested day-of or 'already done'",
+                "severity": "critical",
+                "action": "All inspections must be booked in advance. Request certificate before any payment"
+            },
+            {
+                "warning": "Constant variations for 'unforeseen' issues",
+                "severity": "high",
+                "action": "If variations exceed 10% of contract, flag for review. 15%+ is concerning"
+            },
+            {
+                "warning": "Builder becomes hard to contact",
+                "severity": "high",
+                "action": "Document all communication. 2+ weeks unresponsive = escalate to HBCF"
+            },
+            {
+                "warning": "Work proceeding without inspections",
+                "severity": "critical",
+                "action": "STOP PAYMENT. Work without inspection may void insurance"
+            }
+        ],
+        "atHandover": [
+            {
+                "warning": "Demanding payment before Occupation Certificate",
+                "severity": "critical",
+                "action": "This is illegal in most states. No OC = No final payment"
+            },
+            {
+                "warning": "'Sign off now, we'll fix defects later'",
+                "severity": "critical",
+                "action": "NEVER do this. Document ALL defects in writing before signing"
+            },
+            {
+                "warning": "Missing any mandatory certificates",
+                "severity": "critical",
+                "action": "Do not accept keys without ALL certificates listed in contract"
+            }
+        ]
+    },
+    "usefulLinks": {
+        "NSW": {
+            "fairTrading": "https://www.fairtrading.nsw.gov.au/housing-and-property/building-and-renovating",
+            "hbcfClaims": "https://www.sira.nsw.gov.au/claiming-compensation/home-building-compensation-fund",
+            "licenseCheck": "https://www.fairtrading.nsw.gov.au/trades-and-businesses/licensing-and-registrations/public-register",
+            "complaintsForm": "https://www.fairtrading.nsw.gov.au/about-fair-trading/make-a-complaint",
+            "ncat": "https://www.ncat.nsw.gov.au/case-types/home-building"
+        },
+        "VIC": {
+            "vba": "https://www.vba.vic.gov.au",
+            "dbdrv": "https://www.dbdrv.vic.gov.au",
+            "insuranceCheck": "https://www.vba.vic.gov.au/consumers/home-building-insurance"
+        },
+        "QLD": {
+            "qbcc": "https://www.qbcc.qld.gov.au",
+            "licenseSearch": "https://www.qbcc.qld.gov.au/licence-search",
+            "disputeResolution": "https://www.qbcc.qld.gov.au/home-building-matters/resolving-disputes"
+        }
+    }
+}

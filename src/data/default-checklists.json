@@ -1,0 +1,46 @@
+[
+    {
+        "id": "1",
+        "name": "Pre-Slab / Base Stage",
+        "items": [
+            "Site scrape and excavation depth check",
+            "Under-slab plumbing positioning",
+            "Vapor barrier installation (no tears)",
+            "Steel reinforcement spacing mesh chairs",
+            "Termite protection installation context"
+        ]
+    },
+    {
+        "id": "2",
+        "name": "Frame Stage",
+        "items": [
+            "Frame overhang check (must not exceed slab)",
+            "Truss spacing and bracing",
+            "Window and door opening dimensions",
+            "Sill flashings installed correctly",
+            "Straightness of studs"
+        ]
+    },
+    {
+        "id": "3",
+        "name": "Pre-Lining / Lockup",
+        "items": [
+            "Plumbing rough-in pressure test",
+            "Electrical rough-in positioning",
+            "Insulation installation (no gaps)",
+            "Waterproofing in wet areas (pre-tile)",
+            "Brickwork weepholes clear"
+        ]
+    },
+    {
+        "id": "4",
+        "name": "Fixing / Waterproofing",
+        "items": [
+            "Cabinetry installation level check",
+            "Architraves and skirting gaps",
+            "Waterproofing membrane certificate",
+            "Plasterboard finish quality",
+            "Door clearances"
+        ]
+    }
+]

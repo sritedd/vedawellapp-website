@@ -112,8 +112,8 @@ export default function LoginPage() {
                             {message && (
                                 <div
                                     className={`p-4 rounded-lg ${message.type === "error"
-                                            ? "bg-danger/10 text-danger"
-                                            : "bg-success/10 text-success"
+                                        ? "bg-danger/10 text-danger"
+                                        : "bg-success/10 text-success"
                                         }`}
                                 >
                                     {message.text}
@@ -129,15 +129,29 @@ export default function LoginPage() {
                             </button>
                         </form>
 
-                        <div className="mt-6 text-center">
+                        <div className="mt-6 text-center space-y-4">
                             <button
                                 onClick={() => setIsSignUp(!isSignUp)}
-                                className="text-primary hover:underline"
+                                className="text-primary hover:underline block w-full"
                             >
                                 {isSignUp
                                     ? "Already have an account? Sign in"
                                     : "Don't have an account? Sign up"}
                             </button>
+
+                            {process.env.NODE_ENV === 'development' && (
+                                <button
+                                    onClick={async () => {
+                                        setLoading(true);
+                                        // Dynamic import to avoid server action issues in client component if strict
+                                        const { loginAsDevUser } = await import("./actions");
+                                        await loginAsDevUser();
+                                    }}
+                                    className="text-xs text-muted hover:text-foreground border border-dashed border-border px-3 py-2 rounded"
+                                >
+                                    🛠️ Dev Mode: Bypass Login
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>

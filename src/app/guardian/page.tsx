@@ -1,29 +1,17 @@
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+    title: "HomeOwner Guardian",
+    description:
+        "Protect your Australian home construction investment. Track variations, defects, inspections, and certifications with legal-ready documentation.",
+};
 
 export default function GuardianPage() {
     return (
-        <div className="min-h-screen flex flex-col">
-            {/* Navigation */}
-            <nav className="border-b border-border bg-card">
-                <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-                    <Link href="/" className="flex items-center gap-2 text-xl font-bold">
-                        <span>🛠️</span>
-                        <span>VedaWell Tools</span>
-                    </Link>
-                    <div className="flex items-center gap-6">
-                        <Link href="/" className="text-muted hover:text-foreground">Home</Link>
-                        <Link href="/tools" className="text-muted hover:text-foreground">Tools</Link>
-                        <Link href="/games" className="text-muted hover:text-foreground">Games</Link>
-                        <Link href="/panchang" className="text-muted hover:text-foreground">Panchang</Link>
-                        <Link href="/guardian" className="font-semibold text-primary">
-                            🏠 Guardian
-                        </Link>
-                    </div>
-                </div>
-            </nav>
-
+        <>
             {/* Guardian Hero */}
-            <main className="flex-1 bg-gradient-to-b from-primary/5 to-background">
+            <div className="bg-gradient-to-b from-primary/5 to-background">
                 <section className="py-16 px-6">
                     <div className="max-w-4xl mx-auto text-center">
                         <span className="text-6xl mb-4 block">🏠</span>
@@ -65,7 +53,7 @@ export default function GuardianPage() {
                 {/* Features Grid */}
                 <section className="py-16 px-6">
                     <div className="max-w-5xl mx-auto">
-                        <h2 className="text-2xl font-bold text-center mb-12">What you'll get</h2>
+                        <h2 className="text-2xl font-bold text-center mb-12">What you&apos;ll get</h2>
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
 
                             <div className="card">
@@ -119,12 +107,7 @@ export default function GuardianPage() {
                         </div>
                     </div>
                 </section>
-            </main>
-
-            {/* Footer */}
-            <footer className="border-t border-border py-8 px-6 text-center text-muted">
-                <p>© 2026 VedaWell Tools. Free & Open Source.</p>
-            </footer>
-        </div>
+            </div>
+        </>
     );
 }

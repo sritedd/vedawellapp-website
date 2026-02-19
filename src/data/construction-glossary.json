@@ -1,0 +1,316 @@
+{
+    "terms": [
+        {
+            "term": "Aggregate",
+            "definition": "Coarse materials like gravel or crushed stone mixed with sand and cement to make concrete.",
+            "category": "materials"
+        },
+        {
+            "term": "Architrave",
+            "definition": "The decorative moulding around door and window frames.",
+            "category": "finishes"
+        },
+        {
+            "term": "Backfill",
+            "definition": "Soil or other material used to fill in around foundations after they're poured.",
+            "category": "site-work"
+        },
+        {
+            "term": "BASIX",
+            "definition": "Building Sustainability Index - NSW requirement for energy and water efficiency in new homes.",
+            "category": "compliance"
+        },
+        {
+            "term": "Batten",
+            "definition": "Thin strips of timber used to support roof tiles or create a gap for insulation.",
+            "category": "structure"
+        },
+        {
+            "term": "Bearer",
+            "definition": "Horizontal timber that supports floor joists, typically sits on stumps or piers.",
+            "category": "structure"
+        },
+        {
+            "term": "Bevel",
+            "definition": "An angled edge, often on weatherboards or skirting.",
+            "category": "finishes"
+        },
+        {
+            "term": "Brick Veneer",
+            "definition": "Construction where a timber frame supports the roof and brick is used as external cladding only.",
+            "category": "structure"
+        },
+        {
+            "term": "CDC",
+            "definition": "Complying Development Certificate - fast-track approval for homes meeting specific standards (10-20 days).",
+            "category": "compliance"
+        },
+        {
+            "term": "Ceiling Joist",
+            "definition": "Horizontal timber that supports the ceiling lining.",
+            "category": "structure"
+        },
+        {
+            "term": "Cladding",
+            "definition": "External wall covering material (brick, weatherboard, render, etc.).",
+            "category": "structure"
+        },
+        {
+            "term": "Concrete Slab",
+            "definition": "A flat concrete base for the building, either on-ground or suspended.",
+            "category": "structure"
+        },
+        {
+            "term": "Cornice",
+            "definition": "Decorative moulding where walls meet ceilings.",
+            "category": "finishes"
+        },
+        {
+            "term": "DA",
+            "definition": "Development Application - council approval required for most building work (8-20 weeks).",
+            "category": "compliance"
+        },
+        {
+            "term": "DPC/DPM",
+            "definition": "Damp Proof Course/Membrane - waterproof layer preventing moisture rising through floors/walls.",
+            "category": "waterproofing"
+        },
+        {
+            "term": "Eaves",
+            "definition": "The part of the roof that overhangs the external walls.",
+            "category": "structure"
+        },
+        {
+            "term": "EICC",
+            "definition": "Electrical Installation Compliance Certificate - mandatory certificate for electrical work.",
+            "category": "compliance"
+        },
+        {
+            "term": "Fascia",
+            "definition": "Board fixed to the ends of roof rafters, often holds the guttering.",
+            "category": "structure"
+        },
+        {
+            "term": "Flashing",
+            "definition": "Metal sheeting used to waterproof joints (roof-to-wall, around windows, chimneys).",
+            "category": "waterproofing"
+        },
+        {
+            "term": "Footing",
+            "definition": "Concrete foundation that distributes the building's weight into the ground.",
+            "category": "structure"
+        },
+        {
+            "term": "Frame Stage",
+            "definition": "Construction milestone when wall and roof frames are complete.",
+            "category": "stages"
+        },
+        {
+            "term": "Gable",
+            "definition": "Triangular portion of wall between edges of a sloping roof.",
+            "category": "structure"
+        },
+        {
+            "term": "Gyprock/Plasterboard",
+            "definition": "Sheets of gypsum plaster sandwiched between paper, used for internal walls.",
+            "category": "materials"
+        },
+        {
+            "term": "HBCF",
+            "definition": "Home Building Compensation Fund - NSW's mandatory home warranty insurance scheme.",
+            "category": "compliance"
+        },
+        {
+            "term": "Jamb",
+            "definition": "Vertical sides of a door or window frame.",
+            "category": "finishes"
+        },
+        {
+            "term": "Joist",
+            "definition": "Horizontal timber supporting floors or ceilings.",
+            "category": "structure"
+        },
+        {
+            "term": "Lintel",
+            "definition": "Horizontal support over doors/windows, carries the load above.",
+            "category": "structure"
+        },
+        {
+            "term": "Lockup Stage",
+            "definition": "When the building is weather-tight - roof on, windows in, external doors fitted.",
+            "category": "stages"
+        },
+        {
+            "term": "NatHERS",
+            "definition": "Nationwide House Energy Rating Scheme - star rating for thermal performance (1-10 stars).",
+            "category": "compliance"
+        },
+        {
+            "term": "Nogging",
+            "definition": "Short horizontal pieces between studs to provide bracing.",
+            "category": "structure"
+        },
+        {
+            "term": "OC",
+            "definition": "Occupation Certificate - final approval allowing you to live in the building.",
+            "category": "compliance"
+        },
+        {
+            "term": "Pier",
+            "definition": "Concrete or masonry column supporting the building, often under suspended floors.",
+            "category": "structure"
+        },
+        {
+            "term": "Practical Completion",
+            "definition": "When the building is essentially complete and fit for occupation.",
+            "category": "stages"
+        },
+        {
+            "term": "Prime Cost (PC) Item",
+            "definition": "Allowance in contract for items not yet selected (e.g., tiles, tapware). You pay the difference if you exceed it.",
+            "category": "contract"
+        },
+        {
+            "term": "Provisional Sum (PS)",
+            "definition": "Estimate for work where exact cost is unknown (e.g., excavation). Adjusted based on actual cost.",
+            "category": "contract"
+        },
+        {
+            "term": "Rafter",
+            "definition": "Sloping timber that forms the roof structure.",
+            "category": "structure"
+        },
+        {
+            "term": "Rebate",
+            "definition": "A step-shaped recess cut into the edge of a piece of timber.",
+            "category": "materials"
+        },
+        {
+            "term": "Render",
+            "definition": "Cement-based coating applied to external walls.",
+            "category": "finishes"
+        },
+        {
+            "term": "Ridge",
+            "definition": "The highest point of a pitched roof where two slopes meet.",
+            "category": "structure"
+        },
+        {
+            "term": "RLS",
+            "definition": "Registered Land Surveyor - conducts site surveys before construction.",
+            "category": "compliance"
+        },
+        {
+            "term": "Sarking",
+            "definition": "Reflective foil membrane under roof tiles for insulation and water protection.",
+            "category": "insulation"
+        },
+        {
+            "term": "Screed",
+            "definition": "Thin layer of cement used to level floors before tiling.",
+            "category": "materials"
+        },
+        {
+            "term": "Setback",
+            "definition": "Required distance between building and property boundary.",
+            "category": "compliance"
+        },
+        {
+            "term": "Site Cut",
+            "definition": "Excavation and levelling of land before construction begins.",
+            "category": "site-work"
+        },
+        {
+            "term": "Skirting",
+            "definition": "Board at the base of internal walls covering the joint with the floor.",
+            "category": "finishes"
+        },
+        {
+            "term": "Soffit",
+            "definition": "The underside of the eaves.",
+            "category": "structure"
+        },
+        {
+            "term": "Stud",
+            "definition": "Vertical timber in a wall frame.",
+            "category": "structure"
+        },
+        {
+            "term": "Top Plate",
+            "definition": "Horizontal timber at the top of a wall frame.",
+            "category": "structure"
+        },
+        {
+            "term": "Truss",
+            "definition": "Pre-fabricated triangular roof frame structure.",
+            "category": "structure"
+        },
+        {
+            "term": "Underpinning",
+            "definition": "Strengthening existing foundations, often due to subsidence.",
+            "category": "structure"
+        },
+        {
+            "term": "Variation",
+            "definition": "Change to the original contract scope, usually incurring additional cost.",
+            "category": "contract"
+        },
+        {
+            "term": "Waterproofing Membrane",
+            "definition": "Liquid or sheet material applied to wet areas (bathrooms) before tiling.",
+            "category": "waterproofing"
+        },
+        {
+            "term": "Weep Hole",
+            "definition": "Small gaps in brickwork at the base to allow moisture to escape.",
+            "category": "structure"
+        }
+    ],
+    "categories": [
+        {
+            "id": "structure",
+            "name": "Structure & Framing",
+            "icon": "🏗️"
+        },
+        {
+            "id": "materials",
+            "name": "Materials",
+            "icon": "🧱"
+        },
+        {
+            "id": "finishes",
+            "name": "Finishes & Fixtures",
+            "icon": "🎨"
+        },
+        {
+            "id": "compliance",
+            "name": "Compliance & Approvals",
+            "icon": "📋"
+        },
+        {
+            "id": "waterproofing",
+            "name": "Waterproofing",
+            "icon": "💧"
+        },
+        {
+            "id": "insulation",
+            "name": "Insulation",
+            "icon": "🌡️"
+        },
+        {
+            "id": "stages",
+            "name": "Build Stages",
+            "icon": "📅"
+        },
+        {
+            "id": "contract",
+            "name": "Contract Terms",
+            "icon": "📝"
+        },
+        {
+            "id": "site-work",
+            "name": "Site Work",
+            "icon": "🚜"
+        }
+    ]
+}

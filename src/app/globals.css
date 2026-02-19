@@ -6,24 +6,24 @@
   --primary: #0D6E6E;
   --primary-light: #14A3A3;
   --primary-dark: #095555;
-  
+
   /* Secondary - Slate (Professional, Neutral) */
   --secondary: #475569;
   --secondary-light: #64748b;
   --secondary-dark: #334155;
-  
+
   /* Accent - Warning Amber */
   --warning: #F59E0B;
   --warning-light: #FBBF24;
-  
+
   /* Accent - Danger Crimson */
   --danger: #DC2626;
   --danger-light: #EF4444;
-  
+
   /* Success - For passed inspections */
   --success: #22C55E;
   --success-light: #4ADE80;
-  
+
   /* Backgrounds */
   --background: #F8FAFC;
   --foreground: #0f172a;
@@ -31,7 +31,7 @@
   --card-foreground: #0f172a;
   --border: #e2e8f0;
   --muted: #64748b;
-  
+
   /* Font */
   --font-sans: 'Inter', system-ui, sans-serif;
 }
@@ -66,6 +66,25 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+}
+
+/* Navbar */
+.navbar-root {
+  border-bottom: 1px solid var(--border);
+  background: var(--card);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  backdrop-filter: blur(12px);
+}
+
+/* Ad container */
+.ad-container {
+  min-height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 1rem 0;
 }
 
 /* Utility classes */
@@ -132,4 +151,72 @@ body {
   border-radius: 9999px;
   font-size: 0.875rem;
   font-weight: 500;
+}
+
+/* =====================================================
+   Ad Container Styles
+   Prevents layout shift while AdSense loads
+   ===================================================== */
+.ad-container {
+  min-height: 90px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--muted);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.ad-container .adsbygoogle {
+  width: 100%;
+}
+
+/* =====================================================
+   Mobile Responsiveness Improvements
+   ===================================================== */
+
+/* Prevent horizontal overflow on all pages */
+html,
+body {
+  overflow-x: hidden;
+}
+
+/* Touch-friendly tap targets */
+button,
+a {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Responsive typography helpers */
+@media (max-width: 640px) {
+
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+  }
+
+  /* Ensure cards don't overflow on small screens */
+  .card {
+    padding: 1rem;
+  }
+
+  /* Guardian project detail tabs — allow horizontal scroll on mobile */
+  .tab-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .tab-scroll::-webkit-scrollbar {
+    display: none;
+  }
 }
