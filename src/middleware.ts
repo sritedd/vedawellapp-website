@@ -35,6 +35,7 @@ export async function middleware(request: NextRequest) {
     const isGuardianPublic =
         pathname === '/guardian' ||
         pathname === '/guardian/login' ||
+        pathname === '/guardian/reset-password' ||
         pathname === '/guardian/resources'
 
     if (pathname.startsWith('/guardian') && !isGuardianPublic && !user) {

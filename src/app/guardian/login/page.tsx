@@ -90,7 +90,7 @@ export default function LoginPage() {
 
         const supabase = createClient();
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: `${window.location.origin}/guardian/login`,
+            redirectTo: `${window.location.origin}/guardian/reset-password`,
         });
 
         if (error) {
