@@ -6,6 +6,7 @@ create table profiles (
   id uuid references auth.users not null primary key,
   email text,
   full_name text,
+  phone text,
   role text default 'homeowner' check (role in ('homeowner', 'builder', 'certifier')),
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
@@ -138,8 +139,14 @@ create policy "Users can insert own project defects" on defects for insert with 
 create or replace function public.handle_new_user() 
 returns trigger as $$
 begin
-  insert into public.profiles (id, email, full_name, role)
-  values (new.id, new.email, new.raw_user_meta_data->>'full_name', 'homeowner');
+  insert into public.profiles (id, email, full_name, phone, role)
+  values (
+    new.id,
+    new.email,
+    new.raw_user_meta_data->>'full_name',
+    new.raw_user_meta_data->>'phone',
+    coalesce(new.raw_user_meta_data->>'role', 'homeowner')
+  );
   return new;
 end;
 $$ language plpgsql security definer;

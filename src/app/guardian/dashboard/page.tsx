@@ -61,7 +61,9 @@ export default async function DashboardPage() {
                         </Link>
                     </div>
                     <div className="flex items-center gap-4">
-                        <span className="text-muted text-sm">{user.email}</span>
+                        <Link href="/guardian/profile" className="text-muted text-sm hover:text-primary transition-colors flex items-center gap-1">
+                            👤 {user.email}
+                        </Link>
                         <form action={logout}>
                             <button
                                 type="submit"
