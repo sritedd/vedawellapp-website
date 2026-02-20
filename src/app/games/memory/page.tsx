@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import AdBanner from "@/components/AdBanner";
 
 const EMOJIS = ["🍎", "🍊", "🍋", "🍇", "🍓", "🍑", "🥝", "🍒"];
 
@@ -105,6 +106,8 @@ export default function MemoryGame() {
 
             <h1 className="text-4xl font-bold text-white mb-4">🃏 Memory Match</h1>
 
+            <AdBanner slot="1696472735" format="horizontal" className="mb-4 w-full max-w-md" />
+
             {/* Score */}
             <div className="flex gap-4 mb-6">
                 <div className="bg-white/20 backdrop-blur text-white px-6 py-3 rounded-lg text-center">
@@ -130,8 +133,8 @@ export default function MemoryGame() {
                         key={card.id}
                         onClick={() => flipCard(card.id)}
                         className={`w-16 h-16 md:w-20 md:h-20 rounded-xl flex items-center justify-center text-3xl font-bold transition-all duration-300 transform ${card.isFlipped || card.isMatched
-                                ? "bg-white rotate-0 scale-100"
-                                : "bg-gradient-to-br from-pink-400 to-rose-500 rotate-0 scale-100 hover:scale-105"
+                            ? "bg-white rotate-0 scale-100"
+                            : "bg-gradient-to-br from-pink-400 to-rose-500 rotate-0 scale-100 hover:scale-105"
                             } ${card.isMatched ? "opacity-60" : ""}`}
                         disabled={card.isFlipped || card.isMatched || isLocked}
                     >
@@ -170,6 +173,7 @@ export default function MemoryGame() {
             <p className="mt-4 text-white/70 text-center">
                 Find all matching pairs in the fewest moves!
             </p>
+            <AdBanner slot="9056088001" format="horizontal" className="mt-8 w-full max-w-md" />
         </div>
     );
 }

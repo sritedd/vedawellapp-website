@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AdBanner from "@/components/AdBanner";
 
 export default function HomePage() {
   return (
@@ -52,6 +53,7 @@ export default function HomePage() {
       </section>
 
       {/* HomeOwner Guardian Feature Card */}
+      <AdBanner slot="1696472735" format="horizontal" className="mb-12 mt-12" />
       <section className="py-16 px-6 bg-primary/5">
         <div className="max-w-4xl mx-auto">
           <div className="card border-primary/30">
@@ -94,6 +96,7 @@ export default function HomePage() {
       </section>
 
       {/* Panchang Feature Card */}
+      <AdBanner slot="9056088001" format="horizontal" className="mb-12 mt-12" />
       <section className="py-16 px-6">
         <div className="max-w-4xl mx-auto">
           <div className="card">

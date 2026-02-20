@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import Link from "next/link";
+import AdBanner from "@/components/AdBanner";
 
 type CellState = {
     isMine: boolean;
@@ -173,6 +174,8 @@ export default function Minesweeper() {
 
             <h1 className="text-4xl font-bold text-white mb-4">💣 Minesweeper</h1>
 
+            <AdBanner slot="1696472735" format="horizontal" className="mb-4 w-full max-w-md" />
+
             {/* Difficulty */}
             <div className="flex gap-2 mb-6">
                 {(Object.keys(DIFFICULTY) as Difficulty[]).map((d) => (
@@ -184,8 +187,8 @@ export default function Minesweeper() {
                             setGrid([]);
                         }}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${difficulty === d
-                                ? "bg-white text-gray-900"
-                                : "bg-white/20 text-white hover:bg-white/30"
+                            ? "bg-white text-gray-900"
+                            : "bg-white/20 text-white hover:bg-white/30"
                             }`}
                     >
                         {d.charAt(0).toUpperCase() + d.slice(1)}
@@ -232,10 +235,10 @@ export default function Minesweeper() {
                                     onClick={() => revealCell(r, c)}
                                     onContextMenu={(e) => toggleFlag(e, r, c)}
                                     className={`w-7 h-7 md:w-8 md:h-8 rounded text-sm font-bold flex items-center justify-center transition-colors ${cell.isRevealed
-                                            ? cell.isMine
-                                                ? "bg-red-500"
-                                                : "bg-gray-300"
-                                            : "bg-gray-500 hover:bg-gray-400"
+                                        ? cell.isMine
+                                            ? "bg-red-500"
+                                            : "bg-gray-300"
+                                        : "bg-gray-500 hover:bg-gray-400"
                                         } ${getNumberColor(cell.adjacentMines)}`}
                                     disabled={gameOver || won}
                                 >
@@ -268,6 +271,7 @@ export default function Minesweeper() {
             <p className="mt-6 text-white/70 text-center text-sm">
                 Left-click to reveal • Right-click to flag
             </p>
+            <AdBanner slot="9056088001" format="horizontal" className="mt-8 w-full max-w-md" />
         </div>
     );
 }

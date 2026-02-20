@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import AdBanner from "@/components/AdBanner";
 
 export default function Game2048() {
     const [grid, setGrid] = useState<number[]>(Array(16).fill(0));
@@ -212,6 +213,8 @@ export default function Game2048() {
 
             <h1 className="text-5xl font-bold text-[#776e65] mb-4">2048</h1>
 
+            <AdBanner slot="1696472735" format="horizontal" className="mb-4 w-full max-w-md" />
+
             {/* Score */}
             <div className="flex gap-4 mb-6">
                 <div className="bg-[#bbada0] text-white px-6 py-3 rounded-lg text-center">
@@ -267,6 +270,7 @@ export default function Game2048() {
             <p className="mt-2 text-[#776e65]/70 text-sm md:hidden">
                 📱 Swipe to move tiles
             </p>
+            <AdBanner slot="9056088001" format="horizontal" className="mt-8 w-full max-w-md" />
         </div>
     );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import AdBanner from "@/components/AdBanner";
 
 const GAMES = [
     {
@@ -78,6 +79,7 @@ export default function GamesPage() {
                     </div>
 
                     {/* Games Grid */}
+                    <AdBanner slot="1696472735" format="horizontal" className="mb-8" />
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {GAMES.map((game) => (
                             <Link
@@ -113,6 +115,7 @@ export default function GamesPage() {
                     </div>
 
                     {/* Coming Soon */}
+                    <AdBanner slot="9056088001" format="horizontal" className="mt-12" />
                     <div className="mt-12 text-center">
                         <p className="text-white/50 text-sm">
                             More games coming soon: Flappy Bird, Breakout, Pong, Simon Says, and more!

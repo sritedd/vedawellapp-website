@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import AdBanner from "@/components/AdBanner";
 
 type Player = "X" | "O" | null;
 type Board = Player[];
@@ -70,6 +71,8 @@ export default function TicTacToe() {
 
             <h1 className="text-4xl font-bold text-white mb-4">⭕ Tic Tac Toe</h1>
 
+            <AdBanner slot="1696472735" format="horizontal" className="mb-4 w-full max-w-md" />
+
             {/* Scores */}
             <div className="flex gap-4 mb-6">
                 <div className="bg-blue-500/30 backdrop-blur text-white px-6 py-3 rounded-lg text-center">
@@ -106,10 +109,10 @@ export default function TicTacToe() {
                         key={idx}
                         onClick={() => handleClick(idx)}
                         className={`w-20 h-20 md:w-24 md:h-24 rounded-xl flex items-center justify-center text-4xl font-bold transition-all ${winningLine?.includes(idx)
-                                ? "bg-green-400 scale-105"
-                                : cell
-                                    ? "bg-white/90"
-                                    : "bg-white/30 hover:bg-white/50"
+                            ? "bg-green-400 scale-105"
+                            : cell
+                                ? "bg-white/90"
+                                : "bg-white/30 hover:bg-white/50"
                             } ${cell === "X" ? "text-blue-600" : "text-cyan-600"}`}
                         disabled={!!cell || !!winner}
                     >
@@ -137,6 +140,8 @@ export default function TicTacToe() {
             <p className="mt-6 text-white/70 text-center">
                 Take turns placing X and O. Get 3 in a row to win!
             </p>
+
+            <AdBanner slot="9056088001" format="horizontal" className="mt-8 w-full max-w-md" />
         </div>
     );
 }

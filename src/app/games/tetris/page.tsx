@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
+import AdBanner from "@/components/AdBanner";
 
 const COLS = 10;
 const ROWS = 20;
@@ -262,6 +263,8 @@ export default function Tetris() {
 
             <h1 className="text-4xl font-bold text-white mb-4">🧱 Tetris</h1>
 
+            <AdBanner slot="1696472735" format="horizontal" className="mb-4 w-full max-w-2xl px-4" />
+
             <div className="flex gap-6">
                 {/* Game Board */}
                 <div className="bg-black/50 p-2 rounded-lg">
@@ -362,6 +365,8 @@ export default function Tetris() {
             <p className="mt-6 text-white/70 text-center text-sm">
                 ← → Move • ↑ Rotate • ↓ Soft Drop • Space Hard Drop • P Pause
             </p>
+
+            <AdBanner slot="9056088001" format="horizontal" className="mt-8 w-full max-w-2xl px-4" />
         </div>
     );
 }
