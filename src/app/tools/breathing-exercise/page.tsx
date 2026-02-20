@@ -75,7 +75,7 @@ export default function BreathingExercise() {
                 <div className="text-white/70">Cycles completed: <span className="text-white font-bold">{cycles}</span></div>
 
                 <div className="mt-12 bg-black/10 rounded-xl backdrop-blur-sm p-2 w-full max-w-lg mx-auto overflow-hidden">
-                    <AdBanner slot="7592759210" format="horizontal" />
+                    <AdBanner slot="1696472735" format="horizontal" />
                 </div>
             </main>
         </div>

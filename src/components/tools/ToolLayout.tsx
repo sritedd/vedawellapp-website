@@ -11,7 +11,7 @@ interface ToolLayoutProps {
     adSlot?: string; // Optional: pass a specific ad slot ID for this tool
 }
 
-export default function ToolLayout({ title, description, children, adSlot = "1234567890" }: ToolLayoutProps) {
+export default function ToolLayout({ title, description, children }: ToolLayoutProps) {
     return (
         <div className="py-12 px-6">
             <JsonLd
@@ -45,7 +45,7 @@ export default function ToolLayout({ title, description, children, adSlot = "123
                 </header>
 
                 {/* Ad — Above tool (leaderboard) */}
-                <AdBanner slot={adSlot} format="horizontal" className="mb-8" />
+                <AdBanner slot="1696472735" format="horizontal" className="mb-8" />
 
                 {/* Tool Container */}
                 <div className="bg-card border border-border rounded-xl p-8 shadow-sm">
@@ -53,7 +53,7 @@ export default function ToolLayout({ title, description, children, adSlot = "123
                 </div>
 
                 {/* Ad — Below tool (rectangle) */}
-                <AdBanner slot={adSlot} format="rectangle" className="mt-8" />
+                <AdBanner slot="9056088001" format="rectangle" className="mt-8" />
 
                 <ShareButtons
                     title={`${title} - VedaWell Tools`}

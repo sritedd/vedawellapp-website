@@ -184,7 +184,7 @@ export default function FocusTimer() {
                     </div>
 
                     <div className="mt-12 bg-black/10 rounded-xl backdrop-blur-sm p-2 w-full max-w-lg mx-auto overflow-hidden">
-                        <AdBanner slot="8432165922" format="horizontal" />
+                        <AdBanner slot="1696472735" format="horizontal" />
                     </div>
                 </div>
             </main>

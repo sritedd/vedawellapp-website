@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
+import ToolLayout from "@/components/tools/ToolLayout";
 
 export default function AgeCalculator() {
     const [birthDate, setBirthDate] = useState("");
@@ -108,119 +108,102 @@ export default function AgeCalculator() {
     }, [birthDate, toDate]);
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100">
-            {/* Header */}
-            <nav className="border-b border-border bg-white/80 backdrop-blur">
-                <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-                    <Link href="/" className="flex items-center gap-2 text-xl font-bold">
-                        <span>🛠️</span>
-                        <span>VedaWell Tools</span>
-                    </Link>
-                    <Link href="/tools" className="text-gray-600 hover:text-gray-900">
-                        ← All Tools
-                    </Link>
+        <ToolLayout
+            title="Age Calculator"
+            description="Calculate your exact age in years, months, and days. Discover your next birthday, zodiac sign, and time lived."
+        >
+            <div className="space-y-8">
+                {/* Input */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label className="block text-sm font-medium text-foreground mb-2">
+                            Date of Birth
+                        </label>
+                        <input
+                            type="date"
+                            value={birthDate}
+                            onChange={(e) => setBirthDate(e.target.value)}
+                            max={toDate}
+                            className="w-full px-4 py-3 rounded-xl border border-border bg-background text-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-foreground mb-2">
+                            Calculate Age As Of
+                        </label>
+                        <input
+                            type="date"
+                            value={toDate}
+                            onChange={(e) => setToDate(e.target.value)}
+                            className="w-full px-4 py-3 rounded-xl border border-border bg-background text-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                        />
+                    </div>
                 </div>
-            </nav>
 
-            <main className="py-12 px-6">
-                <div className="max-w-lg mx-auto">
-                    <div className="bg-white rounded-2xl shadow-xl p-8">
-                        <h1 className="text-3xl font-bold mb-2 text-center">🎂 Age Calculator</h1>
-                        <p className="text-gray-500 text-center mb-8">
-                            Calculate your exact age and fun facts
-                        </p>
-
-                        {/* Input */}
-                        <div className="space-y-4 mb-8">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Date of Birth
-                                </label>
-                                <input
-                                    type="date"
-                                    value={birthDate}
-                                    onChange={(e) => setBirthDate(e.target.value)}
-                                    max={toDate}
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none text-lg"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Calculate Age As Of
-                                </label>
-                                <input
-                                    type="date"
-                                    value={toDate}
-                                    onChange={(e) => setToDate(e.target.value)}
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none text-lg"
-                                />
+                {/* Results */}
+                {result && (
+                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        {/* Main Age */}
+                        <div className="bg-gradient-to-r from-primary to-primary-light rounded-2xl p-8 text-white text-center shadow-lg">
+                            <div className="text-lg opacity-90 mb-2 font-medium">Your Exact Age</div>
+                            <div className="text-4xl md:text-5xl font-extrabold tracking-tight">
+                                {result.years} years, {result.months} months, {result.days} days
                             </div>
                         </div>
 
-                        {/* Results */}
-                        {result && (
-                            <div className="space-y-6">
-                                {/* Main Age */}
-                                <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl p-6 text-white text-center">
-                                    <div className="text-lg opacity-80 mb-2">Your Age</div>
-                                    <div className="text-4xl font-bold">
-                                        {result.years} years, {result.months} months, {result.days} days
-                                    </div>
-                                </div>
-
-                                {/* Stats Grid */}
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="bg-purple-50 rounded-xl p-4 text-center">
-                                        <div className="text-sm text-purple-600">Total Days</div>
-                                        <div className="text-2xl font-bold text-purple-900">
-                                            {result.totalDays.toLocaleString()}
-                                        </div>
-                                    </div>
-                                    <div className="bg-pink-50 rounded-xl p-4 text-center">
-                                        <div className="text-sm text-pink-600">Total Weeks</div>
-                                        <div className="text-2xl font-bold text-pink-900">
-                                            {result.totalWeeks.toLocaleString()}
-                                        </div>
-                                    </div>
-                                    <div className="bg-blue-50 rounded-xl p-4 text-center">
-                                        <div className="text-sm text-blue-600">Total Months</div>
-                                        <div className="text-2xl font-bold text-blue-900">
-                                            {result.totalMonths.toLocaleString()}
-                                        </div>
-                                    </div>
-                                    <div className="bg-green-50 rounded-xl p-4 text-center">
-                                        <div className="text-sm text-green-600">Next Birthday</div>
-                                        <div className="text-2xl font-bold text-green-900">
-                                            {result.nextBirthday} days
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Fun Facts */}
-                                <div className="bg-gray-50 rounded-xl p-4">
-                                    <h3 className="font-medium text-gray-700 mb-3">Fun Facts</h3>
-                                    <div className="space-y-2 text-gray-600">
-                                        <div className="flex justify-between">
-                                            <span>Born on a</span>
-                                            <span className="font-medium">{result.dayOfWeek}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span>Zodiac Sign</span>
-                                            <span className="font-medium">{result.zodiac}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span>Total Hours Lived</span>
-                                            <span className="font-medium">
-                                                {(result.totalDays * 24).toLocaleString()}
-                                            </span>
-                                        </div>
-                                    </div>
+                        {/* Stats Grid */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div className="bg-card border border-border rounded-xl p-4 text-center">
+                                <div className="text-sm text-muted">Total Days</div>
+                                <div className="text-2xl font-bold text-foreground mt-1">
+                                    {result.totalDays.toLocaleString()}
                                 </div>
                             </div>
-                        )}
+                            <div className="bg-card border border-border rounded-xl p-4 text-center">
+                                <div className="text-sm text-muted">Total Weeks</div>
+                                <div className="text-2xl font-bold text-foreground mt-1">
+                                    {result.totalWeeks.toLocaleString()}
+                                </div>
+                            </div>
+                            <div className="bg-card border border-border rounded-xl p-4 text-center">
+                                <div className="text-sm text-muted">Total Months</div>
+                                <div className="text-2xl font-bold text-foreground mt-1">
+                                    {result.totalMonths.toLocaleString()}
+                                </div>
+                            </div>
+                            <div className="bg-card border border-border rounded-xl p-4 text-center">
+                                <div className="text-sm text-muted">Next Birthday</div>
+                                <div className="text-2xl font-bold text-primary mt-1">
+                                    In {result.nextBirthday} days
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Fun Facts */}
+                        <div className="bg-card border border-border rounded-xl p-6">
+                            <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
+                                <span>✨</span> Fun Facts
+                            </h3>
+                            <div className="space-y-3">
+                                <div className="flex justify-between items-center py-2 border-b border-border">
+                                    <span className="text-muted">Day of Week Born</span>
+                                    <span className="font-semibold text-foreground">{result.dayOfWeek}</span>
+                                </div>
+                                <div className="flex justify-between items-center py-2 border-b border-border">
+                                    <span className="text-muted">Zodiac Sign</span>
+                                    <span className="font-semibold text-foreground">{result.zodiac}</span>
+                                </div>
+                                <div className="flex justify-between items-center py-2 border-b border-border">
+                                    <span className="text-muted">Total Hours Lived</span>
+                                    <span className="font-semibold text-foreground">
+                                        {(result.totalDays * 24).toLocaleString()}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </main>
-        </div>
+                )}
+            </div>
+        </ToolLayout>
     );
 }
