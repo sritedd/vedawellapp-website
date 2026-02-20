@@ -2,17 +2,15 @@
  * Unit Tests for ChecklistItemCard Component
  */
 
-import { render, fireEvent } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import ChecklistItemCard from '@/components/guardian/ChecklistItemCard';
 
 const defaultProps = {
     item: {
         id: '1',
-        title: 'Test Item',
-        completed: false,
-        category: 'general',
+        description: 'Test Item',
+        is_completed: false,
     },
-    onToggle: jest.fn(),
 };
 
 describe('ChecklistItemCard', () => {
@@ -25,9 +23,9 @@ describe('ChecklistItemCard', () => {
         expect(container.firstChild).toBeTruthy();
     });
 
-    it('handles item with minimal fields', () => {
-        const item = { id: '1', title: 'Test', completed: false };
-        const { container } = render(<ChecklistItemCard item={item as any} onToggle={jest.fn()} />);
+    it('handles item with all fields', () => {
+        const item = { id: '1', description: 'Test', is_completed: false, is_critical: true, requires_photo: true };
+        const { container } = render(<ChecklistItemCard item={item} />);
         expect(container.firstChild).toBeTruthy();
     });
 });

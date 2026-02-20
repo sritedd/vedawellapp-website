@@ -9,7 +9,7 @@ import australianData from "@/data/australian-build-workflows.json";
 
 type WorkflowsType = typeof australianData.workflows;
 type NewBuildType = WorkflowsType["new_build"];
-type StateWorkflow = NewBuildType[keyof NewBuildType];
+type StateWorkflow = NewBuildType[keyof NewBuildType] & { stages?: Array<{ id?: string; name: string; checklist?: string[]; certificates?: string[] }> };
 
 export default function NewProjectPage() {
     const router = useRouter();

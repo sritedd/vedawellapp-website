@@ -19,9 +19,9 @@ export default function CoinFlip() {
             count++;
             if (count > 10) {
                 clearInterval(interval);
-                const finalResult = Math.random() < 0.5 ? "heads" : "tails";
+                const finalResult: "heads" | "tails" = Math.random() < 0.5 ? "heads" : "tails";
                 setResult(finalResult);
-                setHistory(prev => [finalResult, ...prev].slice(0, 20));
+                setHistory(prev => ([finalResult, ...prev] as ("heads" | "tails")[]).slice(0, 20));
                 setIsFlipping(false);
             }
         }, 100);

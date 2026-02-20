@@ -5,18 +5,15 @@
 import { render } from '@testing-library/react';
 import ContractReviewChecklist from '@/components/guardian/ContractReviewChecklist';
 
-const defaultProps = {
-    projectId: 'proj-1',
-};
-
 describe('ContractReviewChecklist', () => {
     it('renders without crashing', () => {
-        const { container } = render(<ContractReviewChecklist {...defaultProps} />);
+        const { container } = render(<ContractReviewChecklist />);
         expect(container.firstChild).toBeTruthy();
     });
 
-    it('handles empty projectId', () => {
-        const { container } = render(<ContractReviewChecklist projectId="" />);
+    it('handles onComplete callback', () => {
+        const onComplete = jest.fn();
+        const { container } = render(<ContractReviewChecklist onComplete={onComplete} />);
         expect(container.firstChild).toBeTruthy();
     });
 });

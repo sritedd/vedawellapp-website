@@ -6,7 +6,7 @@ import { render } from '@testing-library/react';
 import StateWorkflowTimeline from '@/components/guardian/StateWorkflowTimeline';
 
 const defaultProps = {
-    buildType: 'residential',
+    buildCategory: 'new_build' as const,
     state: 'NSW',
 };
 
@@ -19,14 +19,14 @@ describe('StateWorkflowTimeline', () => {
     it('handles different states', () => {
         const states = ['NSW', 'VIC', 'QLD'];
         states.forEach(state => {
-            const { container, unmount } = render(<StateWorkflowTimeline buildType="residential" state={state} />);
+            const { container, unmount } = render(<StateWorkflowTimeline buildCategory="new_build" state={state} />);
             expect(container.firstChild).toBeTruthy();
             unmount();
         });
     });
 
     it('handles empty state', () => {
-        const { container } = render(<StateWorkflowTimeline buildType="residential" state="" />);
+        const { container } = render(<StateWorkflowTimeline buildCategory="new_build" state="" />);
         expect(container.firstChild).toBeTruthy();
     });
 });

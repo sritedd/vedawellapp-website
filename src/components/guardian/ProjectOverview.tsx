@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { formatMoney } from "@/utils/format";
+import type { Project } from "@/types/guardian";
 
 interface ProjectOverviewProps {
-    project: any;
+    project: Project;
     variationsTotal?: number;
 }
 
@@ -23,7 +24,7 @@ export default function ProjectOverview({ project }: ProjectOverviewProps) {
                 .eq("status", "approved");
 
             if (!error && data) {
-                const total = data.reduce((sum: number, v: any) => sum + (v.additional_cost || 0), 0);
+                const total = data.reduce((sum: number, v: { additional_cost: number | null }) => sum + (v.additional_cost || 0), 0);
                 setVariationsTotal(total);
             }
             setLoading(false);

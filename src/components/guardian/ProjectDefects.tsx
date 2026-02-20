@@ -153,7 +153,7 @@ export default function ProjectDefects({ projectId }: ProjectDefectsProps) {
 
     const generateExportList = () => {
         // Use tested utility function for filtering
-        const openDefects = getOpenDefects(defects as any);
+        const openDefects = getOpenDefects(defects as UtilDefect[]) as Defect[];
         let text = "🏠 DEFECT REPORT\n";
         text += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n";
         text += `Date: ${new Date().toLocaleDateString("en-AU")}\n`;
@@ -297,7 +297,7 @@ export default function ProjectDefects({ projectId }: ProjectDefectsProps) {
                             <label className="block text-sm font-medium mb-1">Severity</label>
                             <select
                                 value={newDefect.severity}
-                                onChange={(e) => setNewDefect({ ...newDefect, severity: e.target.value as any })}
+                                onChange={(e) => setNewDefect({ ...newDefect, severity: e.target.value as Defect["severity"] })}
                                 className="w-full p-3 border border-border rounded-lg"
                             >
                                 {Object.entries(SEVERITY_CONFIG).map(([key, val]) => (

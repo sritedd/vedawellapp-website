@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { validateUploadFile } from "@/lib/guardian/upload-validation";
 
 interface Document {
     id: string;
@@ -60,6 +61,14 @@ export default function DocumentVault({ projectId }: DocumentVaultProps) {
         const file = e.target.files?.[0];
         if (!file) return;
 
+        // Validate file type and size before uploading
+        const validation = validateUploadFile(file);
+        if (!validation.valid) {
+            alert(validation.error);
+            e.target.value = "";
+            return;
+        }
+
         setUploading(true);
         const supabase = createClient();
 
@@ -110,7 +119,8 @@ export default function DocumentVault({ projectId }: DocumentVaultProps) {
         const { error } = await supabase
             .from("documents")
             .delete()
-            .eq("id", docId);
+            .eq("id", docId)
+            .eq("project_id", projectId);
 
         if (!error) {
             setDocuments(documents.filter((d) => d.id !== docId));

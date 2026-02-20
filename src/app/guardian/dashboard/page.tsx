@@ -12,37 +12,44 @@ export default async function DashboardPage() {
         redirect("/guardian/login");
     }
 
-    // Fetch project stats
+    // Fetch all projects with their names and status
     const { data: projects } = await supabase
         .from('projects')
-        .select('id, contract_value')
-        .eq('user_id', user.id);
+        .select('id, name, contract_value, status, address, builder_name')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
 
-    const projectId = projects?.[0]?.id;
-    const contractValue = projects?.[0]?.contract_value || 0;
+    // Aggregate stats across all projects
+    let totalContractValue = 0;
+    let totalVariations = 0;
+    let totalVariationsCount = 0;
+    let totalOpenDefects = 0;
 
-    // Fetch variations total
-    let variationsTotal = 0;
-    let variationsCount = 0;
-    if (projectId) {
-        const { data: variations } = await supabase
+    if (projects && projects.length > 0) {
+        totalContractValue = projects.reduce((sum: number, p: { contract_value: number | null }) => sum + (p.contract_value || 0), 0);
+
+        // Fetch all variations across all projects
+        const projectIds = projects.map((p: { id: string }) => p.id);
+        const { data: allVariations } = await supabase
             .from('variations')
-            .select('additional_cost')
-            .eq('project_id', projectId);
-        variationsTotal = variations?.reduce((sum: number, v: any) => sum + (v.additional_cost || 0), 0) || 0;
-        variationsCount = variations?.length || 0;
-    }
+            .select('additional_cost, project_id')
+            .in('project_id', projectIds);
+        if (allVariations) {
+            totalVariations = allVariations.reduce((sum: number, v: { additional_cost: number | null }) => sum + (v.additional_cost || 0), 0);
+            totalVariationsCount = allVariations.length;
+        }
 
-    // Fetch defects count
-    let openDefects = 0;
-    if (projectId) {
-        const { data: defects } = await supabase
+        // Fetch all open defects across all projects
+        const { data: allDefects } = await supabase
             .from('defects')
             .select('id')
-            .eq('project_id', projectId)
+            .in('project_id', projectIds)
             .eq('status', 'open');
-        openDefects = defects?.length || 0;
+        totalOpenDefects = allDefects?.length || 0;
     }
+
+    // For backward compatibility with quick actions
+    const projectId = projects?.[0]?.id;
 
     return (
         <>
@@ -84,36 +91,36 @@ export default async function DashboardPage() {
                     {/* Stats Cards */}
                     <div className="grid md:grid-cols-4 gap-6 mb-8">
                         <div className="card">
-                            <div className="text-muted text-sm mb-1">Contract Value</div>
+                            <div className="text-muted text-sm mb-1">Total Contract Value</div>
                             <div className="text-2xl font-bold">
-                                {contractValue > 0 ? formatMoney(contractValue) : '$0'}
+                                {totalContractValue > 0 ? formatMoney(totalContractValue) : '$0'}
                             </div>
                             <div className="text-sm text-muted">
                                 {projects?.length || 0} project(s)
                             </div>
                         </div>
                         <div className="card">
-                            <div className="text-muted text-sm mb-1">Variations</div>
-                            <div className={`text-2xl font-bold ${variationsTotal > 0 ? 'text-orange-500' : ''}`}>
-                                {variationsTotal > 0 ? '+' : ''}{formatMoney(variationsTotal)}
+                            <div className="text-muted text-sm mb-1">Total Variations</div>
+                            <div className={`text-2xl font-bold ${totalVariations > 0 ? 'text-orange-500' : ''}`}>
+                                {totalVariations > 0 ? '+' : ''}{formatMoney(totalVariations)}
                             </div>
-                            <div className="text-sm text-muted">{variationsCount} variation(s)</div>
+                            <div className="text-sm text-muted">{totalVariationsCount} variation(s)</div>
                         </div>
                         <div className="card">
                             <div className="text-muted text-sm mb-1">Open Defects</div>
-                            <div className={`text-2xl font-bold ${openDefects > 0 ? 'text-red-500' : 'text-green-500'}`}>
-                                {openDefects}
+                            <div className={`text-2xl font-bold ${totalOpenDefects > 0 ? 'text-red-500' : 'text-green-500'}`}>
+                                {totalOpenDefects}
                             </div>
                             <div className="text-sm text-muted">
-                                {openDefects === 0 ? 'All clear!' : 'Need attention'}
+                                {totalOpenDefects === 0 ? 'All clear!' : 'Need attention'}
                             </div>
                         </div>
                         <div className="card">
                             <div className="text-muted text-sm mb-1">Projected Total</div>
                             <div className="text-2xl font-bold text-primary">
-                                {formatMoney(contractValue + variationsTotal)}
+                                {formatMoney(totalContractValue + totalVariations)}
                             </div>
-                            <div className="text-sm text-muted">Contract + Variations</div>
+                            <div className="text-sm text-muted">Contracts + Variations</div>
                         </div>
                     </div>
 
@@ -154,8 +161,8 @@ export default async function DashboardPage() {
                         )}
                     </div>
 
-                    {/* Getting Started OR Project Summary */}
-                    {!projectId ? (
+                    {/* Getting Started OR Projects List */}
+                    {!projects || projects.length === 0 ? (
                         <div className="card border-primary/30 bg-primary/5">
                             <h2 className="text-xl font-bold mb-4">🚀 Getting Started</h2>
                             <ol className="list-decimal list-inside space-y-2 text-muted">
@@ -174,29 +181,38 @@ export default async function DashboardPage() {
                             </div>
                         </div>
                     ) : (
-                        <div className="card">
-                            <div className="flex justify-between items-center mb-4">
-                                <h2 className="text-xl font-bold">Your Active Project</h2>
-                                <Link
-                                    href={`/guardian/projects/${projectId}`}
-                                    className="text-primary hover:underline text-sm"
-                                >
-                                    View Details →
-                                </Link>
-                            </div>
-                            <div className="grid md:grid-cols-3 gap-4">
-                                <div className="p-4 bg-muted/10 rounded-lg">
-                                    <div className="text-sm text-muted">Status</div>
-                                    <div className="font-bold">Active</div>
-                                </div>
-                                <div className="p-4 bg-muted/10 rounded-lg">
-                                    <div className="text-sm text-muted">Current Stage</div>
-                                    <div className="font-bold">Frame Stage</div>
-                                </div>
-                                <div className="p-4 bg-muted/10 rounded-lg">
-                                    <div className="text-sm text-muted">Next Milestone</div>
-                                    <div className="font-bold">Pre-Plasterboard</div>
-                                </div>
+                        <div>
+                            <h2 className="text-xl font-bold mb-4">Your Projects</h2>
+                            <div className="grid md:grid-cols-2 gap-4">
+                                {projects.map((project: { id: string; name: string; status: string; address: string; builder_name: string; contract_value: number | null }) => (
+                                    <Link
+                                        key={project.id}
+                                        href={`/guardian/projects/${project.id}`}
+                                        className="card hover:border-primary transition-colors"
+                                    >
+                                        <div className="flex justify-between items-start mb-3">
+                                            <h3 className="font-bold">{project.name}</h3>
+                                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium uppercase ${
+                                                project.status === 'active'
+                                                    ? 'bg-green-500/10 text-green-600'
+                                                    : project.status === 'completed'
+                                                    ? 'bg-blue-500/10 text-blue-600'
+                                                    : 'bg-gray-500/10 text-gray-600'
+                                            }`}>
+                                                {project.status}
+                                            </span>
+                                        </div>
+                                        <div className="text-sm text-muted space-y-1">
+                                            {project.address && <div>📍 {project.address}</div>}
+                                            {project.builder_name && <div>👷 {project.builder_name}</div>}
+                                            {project.contract_value && (
+                                                <div className="font-medium text-foreground">
+                                                    {formatMoney(project.contract_value)}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </Link>
+                                ))}
                             </div>
                         </div>
                     )}

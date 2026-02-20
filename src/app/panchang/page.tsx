@@ -19,6 +19,8 @@ interface PanchangData {
     inauspiciousTime: string;
 }
 
+import ShareButtons from "@/components/social/ShareButtons";
+
 export default function PanchangPage() {
     const [date, setDate] = useState(new Date());
     const [location, setLocation] = useState("Sydney, Australia");
@@ -244,6 +246,11 @@ export default function PanchangPage() {
                         </p>
                     </div>
                 </div>
+
+                <ShareButtons
+                    title={`Panchang for ${date.toLocaleDateString()}`}
+                    text={`Today's Panchang: ${panchang.tithi}, Nakshatra: ${panchang.nakshatra}. See full details on VedaWell.`}
+                />
             </main>
         </div>
     );

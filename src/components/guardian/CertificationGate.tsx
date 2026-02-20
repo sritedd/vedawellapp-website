@@ -54,7 +54,7 @@ export default function CertificationGate({
 
             // Check if payment should be blocked
             const missingCerts = requiredCerts.filter(
-                (cert) => !data.some((c) => c.type === cert && c.status !== "pending")
+                (cert: string) => !data.some((c: Certification) => c.type === cert && c.status !== "pending")
             );
 
             if (missingCerts.length > 0 && onPaymentBlocked) {

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import AdBanner from "@/components/AdBanner";
 
 const PATTERNS = [
     { name: "4-7-8 Relaxing", inhale: 4, hold: 7, exhale: 8 },
@@ -72,6 +73,10 @@ export default function BreathingExercise() {
                     <button onClick={reset} className="px-8 py-3 bg-white/20 text-white rounded-xl font-medium">Reset</button>
                 </div>
                 <div className="text-white/70">Cycles completed: <span className="text-white font-bold">{cycles}</span></div>
+
+                <div className="mt-12 bg-black/10 rounded-xl backdrop-blur-sm p-2 w-full max-w-lg mx-auto overflow-hidden">
+                    <AdBanner slot="7592759210" format="horizontal" />
+                </div>
             </main>
         </div>
     );

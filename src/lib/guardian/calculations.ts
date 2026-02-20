@@ -33,6 +33,8 @@ export interface PaymentMilestone {
     percentage: number;
     amount: number;
     status: 'pending' | 'due' | 'paid';
+    certificates_required?: string[];
+    certificates_received?: string[];
 }
 
 // ===========================================

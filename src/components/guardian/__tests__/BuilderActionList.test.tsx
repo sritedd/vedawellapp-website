@@ -7,6 +7,8 @@ import BuilderActionList from '@/components/guardian/BuilderActionList';
 
 const defaultProps = {
     projectId: 'proj-1',
+    projectName: 'Test Project',
+    builderName: 'Test Builder',
 };
 
 describe('BuilderActionList', () => {
@@ -16,7 +18,7 @@ describe('BuilderActionList', () => {
     });
 
     it('handles empty projectId', () => {
-        const { container } = render(<BuilderActionList projectId="" />);
+        const { container } = render(<BuilderActionList projectId="" projectName="" builderName="" />);
         expect(container.firstChild).toBeTruthy();
     });
 });

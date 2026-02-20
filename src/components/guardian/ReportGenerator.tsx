@@ -10,7 +10,7 @@ interface ReportGeneratorProps {
     variations: Array<{
         id: string;
         title: string;
-        description: string;
+        description?: string;
         additional_cost: number;
         status: string;
         created_at: string;
@@ -21,7 +21,7 @@ interface ReportGeneratorProps {
         description: string;
         severity: string;
         status: string;
-        created_at: string;
+        created_at?: string;
     }>;
 }
 
@@ -322,7 +322,7 @@ ${defects
                     (d, i) => `
 ${i + 1}. [${(d.severity || 'minor').toUpperCase()}] ${d.title || 'Untitled'}
    Description: ${d.description}
-   Logged: ${new Date(d.created_at).toLocaleDateString("en-AU")}
+   Logged: ${d.created_at ? new Date(d.created_at).toLocaleDateString("en-AU") : "N/A"}
 `
                 )
                 .join("")}

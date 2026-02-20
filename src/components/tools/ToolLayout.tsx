@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { ReactNode } from "react";
 import AdBanner from "@/components/AdBanner";
+import JsonLd from "@/components/seo/JsonLd";
+import ShareButtons from "@/components/social/ShareButtons";
 
 interface ToolLayoutProps {
     title: string;
@@ -12,6 +14,20 @@ interface ToolLayoutProps {
 export default function ToolLayout({ title, description, children, adSlot = "1234567890" }: ToolLayoutProps) {
     return (
         <div className="py-12 px-6">
+            <JsonLd
+                type="SoftwareApplication"
+                data={{
+                    name: title,
+                    description: description,
+                    applicationCategory: "UtilityApplication",
+                    operatingSystem: "Any",
+                    offers: {
+                        "@type": "Offer",
+                        price: "0",
+                        priceCurrency: "USD"
+                    }
+                }}
+            />
             <div className="max-w-4xl mx-auto">
                 {/* Breadcrumb / Back Link */}
                 <Link href="/tools" className="inline-flex items-center gap-2 text-muted hover:text-primary mb-8 transition-colors">
@@ -38,6 +54,11 @@ export default function ToolLayout({ title, description, children, adSlot = "123
 
                 {/* Ad — Below tool (rectangle) */}
                 <AdBanner slot={adSlot} format="rectangle" className="mt-8" />
+
+                <ShareButtons
+                    title={`${title} - VedaWell Tools`}
+                    text={`I just used the free ${title} tool on VedaWell! Check it out:`}
+                />
             </div>
         </div>
     );

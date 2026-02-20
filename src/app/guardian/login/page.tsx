@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { getRateLimitSecondsRemaining, recordFailedAttempt, resetRateLimit } from "@/lib/security/rate-limit";
 
 type View = "sign-in" | "sign-up" | "forgot-password";
 
@@ -16,6 +17,17 @@ export default function LoginPage() {
     const [view, setView] = useState<View>("sign-in");
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+    const [rateLimitSeconds, setRateLimitSeconds] = useState(0);
+
+    // Count down rate limit timer
+    useEffect(() => {
+        if (rateLimitSeconds <= 0) return;
+        const timer = setInterval(() => {
+            const remaining = getRateLimitSecondsRemaining();
+            setRateLimitSeconds(remaining);
+        }, 1000);
+        return () => clearInterval(timer);
+    }, [rateLimitSeconds]);
 
     const getPasswordStrength = (pw: string): { label: string; color: string; width: string } => {
         if (pw.length === 0) return { label: "", color: "", width: "0%" };
@@ -33,6 +45,15 @@ export default function LoginPage() {
 
     const handleSignIn = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Check rate limit before attempting login
+        const remaining = getRateLimitSecondsRemaining();
+        if (remaining > 0) {
+            setRateLimitSeconds(remaining);
+            setMessage({ type: "error", text: `Too many failed attempts. Please wait ${remaining}s before trying again.` });
+            return;
+        }
+
         setLoading(true);
         setMessage(null);
 
@@ -40,8 +61,15 @@ export default function LoginPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
 
         if (error) {
-            setMessage({ type: "error", text: error.message });
+            const waitSeconds = recordFailedAttempt();
+            if (waitSeconds > 0) {
+                setRateLimitSeconds(waitSeconds);
+                setMessage({ type: "error", text: `Too many failed attempts. Please wait ${waitSeconds}s before trying again.` });
+            } else {
+                setMessage({ type: "error", text: error.message });
+            }
         } else {
+            resetRateLimit();
             window.location.href = "/guardian/dashboard";
         }
 
@@ -330,13 +358,13 @@ export default function LoginPage() {
 
                             <button
                                 type="submit"
-                                disabled={loading}
+                                disabled={loading || rateLimitSeconds > 0}
                                 className="btn-primary w-full disabled:opacity-50 flex items-center justify-center gap-2"
                             >
                                 {loading && (
                                     <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                                 )}
-                                {getButtonText()}
+                                {rateLimitSeconds > 0 ? `Wait ${rateLimitSeconds}s...` : getButtonText()}
                             </button>
                         </form>
 

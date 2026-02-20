@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import type { Project, Variation, Defect } from "@/types/guardian";
 
 // Components
 import ProjectOverview from "@/components/guardian/ProjectOverview";
@@ -30,9 +31,9 @@ import StageChecklist from "@/components/guardian/StageChecklist";
 export default function ProjectDetailPage() {
     const params = useParams();
     const router = useRouter();
-    const [project, setProject] = useState<any>(null);
-    const [variations, setVariations] = useState<any[]>([]);
-    const [defects, setDefects] = useState<any[]>([]);
+    const [project, setProject] = useState<Project | null>(null);
+    const [variations, setVariations] = useState<Variation[]>([]);
+    const [defects, setDefects] = useState<Defect[]>([]);
     const [activeTab, setActiveTab] = useState("overview");
     const [loading, setLoading] = useState(true);
     const [paymentBlocked, setPaymentBlocked] = useState(false);
@@ -43,11 +44,19 @@ export default function ProjectDetailPage() {
         const fetchProject = async () => {
             const supabase = createClient();
 
-            // Fetch project
+            // SECURITY: Verify user is authenticated before querying
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                router.push("/guardian/login");
+                return;
+            }
+
+            // Fetch project with user ownership check (defense-in-depth alongside RLS)
             const { data, error } = await supabase
                 .from("projects")
                 .select("*")
                 .eq("id", params.id)
+                .eq("user_id", user.id)
                 .single();
 
             if (data) {
@@ -71,6 +80,7 @@ export default function ProjectDetailPage() {
                 console.log("Using Mock Data for Project Detail");
                 setProject({
                     id: "mock-project-1",
+                    user_id: "mock-user-1",
                     name: "Demo Project: Dream Home",
                     address: "123 Test St, Sydney",
                     builder_name: "Metricon",
@@ -85,6 +95,7 @@ export default function ProjectDetailPage() {
                 setVariations([
                     {
                         id: "1",
+                        project_id: "mock-project-1",
                         title: "Upgraded Kitchen Benchtop",
                         description: "Stone benchtop upgrade from laminate",
                         additional_cost: 8500,
@@ -93,20 +104,28 @@ export default function ProjectDetailPage() {
                     },
                     {
                         id: "2",
+                        project_id: "mock-project-1",
                         title: "Extra Downlights",
                         description: "Additional 8 LED downlights in living area",
                         additional_cost: 1200,
-                        status: "pending",
+                        status: "draft",
                         created_at: new Date().toISOString(),
                     },
                 ]);
                 setDefects([
                     {
                         id: "1",
+                        project_id: "mock-project-1",
                         title: "Paint scratches on hallway wall",
                         description: "Multiple scratches visible near front door",
+                        location: "Hallway",
+                        stage: "Fixing",
                         severity: "minor",
                         status: "open",
+                        reportedDate: new Date().toISOString().split("T")[0],
+                        photos: [],
+                        rectificationPhotos: [],
+                        reminderCount: 0,
                         created_at: new Date().toISOString(),
                     },
                 ]);

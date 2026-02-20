@@ -27,11 +27,13 @@ jest.mock('@/utils/format', () => ({
 
 const mockProject = {
     id: 'proj-1',
+    user_id: 'user-1',
     name: 'Test Project',
     address: '123 Test St',
     builder_name: 'Test Builder',
     contract_value: 500000,
-    current_stage: 'frame',
+    start_date: '2025-01-01',
+    status: 'active' as const,
     created_at: '2025-01-01',
 };
 
@@ -44,16 +46,18 @@ describe('ProjectOverview', () => {
     });
 
     it('handles project with minimal fields', async () => {
-        const minimalProject = { id: 'proj-1', name: 'Test' };
+        const minimalProject = {
+            id: 'proj-1',
+            user_id: 'user-1',
+            name: 'Test',
+            builder_name: '',
+            contract_value: 0,
+            address: '',
+            start_date: '',
+            status: 'planning' as const,
+            created_at: '2025-01-01',
+        };
         const { container } = render(<ProjectOverview project={minimalProject} />);
-        await waitFor(() => {
-            expect(container.firstChild).toBeTruthy();
-        });
-    });
-
-    it('handles undefined project fields', async () => {
-        const projectWithUndefined = { id: 'proj-1' };
-        const { container } = render(<ProjectOverview project={projectWithUndefined} />);
         await waitFor(() => {
             expect(container.firstChild).toBeTruthy();
         });

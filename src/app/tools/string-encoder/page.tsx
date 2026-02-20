@@ -13,7 +13,7 @@ export default function StringEncoder() {
         { name: "HTML Entities", encode: (s: string) => s.replace(/[<>&"']/g, c => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;", "'": "&#39;" }[c] || c)), decode: (s: string) => s.replace(/&lt;|&gt;|&amp;|&quot;|&#39;/g, e => ({ "&lt;": "<", "&gt;": ">", "&amp;": "&", "&quot;": '"', "&#39;": "'" }[e] || e)) },
         { name: "Hex", encode: (s: string) => Array.from(s).map(c => c.charCodeAt(0).toString(16).padStart(2, "0")).join(" "), decode: (s: string) => s.split(" ").map(h => String.fromCharCode(parseInt(h, 16))).join("") },
         { name: "Binary", encode: (s: string) => Array.from(s).map(c => c.charCodeAt(0).toString(2).padStart(8, "0")).join(" "), decode: (s: string) => s.split(" ").map(b => String.fromCharCode(parseInt(b, 2))).join("") },
-        { name: "ROT13", encode: (s: string) => s.replace(/[a-zA-Z]/g, c => String.fromCharCode((c <= "Z" ? 90 : 122) >= (c = c.charCodeAt(0) + 13) ? c : c - 26)), decode: (s: string) => s.replace(/[a-zA-Z]/g, c => String.fromCharCode((c <= "Z" ? 90 : 122) >= (c = c.charCodeAt(0) + 13) ? c : c - 26)) },
+        { name: "ROT13", encode: (s: string) => s.replace(/[a-zA-Z]/g, c => { const code = c.charCodeAt(0) + 13; return String.fromCharCode((c <= "Z" ? 90 : 122) >= code ? code : code - 26); }), decode: (s: string) => s.replace(/[a-zA-Z]/g, c => { const code = c.charCodeAt(0) + 13; return String.fromCharCode((c <= "Z" ? 90 : 122) >= code ? code : code - 26); }) },
         { name: "Reverse", encode: (s: string) => s.split("").reverse().join(""), decode: (s: string) => s.split("").reverse().join("") },
     ];
 

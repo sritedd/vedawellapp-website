@@ -3,6 +3,7 @@ import Script from "next/script";
 import { Inter } from "next/font/google";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import InstallPrompt from "@/components/pwa/InstallPrompt";
 import "./globals.css";
 
 const inter = Inter({
@@ -27,12 +28,22 @@ export const metadata: Metadata = {
     url: "https://vedawellapp.com",
     siteName: "VedaWell Tools",
     type: "website",
+    images: [
+      {
+        url: "/og-default.png",
+        width: 1200,
+        height: 630,
+        alt: "VedaWell Tools Banner",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "VedaWell Tools",
     description: "90+ free online tools, games, and HomeOwner Guardian.",
+    images: ["/og-default.png"],
   },
+  manifest: "/manifest.json",
   robots: {
     index: true,
     follow: true,
@@ -77,10 +88,18 @@ export default function RootLayout({
             gtag('config', '${GA4_ID}', { page_path: window.location.pathname });
           `}
         </Script>
+        {/* Skip to main content link for keyboard/screen reader users */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-white focus:rounded-lg focus:outline-none"
+        >
+          Skip to main content
+        </a>
         <div className="min-h-screen flex flex-col">
           <Navbar />
-          <main className="flex-1">{children}</main>
+          <main id="main-content" role="main" className="flex-1">{children}</main>
           <Footer />
+          <InstallPrompt />
         </div>
       </body>
     </html>

@@ -9,21 +9,9 @@ import {
     calculateVariationPercent,
     calculateApprovedTotal,
     getVariationWarningLevel,
+    type Variation as CalcVariation,
 } from "@/lib/guardian/calculations";
-
-interface Variation {
-    id: string;
-    title: string;
-    description: string;
-    additional_cost: number;
-    labour_cost?: number;
-    material_cost?: number;
-    status: string;
-    reason_category?: string;
-    homeowner_signature_url?: string;
-    builder_signature_url?: string;
-    created_at: string;
-}
+import type { Variation } from "@/types/guardian";
 
 export default function ProjectVariations({
     projectId,
@@ -59,9 +47,16 @@ export default function ProjectVariations({
     }, [projectId]);
 
     // Calculate totals using tested utility functions
-    const totalVariations = calculateVariationTotal(variations as any);
+    const calcVariations: CalcVariation[] = variations.map(v => ({
+        id: v.id,
+        title: v.title,
+        additional_cost: v.additional_cost,
+        status: v.status,
+        reason_category: v.reason_category,
+    }));
+    const totalVariations = calculateVariationTotal(calcVariations);
     const variationPercent = calculateVariationPercent(totalVariations, contractValue);
-    const approvedTotal = calculateApprovedTotal(variations as any);
+    const approvedTotal = calculateApprovedTotal(calcVariations);
     const warningLevel = getVariationWarningLevel(variationPercent);
 
     const handleSign = async (variationId: string) => {
@@ -70,11 +65,33 @@ export default function ProjectVariations({
         const signatureData = signatureRef.current.toDataURL("image/png");
         const supabase = createClient();
 
-        // For now, store base64 directly (in prod, upload to storage)
+        // Upload signature as image to Supabase Storage instead of storing base64 in DB
+        let signatureUrl = signatureData; // Fallback to base64 if upload fails
+        try {
+            const base64Data = signatureData.split(",")[1];
+            const byteArray = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+            const blob = new Blob([byteArray], { type: "image/png" });
+            const fileName = `signatures/${projectId}/${variationId}_${Date.now()}.png`;
+
+            const { error: uploadError } = await supabase.storage
+                .from("documents")
+                .upload(fileName, blob, { contentType: "image/png" });
+
+            if (!uploadError) {
+                const { data: urlData } = supabase.storage
+                    .from("documents")
+                    .getPublicUrl(fileName);
+                signatureUrl = urlData.publicUrl;
+            }
+        } catch {
+            // If storage upload fails, fall back to base64 in DB
+            console.warn("Signature upload to storage failed, using base64 fallback");
+        }
+
         const { error } = await supabase
             .from("variations")
             .update({
-                homeowner_signature_url: signatureData,
+                homeowner_signature_url: signatureUrl,
                 status: "approved",
                 signed_at: new Date().toISOString(),
             })
@@ -147,12 +164,118 @@ export default function ProjectVariations({
             <div className="flex justify-between items-center">
                 <h2 className="text-xl font-bold">Variations Register</h2>
                 <button
-                    onClick={() => setShowAddForm(true)}
+                    onClick={() => setShowAddForm(!showAddForm)}
                     className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
                 >
-                    + Log New Variation
+                    {showAddForm ? "Cancel" : "+ Log New Variation"}
                 </button>
             </div>
+
+            {/* Add Variation Form */}
+            {showAddForm && (
+                <form
+                    onSubmit={async (e) => {
+                        e.preventDefault();
+                        const form = e.target as HTMLFormElement;
+                        const formData = new FormData(form);
+                        const supabase = createClient();
+
+                        const { error } = await supabase.from("variations").insert({
+                            project_id: projectId,
+                            title: formData.get("title") as string,
+                            description: formData.get("description") as string,
+                            additional_cost: parseFloat(formData.get("additional_cost") as string) || 0,
+                            labour_cost: parseFloat(formData.get("labour_cost") as string) || 0,
+                            material_cost: parseFloat(formData.get("material_cost") as string) || 0,
+                            reason_category: formData.get("reason_category") as string || null,
+                            status: "draft",
+                        });
+
+                        if (!error) {
+                            setShowAddForm(false);
+                            fetchVariations();
+                        } else {
+                            alert("Failed to add variation. Please try again.");
+                        }
+                    }}
+                    className="p-6 bg-card border border-border rounded-xl space-y-4"
+                >
+                    <h3 className="font-bold">Log New Variation</h3>
+                    <div className="grid md:grid-cols-2 gap-4">
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-medium mb-1">Title *</label>
+                            <input
+                                name="title"
+                                type="text"
+                                required
+                                placeholder="e.g., Upgraded kitchen benchtop"
+                                className="w-full p-3 border border-border rounded-lg bg-background"
+                            />
+                        </div>
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-medium mb-1">Description</label>
+                            <textarea
+                                name="description"
+                                placeholder="Describe the variation in detail..."
+                                className="w-full p-3 border border-border rounded-lg bg-background resize-none h-20"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Total Additional Cost ($) *</label>
+                            <input
+                                name="additional_cost"
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                required
+                                placeholder="0.00"
+                                className="w-full p-3 border border-border rounded-lg bg-background"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Reason Category</label>
+                            <select
+                                name="reason_category"
+                                className="w-full p-3 border border-border rounded-lg bg-background"
+                            >
+                                <option value="">Select category...</option>
+                                <option value="design_change">Design Change</option>
+                                <option value="site_condition">Site Condition</option>
+                                <option value="regulatory">Regulatory Requirement</option>
+                                <option value="builder_error">Builder Error</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Labour Cost ($)</label>
+                            <input
+                                name="labour_cost"
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                placeholder="0.00"
+                                className="w-full p-3 border border-border rounded-lg bg-background"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Material Cost ($)</label>
+                            <input
+                                name="material_cost"
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                placeholder="0.00"
+                                className="w-full p-3 border border-border rounded-lg bg-background"
+                            />
+                        </div>
+                    </div>
+                    <button
+                        type="submit"
+                        className="w-full py-3 bg-primary text-white rounded-lg font-medium hover:opacity-90 transition-opacity"
+                    >
+                        Add Variation
+                    </button>
+                </form>
+            )}
 
             {/* Table */}
             <div className="rounded-xl border border-border overflow-hidden">

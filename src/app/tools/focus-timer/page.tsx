@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import AdBanner from "@/components/AdBanner";
 
 type TimerMode = "focus" | "shortBreak" | "longBreak";
 
@@ -96,8 +97,8 @@ export default function FocusTimer() {
                                 key={m}
                                 onClick={() => switchMode(m)}
                                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${mode === m
-                                        ? "bg-white text-gray-900"
-                                        : "bg-white/20 text-white hover:bg-white/30"
+                                    ? "bg-white text-gray-900"
+                                    : "bg-white/20 text-white hover:bg-white/30"
                                     }`}
                             >
                                 {MODES[m].label}
@@ -180,6 +181,10 @@ export default function FocusTimer() {
                             <li>• Stay focused during work sessions - no distractions!</li>
                             <li>• Use breaks to stretch, hydrate, or rest your eyes</li>
                         </ul>
+                    </div>
+
+                    <div className="mt-12 bg-black/10 rounded-xl backdrop-blur-sm p-2 w-full max-w-lg mx-auto overflow-hidden">
+                        <AdBanner slot="8432165922" format="horizontal" />
                     </div>
                 </div>
             </main>
