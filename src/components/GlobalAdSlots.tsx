@@ -26,14 +26,14 @@ export default function GlobalAdSlot({ position }: { position: "top" | "bottom" 
 
     if (position === "top") {
         return (
-            <div className="max-w-7xl mx-auto px-4 pt-4">
+            <div className="w-full max-w-7xl mx-auto px-4 pt-4">
                 <AdBanner slot="1696472735" format="horizontal" />
             </div>
         );
     }
 
     return (
-        <div className="max-w-7xl mx-auto px-4 pb-4">
+        <div className="w-full max-w-7xl mx-auto px-4 pb-4">
             <AdBanner slot="9056088001" format="horizontal" />
         </div>
     );
