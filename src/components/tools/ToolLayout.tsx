@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { ReactNode } from "react";
-import AdBanner from "@/components/AdBanner";
 import JsonLd from "@/components/seo/JsonLd";
 import ShareButtons from "@/components/social/ShareButtons";
 
@@ -8,7 +7,6 @@ interface ToolLayoutProps {
     title: string;
     description: string;
     children: ReactNode;
-    adSlot?: string; // Optional: pass a specific ad slot ID for this tool
 }
 
 export default function ToolLayout({ title, description, children }: ToolLayoutProps) {
@@ -44,16 +42,10 @@ export default function ToolLayout({ title, description, children }: ToolLayoutP
                     </p>
                 </header>
 
-                {/* Ad — Above tool (leaderboard) */}
-                <AdBanner slot="1696472735" format="horizontal" className="mb-8" />
-
                 {/* Tool Container */}
                 <div className="bg-card border border-border rounded-xl p-8 shadow-sm">
                     {children}
                 </div>
-
-                {/* Ad — Below tool (rectangle) */}
-                <AdBanner slot="9056088001" format="rectangle" className="mt-8" />
 
                 <ShareButtons
                     title={`${title} - VedaWell Tools`}

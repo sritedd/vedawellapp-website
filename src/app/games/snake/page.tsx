@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import AdBanner from "@/components/AdBanner";
 
 type Direction = "UP" | "DOWN" | "LEFT" | "RIGHT";
 type Cell = "empty" | "snake" | "food" | "wall";
@@ -195,8 +194,6 @@ export default function SnakeGame2() {
                 <div className="max-w-lg mx-auto text-center">
                     <h1 className="text-3xl font-bold text-green-800 mb-2">🐍 Snake</h1>
 
-                    <AdBanner slot="1696472735" format="horizontal" className="mb-4 w-full" />
-
                     <div className="flex justify-center gap-8 mb-4">
                         <div>
                             <span className="text-gray-600">Score: </span>
@@ -295,7 +292,6 @@ export default function SnakeGame2() {
                     <p className="mt-6 text-gray-500 text-sm">
                         Use arrow keys or WASD to move. Space to pause.
                     </p>
-                    <AdBanner slot="9056088001" format="horizontal" className="mt-8 w-full" />
                 </div>
             </main>
         </div>

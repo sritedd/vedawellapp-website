@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import AdBanner from "@/components/AdBanner";
 
 type Player = "X" | "O" | null;
 type Board = Player[];
@@ -70,8 +69,6 @@ export default function TicTacToe() {
             </div>
 
             <h1 className="text-4xl font-bold text-white mb-4">⭕ Tic Tac Toe</h1>
-
-            <AdBanner slot="1696472735" format="horizontal" className="mb-4 w-full max-w-md" />
 
             {/* Scores */}
             <div className="flex gap-4 mb-6">
@@ -141,7 +138,6 @@ export default function TicTacToe() {
                 Take turns placing X and O. Get 3 in a row to win!
             </p>
 
-            <AdBanner slot="9056088001" format="horizontal" className="mt-8 w-full max-w-md" />
         </div>
     );
 }

@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { TOOLS, CATEGORIES, type ToolCategory } from "@/data/tool-catalog";
-import AdBanner from "@/components/AdBanner";
 
 export default function ToolsPage() {
     const [search, setSearch] = useState("");
@@ -64,7 +63,6 @@ export default function ToolsPage() {
                 </p>
 
                 {/* Tools Grid */}
-                <AdBanner slot="1696472735" format="horizontal" className="mb-8" />
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredTools.map((tool) => (
                         <Link
@@ -100,9 +98,6 @@ export default function ToolsPage() {
                     </div>
                 )}
 
-                <div className="mt-12">
-                    <AdBanner slot="9056088001" format="horizontal" />
-                </div>
             </div>
         </div>
     );

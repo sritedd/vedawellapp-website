@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import AdBanner from "@/components/AdBanner";
 
 const WORDS = [
     "REACT", "SWIFT", "BRAIN", "CLOUD", "PIXEL", "QUERY", "STACK",
@@ -166,8 +165,6 @@ export default function WordlePage() {
                 <div className="max-w-md mx-auto text-center">
                     <h1 className="text-3xl font-bold mb-6">Wordle</h1>
 
-                    <AdBanner slot="1696472735" format="horizontal" className="mb-6 w-full" />
-
                     {/* Game Grid */}
                     <div className={`grid gap-1 justify-center mb-6 ${shake ? "animate-shake" : ""}`}>
                         {displayRows.map((row, i) => (
@@ -227,7 +224,6 @@ export default function WordlePage() {
                         Green = correct, Yellow = wrong position, Gray = not in word.
                     </p>
 
-                    <AdBanner slot="9056088001" format="horizontal" className="mt-8 w-full" />
                 </div>
             </main>
 

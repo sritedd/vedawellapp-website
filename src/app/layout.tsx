@@ -4,6 +4,7 @@ import { Inter } from "next/font/google";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import InstallPrompt from "@/components/pwa/InstallPrompt";
+import GlobalAdSlot from "@/components/GlobalAdSlots";
 import "./globals.css";
 
 const inter = Inter({
@@ -97,7 +98,9 @@ export default function RootLayout({
         </a>
         <div className="min-h-screen flex flex-col">
           <Navbar />
+          <GlobalAdSlot position="top" />
           <main id="main-content" role="main" className="flex-1">{children}</main>
+          <GlobalAdSlot position="bottom" />
           <Footer />
           <InstallPrompt />
         </div>

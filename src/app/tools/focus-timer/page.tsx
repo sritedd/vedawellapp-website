@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import AdBanner from "@/components/AdBanner";
 
 type TimerMode = "focus" | "shortBreak" | "longBreak";
 
@@ -183,9 +182,6 @@ export default function FocusTimer() {
                         </ul>
                     </div>
 
-                    <div className="mt-12 bg-black/10 rounded-xl backdrop-blur-sm p-2 w-full max-w-lg mx-auto overflow-hidden">
-                        <AdBanner slot="1696472735" format="horizontal" />
-                    </div>
                 </div>
             </main>
         </div>

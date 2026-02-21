@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
-import AdBanner from "@/components/AdBanner";
 
 const PATTERNS = [
     { name: "4-7-8 Relaxing", inhale: 4, hold: 7, exhale: 8 },
@@ -74,9 +73,6 @@ export default function BreathingExercise() {
                 </div>
                 <div className="text-white/70">Cycles completed: <span className="text-white font-bold">{cycles}</span></div>
 
-                <div className="mt-12 bg-black/10 rounded-xl backdrop-blur-sm p-2 w-full max-w-lg mx-auto overflow-hidden">
-                    <AdBanner slot="1696472735" format="horizontal" />
-                </div>
             </main>
         </div>
     );

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import AdBanner from "@/components/AdBanner";
 
 const EMOJIS = ["🍎", "🍊", "🍋", "🍇", "🍓", "🍑", "🥝", "🍒"];
 
@@ -106,8 +105,6 @@ export default function MemoryGame() {
 
             <h1 className="text-4xl font-bold text-white mb-4">🃏 Memory Match</h1>
 
-            <AdBanner slot="1696472735" format="horizontal" className="mb-4 w-full max-w-md" />
-
             {/* Score */}
             <div className="flex gap-4 mb-6">
                 <div className="bg-white/20 backdrop-blur text-white px-6 py-3 rounded-lg text-center">
@@ -173,7 +170,6 @@ export default function MemoryGame() {
             <p className="mt-4 text-white/70 text-center">
                 Find all matching pairs in the fewest moves!
             </p>
-            <AdBanner slot="9056088001" format="horizontal" className="mt-8 w-full max-w-md" />
         </div>
     );
 }

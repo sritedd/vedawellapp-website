@@ -2,7 +2,6 @@
 
 import { useState, useCallback } from "react";
 import Link from "next/link";
-import AdBanner from "@/components/AdBanner";
 
 type CellState = {
     isMine: boolean;
@@ -174,8 +173,6 @@ export default function Minesweeper() {
 
             <h1 className="text-4xl font-bold text-white mb-4">💣 Minesweeper</h1>
 
-            <AdBanner slot="1696472735" format="horizontal" className="mb-4 w-full max-w-md" />
-
             {/* Difficulty */}
             <div className="flex gap-2 mb-6">
                 {(Object.keys(DIFFICULTY) as Difficulty[]).map((d) => (
@@ -271,7 +268,6 @@ export default function Minesweeper() {
             <p className="mt-6 text-white/70 text-center text-sm">
                 Left-click to reveal • Right-click to flag
             </p>
-            <AdBanner slot="9056088001" format="horizontal" className="mt-8 w-full max-w-md" />
         </div>
     );
 }
