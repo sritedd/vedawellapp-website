@@ -865,5 +865,14 @@ export const toolMetadata: Record<string, Metadata> = {
       description: "Apply brightness, contrast, sepia, blur and more. Live preview. Download as JPG/PNG/WebP. Free.",
     },
   },
+  "pdf-to-word": {
+    title: "Free PDF to Word Converter Online - PDF to DOCX",
+    description: "Convert PDF files to editable Word documents (.docx) for free. Text is extracted from your PDF and saved as a Word file. 100% browser-based — your files never leave your device.",
+    keywords: ["pdf to word", "pdf to docx", "convert pdf to word", "pdf to word converter online free", "pdf to editable word", "extract text from pdf", "pdf converter", "pdf word"],
+    openGraph: {
+      title: "PDF to Word Converter - Convert PDF to DOCX Online Free",
+      description: "Convert PDF to Word (.docx). Text extracted and saved as editable document. Browser-based, private. Free.",
+    },
+  },
 };
 

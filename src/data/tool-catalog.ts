@@ -754,6 +754,16 @@ export const TOOLS: ToolEntry[] = [
         color: CATEGORY_COLORS.pdf,
         href: '/tools/image-to-pdf',
     },
+    {
+        id: 'pdf-to-word',
+        title: 'PDF to Word',
+        description: 'Extract text from a PDF and download as a Word (.docx) document.',
+        icon: '📝',
+        category: 'pdf',
+        tags: ['pdf', 'word', 'docx', 'convert', 'text'],
+        color: CATEGORY_COLORS.pdf,
+        href: '/tools/pdf-to-word',
+    },
 
     // ===================== NEW IMAGE TOOLS =====================
     {
