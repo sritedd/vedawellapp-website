@@ -802,4 +802,68 @@ export const toolMetadata: Record<string, Metadata> = {
       description: "Download YouTube thumbnails in HD quality. Paste URL, get all resolutions. One-click. Free.",
     },
   },
+  "pdf-merge": {
+    title: "Free PDF Merge Online - Combine Multiple PDFs into One",
+    description: "Merge multiple PDF files into a single document in seconds. Reorder pages, drag to arrange, and download your combined PDF. 100% free, private, browser-based — no upload to servers.",
+    keywords: ["pdf merge", "merge pdf", "combine pdf", "join pdf files", "pdf merger online", "merge pdf online free", "combine pdf files", "pdf joiner"],
+    openGraph: {
+      title: "Free PDF Merge - Combine Multiple PDFs into One",
+      description: "Merge PDF files instantly. Reorder, arrange, download. 100% private, browser-based. Free.",
+    },
+  },
+  "pdf-split": {
+    title: "Free PDF Split Online - Extract Pages from PDF",
+    description: "Extract specific pages or page ranges from any PDF file. Enter ranges like 1-3, 5, 7-10 and download a new PDF with only those pages. 100% browser-based and private.",
+    keywords: ["pdf split", "split pdf", "extract pdf pages", "pdf page extractor", "split pdf online free", "extract pages from pdf", "pdf cutter", "separate pdf pages"],
+    openGraph: {
+      title: "Free PDF Split - Extract Pages from Any PDF",
+      description: "Extract specific PDF pages by range. Enter 1-3, 5, 7-10 and download. Private, browser-based. Free.",
+    },
+  },
+  "pdf-compress": {
+    title: "Free PDF Compress Online - Reduce PDF File Size",
+    description: "Compress and reduce PDF file size by removing hidden metadata and optimizing internal structure. See before/after size comparison. 100% private — processed in your browser.",
+    keywords: ["pdf compress", "compress pdf", "reduce pdf size", "pdf file size reducer", "compress pdf online free", "pdf optimizer", "shrink pdf", "pdf compression tool"],
+    openGraph: {
+      title: "Free PDF Compress - Reduce PDF File Size Online",
+      description: "Compress PDFs by stripping metadata. See before/after sizes. 100% private, browser-based. Free.",
+    },
+  },
+  "pdf-to-image": {
+    title: "Free PDF to Image Converter - Convert PDF Pages to PNG/JPG",
+    description: "Convert each page of a PDF into high-quality PNG or JPEG images. Choose resolution (72–216 DPI), preview all pages, and download individually or all at once. Private, browser-based.",
+    keywords: ["pdf to image", "pdf to png", "pdf to jpg", "convert pdf to image", "pdf page to image", "pdf to jpeg online free", "extract images from pdf", "pdf converter"],
+    openGraph: {
+      title: "PDF to Image Converter - Convert PDF Pages to PNG/JPG",
+      description: "Convert PDF pages to PNG or JPEG. Choose DPI, preview all pages. Browser-based, private. Free.",
+    },
+  },
+  "image-to-pdf": {
+    title: "Free Image to PDF Converter Online - JPG PNG to PDF",
+    description: "Convert multiple images (JPG, PNG, WebP) into a single PDF document. Choose page size (A4, Letter, A3), orientation, margins, and arrange image order. 100% private.",
+    keywords: ["image to pdf", "jpg to pdf", "png to pdf", "convert image to pdf", "photos to pdf", "image to pdf converter online free", "multiple images to pdf", "pictures to pdf"],
+    openGraph: {
+      title: "Image to PDF Converter - JPG, PNG, WebP to PDF",
+      description: "Convert images to PDF. Choose page size, margins, image order. A4, Letter, A3. Free.",
+    },
+  },
+  "batch-image-compressor": {
+    title: "Batch Image Compressor Online Free - Compress Multiple Images",
+    description: "Compress up to 50 images at once with a single quality slider. See before/after sizes for each image, download individually or all at once. 100% browser-based and private.",
+    keywords: ["batch image compressor", "bulk image compressor", "compress multiple images", "bulk image optimizer", "batch compress photos", "multiple image compressor online", "batch photo compressor", "compress images bulk"],
+    openGraph: {
+      title: "Batch Image Compressor - Compress Multiple Images at Once",
+      description: "Compress up to 50 images at once. Quality slider, before/after sizes. 100% private. Free.",
+    },
+  },
+  "image-filters": {
+    title: "Image Filters & Effects Online Free - Apply Photo Filters",
+    description: "Apply professional photo filters and effects to images. Adjust brightness, contrast, saturation, blur, sepia, grayscale, hue and more. Live preview and instant download. Free.",
+    keywords: ["image filters", "photo filters online", "image effects", "photo editor filters", "apply filter to image", "grayscale image online", "sepia filter", "brightness contrast editor"],
+    openGraph: {
+      title: "Image Filters & Effects - Apply Photo Filters Online",
+      description: "Apply brightness, contrast, sepia, blur and more. Live preview. Download as JPG/PNG/WebP. Free.",
+    },
+  },
 };
+

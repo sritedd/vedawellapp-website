@@ -4,7 +4,7 @@
  * Each tool has: slug (matching directory name), display info, category, and tags.
  */
 
-export type ToolCategory = 'all' | 'calculator' | 'converter' | 'generator' | 'productivity' | 'developer' | 'image' | 'wellness' | 'seo' | 'fun';
+export type ToolCategory = 'all' | 'calculator' | 'converter' | 'generator' | 'productivity' | 'developer' | 'image' | 'pdf' | 'wellness' | 'seo' | 'fun';
 
 export interface ToolEntry {
     id: string;
@@ -24,6 +24,7 @@ const CATEGORY_COLORS: Record<Exclude<ToolCategory, 'all'>, string> = {
     productivity: 'border-amber-500/50 hover:border-amber-500',
     developer: 'border-cyan-500/50 hover:border-cyan-500',
     image: 'border-pink-500/50 hover:border-pink-500',
+    pdf: 'border-rose-600/50 hover:border-rose-600',
     wellness: 'border-emerald-500/50 hover:border-emerald-500',
     seo: 'border-orange-500/50 hover:border-orange-500',
     fun: 'border-red-500/50 hover:border-red-500',
@@ -702,6 +703,80 @@ export const TOOLS: ToolEntry[] = [
         href: '/tools/youtube-thumbnail-downloader',
     },
 
+    // ===================== PDF TOOLS =====================
+    {
+        id: 'pdf-merge',
+        title: 'PDF Merge',
+        description: 'Combine multiple PDF files into one. Reorder pages easily.',
+        icon: '🔗',
+        category: 'pdf',
+        tags: ['pdf', 'merge', 'combine', 'join'],
+        color: CATEGORY_COLORS.pdf,
+        href: '/tools/pdf-merge',
+    },
+    {
+        id: 'pdf-split',
+        title: 'PDF Split',
+        description: 'Extract specific pages from a PDF into a new file.',
+        icon: '✂️',
+        category: 'pdf',
+        tags: ['pdf', 'split', 'extract', 'pages'],
+        color: CATEGORY_COLORS.pdf,
+        href: '/tools/pdf-split',
+    },
+    {
+        id: 'pdf-compress',
+        title: 'PDF Compress',
+        description: 'Reduce PDF file size by stripping metadata and optimizing.',
+        icon: '🗜️',
+        category: 'pdf',
+        tags: ['pdf', 'compress', 'reduce', 'optimize'],
+        color: CATEGORY_COLORS.pdf,
+        href: '/tools/pdf-compress',
+    },
+    {
+        id: 'pdf-to-image',
+        title: 'PDF to Image',
+        description: 'Convert each PDF page into a high-quality PNG or JPEG image.',
+        icon: '🖼️',
+        category: 'pdf',
+        tags: ['pdf', 'image', 'convert', 'png', 'jpeg'],
+        color: CATEGORY_COLORS.pdf,
+        href: '/tools/pdf-to-image',
+    },
+    {
+        id: 'image-to-pdf',
+        title: 'Image to PDF',
+        description: 'Convert multiple images into a single PDF document.',
+        icon: '📄',
+        category: 'pdf',
+        tags: ['pdf', 'image', 'convert', 'jpg', 'png'],
+        color: CATEGORY_COLORS.pdf,
+        href: '/tools/image-to-pdf',
+    },
+
+    // ===================== NEW IMAGE TOOLS =====================
+    {
+        id: 'batch-image-compressor',
+        title: 'Batch Image Compressor',
+        description: 'Compress multiple images at once — fast, private, browser-based.',
+        icon: '📦',
+        category: 'image',
+        tags: ['batch', 'compress', 'image', 'bulk', 'optimize'],
+        color: CATEGORY_COLORS.image,
+        href: '/tools/batch-image-compressor',
+    },
+    {
+        id: 'image-filters',
+        title: 'Image Filters & Effects',
+        description: 'Apply filters like grayscale, sepia, blur, brightness and more.',
+        icon: '✨',
+        category: 'image',
+        tags: ['filter', 'effects', 'image', 'edit', 'brightness'],
+        color: CATEGORY_COLORS.image,
+        href: '/tools/image-filters',
+    },
+
     // ===================== SEO & CONTENT =====================
     {
         id: 'keyword-density-checker',
@@ -948,6 +1023,7 @@ export const CATEGORIES: { value: ToolCategory; label: string; icon: string }[] 
     { value: 'productivity', label: 'Productivity', icon: '📝' },
     { value: 'developer', label: 'Developer', icon: '🛠️' },
     { value: 'image', label: 'Image Tools', icon: '🖼️' },
+    { value: 'pdf', label: 'PDF Tools', icon: '📄' },
     { value: 'seo', label: 'SEO & Content', icon: '🔍' },
     { value: 'wellness', label: 'Wellness', icon: '🧘' },
     { value: 'fun', label: 'Fun', icon: '🎮' },
