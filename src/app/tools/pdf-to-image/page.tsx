@@ -40,7 +40,7 @@ export default function PDFToImage() {
         try {
             const pdfjsLib = await import("pdfjs-dist");
             pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
-            const pdf = await pdfjsLib.getDocument({ data: uint8 }).promise;
+            const pdf = await pdfjsLib.getDocument({ data: uint8.slice() }).promise;
             setPageCount(pdf.numPages);
         } catch {
             setError("Could not read PDF — it may be encrypted or corrupted.");
@@ -56,7 +56,7 @@ export default function PDFToImage() {
         try {
             const pdfjsLib = await import("pdfjs-dist");
             pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
-            const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
+            const pdf = await pdfjsLib.getDocument({ data: pdfData.slice() }).promise;
             const results: PageImage[] = [];
 
             for (let i = 1; i <= pdf.numPages; i++) {

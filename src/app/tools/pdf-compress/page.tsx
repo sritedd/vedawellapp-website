@@ -44,7 +44,7 @@ export default function PDFCompress() {
         try {
             const pdfjsLib = await import("pdfjs-dist");
             pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
-            const pdf = await pdfjsLib.getDocument({ data: uint8 }).promise;
+            const pdf = await pdfjsLib.getDocument({ data: uint8.slice() }).promise;
             setPageCount(pdf.numPages);
         } catch {
             setError("Could not read PDF — it may be encrypted or corrupted.");
@@ -63,7 +63,7 @@ export default function PDFCompress() {
             // Step 1: load with pdfjs and rasterize each page to JPEG
             const pdfjsLib = await import("pdfjs-dist");
             pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
-            const srcPdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
+            const srcPdf = await pdfjsLib.getDocument({ data: pdfData.slice() }).promise;
 
             // Step 2: rebuild PDF using pdf-lib with jpeg-compressed pages
             const { PDFDocument } = await import("pdf-lib");
