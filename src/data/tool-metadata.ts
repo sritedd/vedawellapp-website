@@ -874,5 +874,14 @@ export const toolMetadata: Record<string, Metadata> = {
       description: "Convert PDF to Word (.docx). Text extracted and saved as editable document. Browser-based, private. Free.",
     },
   },
+  "crontab": {
+    title: "Crontab Expression Editor Online - Cron Guru Free",
+    description: "Parse and build cron expressions online. Get a human-readable description, see next scheduled run times, edit individual fields, and use common presets. Like crontab.guru but free and private.",
+    keywords: ["crontab", "cron expression", "cron job", "crontab guru", "cron parser", "cron editor online", "cron scheduler", "linux cron", "devops tools"],
+    openGraph: {
+      title: "Crontab Expression Editor - Parse Cron Jobs Online Free",
+      description: "Live cron expression parser with human-readable descriptions, next run times, field editor and common presets. Browser-based, private. Free.",
+    },
+  },
 };
 

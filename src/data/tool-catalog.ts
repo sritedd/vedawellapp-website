@@ -610,6 +610,16 @@ export const TOOLS: ToolEntry[] = [
         color: CATEGORY_COLORS.developer,
         href: '/tools/url-encoder',
     },
+    {
+        id: 'crontab',
+        title: 'Crontab Expression Editor',
+        description: 'Parse, build, and understand cron expressions with live description, next run times, presets, and field editor.',
+        icon: '⏲️',
+        category: 'developer',
+        tags: ['cron', 'crontab', 'scheduler', 'linux', 'devops'],
+        color: CATEGORY_COLORS.developer,
+        href: '/tools/crontab',
+    },
 
     // ===================== IMAGE =====================
     {
