@@ -25,21 +25,27 @@ export default function GuardianPage() {
                     </div>
                 </section>
 
-                {/* Login CTA */}
+                {/* CTA Section */}
                 <section className="py-12 px-6">
-                    <div className="max-w-lg mx-auto">
+                    <div className="max-w-xl mx-auto">
                         <div className="card text-center">
-                            <h2 className="text-2xl font-bold mb-4">Sign in to get started</h2>
+                            <h2 className="text-2xl font-bold mb-4">Start protecting your build today</h2>
                             <p className="text-muted mb-6">
-                                Create a free account to track your construction project with our comprehensive tools.
+                                Track your first project free. Upgrade to Guardian Pro for unlimited projects, PDF exports, and legal-ready evidence packs.
                             </p>
 
-                            <div className="space-y-4">
+                            <div className="space-y-3">
                                 <Link
                                     href="/guardian/login"
                                     className="btn-primary w-full block text-center"
                                 >
-                                    Sign In / Sign Up
+                                    Start Free — No Credit Card
+                                </Link>
+                                <Link
+                                    href="/guardian/pricing"
+                                    className="block w-full text-center px-6 py-3 border border-border rounded-lg font-semibold hover:bg-muted/10 transition-colors"
+                                >
+                                    View Pro Plans from $14.99/mo
                                 </Link>
                             </div>
 

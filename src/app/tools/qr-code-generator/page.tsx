@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import ToolFAQ from "@/components/tools/ToolFAQ";
 
 export default function QRCodeGenerator() {
     const [text, setText] = useState("https://vedawell.tools");
@@ -184,6 +185,13 @@ export default function QRCodeGenerator() {
                         </div>
                     </div>
                 </div>
+
+                    <ToolFAQ faqs={[
+                        { question: "Are QR codes generated here free to use commercially?", answer: "Yes, all QR codes generated with this tool are completely free for personal and commercial use. There are no watermarks, usage limits, or licensing fees. You own the QR codes you create." },
+                        { question: "What size should my QR code be for printing?", answer: "For print materials, generate at least 300x300 pixels. For business cards, 150x150 pixels minimum. For posters and banners, use 500x500 pixels or larger. The SVG format scales infinitely without quality loss, making it ideal for print." },
+                        { question: "How much data can a QR code hold?", answer: "A standard QR code can hold up to 4,296 alphanumeric characters or 7,089 numeric digits. For URLs, keep them under 200 characters for reliable scanning. Shorter content creates simpler, more scannable QR codes." },
+                        { question: "Do QR codes expire?", answer: "Static QR codes (like the ones generated here) never expire. They encode data directly in the pattern and work permanently. Dynamic QR codes (not generated here) use redirect URLs that can expire if the service stops." },
+                    ]} />
             </main>
         </div>
     );

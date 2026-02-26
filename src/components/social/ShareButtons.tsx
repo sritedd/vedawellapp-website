@@ -57,9 +57,10 @@ export default function ShareButtons({ title, text, url }: ShareButtonsProps) {
     if (!visible) return null;
 
     return (
-        <div className="fixed bottom-4 right-4 z-40 flex flex-col gap-2 items-end">
+        <div className="flex flex-col gap-2 items-center">
             {/* Share buttons group */}
-            <div className="flex gap-2 bg-card border border-border rounded-full px-3 py-2 shadow-xl">
+            <p className="text-sm text-muted">Share this tool</p>
+            <div className="flex gap-2 bg-card border border-border rounded-full px-3 py-2 shadow-sm">
                 {/* WhatsApp */}
                 <a
                     href={whatsappUrl}

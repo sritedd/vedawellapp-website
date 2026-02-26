@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { TOOLS, CATEGORIES, type ToolCategory } from "@/data/tool-catalog";
+import AdBanner from "@/components/AdBanner";
 
 export default function ToolsPage() {
     const [search, setSearch] = useState("");
@@ -62,32 +63,39 @@ export default function ToolsPage() {
                     {filteredTools.length} tools found
                 </p>
 
-                {/* Tools Grid */}
+                {/* Tools Grid with mid-feed ads */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredTools.map((tool) => (
-                        <Link
-                            key={tool.id}
-                            href={tool.href}
-                            className={`group block bg-card rounded-xl p-6 border transition-all hover:bg-muted/5 hover:scale-[1.02] hover:shadow-lg ${tool.color}`}
-                        >
-                            <div className="flex justify-between items-start mb-4">
-                                <span className="text-4xl">{tool.icon}</span>
-                                <span className="text-muted group-hover:text-primary transition-colors">→</span>
-                            </div>
-                            <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors">
-                                {tool.title}
-                            </h3>
-                            <p className="text-muted text-sm mb-4">
-                                {tool.description}
-                            </p>
-                            <div className="flex flex-wrap gap-2">
-                                {tool.tags.map(tag => (
-                                    <span key={tag} className="px-2 py-1 rounded bg-muted text-xs text-muted-foreground uppercase tracking-wider">
-                                        {tag}
-                                    </span>
-                                ))}
-                            </div>
-                        </Link>
+                    {filteredTools.map((tool, index) => (
+                        <React.Fragment key={tool.id}>
+                            <Link
+                                href={tool.href}
+                                className={`group block bg-card rounded-xl p-6 border transition-all hover:bg-muted/5 hover:scale-[1.02] hover:shadow-lg ${tool.color}`}
+                            >
+                                <div className="flex justify-between items-start mb-4">
+                                    <span className="text-4xl">{tool.icon}</span>
+                                    <span className="text-muted group-hover:text-primary transition-colors">→</span>
+                                </div>
+                                <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors">
+                                    {tool.title}
+                                </h3>
+                                <p className="text-muted text-sm mb-4">
+                                    {tool.description}
+                                </p>
+                                <div className="flex flex-wrap gap-2">
+                                    {tool.tags.map(tag => (
+                                        <span key={tag} className="px-2 py-1 rounded bg-muted text-xs text-muted-foreground uppercase tracking-wider">
+                                            {tag}
+                                        </span>
+                                    ))}
+                                </div>
+                            </Link>
+                            {/* Mid-feed ad after every 9th tool */}
+                            {(index + 1) % 9 === 0 && index < filteredTools.length - 1 && (
+                                <div className="col-span-full my-4">
+                                    <AdBanner slot="6283941057" format="horizontal" />
+                                </div>
+                            )}
+                        </React.Fragment>
                     ))}
                 </div>
 

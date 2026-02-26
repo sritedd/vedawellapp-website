@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import EmailCapture from "@/components/EmailCapture";
 
 interface PanchangData {
     tithi: string;
@@ -245,6 +246,13 @@ export default function PanchangPage() {
                             It helps determine auspicious times for important activities.
                         </p>
                     </div>
+
+                    {/* Panchang email capture */}
+                    <EmailCapture
+                        source="panchang"
+                        heading="Get daily Panchang in your inbox"
+                        subtext="Receive tomorrow's Tithi, Nakshatra, Rahu Kaal and auspicious times every evening."
+                    />
                 </div>
 
                 <ShareButtons

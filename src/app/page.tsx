@@ -1,4 +1,5 @@
 import Link from "next/link";
+import EmailCapture from "@/components/EmailCapture";
 
 export default function HomePage() {
   return (
@@ -111,6 +112,17 @@ export default function HomePage() {
               View Panchang <span>→</span>
             </Link>
           </div>
+        </div>
+      </section>
+
+      {/* Newsletter Section */}
+      <section className="py-16 px-6 bg-primary/5">
+        <div className="max-w-lg mx-auto">
+          <EmailCapture
+            source="homepage"
+            heading="Stay in the loop"
+            subtext="New tools, productivity tips, and Panchang updates. No spam, unsubscribe anytime."
+          />
         </div>
       </section>
     </>

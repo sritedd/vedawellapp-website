@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import ToolFAQ from "@/components/tools/ToolFAQ";
 
 export default function WordCounter() {
     const [text, setText] = useState("");
@@ -162,6 +163,13 @@ export default function WordCounter() {
                         </div>
                     </div>
                 </div>
+
+                <ToolFAQ faqs={[
+                    { question: "How are words counted in this tool?", answer: "Words are counted by splitting text on whitespace boundaries (spaces, tabs, newlines). Hyphenated words like 'well-known' count as one word. Numbers and abbreviations are each counted as separate words, following standard word counting conventions used by Microsoft Word and Google Docs." },
+                    { question: "What is the ideal word count for a blog post?", answer: "For SEO, blog posts should be at least 1,000-1,500 words for competitive topics. Long-form content (2,000-3,000+ words) tends to rank higher on Google. For social media: Twitter is 280 characters, Instagram captions work best at 125-150 words, and LinkedIn posts perform well at 1,300-2,000 characters." },
+                    { question: "How long does it take to read a certain word count?", answer: "The average adult reads at about 200-250 words per minute. So: 500 words takes about 2 minutes, 1,000 words takes 4-5 minutes, and 2,000 words takes 8-10 minutes. Speaking speed is slower at about 130-150 words per minute." },
+                    { question: "Does this tool count characters with or without spaces?", answer: "This tool shows both. 'Characters' includes spaces and punctuation, while 'Characters (no spaces)' excludes them. The no-spaces count is useful for SMS messages and social media platforms that count characters differently." },
+                ]} />
             </main>
         </div>
     );

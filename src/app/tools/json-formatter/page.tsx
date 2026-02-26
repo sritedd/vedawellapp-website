@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import ToolFAQ from "@/components/tools/ToolFAQ";
 
 export default function JsonFormatter() {
     const [input, setInput] = useState("");
@@ -196,6 +197,13 @@ export default function JsonFormatter() {
                         </div>
                     )}
                 </div>
+
+                <ToolFAQ faqs={[
+                    { question: "What is JSON and why does it need formatting?", answer: "JSON (JavaScript Object Notation) is a lightweight data format used for APIs, configuration files, and data exchange. Minified JSON removes whitespace to reduce file size but makes it unreadable. Our formatter adds proper indentation and line breaks so you can read and debug JSON data easily." },
+                    { question: "Is my JSON data safe when using this tool?", answer: "Yes, 100%. This JSON formatter runs entirely in your browser. Your data never leaves your device — no server requests, no storage, no logging. It is completely private and secure." },
+                    { question: "What causes 'Invalid JSON' errors?", answer: "Common causes include: missing or extra commas, unquoted property names, single quotes instead of double quotes, trailing commas after the last item, and unescaped special characters in strings. Our validator highlights exactly where the error occurs." },
+                    { question: "Can I minify JSON with this tool?", answer: "Yes. In addition to formatting (beautifying), this tool can minify JSON by removing all unnecessary whitespace. This is useful for reducing payload size in API responses and configuration files." },
+                ]} />
             </main>
         </div>
     );

@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
+import ToolFAQ from "@/components/tools/ToolFAQ";
 
 export default function ImageCompressor() {
     const [image, setImage] = useState<string | null>(null);
@@ -88,6 +89,12 @@ export default function ImageCompressor() {
                         </div>
                     </>
                 )}
+                <ToolFAQ faqs={[
+                    { question: "Does compressing images reduce their quality?", answer: "Our compressor uses intelligent lossy compression that reduces file size while maintaining visual quality. At 80% quality (our default), the difference is imperceptible to the human eye, yet file sizes drop by 50-80%. You can adjust the quality slider to find your ideal balance." },
+                    { question: "Is it safe to upload images to this tool?", answer: "Yes, completely safe. Image compression happens 100% in your browser using the HTML5 Canvas API. Your images are never uploaded to any server, never stored, and never seen by anyone else. This is the most private image compressor available." },
+                    { question: "What image formats can I compress?", answer: "This tool supports JPEG, PNG, and WebP compression. JPEG works best for photographs (60-80% size reduction). PNG is ideal for graphics with transparency. WebP offers the best compression ratio for web use and is supported by all modern browsers." },
+                    { question: "What is the maximum file size I can compress?", answer: "Since processing happens in your browser, the limit depends on your device's memory. Most devices handle images up to 50MB without issues. For very large images (50MB+), you may experience slower processing but it will still work." },
+                ]} />
             </main>
         </div>
     );

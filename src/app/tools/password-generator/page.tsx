@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import ToolFAQ from "@/components/tools/ToolFAQ";
 
 export default function PasswordGenerator() {
     const [length, setLength] = useState(16);
@@ -196,6 +197,13 @@ export default function PasswordGenerator() {
                             <li>• Consider using a password manager</li>
                         </ul>
                     </div>
+
+                    <ToolFAQ faqs={[
+                        { question: "How long should my password be?", answer: "For most accounts, 12-16 characters is recommended. For high-security accounts like banking or email, use 20+ characters. Longer passwords are exponentially harder to crack — a 16-character password with mixed characters would take billions of years to brute-force." },
+                        { question: "Is this password generator safe to use?", answer: "Yes. This generator runs entirely in your browser using the Web Crypto API (crypto.getRandomValues), the same cryptographic random number generator used by banks and security software. Your passwords are never sent to any server." },
+                        { question: "What makes a strong password?", answer: "A strong password uses a mix of uppercase letters, lowercase letters, numbers, and special symbols. It should be at least 12 characters long and avoid dictionary words, personal information, or common patterns like '123456' or 'password'." },
+                        { question: "Should I use a different password for every site?", answer: "Absolutely. If one site gets breached and you reuse passwords, attackers can access all your other accounts. Use a unique password for every site and store them in a password manager like Bitwarden, 1Password, or your browser's built-in manager." },
+                    ]} />
                 </div>
             </main>
         </div>

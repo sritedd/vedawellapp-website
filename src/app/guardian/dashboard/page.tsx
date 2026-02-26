@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { formatMoney } from "@/utils/format";
 import { logout } from "@/app/guardian/actions";
+import ManageBillingButton from "@/components/guardian/ManageBillingButton";
 
 export default async function DashboardPage() {
     const supabase = await createClient();
@@ -11,6 +12,21 @@ export default async function DashboardPage() {
     if (!user) {
         redirect("/guardian/login");
     }
+
+    // Fetch user profile for subscription tier
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('subscription_tier')
+        .eq('id', user.id)
+        .single();
+
+    const tier = profile?.subscription_tier || 'free';
+    const isFree = tier === 'free';
+
+    // Free tier limits
+    const FREE_PROJECT_LIMIT = 1;
+    const FREE_DEFECT_LIMIT = 3;
+    const FREE_VARIATION_LIMIT = 2;
 
     // Fetch all projects with their names and status
     const { data: projects } = await supabase
@@ -86,7 +102,31 @@ export default async function DashboardPage() {
             {/* Dashboard Content */}
             <div className="bg-background">
                 <div className="max-w-7xl mx-auto px-6 py-8">
-                    <h1 className="text-3xl font-bold mb-8">🏠 HomeOwner Guardian Dashboard</h1>
+                    <div className="flex items-center justify-between mb-8">
+                        <h1 className="text-3xl font-bold">🏠 HomeOwner Guardian Dashboard</h1>
+                        {isFree ? (
+                            <Link href="/guardian/pricing" className="text-sm px-3 py-1.5 bg-primary/10 text-primary rounded-full font-medium hover:bg-primary/20 transition-colors">
+                                Free Plan — Upgrade
+                            </Link>
+                        ) : (
+                            <ManageBillingButton />
+                        )}
+                    </div>
+
+                    {/* Free tier upgrade banner */}
+                    {isFree && (
+                        <div className="mb-8 p-4 bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 rounded-lg flex items-center justify-between">
+                            <div>
+                                <p className="font-semibold">Unlock unlimited projects, PDF exports & evidence packs</p>
+                                <p className="text-sm text-muted">
+                                    Free plan: {FREE_PROJECT_LIMIT} project, {FREE_DEFECT_LIMIT} defects, {FREE_VARIATION_LIMIT} variations
+                                </p>
+                            </div>
+                            <Link href="/guardian/pricing" className="px-4 py-2 bg-primary text-white rounded-lg font-semibold text-sm hover:bg-primary/90 transition-colors whitespace-nowrap">
+                                Upgrade to Pro
+                            </Link>
+                        </div>
+                    )}
 
                     {/* Stats Cards */}
                     <div className="grid md:grid-cols-4 gap-6 mb-8">
@@ -127,13 +167,23 @@ export default async function DashboardPage() {
                     {/* Quick Actions */}
                     <h2 className="text-xl font-bold mb-4">Quick Actions</h2>
                     <div className="grid md:grid-cols-4 gap-6 mb-8">
-                        <Link href="/guardian/projects/new" className="card hover:border-primary transition-colors">
-                            <span className="text-3xl mb-3 block">➕</span>
-                            <h3 className="font-bold mb-2">Create New Project</h3>
-                            <p className="text-muted text-sm">
-                                Start tracking a new home construction project
-                            </p>
-                        </Link>
+                        {isFree && (projects?.length || 0) >= FREE_PROJECT_LIMIT ? (
+                            <Link href="/guardian/pricing" className="card hover:border-primary transition-colors border-dashed opacity-80">
+                                <span className="text-3xl mb-3 block">🔒</span>
+                                <h3 className="font-bold mb-2">Upgrade for More Projects</h3>
+                                <p className="text-muted text-sm">
+                                    Free plan allows {FREE_PROJECT_LIMIT} project. Upgrade to Pro for unlimited.
+                                </p>
+                            </Link>
+                        ) : (
+                            <Link href="/guardian/projects/new" className="card hover:border-primary transition-colors">
+                                <span className="text-3xl mb-3 block">➕</span>
+                                <h3 className="font-bold mb-2">Create New Project</h3>
+                                <p className="text-muted text-sm">
+                                    Start tracking a new home construction project
+                                </p>
+                            </Link>
+                        )}
                         {projectId && (
                             <Link href={`/guardian/projects/${projectId}`} className="card hover:border-primary transition-colors">
                                 <span className="text-3xl mb-3 block">📋</span>

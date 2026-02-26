@@ -2,6 +2,9 @@ import Link from "next/link";
 import { ReactNode } from "react";
 import JsonLd from "@/components/seo/JsonLd";
 import ShareButtons from "@/components/social/ShareButtons";
+import AdBanner from "@/components/AdBanner";
+import SupportBanner from "@/components/SupportBanner";
+import EmailCapture from "@/components/EmailCapture";
 
 interface ToolLayoutProps {
     title: string;
@@ -47,10 +50,24 @@ export default function ToolLayout({ title, description, children }: ToolLayoutP
                     {children}
                 </div>
 
-                <ShareButtons
-                    title={`${title} - VedaWell Tools`}
-                    text={`I just used the free ${title} tool on VedaWell! Check it out:`}
-                />
+                {/* In-content ad — highest-value placement (user just received value) */}
+                <div className="my-6">
+                    <AdBanner slot="4817652390" format="rectangle" />
+                </div>
+
+                {/* Support / Tip banner */}
+                <SupportBanner />
+
+                {/* Email capture */}
+                <EmailCapture source={title.toLowerCase().replace(/\s+/g, "-")} />
+
+                {/* Inline share buttons */}
+                <div className="mt-6 flex items-center justify-center">
+                    <ShareButtons
+                        title={`${title} - VedaWell Tools`}
+                        text={`I just used the free ${title} tool on VedaWell! Check it out:`}
+                    />
+                </div>
             </div>
         </div>
     );
