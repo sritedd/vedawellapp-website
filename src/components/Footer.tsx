@@ -3,27 +3,61 @@ import Link from "next/link";
 export default function Footer() {
     return (
         <footer className="border-t border-border py-8 px-6">
-            <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-                <p className="text-muted text-sm">
-                    © {new Date().getFullYear()} VedaWell Tools. Free & Open Source.
-                </p>
-                <div className="flex items-center gap-6 text-sm">
-                    <Link href="/about" className="text-muted hover:text-foreground transition-colors">
-                        About
-                    </Link>
-                    <Link href="/privacy" className="text-muted hover:text-foreground transition-colors">
-                        Privacy
-                    </Link>
-                    <Link
-                        href="https://buymeacoffee.com/vedawell"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-muted hover:text-foreground transition-colors"
-                    >
-                        ☕ Support
-                    </Link>
+            <div className="max-w-7xl mx-auto space-y-5">
+                {/* Support row — shown on every page */}
+                <div className="flex flex-col items-center gap-3">
+                    <p className="text-muted text-sm">Found these tools useful? Help keep them free ❤️</p>
+                    <div className="flex items-center gap-3 flex-wrap justify-center">
+                        <a
+                            href="https://buymeacoffee.com/vedawell"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-[#FFDD00] text-black text-sm font-semibold rounded-lg hover:opacity-90 transition-opacity"
+                        >
+                            <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
+                                <path d="M20.216 6.415l-.132-.666c-.119-.598-.388-1.163-1.001-1.379-.197-.069-.42-.098-.57-.241-.152-.143-.196-.366-.231-.572-.065-.378-.125-.756-.192-1.133-.057-.325-.102-.69-.25-.987-.195-.4-.597-.634-.996-.788a5.723 5.723 0 00-.626-.194c-1-.263-2.05-.36-3.077-.416a25.834 25.834 0 00-3.7.062c-.915.083-1.88.184-2.75.5-.318.116-.646.256-.888.501-.297.302-.393.77-.177 1.146.154.267.415.456.692.58.36.162.737.284 1.123.366 1.075.238 2.189.331 3.287.37 1.218.05 2.437.01 3.65-.118.299-.033.598-.073.896-.119.352-.054.578-.513.474-.834-.124-.383-.457-.531-.834-.473-.466.074-.96.108-1.382.146-1.177.08-2.358.082-3.536.006a22.228 22.228 0 01-1.157-.107c-.086-.01-.18-.025-.258-.036-.243-.036-.484-.08-.724-.13-.111-.027-.111-.185 0-.212h.005c.277-.06.557-.108.838-.147h.002c.131-.009.263-.032.394-.048a25.076 25.076 0 013.426-.12c.674.019 1.347.062 2.014.13l.04.005c.433.046.863.097 1.298.139.598.06.882.404.987.987.124.7.235 1.402.356 2.103.026.15-.01.3-.118.413-.112.117-.27.168-.429.186-.467.053-.94.069-1.41.093-.29.015-.58.033-.87.046l-.22.01h-.02c-.93.04-1.862.054-2.793.033a22.67 22.67 0 01-3.07-.27c-.093-.019-.174-.076-.174-.173 0-.057.027-.11.075-.148l.037-.025c.377-.236.774-.44 1.185-.61.516-.213 1.048-.39 1.59-.53.19-.049.38-.096.572-.136a.69.69 0 00.565-.684.688.688 0 00-.769-.623c-.397.05-.795.123-1.188.22-.695.17-1.38.39-2.04.669a8.048 8.048 0 00-.845.44l-.003.002c-.555.339-.543 1.093-.155 1.513.188.201.44.327.699.414a14.31 14.31 0 001.314.316 24.482 24.482 0 005.444.273c.467-.025.934-.066 1.4-.12.35-.04.694-.09 1.032-.188.574-.167.882-.655.776-1.25l-.004-.019z" />
+                                <path d="M16.216 16.216c0 .888-3.015 1.338-4.216 1.338s-4.216-.45-4.216-1.338V13h8.432v3.216z" />
+                            </svg>
+                            Buy us a coffee
+                        </a>
+                        <a
+                            href="https://ko-fi.com/vedawell"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-[#13C3FF] text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-opacity"
+                        >
+                            <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
+                                <path d="M23.881 8.948c-.773-4.085-4.859-4.593-4.859-4.593H.723c-.604 0-.679.798-.679.798s-.082 7.324-.022 11.822c.164 2.424 2.586 2.672 2.586 2.672s8.267-.023 11.966-.049c2.438-.426 2.683-2.566 2.658-3.734 4.352.24 7.422-2.831 6.649-6.916zm-11.062 3.511c-1.246 1.453-4.011 3.976-4.011 3.976s-.121.119-.31.023c-.076-.057-.108-.09-.108-.09-.443-.441-3.368-3.049-4.034-3.954-.709-.965-1.041-2.7-.091-3.71.951-1.01 3.005-1.086 4.363.407 0 0 1.565-1.782 3.468-.963 1.904.82 1.832 3.011.723 4.311zm6.173.478c-.928.116-1.682.028-1.682.028V7.284h1.77s1.971.551 1.971 2.638c0 1.913-.985 2.667-2.059 3.015z" />
+                            </svg>
+                            Support on Ko-fi
+                        </a>
+                    </div>
+                </div>
+
+                {/* Bottom row */}
+                <div className="flex flex-col md:flex-row justify-between items-center gap-3 pt-4 border-t border-border">
+                    <p className="text-muted text-sm">
+                        © {new Date().getFullYear()} VedaWell Tools. Free &amp; Open Source.
+                    </p>
+                    <div className="flex items-center gap-4 text-sm flex-wrap justify-center">
+                        <Link href="/about" className="text-muted hover:text-foreground transition-colors">About</Link>
+                        <Link href="/privacy" className="text-muted hover:text-foreground transition-colors">Privacy</Link>
+                        <a
+                            href="mailto:support@vedawellapp.com"
+                            className="text-muted hover:text-foreground transition-colors"
+                        >
+                            Support
+                        </a>
+                        <a
+                            href="mailto:support@vedawellapp.com?subject=Tool Request"
+                            className="text-primary hover:text-primary/80 font-medium transition-colors"
+                        >
+                            &#128236; Request a Tool
+                        </a>
+                    </div>
                 </div>
             </div>
         </footer>
     );
 }
+

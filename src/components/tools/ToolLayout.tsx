@@ -5,6 +5,7 @@ import ShareButtons from "@/components/social/ShareButtons";
 import AdBanner from "@/components/AdBanner";
 import SupportBanner from "@/components/SupportBanner";
 import EmailCapture from "@/components/EmailCapture";
+import ToolViewTracker from "@/components/tools/ToolViewTracker";
 
 interface ToolLayoutProps {
     title: string;
@@ -13,8 +14,10 @@ interface ToolLayoutProps {
 }
 
 export default function ToolLayout({ title, description, children }: ToolLayoutProps) {
+    const toolSlug = title.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
     return (
         <div className="py-12 px-6">
+            <ToolViewTracker toolSlug={toolSlug} />
             <JsonLd
                 type="SoftwareApplication"
                 data={{

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { formatMoney } from "@/utils/format";
-import { logout } from "@/app/guardian/actions";
+import { logout, touchLastSeen } from "@/app/guardian/actions";
 import ManageBillingButton from "@/components/guardian/ManageBillingButton";
 
 export default async function DashboardPage() {
@@ -12,6 +12,9 @@ export default async function DashboardPage() {
     if (!user) {
         redirect("/guardian/login");
     }
+
+    // Record activity (fire-and-forget — does not block render)
+    void touchLastSeen(user.id);
 
     // Fetch user profile for subscription tier
     const { data: profile } = await supabase
@@ -66,6 +69,7 @@ export default async function DashboardPage() {
 
     // For backward compatibility with quick actions
     const projectId = projects?.[0]?.id;
+    const isAdmin = ["sridhar.kothandam@gmail.com", "support@vedawellapp.com"].includes(user.email ?? "");
 
     return (
         <>
@@ -82,6 +86,11 @@ export default async function DashboardPage() {
                         <Link href="/guardian/journey" className="text-muted hover:text-foreground">
                             📚 Learn
                         </Link>
+                        {isAdmin && (
+                            <Link href="/guardian/admin" className="text-yellow-600 hover:text-yellow-500 font-medium text-sm">
+                                ⚙️ Admin
+                            </Link>
+                        )}
                     </div>
                     <div className="flex items-center gap-4">
                         <Link href="/guardian/profile" className="text-muted text-sm hover:text-primary transition-colors flex items-center gap-1">
