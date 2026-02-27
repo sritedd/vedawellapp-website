@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import ToolFAQ from "@/components/tools/ToolFAQ";
+import { trackToolUse } from "@/lib/analytics";
 
 export default function JsonFormatter() {
     const [input, setInput] = useState("");
@@ -16,6 +17,7 @@ export default function JsonFormatter() {
             const parsed = JSON.parse(input);
             setOutput(JSON.stringify(parsed, null, indentSize));
             setError("");
+            trackToolUse("json-formatter");
         } catch (e) {
             setError((e as Error).message);
             setOutput("");
@@ -27,6 +29,7 @@ export default function JsonFormatter() {
             const parsed = JSON.parse(input);
             setOutput(JSON.stringify(parsed));
             setError("");
+            trackToolUse("json-formatter");
         } catch (e) {
             setError((e as Error).message);
             setOutput("");

@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import ToolFAQ from "@/components/tools/ToolFAQ";
+import { trackToolUse } from "@/lib/analytics";
 
 export default function WordCounter() {
     const [text, setText] = useState("");
+    const hasTracked = useRef(false);
     const [stats, setStats] = useState({
         characters: 0,
         charactersNoSpaces: 0,
@@ -34,6 +36,10 @@ export default function WordCounter() {
             readingTime,
             speakingTime,
         });
+        if (!hasTracked.current && words >= 5) {
+            hasTracked.current = true;
+            trackToolUse("word-counter");
+        }
     }, [text]);
 
     const getKeywordDensity = () => {

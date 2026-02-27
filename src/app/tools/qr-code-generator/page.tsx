@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import ToolFAQ from "@/components/tools/ToolFAQ";
+import { trackToolUse } from "@/lib/analytics";
 
 export default function QRCodeGenerator() {
     const [text, setText] = useState("https://vedawell.tools");
@@ -20,6 +21,7 @@ export default function QRCodeGenerator() {
         link.href = qrUrl;
         link.download = "qrcode.png";
         link.click();
+        trackToolUse("qr-code-generator");
     };
 
     const presets = [

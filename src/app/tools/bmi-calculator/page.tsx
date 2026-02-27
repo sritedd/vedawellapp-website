@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import ToolLayout from "@/components/tools/ToolLayout";
+import { trackToolUse } from "@/lib/analytics";
 
 export default function BMICalculator() {
     const [unit, setUnit] = useState<'metric' | 'imperial'>('metric');
@@ -20,6 +21,7 @@ export default function BMICalculator() {
     const [rotation, setRotation] = useState(-90);
     const [tip, setTip] = useState("");
     const [idealWeight, setIdealWeight] = useState("");
+    const hasTracked = useRef(false);
 
     const calculate = () => {
         let calculatedBmi = 0;
@@ -37,6 +39,10 @@ export default function BMICalculator() {
         }
 
         setBmi(calculatedBmi);
+        if (!hasTracked.current && calculatedBmi > 0) {
+            hasTracked.current = true;
+            trackToolUse("bmi-calculator");
+        }
 
         // Categories
         if (calculatedBmi < 18.5) {

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import ToolFAQ from "@/components/tools/ToolFAQ";
+import { trackToolUse } from "@/lib/analytics";
 
 export default function PasswordGenerator() {
     const [length, setLength] = useState(16);
@@ -33,6 +34,7 @@ export default function PasswordGenerator() {
         }
         setPassword(result);
         setCopied(false);
+        trackToolUse("password-generator");
     };
 
     const copyToClipboard = async () => {
