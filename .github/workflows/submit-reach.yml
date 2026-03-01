@@ -1,0 +1,41 @@
+name: Submit URLs for Reach
+
+on:
+  workflow_dispatch:
+    inputs:
+      bing_api_key:
+        description: "Bing Webmaster API key (optional — get from bing.com/webmasters)"
+        required: false
+        default: ""
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Wait for Netlify deploy (60s)
+        run: sleep 60
+
+      - name: Verify IndexNow key is live
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://vedawell.tools/8e1db22c-a808-45c1-b7b5-70d24b22b8ed.txt)
+          echo "IndexNow key file status: $STATUS"
+          if [ "$STATUS" != "200" ]; then
+            echo "⚠️  Key file not live yet — submitting anyway (will work once Netlify deploys)"
+          fi
+
+      - name: Run IndexNow + Ping + Wayback Machine
+        run: node scripts/submit-reach.mjs
+        working-directory: .
+
+      - name: Run Bing bulk submission (if API key provided)
+        if: ${{ github.event.inputs.bing_api_key != '' }}
+        run: node scripts/submit-bing.mjs "${{ github.event.inputs.bing_api_key }}"
+        working-directory: .
