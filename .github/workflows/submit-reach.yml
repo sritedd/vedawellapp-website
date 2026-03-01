@@ -24,11 +24,14 @@ jobs:
         run: sleep 60
 
       - name: Verify IndexNow key is live
+        continue-on-error: true
         run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://vedawell.tools/8e1db22c-a808-45c1-b7b5-70d24b22b8ed.txt)
-          echo "IndexNow key file status: $STATUS"
-          if [ "$STATUS" != "200" ]; then
-            echo "⚠️  Key file not live yet — submitting anyway (will work once Netlify deploys)"
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://vedawell.tools/8e1db22c-a808-45c1-b7b5-70d24b22b8ed.txt || echo "000")
+          echo "IndexNow key file HTTP status: $STATUS"
+          if [ "$STATUS" = "200" ]; then
+            echo "✅ Key file is live"
+          else
+            echo "⚠️  Key file returned $STATUS — continuing anyway"
           fi
 
       - name: Run IndexNow + Ping + Wayback Machine
