@@ -26,7 +26,7 @@ jobs:
       - name: Verify IndexNow key is live
         continue-on-error: true
         run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://vedawell.tools/8e1db22c-a808-45c1-b7b5-70d24b22b8ed.txt || echo "000")
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://vedawell.tools/8864cefde0394cbca72cf32430d9c5d8.txt || echo "000")
           echo "IndexNow key file HTTP status: $STATUS"
           if [ "$STATUS" = "200" ]; then
             echo "✅ Key file is live"

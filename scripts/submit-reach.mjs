@@ -7,7 +7,7 @@
  */
 
 const HOST = "vedawell.tools";
-const INDEXNOW_KEY = "8e1db22c-a808-45c1-b7b5-70d24b22b8ed";
+const INDEXNOW_KEY = "8864cefde0394cbca72cf32430d9c5d8"; // Bing-issued key
 
 const TOOL_SLUGS = [
   "age-calculator", "aspect-ratio-calculator", "background-remover",
