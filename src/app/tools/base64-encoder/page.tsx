@@ -82,7 +82,7 @@ export default function Base64Encoder() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-indigo-900 to-purple-900">
+        <div className="min-h-screen text-white bg-gradient-to-br from-indigo-900 to-purple-900">
             {/* Header */}
             <nav className="border-b border-white/10 bg-black/20 backdrop-blur">
                 <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">

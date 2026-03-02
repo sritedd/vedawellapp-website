@@ -1,6 +1,22 @@
-"use client";
-
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+    title: "Free Browser Games — 2048, Snake, Tetris, Wordle & More",
+    description:
+        "Play free brain training games online: 2048, Snake, Tetris, Memory Match, Minesweeper, Tic Tac Toe, Wordle. No downloads, works offline, saves high scores locally.",
+    keywords:
+        "free online games, browser games, 2048 game, snake game, tetris online, wordle game, memory match, minesweeper, brain training games",
+    openGraph: {
+        title: "Free Browser Games — 2048, Snake, Tetris, Wordle & More",
+        description:
+            "Play classic brain training games free in your browser. No downloads, works offline.",
+        url: "https://vedawellapp.com/games",
+    },
+    alternates: {
+        canonical: "https://vedawellapp.com/games",
+    },
+};
 
 const GAMES = [
     {

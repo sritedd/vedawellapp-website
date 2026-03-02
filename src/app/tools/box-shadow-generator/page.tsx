@@ -53,7 +53,7 @@ export default function BoxShadowGenerator() {
     ];
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-slate-900 to-slate-900">
+        <div className="min-h-screen text-white bg-gradient-to-br from-indigo-900 via-slate-900 to-slate-900">
             {/* Header */}
             <nav className="border-b border-indigo-800/50 bg-slate-900/80 backdrop-blur sticky top-0 z-10">
                 <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">

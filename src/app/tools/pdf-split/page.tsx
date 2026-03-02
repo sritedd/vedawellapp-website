@@ -76,7 +76,7 @@ export default function PDFSplit() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-violet-950 via-slate-900 to-slate-900">
+        <div className="min-h-screen text-white bg-gradient-to-br from-violet-950 via-slate-900 to-slate-900">
             <nav className="border-b border-violet-900/50 bg-slate-900/80 backdrop-blur sticky top-0 z-10">
                 <div className="max-w-4xl mx-auto px-6 py-4 flex items-center gap-4">
                     <Link href="/tools" className="text-violet-400 hover:text-white transition-colors">← Back</Link>

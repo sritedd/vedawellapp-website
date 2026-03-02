@@ -45,7 +45,7 @@ export default function ScientificCalculator() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center p-6">
+        <div className="min-h-screen text-white bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center p-6">
             <div className="w-full max-w-sm">
                 <Link href="/tools" className="text-slate-400 hover:text-white text-sm mb-4 inline-block">← Back to Tools</Link>
                 <div className="bg-slate-800 rounded-2xl p-4 border border-slate-700">

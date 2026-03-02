@@ -113,7 +113,7 @@ export default function PDFCompress() {
     const savings = result ? Math.round((1 - result.size / originalSize) * 100) : 0;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-amber-950 via-slate-900 to-slate-900">
+        <div className="min-h-screen text-white bg-gradient-to-br from-amber-950 via-slate-900 to-slate-900">
             <nav className="border-b border-amber-900/50 bg-slate-900/80 backdrop-blur sticky top-0 z-10">
                 <div className="max-w-4xl mx-auto px-6 py-4 flex items-center gap-4">
                     <Link href="/tools" className="text-amber-400 hover:text-white transition-colors">← Back</Link>

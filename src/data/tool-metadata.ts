@@ -9,6 +9,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "Free Age Calculator - Exact Age in Years, Months & Days",
       description: "Calculate your exact age instantly. Find years, months, days, hours since birth. Free, no signup.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "Free Age Calculator - Exact Age in Years, Months & Days",
+      description: "Calculate your exact age instantly. Find years, months, days, hours since birth. Free, no signup.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/age-calculator",
+    },
   },
   "aspect-ratio-calculator": {
     title: "Aspect Ratio Calculator Online Free - Resize Width & Height",
@@ -17,6 +25,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Aspect Ratio Calculator - Convert Image & Video Dimensions",
       description: "Calculate aspect ratios for any image or video. Supports 16:9, 4:3, 21:9 and custom ratios. Free.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Aspect Ratio Calculator - Convert Image & Video Dimensions",
+      description: "Calculate aspect ratios for any image or video. Supports 16:9, 4:3, 21:9 and custom ratios. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/aspect-ratio-calculator",
     },
   },
   "background-remover": {
@@ -27,6 +43,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "Free Background Remover - Remove Image Backgrounds Instantly",
       description: "Remove image backgrounds in seconds. 100% private, processed in your browser. No upload required.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "Free Background Remover - Remove Image Backgrounds Instantly",
+      description: "Remove image backgrounds in seconds. 100% private, processed in your browser. No upload required.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/background-remover",
+    },
   },
   "base64-encoder": {
     title: "Base64 Encoder & Decoder Online Free - Encode Decode Text",
@@ -35,6 +59,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Base64 Encoder & Decoder - Encode and Decode Text Online",
       description: "Encode or decode Base64 strings instantly. Free developer tool with live preview.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Base64 Encoder & Decoder - Encode and Decode Text Online",
+      description: "Encode or decode Base64 strings instantly. Free developer tool with live preview.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/base64-encoder",
     },
   },
   "bmi-calculator": {
@@ -45,6 +77,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "Free BMI Calculator - Body Mass Index + Health Insights",
       description: "Calculate your BMI instantly. Get your weight category and ideal weight range. Free, private, no signup.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "Free BMI Calculator - Body Mass Index + Health Insights",
+      description: "Calculate your BMI instantly. Get your weight category and ideal weight range. Free, private, no signup.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/bmi-calculator",
+    },
   },
   "border-radius-preview": {
     title: "CSS Border Radius Generator & Preview Online Free",
@@ -53,6 +93,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "CSS Border Radius Generator - Visual Preview & Code",
       description: "Create CSS border-radius values visually. Copy-ready code for rounded corners and organic shapes.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "CSS Border Radius Generator - Visual Preview & Code",
+      description: "Create CSS border-radius values visually. Copy-ready code for rounded corners and organic shapes.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/border-radius-preview",
     },
   },
   "box-shadow-generator": {
@@ -63,6 +111,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "CSS Box Shadow Generator - Visual Editor with Live Preview",
       description: "Design CSS box shadows visually. Adjust blur, spread, color and copy production-ready code. Free.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "CSS Box Shadow Generator - Visual Editor with Live Preview",
+      description: "Design CSS box shadows visually. Adjust blur, spread, color and copy production-ready code. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/box-shadow-generator",
+    },
   },
   "breathing-exercise": {
     title: "Free Breathing Exercise App Online - Box Breathing & 4-7-8",
@@ -71,6 +127,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Free Breathing Exercise App - Box Breathing & Relaxation",
       description: "Guided breathing exercises for stress relief. Box breathing, 4-7-8, and deep breathing with visual timer.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Free Breathing Exercise App - Box Breathing & Relaxation",
+      description: "Guided breathing exercises for stress relief. Box breathing, 4-7-8, and deep breathing with visual timer.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/breathing-exercise",
     },
   },
   "case-converter": {
@@ -81,6 +145,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "Case Converter - Transform Text to Any Case Format",
       description: "Convert text to UPPERCASE, lowercase, Title Case, camelCase, snake_case and more. Free, instant.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "Case Converter - Transform Text to Any Case Format",
+      description: "Convert text to UPPERCASE, lowercase, Title Case, camelCase, snake_case and more. Free, instant.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/case-converter",
+    },
   },
   "character-counter": {
     title: "Character Counter Online Free - Count Characters, Words & Sentences",
@@ -89,6 +161,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Character Counter - Count Characters, Words & Sentences",
       description: "Count characters, words, sentences in real-time. Track limits for Twitter, Instagram, SMS. Free.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Character Counter - Count Characters, Words & Sentences",
+      description: "Count characters, words, sentences in real-time. Track limits for Twitter, Instagram, SMS. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/character-counter",
     },
   },
   "coin-flip": {
@@ -99,6 +179,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "Coin Flip - Flip a Virtual Coin for Heads or Tails",
       description: "Flip a virtual coin with realistic animation. Fair, random, unbiased results. Free.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "Coin Flip - Flip a Virtual Coin for Heads or Tails",
+      description: "Flip a virtual coin with realistic animation. Fair, random, unbiased results. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/coin-flip",
+    },
   },
   "color-converter": {
     title: "Color Converter Online Free - HEX, RGB, HSL, CMYK",
@@ -107,6 +195,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Color Converter - HEX, RGB, HSL, CMYK Conversion",
       description: "Convert colors between HEX, RGB, HSL, CMYK instantly. Live preview with copy-ready values. Free.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Color Converter - HEX, RGB, HSL, CMYK Conversion",
+      description: "Convert colors between HEX, RGB, HSL, CMYK instantly. Live preview with copy-ready values. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/color-converter",
     },
   },
   "color-palette-generator": {
@@ -117,6 +213,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "Color Palette Generator - Create Beautiful Color Schemes",
       description: "Generate stunning color palettes. Complementary, analogous, triadic schemes with export. Free.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "Color Palette Generator - Create Beautiful Color Schemes",
+      description: "Generate stunning color palettes. Complementary, analogous, triadic schemes with export. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/color-palette-generator",
+    },
   },
   "color-picker-from-image": {
     title: "Color Picker from Image Online Free - Extract Colors from Photos",
@@ -125,6 +229,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Color Picker from Image - Extract Colors from Any Photo",
       description: "Pick any color from an image. Get HEX, RGB, HSL values instantly. 100% private, browser-based.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Color Picker from Image - Extract Colors from Any Photo",
+      description: "Pick any color from an image. Get HEX, RGB, HSL values instantly. 100% private, browser-based.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/color-picker-from-image",
     },
   },
   "compound-interest-calculator": {
@@ -135,6 +247,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "Compound Interest Calculator - See Your Money Grow",
       description: "Calculate compound interest on savings and investments. Interactive charts and growth tables. Free.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "Compound Interest Calculator - See Your Money Grow",
+      description: "Calculate compound interest on savings and investments. Interactive charts and growth tables. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/compound-interest-calculator",
+    },
   },
   "countdown-timer": {
     title: "Free Countdown Timer Online - Custom Timer with Alarm",
@@ -143,6 +263,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Countdown Timer Online - Custom Timer with Alarm",
       description: "Set a countdown timer for any duration. Audio alarm, fullscreen mode, browser notifications. Free.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Countdown Timer Online - Custom Timer with Alarm",
+      description: "Set a countdown timer for any duration. Audio alarm, fullscreen mode, browser notifications. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/countdown-timer",
     },
   },
   "css-grid-generator": {
@@ -153,6 +281,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "CSS Grid Generator - Visual Layout Builder with Code Export",
       description: "Build CSS Grid layouts visually. Define rows, columns, gaps. Copy production-ready code. Free.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "CSS Grid Generator - Visual Layout Builder with Code Export",
+      description: "Build CSS Grid layouts visually. Define rows, columns, gaps. Copy production-ready code. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/css-grid-generator",
+    },
   },
   "csv-to-json": {
     title: "CSV to JSON Converter Online Free - Convert CSV Data Instantly",
@@ -161,6 +297,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "CSV to JSON Converter - Convert CSV Data to JSON Format",
       description: "Convert CSV to JSON instantly. Supports headers, custom delimiters. Copy or download output. Free.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "CSV to JSON Converter - Convert CSV Data to JSON Format",
+      description: "Convert CSV to JSON instantly. Supports headers, custom delimiters. Copy or download output. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/csv-to-json",
     },
   },
   "date-calculator": {
@@ -171,6 +315,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "Date Calculator - Days Between Dates & Date Math",
       description: "Calculate days between dates, add/subtract days, count business days. Free, instant results.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "Date Calculator - Days Between Dates & Date Math",
+      description: "Calculate days between dates, add/subtract days, count business days. Free, instant results.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/date-calculator",
+    },
   },
   "dice-roller": {
     title: "Dice Roller Online Free - Roll Virtual Dice with Animation",
@@ -179,6 +331,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Dice Roller - Roll Virtual Dice for Board Games & D&D",
       description: "Roll virtual dice with 3D animation. D4, D6, D8, D10, D12, D20 support. Fair and random.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Dice Roller - Roll Virtual Dice for Board Games & D&D",
+      description: "Roll virtual dice with 3D animation. D4, D6, D8, D10, D12, D20 support. Fair and random.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/dice-roller",
     },
   },
   "drawing-canvas": {
@@ -189,6 +349,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "Free Drawing Canvas - Digital Whiteboard & Sketchpad",
       description: "Draw and sketch on a digital canvas. Multiple brushes, colors, save as PNG. Free, works on mobile.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "Free Drawing Canvas - Digital Whiteboard & Sketchpad",
+      description: "Draw and sketch on a digital canvas. Multiple brushes, colors, save as PNG. Free, works on mobile.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/drawing-canvas",
+    },
   },
   "emoji-picker": {
     title: "Emoji Picker Online - Search & Copy Emojis Instantly",
@@ -197,6 +365,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Emoji Picker - Search, Browse & Copy Emojis Instantly",
       description: "Browse and copy emojis with one click. Full Unicode library with search and categories. Free.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Emoji Picker - Search, Browse & Copy Emojis Instantly",
+      description: "Browse and copy emojis with one click. Full Unicode library with search and categories. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/emoji-picker",
     },
   },
   "exif-reader": {
@@ -207,6 +383,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "EXIF Data Reader - View Photo Metadata & Camera Info",
       description: "Read EXIF data from photos. Camera, lens, GPS, settings. 100% private, browser-based. Free.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "EXIF Data Reader - View Photo Metadata & Camera Info",
+      description: "Read EXIF data from photos. Camera, lens, GPS, settings. 100% private, browser-based. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/exif-reader",
+    },
   },
   "expense-splitter": {
     title: "Expense Splitter Online Free - Split Bills with Friends",
@@ -215,6 +399,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Expense Splitter - Split Bills Fairly with Friends",
       description: "Split expenses among friends. Handle unequal splits, tips, taxes. Calculate who owes whom. Free.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Expense Splitter - Split Bills Fairly with Friends",
+      description: "Split expenses among friends. Handle unequal splits, tips, taxes. Calculate who owes whom. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/expense-splitter",
     },
   },
   "favicon-generator": {
@@ -225,6 +417,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "Favicon Generator - Create ICO & PNG Website Icons",
       description: "Generate favicons from any image. ICO, PNG, Apple Touch icons in all sizes. Free, no signup.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "Favicon Generator - Create ICO & PNG Website Icons",
+      description: "Generate favicons from any image. ICO, PNG, Apple Touch icons in all sizes. Free, no signup.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/favicon-generator",
+    },
   },
   "flashcard-app": {
     title: "Free Flashcard App Online - Create & Study Flashcards",
@@ -233,6 +433,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Free Flashcard App - Create & Study Custom Flashcards",
       description: "Create and study flashcards with spaced repetition. Track progress, organize decks. Free, browser-based.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Free Flashcard App - Create & Study Custom Flashcards",
+      description: "Create and study flashcards with spaced repetition. Track progress, organize decks. Free, browser-based.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/flashcard-app",
     },
   },
   "flexbox-generator": {
@@ -243,6 +451,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "CSS Flexbox Generator - Visual Layout Builder with Code",
       description: "Build Flexbox layouts visually. Adjust all flex properties, copy production-ready CSS. Free.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "CSS Flexbox Generator - Visual Layout Builder with Code",
+      description: "Build Flexbox layouts visually. Adjust all flex properties, copy production-ready CSS. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/flexbox-generator",
+    },
   },
   "focus-timer": {
     title: "Focus Timer Online Free - Stay Focused & Block Distractions",
@@ -251,6 +467,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Focus Timer - Stay Focused & Track Productivity",
       description: "Customizable focus timer with work sessions and breaks. Audio notifications. Free, works offline.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Focus Timer - Stay Focused & Track Productivity",
+      description: "Customizable focus timer with work sessions and breaks. Audio notifications. Free, works offline.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/focus-timer",
     },
   },
   "gradient-generator": {
@@ -261,6 +485,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "CSS Gradient Generator - Create Beautiful Gradients Visually",
       description: "Create CSS linear, radial and conic gradients visually. Unlimited color stops. Copy code. Free.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "CSS Gradient Generator - Create Beautiful Gradients Visually",
+      description: "Create CSS linear, radial and conic gradients visually. Unlimited color stops. Copy code. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/gradient-generator",
+    },
   },
   "habit-tracker": {
     title: "Free Habit Tracker Online - Build Daily Habits & Streaks",
@@ -269,6 +501,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Free Habit Tracker - Build Daily Habits & Track Streaks",
       description: "Track daily habits, build streaks, view progress charts. Stay motivated. Free, browser-based.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Free Habit Tracker - Build Daily Habits & Track Streaks",
+      description: "Track daily habits, build streaks, view progress charts. Stay motivated. Free, browser-based.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/habit-tracker",
     },
   },
   "hash-generator": {
@@ -279,6 +519,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "Hash Generator - MD5, SHA-1, SHA-256, SHA-512 Online",
       description: "Generate MD5, SHA-1, SHA-256, SHA-512 hashes instantly. 100% private, browser-based. Free.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "Hash Generator - MD5, SHA-1, SHA-256, SHA-512 Online",
+      description: "Generate MD5, SHA-1, SHA-256, SHA-512 hashes instantly. 100% private, browser-based. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/hash-generator",
+    },
   },
   "html-cleaner": {
     title: "HTML Cleaner & Formatter Online Free - Clean Messy HTML",
@@ -287,6 +535,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "HTML Cleaner & Formatter - Clean Messy HTML Code",
       description: "Clean messy HTML. Remove empty tags, inline styles, format code. Get clean output. Free.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "HTML Cleaner & Formatter - Clean Messy HTML Code",
+      description: "Clean messy HTML. Remove empty tags, inline styles, format code. Get clean output. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/html-cleaner",
     },
   },
   "image-compressor": {
@@ -297,6 +553,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "Image Compressor - Reduce File Size Without Quality Loss",
       description: "Compress images up to 80% smaller. JPEG, PNG, WebP. 100% private, browser-based. Free.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "Image Compressor - Reduce File Size Without Quality Loss",
+      description: "Compress images up to 80% smaller. JPEG, PNG, WebP. 100% private, browser-based. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/image-compressor",
+    },
   },
   "image-cropper": {
     title: "Image Cropper Online Free - Crop Photos to Any Size",
@@ -305,6 +569,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Image Cropper - Crop Photos to Any Size or Ratio",
       description: "Crop images with preset or custom aspect ratios. Social media, passport sizes. Free and private.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Image Cropper - Crop Photos to Any Size or Ratio",
+      description: "Crop images with preset or custom aspect ratios. Social media, passport sizes. Free and private.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/image-cropper",
     },
   },
   "image-format-converter": {
@@ -315,6 +587,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "Image Format Converter - PNG, JPG, WebP, GIF Conversion",
       description: "Convert between PNG, JPG, WebP, GIF, BMP. Batch support. 100% private, browser-based. Free.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "Image Format Converter - PNG, JPG, WebP, GIF Conversion",
+      description: "Convert between PNG, JPG, WebP, GIF, BMP. Batch support. 100% private, browser-based. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/image-format-converter",
+    },
   },
   "image-resizer": {
     title: "Image Resizer Online Free - Resize Photos to Any Dimension",
@@ -323,6 +603,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Image Resizer - Resize Photos to Any Dimension",
       description: "Resize images to exact dimensions. Aspect ratio lock, social media presets. Free and private.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Image Resizer - Resize Photos to Any Dimension",
+      description: "Resize images to exact dimensions. Aspect ratio lock, social media presets. Free and private.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/image-resizer",
     },
   },
   "image-watermarker": {
@@ -333,6 +621,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "Image Watermark Tool - Add Text & Logo Watermarks to Photos",
       description: "Add watermarks to images. Custom text, logos, position, opacity. Protect your photos. Free.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "Image Watermark Tool - Add Text & Logo Watermarks to Photos",
+      description: "Add watermarks to images. Custom text, logos, position, opacity. Protect your photos. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/image-watermarker",
+    },
   },
   "invoice-generator": {
     title: "Free Invoice Generator Online - Create Professional Invoices",
@@ -341,6 +637,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Free Invoice Generator - Create & Download PDF Invoices",
       description: "Create professional invoices with logo, line items, taxes. Download PDF. Free, no signup.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Free Invoice Generator - Create & Download PDF Invoices",
+      description: "Create professional invoices with logo, line items, taxes. Download PDF. Free, no signup.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/invoice-generator",
     },
   },
   "json-formatter": {
@@ -351,6 +655,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "JSON Formatter & Validator - Beautify and Validate JSON",
       description: "Format, validate and beautify JSON. Syntax highlighting, error detection, tree view. Free.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "JSON Formatter & Validator - Beautify and Validate JSON",
+      description: "Format, validate and beautify JSON. Syntax highlighting, error detection, tree view. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/json-formatter",
+    },
   },
   "jwt-decoder": {
     title: "JWT Decoder Online Free - Decode & Inspect JSON Web Tokens",
@@ -359,6 +671,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "JWT Decoder - Decode & Inspect JSON Web Tokens",
       description: "Decode JWT tokens instantly. View header, payload, signature, expiration. Free developer tool.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "JWT Decoder - Decode & Inspect JSON Web Tokens",
+      description: "Decode JWT tokens instantly. View header, payload, signature, expiration. Free developer tool.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/jwt-decoder",
     },
   },
   "keycode-info": {
@@ -369,6 +689,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "JavaScript Keycode Finder - Get Key Codes & Event Values",
       description: "Press any key to get keyCode, key, code values. Essential keyboard event reference. Free.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "JavaScript Keycode Finder - Get Key Codes & Event Values",
+      description: "Press any key to get keyCode, key, code values. Essential keyboard event reference. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/keycode-info",
+    },
   },
   "keyword-density-checker": {
     title: "Keyword Density Checker Online Free - SEO Keyword Analysis",
@@ -377,6 +705,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Keyword Density Checker - SEO Keyword Frequency Analysis",
       description: "Analyze keyword density for SEO. Find overused keywords, get optimization suggestions. Free.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Keyword Density Checker - SEO Keyword Frequency Analysis",
+      description: "Analyze keyword density for SEO. Find overused keywords, get optimization suggestions. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/keyword-density-checker",
     },
   },
   "loan-calculator": {
@@ -387,6 +723,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "Loan Calculator - Monthly Payment, Interest & Amortization",
       description: "Calculate loan payments, interest and amortization. Personal, car, mortgage loans. Free.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "Loan Calculator - Monthly Payment, Interest & Amortization",
+      description: "Calculate loan payments, interest and amortization. Personal, car, mortgage loans. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/loan-calculator",
+    },
   },
   "lorem-ipsum-generator": {
     title: "Lorem Ipsum Generator Online Free - Placeholder Text",
@@ -395,6 +739,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Lorem Ipsum Generator - Placeholder Text for Designers",
       description: "Generate Lorem Ipsum text. Choose paragraphs, sentences, words. One-click copy. Free.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Lorem Ipsum Generator - Placeholder Text for Designers",
+      description: "Generate Lorem Ipsum text. Choose paragraphs, sentences, words. One-click copy. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/lorem-ipsum-generator",
     },
   },
   "markdown-editor": {
@@ -405,6 +757,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "Markdown Editor - Live Preview & HTML Export",
       description: "Write Markdown with real-time preview. GFM support, tables, code blocks. Export HTML. Free.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "Markdown Editor - Live Preview & HTML Export",
+      description: "Write Markdown with real-time preview. GFM support, tables, code blocks. Export HTML. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/markdown-editor",
+    },
   },
   "meeting-cost-calculator": {
     title: "Meeting Cost Calculator Online Free - Calculate True Meeting Cost",
@@ -413,6 +773,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Meeting Cost Calculator - See the True Cost of Meetings",
       description: "Calculate real meeting costs based on attendees and salaries. Make better time decisions. Free.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Meeting Cost Calculator - See the True Cost of Meetings",
+      description: "Calculate real meeting costs based on attendees and salaries. Make better time decisions. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/meeting-cost-calculator",
     },
   },
   "meme-generator": {
@@ -423,6 +791,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "Meme Generator - Create Custom Memes with No Watermark",
       description: "Create memes with custom images and text. No watermark, download instantly. Free.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "Meme Generator - Create Custom Memes with No Watermark",
+      description: "Create memes with custom images and text. No watermark, download instantly. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/meme-generator",
+    },
   },
   "meta-tag-generator": {
     title: "Meta Tag Generator Online Free - SEO Meta Tags for Websites",
@@ -431,6 +807,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Meta Tag Generator - SEO-Optimized Meta Tags for Websites",
       description: "Generate title, description, OG, Twitter Card meta tags. Copy HTML code. Free SEO tool.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Meta Tag Generator - SEO-Optimized Meta Tags for Websites",
+      description: "Generate title, description, OG, Twitter Card meta tags. Copy HTML code. Free SEO tool.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/meta-tag-generator",
     },
   },
   "metronome": {
@@ -441,6 +825,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "Free Online Metronome - Adjustable BPM & Time Signatures",
       description: "Precise metronome with adjustable BPM, time signatures, tap tempo. Works on any device. Free.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "Free Online Metronome - Adjustable BPM & Time Signatures",
+      description: "Precise metronome with adjustable BPM, time signatures, tap tempo. Works on any device. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/metronome",
+    },
   },
   "mortgage-calculator": {
     title: "Mortgage Calculator Online Free - Monthly Payment & Amortization",
@@ -449,6 +841,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Mortgage Calculator - Monthly Payment & Amortization Schedule",
       description: "Calculate mortgage payments with down payment, taxes, insurance. Full amortization. Free.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Mortgage Calculator - Monthly Payment & Amortization Schedule",
+      description: "Calculate mortgage payments with down payment, taxes, insurance. Full amortization. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/mortgage-calculator",
     },
   },
   "notes-app": {
@@ -459,6 +859,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "Free Online Notes App - Quick Notes with Auto-Save",
       description: "Take quick notes with auto-save. Organize, search, format with Markdown. No signup. Free.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "Free Online Notes App - Quick Notes with Auto-Save",
+      description: "Take quick notes with auto-save. Organize, search, format with Markdown. No signup. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/notes-app",
+    },
   },
   "number-base-converter": {
     title: "Number Base Converter Online Free - Binary, Octal, Decimal, Hex",
@@ -467,6 +875,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Number Base Converter - Binary, Octal, Decimal, Hex",
       description: "Convert between binary, octal, decimal, hex. Base 2-36 support. Live conversion. Free.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Number Base Converter - Binary, Octal, Decimal, Hex",
+      description: "Convert between binary, octal, decimal, hex. Base 2-36 support. Live conversion. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/number-base-converter",
     },
   },
   "open-graph-generator": {
@@ -477,6 +893,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "Open Graph Generator - Perfect Social Media Previews",
       description: "Generate OG meta tags. Preview Facebook, Twitter, LinkedIn cards. Copy HTML. Free.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "Open Graph Generator - Perfect Social Media Previews",
+      description: "Generate OG meta tags. Preview Facebook, Twitter, LinkedIn cards. Copy HTML. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/open-graph-generator",
+    },
   },
   "paraphrasing-tool": {
     title: "Paraphrasing Tool Online Free - Rewrite Text Instantly",
@@ -485,6 +909,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Paraphrasing Tool - Rewrite Text While Keeping Meaning",
       description: "Paraphrase text in multiple styles. Academic, casual, professional. Free, no signup.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Paraphrasing Tool - Rewrite Text While Keeping Meaning",
+      description: "Paraphrase text in multiple styles. Academic, casual, professional. Free, no signup.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/paraphrasing-tool",
     },
   },
   "password-generator": {
@@ -495,6 +927,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "Strong Password Generator - Create Secure Random Passwords",
       description: "Generate strong random passwords. Custom length, characters, strength check. 100% private. Free.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "Strong Password Generator - Create Secure Random Passwords",
+      description: "Generate strong random passwords. Custom length, characters, strength check. 100% private. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/password-generator",
+    },
   },
   "percentage-calculator": {
     title: "Percentage Calculator Online Free - Calculate % of Any Number",
@@ -503,6 +943,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Percentage Calculator - Calculate % of Any Number",
       description: "Calculate percentages, increases, decreases, differences. Multiple modes. Free, instant.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Percentage Calculator - Calculate % of Any Number",
+      description: "Calculate percentages, increases, decreases, differences. Multiple modes. Free, instant.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/percentage-calculator",
     },
   },
   "plain-text-paster": {
@@ -513,6 +961,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "Plain Text Paster - Strip All Formatting from Text",
       description: "Paste formatted text, get clean plain text. Remove HTML, styles, hidden characters. Free.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "Plain Text Paster - Strip All Formatting from Text",
+      description: "Paste formatted text, get clean plain text. Remove HTML, styles, hidden characters. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/plain-text-paster",
+    },
   },
   "pomodoro-timer": {
     title: "Pomodoro Timer Online Free - 25/5 Productivity Technique",
@@ -521,6 +977,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Pomodoro Timer - 25/5 Productivity Technique Online",
       description: "Boost focus with Pomodoro Technique. Custom intervals, audio alerts, session tracking. Free.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Pomodoro Timer - 25/5 Productivity Technique Online",
+      description: "Boost focus with Pomodoro Technique. Custom intervals, audio alerts, session tracking. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/pomodoro-timer",
     },
   },
   "qr-code-generator": {
@@ -531,6 +995,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "QR Code Generator - Create Custom QR Codes for Free",
       description: "Generate QR codes for URLs, WiFi, vCards. Custom colors, PNG/SVG download. Free, unlimited.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "QR Code Generator - Create Custom QR Codes for Free",
+      description: "Generate QR codes for URLs, WiFi, vCards. Custom colors, PNG/SVG download. Free, unlimited.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/qr-code-generator",
+    },
   },
   "random-generator": {
     title: "Random Number & Name Generator Online Free",
@@ -539,6 +1011,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Random Generator - Numbers, Names, Colors & More",
       description: "Generate random numbers, names, colors, passwords. Custom ranges. Fair and unbiased. Free.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Random Generator - Numbers, Names, Colors & More",
+      description: "Generate random numbers, names, colors, passwords. Custom ranges. Fair and unbiased. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/random-generator",
     },
   },
   "readability-checker": {
@@ -549,6 +1029,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "Readability Checker - Flesch Score, Grade Level & Analysis",
       description: "Check text readability with Flesch-Kincaid, Gunning Fog scores. Get grade level. Free.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "Readability Checker - Flesch Score, Grade Level & Analysis",
+      description: "Check text readability with Flesch-Kincaid, Gunning Fog scores. Get grade level. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/readability-checker",
+    },
   },
   "regex-tester": {
     title: "Regex Tester Online Free - Test Regular Expressions Live",
@@ -557,6 +1045,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Regex Tester - Test Regular Expressions with Live Matching",
       description: "Test regex with live highlighting. JavaScript syntax, flags, groups, captures. Free.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Regex Tester - Test Regular Expressions with Live Matching",
+      description: "Test regex with live highlighting. JavaScript syntax, flags, groups, captures. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/regex-tester",
     },
   },
   "robots-txt-generator": {
@@ -567,6 +1063,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "Robots.txt Generator - Control Search Engine Crawling",
       description: "Generate robots.txt for your website. Set crawl rules for Google, Bing and more. Free SEO tool.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "Robots.txt Generator - Control Search Engine Crawling",
+      description: "Generate robots.txt for your website. Set crawl rules for Google, Bing and more. Free SEO tool.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/robots-txt-generator",
+    },
   },
   "schema-markup-generator": {
     title: "Schema Markup Generator Online Free - JSON-LD Structured Data",
@@ -575,6 +1079,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Schema Markup Generator - JSON-LD Structured Data for SEO",
       description: "Generate Schema.org JSON-LD markup. Articles, products, FAQs, recipes. Boost SEO. Free.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Schema Markup Generator - JSON-LD Structured Data for SEO",
+      description: "Generate Schema.org JSON-LD markup. Articles, products, FAQs, recipes. Boost SEO. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/schema-markup-generator",
     },
   },
   "scientific-calculator": {
@@ -585,6 +1097,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "Free Scientific Calculator - Trig, Log, Exponents & More",
       description: "Full scientific calculator. Trigonometry, logarithms, exponents, memory functions. Free online.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "Free Scientific Calculator - Trig, Log, Exponents & More",
+      description: "Full scientific calculator. Trigonometry, logarithms, exponents, memory functions. Free online.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/scientific-calculator",
+    },
   },
   "screen-recorder": {
     title: "Free Screen Recorder Online - Record Screen in Browser",
@@ -593,6 +1113,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Free Screen Recorder - Record Your Screen in the Browser",
       description: "Record screen, window, or tab with audio. Download as video. No install needed. Free.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Free Screen Recorder - Record Your Screen in the Browser",
+      description: "Record screen, window, or tab with audio. Download as video. No install needed. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/screen-recorder",
     },
   },
   "serp-preview": {
@@ -603,6 +1131,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "SERP Preview - See How Your Page Looks in Google Search",
       description: "Preview Google search results. Check title, description truncation. Optimize CTR. Free SEO tool.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "SERP Preview - See How Your Page Looks in Google Search",
+      description: "Preview Google search results. Check title, description truncation. Optimize CTR. Free SEO tool.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/serp-preview",
+    },
   },
   "social-media-image-resizer": {
     title: "Social Media Image Resizer Online Free - Perfect Post Sizes",
@@ -611,6 +1147,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Social Media Image Resizer - Perfect Sizes for All Platforms",
       description: "Resize images for Instagram, Facebook, Twitter, LinkedIn, YouTube. Preset sizes. Free.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Social Media Image Resizer - Perfect Sizes for All Platforms",
+      description: "Resize images for Instagram, Facebook, Twitter, LinkedIn, YouTube. Preset sizes. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/social-media-image-resizer",
     },
   },
   "speed-reader": {
@@ -621,6 +1165,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "Speed Reader - Read Faster with RSVP Technique",
       description: "Improve reading speed with RSVP. Adjustable WPM, paste any text. Track progress. Free.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "Speed Reader - Read Faster with RSVP Technique",
+      description: "Improve reading speed with RSVP. Adjustable WPM, paste any text. Track progress. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/speed-reader",
+    },
   },
   "stopwatch-timer": {
     title: "Online Stopwatch & Timer Free - Lap Timer with Milliseconds",
@@ -629,6 +1181,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Online Stopwatch - Lap Timer with Millisecond Accuracy",
       description: "Precise stopwatch with laps, milliseconds, fullscreen. Desktop and mobile. Free, no install.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Online Stopwatch - Lap Timer with Millisecond Accuracy",
+      description: "Precise stopwatch with laps, milliseconds, fullscreen. Desktop and mobile. Free, no install.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/stopwatch-timer",
     },
   },
   "string-encoder": {
@@ -639,6 +1199,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "String Encoder & Decoder - URL, HTML, Base64, Unicode",
       description: "Encode/decode strings in URL, HTML, Base64, Unicode formats. Free developer tool.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "String Encoder & Decoder - URL, HTML, Base64, Unicode",
+      description: "Encode/decode strings in URL, HTML, Base64, Unicode formats. Free developer tool.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/string-encoder",
+    },
   },
   "tax-calculator": {
     title: "Tax Calculator Online Free - Income Tax & Take-Home Pay",
@@ -647,6 +1215,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Tax Calculator - Income Tax, Take-Home Pay & Brackets",
       description: "Calculate income tax, take-home pay, effective rate. Detailed breakdown. Free.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Tax Calculator - Income Tax, Take-Home Pay & Brackets",
+      description: "Calculate income tax, take-home pay, effective rate. Detailed breakdown. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/tax-calculator",
     },
   },
   "text-diff": {
@@ -657,6 +1233,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "Text Diff - Compare Two Texts & See Differences",
       description: "Compare texts side by side with highlighted differences. Perfect for code review. Free.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "Text Diff - Compare Two Texts & See Differences",
+      description: "Compare texts side by side with highlighted differences. Perfect for code review. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/text-diff",
+    },
   },
   "text-repeater": {
     title: "Text Repeater Online Free - Repeat Text Multiple Times",
@@ -665,6 +1249,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Text Repeater - Repeat Any Text Multiple Times",
       description: "Repeat text with custom separators. For testing, content creation, data generation. Free.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Text Repeater - Repeat Any Text Multiple Times",
+      description: "Repeat text with custom separators. For testing, content creation, data generation. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/text-repeater",
     },
   },
   "text-summarizer": {
@@ -675,6 +1267,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "Text Summarizer - Condense Articles & Documents Instantly",
       description: "Summarize long texts into concise summaries. Extractive method, adjustable length. Free.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "Text Summarizer - Condense Articles & Documents Instantly",
+      description: "Summarize long texts into concise summaries. Extractive method, adjustable length. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/text-summarizer",
+    },
   },
   "text-to-speech": {
     title: "Text to Speech Online Free - Convert Text to Audio TTS",
@@ -683,6 +1283,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Text to Speech - Convert Text to Natural Audio Online",
       description: "Convert text to speech with multiple voices and languages. Adjustable speed and pitch. Free.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Text to Speech - Convert Text to Natural Audio Online",
+      description: "Convert text to speech with multiple voices and languages. Adjustable speed and pitch. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/text-to-speech",
     },
   },
   "timezone-converter": {
@@ -693,6 +1301,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "Timezone Converter - Convert Time Between Any Timezones",
       description: "Convert time between timezones. Multiple cities, DST support. Plan meetings easily. Free.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "Timezone Converter - Convert Time Between Any Timezones",
+      description: "Convert time between timezones. Multiple cities, DST support. Plan meetings easily. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/timezone-converter",
+    },
   },
   "tip-calculator": {
     title: "Tip Calculator Online Free - Calculate Tip & Split Bill",
@@ -701,6 +1317,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Tip Calculator - Calculate Tip Amount & Split Bills",
       description: "Calculate tips, split bills between friends, round amounts. Perfect for dining out. Free.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Tip Calculator - Calculate Tip Amount & Split Bills",
+      description: "Calculate tips, split bills between friends, round amounts. Perfect for dining out. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/tip-calculator",
     },
   },
   "todo-list": {
@@ -711,6 +1335,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "Free Todo List App - Simple Task Manager Online",
       description: "Manage tasks simply. Add, complete, organize. Auto-saves in browser. No signup needed. Free.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "Free Todo List App - Simple Task Manager Online",
+      description: "Manage tasks simply. Add, complete, organize. Auto-saves in browser. No signup needed. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/todo-list",
+    },
   },
   "typing-speed-test": {
     title: "Typing Speed Test Online Free - Check Your WPM",
@@ -719,6 +1351,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Typing Speed Test - Check Your WPM Score Online",
       description: "Test your typing speed and accuracy. Get WPM score with detailed stats. Free, practice online.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Typing Speed Test - Check Your WPM Score Online",
+      description: "Test your typing speed and accuracy. Get WPM score with detailed stats. Free, practice online.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/typing-speed-test",
     },
   },
   "unit-converter": {
@@ -729,6 +1369,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "Unit Converter - Length, Weight, Temperature & 10+ Categories",
       description: "Convert units across 10+ categories. Metric, imperial, custom units. Instant results. Free.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "Unit Converter - Length, Weight, Temperature & 10+ Categories",
+      description: "Convert units across 10+ categories. Metric, imperial, custom units. Instant results. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/unit-converter",
+    },
   },
   "unit-price-calculator": {
     title: "Unit Price Calculator Online Free - Compare Product Prices",
@@ -737,6 +1385,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Unit Price Calculator - Compare Product Prices & Find Deals",
       description: "Compare unit prices to find the best deal. Price per unit, ounce, gram. Smart shopping. Free.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Unit Price Calculator - Compare Product Prices & Find Deals",
+      description: "Compare unit prices to find the best deal. Price per unit, ounce, gram. Smart shopping. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/unit-price-calculator",
     },
   },
   "unix-timestamp-converter": {
@@ -747,6 +1403,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "Unix Timestamp Converter - Epoch Time to Date & Back",
       description: "Convert Unix timestamps to dates. Seconds, milliseconds. Get current timestamp. Free.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "Unix Timestamp Converter - Epoch Time to Date & Back",
+      description: "Convert Unix timestamps to dates. Seconds, milliseconds. Get current timestamp. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/unix-timestamp-converter",
+    },
   },
   "url-encoder": {
     title: "URL Encoder & Decoder Online Free - Encode URLs Safely",
@@ -755,6 +1419,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "URL Encoder & Decoder - Encode URLs for Safe Transmission",
       description: "Encode/decode URLs with percent-encoding. Essential for APIs and query strings. Free.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "URL Encoder & Decoder - Encode URLs for Safe Transmission",
+      description: "Encode/decode URLs with percent-encoding. Essential for APIs and query strings. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/url-encoder",
     },
   },
   "uuid-generator": {
@@ -765,6 +1437,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "UUID Generator - Generate Random v4 UUIDs Instantly",
       description: "Generate UUID v4 identifiers. Single or bulk, copy to clipboard. Cryptographically random. Free.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "UUID Generator - Generate Random v4 UUIDs Instantly",
+      description: "Generate UUID v4 identifiers. Single or bulk, copy to clipboard. Cryptographically random. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/uuid-generator",
+    },
   },
   "white-noise-generator": {
     title: "White Noise Generator Online Free - Sleep & Focus Sounds",
@@ -773,6 +1453,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "White Noise Generator - Sleep, Focus & Relaxation Sounds",
       description: "Generate white, pink, brown noise. Adjustable volume, timer. Sleep and focus. Free.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "White Noise Generator - Sleep, Focus & Relaxation Sounds",
+      description: "Generate white, pink, brown noise. Adjustable volume, timer. Sleep and focus. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/white-noise-generator",
     },
   },
   "whitespace-remover": {
@@ -783,6 +1471,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "Whitespace Remover - Clean Extra Spaces from Text",
       description: "Remove extra whitespace, tabs, blank lines from text. One-click cleanup. Free.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "Whitespace Remover - Clean Extra Spaces from Text",
+      description: "Remove extra whitespace, tabs, blank lines from text. One-click cleanup. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/whitespace-remover",
+    },
   },
   "word-counter": {
     title: "Word Counter Online Free - Count Words, Characters & Sentences",
@@ -791,6 +1487,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Word Counter - Words, Characters, Sentences & Reading Time",
       description: "Count words, characters, sentences. Estimate reading and speaking time. Real-time. Free.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Word Counter - Words, Characters, Sentences & Reading Time",
+      description: "Count words, characters, sentences. Estimate reading and speaking time. Real-time. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/word-counter",
     },
   },
   "youtube-thumbnail-downloader": {
@@ -801,6 +1505,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "YouTube Thumbnail Downloader - Get HD Thumbnails Free",
       description: "Download YouTube thumbnails in HD quality. Paste URL, get all resolutions. One-click. Free.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "YouTube Thumbnail Downloader - Get HD Thumbnails Free",
+      description: "Download YouTube thumbnails in HD quality. Paste URL, get all resolutions. One-click. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/youtube-thumbnail-downloader",
+    },
   },
   "pdf-merge": {
     title: "Free PDF Merge Online - Combine Multiple PDFs into One",
@@ -809,6 +1521,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Free PDF Merge - Combine Multiple PDFs into One",
       description: "Merge PDF files instantly. Reorder, arrange, download. 100% private, browser-based. Free.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Free PDF Merge - Combine Multiple PDFs into One",
+      description: "Merge PDF files instantly. Reorder, arrange, download. 100% private, browser-based. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/pdf-merge",
     },
   },
   "pdf-split": {
@@ -819,6 +1539,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "Free PDF Split - Extract Pages from Any PDF",
       description: "Extract specific PDF pages by range. Enter 1-3, 5, 7-10 and download. Private, browser-based. Free.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "Free PDF Split - Extract Pages from Any PDF",
+      description: "Extract specific PDF pages by range. Enter 1-3, 5, 7-10 and download. Private, browser-based. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/pdf-split",
+    },
   },
   "pdf-compress": {
     title: "Free PDF Compress Online - Reduce PDF File Size",
@@ -827,6 +1555,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Free PDF Compress - Reduce PDF File Size Online",
       description: "Compress PDFs by stripping metadata. See before/after sizes. 100% private, browser-based. Free.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Free PDF Compress - Reduce PDF File Size Online",
+      description: "Compress PDFs by stripping metadata. See before/after sizes. 100% private, browser-based. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/pdf-compress",
     },
   },
   "pdf-to-image": {
@@ -837,6 +1573,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "PDF to Image Converter - Convert PDF Pages to PNG/JPG",
       description: "Convert PDF pages to PNG or JPEG. Choose DPI, preview all pages. Browser-based, private. Free.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "PDF to Image Converter - Convert PDF Pages to PNG/JPG",
+      description: "Convert PDF pages to PNG or JPEG. Choose DPI, preview all pages. Browser-based, private. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/pdf-to-image",
+    },
   },
   "image-to-pdf": {
     title: "Free Image to PDF Converter Online - JPG PNG to PDF",
@@ -845,6 +1589,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Image to PDF Converter - JPG, PNG, WebP to PDF",
       description: "Convert images to PDF. Choose page size, margins, image order. A4, Letter, A3. Free.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Image to PDF Converter - JPG, PNG, WebP to PDF",
+      description: "Convert images to PDF. Choose page size, margins, image order. A4, Letter, A3. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/image-to-pdf",
     },
   },
   "batch-image-compressor": {
@@ -855,6 +1607,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "Batch Image Compressor - Compress Multiple Images at Once",
       description: "Compress up to 50 images at once. Quality slider, before/after sizes. 100% private. Free.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "Batch Image Compressor - Compress Multiple Images at Once",
+      description: "Compress up to 50 images at once. Quality slider, before/after sizes. 100% private. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/batch-image-compressor",
+    },
   },
   "image-filters": {
     title: "Image Filters & Effects Online Free - Apply Photo Filters",
@@ -863,6 +1623,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Image Filters & Effects - Apply Photo Filters Online",
       description: "Apply brightness, contrast, sepia, blur and more. Live preview. Download as JPG/PNG/WebP. Free.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Image Filters & Effects - Apply Photo Filters Online",
+      description: "Apply brightness, contrast, sepia, blur and more. Live preview. Download as JPG/PNG/WebP. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/image-filters",
     },
   },
   "pdf-to-word": {
@@ -873,6 +1641,14 @@ export const toolMetadata: Record<string, Metadata> = {
       title: "PDF to Word Converter - Convert PDF to DOCX Online Free",
       description: "Convert PDF to Word (.docx). Text extracted and saved as editable document. Browser-based, private. Free.",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "PDF to Word Converter - Convert PDF to DOCX Online Free",
+      description: "Convert PDF to Word (.docx). Text extracted and saved as editable document. Browser-based, private. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/pdf-to-word",
+    },
   },
   "crontab": {
     title: "Crontab Expression Editor Online - Cron Guru Free",
@@ -881,6 +1657,14 @@ export const toolMetadata: Record<string, Metadata> = {
     openGraph: {
       title: "Crontab Expression Editor - Parse Cron Jobs Online Free",
       description: "Live cron expression parser with human-readable descriptions, next run times, field editor and common presets. Browser-based, private. Free.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Crontab Expression Editor - Parse Cron Jobs Online Free",
+      description: "Live cron expression parser with human-readable descriptions, next run times, field editor and common presets. Browser-based, private. Free.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/crontab",
     },
   },
 };

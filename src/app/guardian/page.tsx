@@ -2,9 +2,20 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "HomeOwner Guardian",
+    title: "HomeOwner Guardian — Australian Home Construction Defect & Variation Tracker",
     description:
-        "Protect your Australian home construction investment. Track variations, defects, inspections, and certifications with legal-ready documentation.",
+        "Protect your Australian home construction investment. Track variations, defects, inspections, and certifications with legal-ready documentation for NSW Fair Trading and NCAT disputes.",
+    keywords:
+        "home construction tracker, Australian building defects, construction defect documentation, variation tracker, building inspection, owner builder, new home build Australia, NSW Fair Trading, NCAT building disputes",
+    openGraph: {
+        title: "HomeOwner Guardian — Protect Your Home Build",
+        description:
+            "Track construction defects, variations, certifications and payment milestones. Legal-ready documentation for Australian homeowners.",
+        url: "https://vedawellapp.com/guardian",
+    },
+    alternates: {
+        canonical: "https://vedawellapp.com/guardian",
+    },
 };
 
 export default function GuardianPage() {

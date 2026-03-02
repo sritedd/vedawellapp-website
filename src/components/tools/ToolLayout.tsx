@@ -6,6 +6,7 @@ import AdBanner from "@/components/AdBanner";
 import SupportBanner from "@/components/SupportBanner";
 import EmailCapture from "@/components/EmailCapture";
 import ToolViewTracker from "@/components/tools/ToolViewTracker";
+import RelatedTools from "@/components/tools/RelatedTools";
 
 interface ToolLayoutProps {
     title: string;
@@ -63,6 +64,9 @@ export default function ToolLayout({ title, description, children }: ToolLayoutP
 
                 {/* Email capture */}
                 <EmailCapture source={title.toLowerCase().replace(/\s+/g, "-")} />
+
+                {/* Related Tools — drives 2-3x pageviews per session */}
+                <RelatedTools currentSlug={toolSlug} />
 
                 {/* Inline share buttons */}
                 <div className="mt-6 flex items-center justify-center">

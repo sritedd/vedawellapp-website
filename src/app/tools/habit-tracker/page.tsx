@@ -141,7 +141,7 @@ export default function HabitTracker() {
     const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-emerald-900 via-slate-900 to-slate-900">
+        <div className="min-h-screen text-white bg-gradient-to-br from-emerald-900 via-slate-900 to-slate-900">
             {/* Header */}
             <nav className="border-b border-emerald-800/50 bg-slate-900/80 backdrop-blur sticky top-0 z-10">
                 <div className="max-w-4xl mx-auto px-6 py-4 flex justify-between items-center">

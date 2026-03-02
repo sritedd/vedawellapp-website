@@ -34,7 +34,7 @@ export default function WhitespaceRemover() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-800 via-slate-900 to-slate-900">
+        <div className="min-h-screen text-white bg-gradient-to-br from-slate-800 via-slate-900 to-slate-900">
             <nav className="border-b border-slate-700 bg-slate-900/80 backdrop-blur">
                 <div className="max-w-4xl mx-auto px-6 py-4 flex justify-between items-center">
                     <div className="flex items-center gap-4">

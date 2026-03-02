@@ -31,7 +31,7 @@ export default function EmojiPicker() {
     const filtered = search ? allEmojis.filter(() => true) : EMOJI_CATEGORIES[category];
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-yellow-800 via-slate-900 to-slate-900">
+        <div className="min-h-screen text-white bg-gradient-to-br from-yellow-800 via-slate-900 to-slate-900">
             <nav className="border-b border-yellow-800/50 bg-slate-900/80 backdrop-blur">
                 <div className="max-w-4xl mx-auto px-6 py-4 flex items-center gap-4">
                     <Link href="/tools" className="text-yellow-400 hover:text-white">← Back</Link>

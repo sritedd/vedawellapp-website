@@ -27,7 +27,7 @@ export default function FlexboxGenerator() {
     const copy = () => { navigator.clipboard.writeText(generateCSS()); setCopied(true); setTimeout(() => setCopied(false), 2000); };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-cyan-900 via-slate-900 to-slate-900">
+        <div className="min-h-screen text-white bg-gradient-to-br from-cyan-900 via-slate-900 to-slate-900">
             <nav className="border-b border-cyan-800/50 bg-slate-900/80 backdrop-blur sticky top-0 z-10">
                 <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
                     <div className="flex items-center gap-4">

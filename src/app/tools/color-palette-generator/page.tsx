@@ -52,7 +52,7 @@ export default function ColorPaletteGenerator() {
     const copy = (c: string) => { navigator.clipboard.writeText(c); setCopied(c); setTimeout(() => setCopied(null), 2000); };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-fuchsia-900 via-slate-900 to-slate-900">
+        <div className="min-h-screen text-white bg-gradient-to-br from-fuchsia-900 via-slate-900 to-slate-900">
             <nav className="border-b border-fuchsia-800/50 bg-slate-900/80 backdrop-blur">
                 <div className="max-w-4xl mx-auto px-6 py-4 flex items-center gap-4">
                     <Link href="/tools" className="text-fuchsia-400 hover:text-white">← Back</Link>

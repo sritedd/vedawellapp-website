@@ -13,7 +13,7 @@ export default function PercentageCalculator() {
     const calc3Result = () => { const f = parseFloat(calc3.from) || 0; const t = parseFloat(calc3.to) || 0; return f ? (((t - f) / f) * 100).toFixed(2) + "%" : ""; };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-green-900 via-slate-900 to-slate-900">
+        <div className="min-h-screen text-white bg-gradient-to-br from-green-900 via-slate-900 to-slate-900">
             <nav className="border-b border-green-800/50 bg-slate-900/80 backdrop-blur">
                 <div className="max-w-4xl mx-auto px-6 py-4 flex items-center gap-4">
                     <Link href="/tools" className="text-green-400 hover:text-white">← Back</Link>

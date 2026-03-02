@@ -1,9 +1,48 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import EmailCapture from "@/components/EmailCapture";
+import JsonLd from "@/components/seo/JsonLd";
+
+export const metadata: Metadata = {
+  title: "VedaWell — 90+ Free Online Tools, Games & HomeOwner Guardian",
+  description:
+    "Free browser-based productivity tools: PDF merge, image compress, password generator, QR codes, calculators & more. Plus HomeOwner Guardian for Australian home construction tracking. No sign-ups, 100% private.",
+  keywords:
+    "free online tools, PDF tools, image compressor, password generator, QR code generator, BMI calculator, JSON formatter, unit converter, mortgage calculator, home construction tracker, Australian building defect tracker",
+  openGraph: {
+    title: "VedaWell — 90+ Free Online Tools & Games",
+    description:
+      "Free browser-based productivity tools, games, and HomeOwner Guardian for Australian home construction. No sign-ups, no downloads.",
+    url: "https://vedawellapp.com",
+    type: "website",
+  },
+  alternates: {
+    canonical: "https://vedawellapp.com",
+  },
+};
 
 export default function HomePage() {
   return (
     <>
+      {/* Organization Schema for Google */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            name: "VedaWell",
+            url: "https://vedawellapp.com",
+            logo: "https://vedawellapp.com/og-default.png",
+            description:
+              "90+ free browser-based productivity tools, games, and HomeOwner Guardian for Australian home construction.",
+            sameAs: [
+              "https://ko-fi.com/vedawell",
+              "https://buymeacoffee.com/vedawell",
+            ],
+          }),
+        }}
+      />
       {/* Hero Section */}
       <section className="py-20 px-6">
         <div className="max-w-4xl mx-auto text-center">

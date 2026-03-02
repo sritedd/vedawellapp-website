@@ -1,6 +1,7 @@
 import { MetadataRoute } from "next";
 import { readdirSync } from "fs";
 import { join } from "path";
+import { COMPETITORS } from "@/data/competitors";
 
 const BASE_URL = "https://vedawellapp.com";
 
@@ -36,6 +37,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
         { url: `${BASE_URL}/games`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
         { url: `${BASE_URL}/panchang`, lastModified: new Date(), changeFrequency: "daily", priority: 0.9 },
         { url: `${BASE_URL}/guardian`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
+        { url: `${BASE_URL}/guardian/pricing`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
         { url: `${BASE_URL}/about`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
         { url: `${BASE_URL}/privacy`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.3 },
     ];
@@ -54,5 +56,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
         priority: 0.6,
     }));
 
-    return [...staticPages, ...toolPages, ...gamePages];
+    const comparePages: MetadataRoute.Sitemap = COMPETITORS.map((c) => ({
+        url: `${BASE_URL}/compare/vedawell-vs-${c.slug}`,
+        lastModified: new Date(),
+        changeFrequency: "monthly" as const,
+        priority: 0.6,
+    }));
+
+    return [...staticPages, ...toolPages, ...gamePages, ...comparePages];
 }

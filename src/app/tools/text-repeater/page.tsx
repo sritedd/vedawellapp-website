@@ -20,7 +20,7 @@ export default function TextRepeater() {
     const copy = () => { navigator.clipboard.writeText(result); setCopied(true); setTimeout(() => setCopied(false), 2000); };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-teal-900 via-slate-900 to-slate-900">
+        <div className="min-h-screen text-white bg-gradient-to-br from-teal-900 via-slate-900 to-slate-900">
             <nav className="border-b border-teal-800/50 bg-slate-900/80 backdrop-blur">
                 <div className="max-w-4xl mx-auto px-6 py-4 flex justify-between items-center">
                     <div className="flex items-center gap-4">

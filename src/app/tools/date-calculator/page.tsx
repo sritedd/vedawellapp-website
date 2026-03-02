@@ -32,7 +32,7 @@ export default function DateCalculator() {
     const diff = calculateDiff();
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-amber-900 via-slate-900 to-slate-900">
+        <div className="min-h-screen text-white bg-gradient-to-br from-amber-900 via-slate-900 to-slate-900">
             <nav className="border-b border-amber-800/50 bg-slate-900/80 backdrop-blur">
                 <div className="max-w-4xl mx-auto px-6 py-4 flex items-center gap-4">
                     <Link href="/tools" className="text-amber-400 hover:text-white">← Back</Link>

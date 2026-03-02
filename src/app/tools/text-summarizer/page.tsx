@@ -54,7 +54,7 @@ export default function TextSummarizer() {
     const reduction = wordCount > 0 ? Math.round((1 - summaryWordCount / wordCount) * 100) : 0;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-violet-900 via-slate-900 to-slate-900">
+        <div className="min-h-screen text-white bg-gradient-to-br from-violet-900 via-slate-900 to-slate-900">
             <nav className="border-b border-violet-800/50 bg-slate-900/80 backdrop-blur">
                 <div className="max-w-4xl mx-auto px-6 py-4 flex items-center gap-4">
                     <Link href="/tools" className="text-violet-400 hover:text-white">← Back</Link>

@@ -39,7 +39,7 @@ export default function Metronome() {
     const getTempoName = () => Object.entries(tempoNames).find(([, [min, max]]) => bpm >= min && bpm < max)?.[0] || "Prestissimo";
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800">
+        <div className="min-h-screen text-white bg-gradient-to-br from-slate-900 to-slate-800">
             <nav className="border-b border-slate-700 bg-slate-900/80 backdrop-blur">
                 <div className="max-w-4xl mx-auto px-6 py-4 flex items-center gap-4">
                     <Link href="/tools" className="text-slate-400 hover:text-white">← Back</Link>
