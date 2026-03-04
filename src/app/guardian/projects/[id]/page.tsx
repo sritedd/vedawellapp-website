@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import type { Project, Variation, Defect } from "@/types/guardian";
@@ -31,14 +31,29 @@ import StageChecklist from "@/components/guardian/StageChecklist";
 export default function ProjectDetailPage() {
     const params = useParams();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const initialTab = searchParams.get("tab") || "overview";
     const [project, setProject] = useState<Project | null>(null);
     const [variations, setVariations] = useState<Variation[]>([]);
     const [defects, setDefects] = useState<Defect[]>([]);
-    const [activeTab, setActiveTab] = useState("overview");
+    const [activeTab, setActiveTab] = useState(initialTab);
     const [loading, setLoading] = useState(true);
     const [paymentBlocked, setPaymentBlocked] = useState(false);
     const [blockReason, setBlockReason] = useState("");
     const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    // Close dropdown when clicking outside
+    const handleClickOutside = useCallback((e: MouseEvent) => {
+        if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+            setOpenDropdown(null);
+        }
+    }, []);
+
+    useEffect(() => {
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [handleClickOutside]);
 
     useEffect(() => {
         const fetchProject = async () => {
@@ -306,7 +321,7 @@ export default function ProjectDetailPage() {
                     {/* Grouped Navigation */}
                     <div className="mb-6">
                         {/* Main Category Tabs */}
-                        <div className="flex flex-wrap gap-2 border-b border-border pb-3 mb-3">
+                        <div ref={dropdownRef} className="flex flex-wrap gap-2 border-b border-border pb-3 mb-3">
                             {tabGroups.map((group) => {
                                 const isActive = group.tabs.some((t) => t.id === activeTab);
                                 return (
@@ -331,7 +346,7 @@ export default function ProjectDetailPage() {
 
                                         {/* Dropdown */}
                                         {openDropdown === group.id && (
-                                            <div className="absolute top-full left-0 mt-1 bg-white dark:bg-gray-800 border border-border rounded-lg shadow-lg z-50 min-w-48 py-1">
+                                            <div className="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-50 min-w-48 py-1">
                                                 {group.tabs.map((tab) => (
                                                     <button
                                                         key={tab.id}
@@ -339,7 +354,7 @@ export default function ProjectDetailPage() {
                                                             setActiveTab(tab.id);
                                                             setOpenDropdown(null);
                                                         }}
-                                                        className={`w-full px-4 py-2 text-left text-sm flex items-center gap-2 hover:bg-muted/50 text-gray-900 dark:text-gray-100 ${activeTab === tab.id
+                                                        className={`w-full px-4 py-2 text-left text-sm flex items-center gap-2 hover:bg-muted/50 text-foreground ${activeTab === tab.id
                                                             ? "bg-primary/10 text-primary font-medium"
                                                             : ""
                                                             }`}
@@ -376,6 +391,7 @@ export default function ProjectDetailPage() {
                                 builderEmail={project.builder_email}
                             />
                         )}
+                        {/* TODO: currentStage/nextStage should come from project data, not hardcoded */}
                         {activeTab === "stagegate" && (
                             <StageGate
                                 projectId={project.id}
@@ -415,7 +431,7 @@ export default function ProjectDetailPage() {
                             <NotificationCenter
                                 projectId={project.id}
                                 projectName={project.name}
-                                builderEmail=""
+                                builderEmail={project.builder_email || ""}
                             />
                         )}
                         {activeTab === "export" && (

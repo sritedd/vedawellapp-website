@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 
 export default function PricingPage() {
     return (
-        <Suspense>
+        <Suspense fallback={<div className="min-h-[60vh] flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div></div>}>
             <PricingClient />
         </Suspense>
     );

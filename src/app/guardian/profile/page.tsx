@@ -78,15 +78,15 @@ export default function ProfilePage() {
 
         const supabase = createClient();
 
-        // Update profile table
+        // Upsert profile (handles both new and existing profiles)
         const { error: profileError } = await supabase
             .from("profiles")
-            .update({
+            .upsert({
+                id: profile?.id,
                 full_name: fullName.trim(),
                 phone: phone.trim() || null,
                 role: role,
-            })
-            .eq("id", profile?.id);
+            });
 
         if (profileError) {
             setMessage({ type: "error", text: profileError.message });
@@ -267,8 +267,8 @@ export default function ProfilePage() {
                                         type="button"
                                         onClick={() => setRole(r.value)}
                                         className={`p-3 rounded-lg border text-center transition-all ${role === r.value
-                                                ? "border-primary bg-primary/10 ring-2 ring-primary"
-                                                : "border-border hover:border-primary/50"
+                                            ? "border-primary bg-primary/10 ring-2 ring-primary"
+                                            : "border-border hover:border-primary/50"
                                             }`}
                                     >
                                         <div className="text-lg">{r.label.split(" ")[0]}</div>

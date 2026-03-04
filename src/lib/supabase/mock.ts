@@ -14,9 +14,35 @@ export class MockSupabaseClient {
                 error: null
             };
         },
+        getSession: async () => ({
+            data: {
+                session: {
+                    user: {
+                        id: 'mock-user-id',
+                        email: 'dev@example.com',
+                        user_metadata: { full_name: 'Dev User' }
+                    }
+                }
+            },
+            error: null
+        }),
+        onAuthStateChange: (callback: any) => {
+            // Immediately fire with the mock user session
+            setTimeout(() => {
+                callback('SIGNED_IN', {
+                    user: {
+                        id: 'mock-user-id',
+                        email: 'dev@example.com',
+                        user_metadata: { full_name: 'Dev User' }
+                    }
+                });
+            }, 0);
+            return { data: { subscription: { unsubscribe: () => { } } } };
+        },
         signInWithPassword: async () => ({ data: { user: { id: 'mock-user-id' } }, error: null }),
         signUp: async () => ({ data: { user: { id: 'mock-user-id' } }, error: null }),
         signOut: async () => ({ error: null }),
+        updateUser: async () => ({ data: { user: { id: 'mock-user-id' } }, error: null }),
     };
 
     private storage = new Map<string, any[]>();
@@ -51,11 +77,6 @@ class MockQueryBuilder {
             created_at: new Date().toISOString()
         }));
 
-        // In a real mock we'd persist to a global/static store, 
-        // but for per-request (Server Components) new instances are created.
-        // For Client Components (singleton), it might work.
-        // For this verification, we just return success with the data passed in (echo).
-
         return {
             data: newItems,
             error: null,
@@ -68,14 +89,45 @@ class MockQueryBuilder {
         };
     }
 
+    update(data: any) {
+        return {
+            eq: () => ({ data: null, error: null }),
+            data: null,
+            error: null,
+        };
+    }
+
+    delete() {
+        return {
+            eq: () => ({ data: null, error: null }),
+            in: () => ({ data: null, error: null }),
+            data: null,
+            error: null,
+        };
+    }
+
+    upsert(data: any, options?: any) {
+        const items = Array.isArray(data) ? data : [data];
+        return { data: items, error: null };
+    }
+
     eq(column: string, value: any) {
-        // We can simulate filtering if we had a static store.
-        // For now, return generic mock data if "select" is called.
+        return this;
+    }
+
+    in(column: string, values: any[]) {
+        return this;
+    }
+
+    limit(count: number) {
         return this;
     }
 
     single() {
-        // Return a dummy object based on table
+        return { data: this.getMockDataForTable(this.table), error: null };
+    }
+
+    maybeSingle() {
         return { data: this.getMockDataForTable(this.table), error: null };
     }
 

@@ -12,9 +12,9 @@ export async function loginAsDevUser() {
     const cookieStore = await cookies();
     cookieStore.set("dev_mode", "true", {
         path: "/",
-        httpOnly: true,
-        secure: true,
-        sameSite: "strict",
+        httpOnly: false,  // Must be false so client.ts can read it via document.cookie
+        secure: false,    // localhost has no HTTPS
+        sameSite: "lax",
         maxAge: 86400, // 24 hours
     });
     redirect("/guardian/dashboard");

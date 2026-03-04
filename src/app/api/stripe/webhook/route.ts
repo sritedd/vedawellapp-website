@@ -28,9 +28,9 @@ export async function POST(req: NextRequest) {
 
     // Use service role key for admin operations
     const supabase = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_DATABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!,
-        { cookies: { getAll: () => [], setAll: () => {} } }
+        { cookies: { getAll: () => [], setAll: () => { } } }
     );
 
     switch (event.type) {

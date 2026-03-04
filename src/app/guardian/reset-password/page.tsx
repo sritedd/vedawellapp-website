@@ -15,7 +15,7 @@ export default function ResetPasswordPage() {
         // Supabase automatically picks up the recovery token from the URL hash
         // and sets the session. We just need to wait for it.
         const supabase = createClient();
-        supabase.auth.onAuthStateChange((event: string) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event: string) => {
             if (event === "PASSWORD_RECOVERY") {
                 setSessionReady(true);
             }
@@ -27,6 +27,8 @@ export default function ResetPasswordPage() {
                 setSessionReady(true);
             }
         });
+
+        return () => subscription.unsubscribe();
     }, []);
 
     const handleReset = async (e: React.FormEvent) => {

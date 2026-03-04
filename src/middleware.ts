@@ -6,7 +6,13 @@ export async function middleware(request: NextRequest) {
         request,
     })
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_DATABASE_URL;
+    // Dev mode bypass — skip auth checks when dev_mode cookie is set (development only)
+    if (process.env.NODE_ENV === 'development') {
+        const devMode = request.cookies.get('dev_mode')?.value === 'true';
+        if (devMode) return supabaseResponse;
+    }
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
     if (!supabaseUrl || !supabaseKey) {

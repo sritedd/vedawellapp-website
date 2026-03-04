@@ -67,8 +67,9 @@ export default async function DashboardPage() {
         totalOpenDefects = allDefects?.length || 0;
     }
 
-    // For backward compatibility with quick actions
-    const projectId = projects?.[0]?.id;
+    // For quick actions, prefer the first active project, fallback to most recent
+    const activeProject = projects?.find((p: { status: string }) => p.status === "active");
+    const projectId = activeProject?.id || projects?.[0]?.id;
     const isAdmin = ["sridhar.kothandam@gmail.com", "support@vedawellapp.com"].includes(user.email ?? "");
 
     return (
@@ -251,13 +252,12 @@ export default async function DashboardPage() {
                                     >
                                         <div className="flex justify-between items-start mb-3">
                                             <h3 className="font-bold">{project.name}</h3>
-                                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium uppercase ${
-                                                project.status === 'active'
+                                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium uppercase ${project.status === 'active'
                                                     ? 'bg-green-500/10 text-green-600'
                                                     : project.status === 'completed'
-                                                    ? 'bg-blue-500/10 text-blue-600'
-                                                    : 'bg-gray-500/10 text-gray-600'
-                                            }`}>
+                                                        ? 'bg-blue-500/10 text-blue-600'
+                                                        : 'bg-gray-500/10 text-gray-600'
+                                                }`}>
                                                 {project.status}
                                             </span>
                                         </div>
