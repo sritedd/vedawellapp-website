@@ -11,6 +11,7 @@
   "workspace": {
     "packageJson": {
       "dependencies": [
+        "npm:@stripe/stripe-js@^8.8.0",
         "npm:@supabase/ssr@0.8",
         "npm:@supabase/supabase-js@^2.90.0",
         "npm:@tailwindcss/postcss@4",
@@ -21,14 +22,18 @@
         "npm:@types/react-dom@19",
         "npm:@types/react-signature-canvas@^1.0.7",
         "npm:@types/react@19",
+        "npm:docx@^9.6.0",
         "npm:eslint-config-next@16.1.1",
         "npm:eslint@9",
         "npm:jest-environment-jsdom@^30.2.0",
         "npm:jest@^30.2.0",
         "npm:next@16.1.1",
+        "npm:pdf-lib@^1.17.1",
+        "npm:pdfjs-dist@^5.4.624",
         "npm:react-dom@19.2.3",
         "npm:react-signature-canvas@^1.1.0-alpha.2",
         "npm:react@19.2.3",
+        "npm:stripe@^20.4.0",
         "npm:tailwindcss@4",
         "npm:ts-jest@^29.4.6",
         "npm:typescript@5"

@@ -2,15 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-    title: "Free Browser Games — 2048, Snake, Tetris, Wordle & More",
+    title: "19 Free Browser Games — Chess, 2048, Snake, Tetris, Sudoku & More",
     description:
-        "Play free brain training games online: 2048, Snake, Tetris, Memory Match, Minesweeper, Tic Tac Toe, Wordle. No downloads, works offline, saves high scores locally.",
+        "Play 19 free browser games: Chess, Sudoku, Solitaire, 2048, Snake, Tetris, Connect Four, Checkers, Battleship, Flappy Bird, Pong & more. No downloads, works offline.",
     keywords:
-        "free online games, browser games, 2048 game, snake game, tetris online, wordle game, memory match, minesweeper, brain training games",
+        "free online games, browser games, chess game, sudoku online, solitaire, 2048 game, snake game, tetris online, connect four, checkers, battleship, flappy bird, pong, brain training games",
     openGraph: {
-        title: "Free Browser Games — 2048, Snake, Tetris, Wordle & More",
+        title: "19 Free Browser Games — Chess, Sudoku, Snake, Tetris & More",
         description:
-            "Play classic brain training games free in your browser. No downloads, works offline.",
+            "Play 19 classic games free in your browser. No downloads, works offline, saves high scores.",
         url: "https://vedawellapp.com/games",
     },
     alternates: {
@@ -75,6 +75,102 @@ const GAMES = [
         color: "from-emerald-400 to-teal-500",
         difficulty: "Medium",
     },
+    {
+        id: "chess",
+        name: "Chess",
+        description: "Classic chess with legal move validation",
+        icon: "♟️",
+        color: "from-amber-700 to-yellow-900",
+        difficulty: "Hard",
+    },
+    {
+        id: "sudoku",
+        name: "Sudoku",
+        description: "Fill the 9×9 grid with numbers 1-9",
+        icon: "🔢",
+        color: "from-blue-400 to-indigo-600",
+        difficulty: "Medium",
+    },
+    {
+        id: "solitaire",
+        name: "Solitaire",
+        description: "Classic Klondike card game",
+        icon: "🃏",
+        color: "from-green-600 to-green-800",
+        difficulty: "Medium",
+    },
+    {
+        id: "checkers",
+        name: "Checkers",
+        description: "Jump and capture your opponent's pieces",
+        icon: "🔴",
+        color: "from-red-500 to-orange-600",
+        difficulty: "Medium",
+    },
+    {
+        id: "connect-four",
+        name: "Connect Four",
+        description: "Drop discs to get four in a row",
+        icon: "🟡",
+        color: "from-blue-500 to-blue-700",
+        difficulty: "Easy",
+    },
+    {
+        id: "battleship",
+        name: "Battleship",
+        description: "Find and sink the enemy fleet",
+        icon: "🚢",
+        color: "from-cyan-600 to-slate-700",
+        difficulty: "Medium",
+    },
+    {
+        id: "simon-says",
+        name: "Simon Says",
+        description: "Repeat the color sequence from memory",
+        icon: "🎵",
+        color: "from-gray-600 to-gray-800",
+        difficulty: "Medium",
+    },
+    {
+        id: "breakout",
+        name: "Breakout",
+        description: "Smash bricks with a bouncing ball",
+        icon: "🧱",
+        color: "from-indigo-600 to-purple-800",
+        difficulty: "Medium",
+    },
+    {
+        id: "flappy-bird",
+        name: "Flappy Bird",
+        description: "Tap to fly through pipe gaps",
+        icon: "🐦",
+        color: "from-sky-400 to-sky-600",
+        difficulty: "Hard",
+    },
+    {
+        id: "whack-a-mole",
+        name: "Whack-a-Mole",
+        description: "Tap moles before they disappear!",
+        icon: "🔨",
+        color: "from-green-500 to-emerald-700",
+        difficulty: "Easy",
+    },
+    {
+        id: "platformer",
+        name: "Platformer",
+        description: "Jump, collect coins, reach the star",
+        icon: "🏃",
+        color: "from-purple-600 to-indigo-800",
+        difficulty: "Medium",
+    },
+    {
+        id: "pong",
+        name: "Pong",
+        description: "Classic paddle vs AI — first to 7 wins",
+        icon: "🏓",
+        color: "from-slate-500 to-slate-700",
+        difficulty: "Easy",
+    },
 ];
 
 export default function GamesPage() {
@@ -85,11 +181,11 @@ export default function GamesPage() {
                     {/* Hero */}
                     <div className="text-center mb-12">
                         <h1 className="text-3xl sm:text-5xl font-bold text-white mb-4">
-                            🎮 Brain Training Games
+                            🎮 {GAMES.length} Free Browser Games
                         </h1>
                         <p className="text-xl text-white/70 max-w-2xl mx-auto">
-                            Challenge yourself with classic games that sharpen your mind.
-                            All games work offline and save your high scores locally.
+                            Chess, Sudoku, Solitaire, Tetris and more — play classic games
+                            that sharpen your mind. All free, offline-ready, with local high scores.
                         </p>
                     </div>
 
@@ -128,10 +224,10 @@ export default function GamesPage() {
                         ))}
                     </div>
 
-                    {/* Coming Soon */}
+                    {/* Footer note */}
                     <div className="mt-12 text-center">
                         <p className="text-white/50 text-sm">
-                            More games coming soon: Flappy Bird, Breakout, Pong, Simon Says, and more!
+                            All {GAMES.length} games are free, work offline, and save progress locally.
                         </p>
                     </div>
                 </div>
