@@ -67,6 +67,41 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {/* WebSite Schema.org — enables sitelinks search box in Google */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: "VedaWell Tools",
+              url: "https://vedawellapp.com",
+              description: "90+ free browser-based tools for productivity, development, and creativity.",
+              potentialAction: {
+                "@type": "SearchAction",
+                target: "https://vedawellapp.com/tools?q={search_term_string}",
+                "query-input": "required name=search_term_string",
+              },
+            }),
+          }}
+        />
+        {/* Organization Schema */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: "VedaWell",
+              url: "https://vedawellapp.com",
+              logo: "https://vedawellapp.com/icon-512.png",
+              contactPoint: { "@type": "ContactPoint", email: "support@vedawellapp.com", contactType: "customer support" },
+              sameAs: ["https://ko-fi.com/vedawell", "https://buymeacoffee.com/vedawell"],
+            }),
+          }}
+        />
+        {/* RSS feed discovery */}
+        <link rel="alternate" type="application/rss+xml" title="VedaWell Blog" href="/feed.xml" />
         {/* Google AdSense */}
         <Script
           async

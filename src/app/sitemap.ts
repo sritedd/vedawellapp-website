@@ -2,6 +2,7 @@ import { MetadataRoute } from "next";
 import { readdirSync } from "fs";
 import { join } from "path";
 import { COMPETITORS } from "@/data/competitors";
+import { BLOG_POSTS } from "@/data/blog/posts";
 
 const BASE_URL = "https://vedawellapp.com";
 
@@ -63,5 +64,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
         priority: 0.6,
     }));
 
-    return [...staticPages, ...toolPages, ...gamePages, ...comparePages];
+    const blogPages: MetadataRoute.Sitemap = [
+        { url: `${BASE_URL}/blog`, lastModified: new Date(), changeFrequency: "weekly" as const, priority: 0.8 },
+        ...BLOG_POSTS.map((post) => ({
+            url: `${BASE_URL}/blog/${post.slug}`,
+            lastModified: new Date(post.date),
+            changeFrequency: "monthly" as const,
+            priority: 0.7,
+        })),
+    ];
+
+    return [...staticPages, ...toolPages, ...gamePages, ...comparePages, ...blogPages];
 }
