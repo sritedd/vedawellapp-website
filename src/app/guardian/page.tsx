@@ -157,12 +157,20 @@ export default async function GuardianPage() {
                                 </ul>
                             </div>
                         </div>
-                        <Link
-                            href="/guardian/pricing"
-                            className="inline-block mt-8 text-primary hover:underline font-medium"
-                        >
-                            View full pricing details →
-                        </Link>
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+                            <Link
+                                href="/guardian/pricing"
+                                className="text-primary hover:underline font-medium"
+                            >
+                                View full pricing details →
+                            </Link>
+                            <Link
+                                href="/guardian/faq"
+                                className="text-primary hover:underline font-medium"
+                            >
+                                Read the FAQ →
+                            </Link>
+                        </div>
                     </div>
                 </section>
 

@@ -23,3 +23,99 @@ export async function logout() {
 
     redirect("/guardian/login");
 }
+
+/** Delete a project and all associated data. Only the project owner can delete. */
+export async function deleteProject(projectId: string) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        return { error: "Not authenticated" };
+    }
+
+    // Verify ownership before deletion
+    const { data: project } = await supabase
+        .from("projects")
+        .select("id")
+        .eq("id", projectId)
+        .eq("user_id", user.id)
+        .single();
+
+    if (!project) {
+        return { error: "Project not found or access denied" };
+    }
+
+    // Delete related data first (cascade may handle this via RLS, but be explicit)
+    await supabase.from("checklist_items").delete().in(
+        "stage_id",
+        (await supabase.from("stages").select("id").eq("project_id", projectId)).data?.map((s: { id: string }) => s.id) || []
+    );
+    await supabase.from("stages").delete().eq("project_id", projectId);
+    await supabase.from("variations").delete().eq("project_id", projectId);
+    await supabase.from("defects").delete().eq("project_id", projectId);
+    await supabase.from("certifications").delete().eq("project_id", projectId);
+
+    // Delete the project itself
+    const { error } = await supabase
+        .from("projects")
+        .delete()
+        .eq("id", projectId)
+        .eq("user_id", user.id);
+
+    if (error) {
+        return { error: error.message };
+    }
+
+    redirect("/guardian/projects");
+}
+
+/** Update project details. Only the project owner can update. */
+export async function updateProject(projectId: string, updates: {
+    name?: string;
+    address?: string;
+    builder_name?: string;
+    builder_license_number?: string;
+    builder_abn?: string;
+    hbcf_policy_number?: string;
+    insurance_expiry_date?: string;
+    contract_value?: number;
+    start_date?: string;
+    status?: string;
+}) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        return { error: "Not authenticated" };
+    }
+
+    // Only allow whitelisted fields to be updated
+    const allowedFields: Record<string, any> = {};
+    const whitelist = [
+        "name", "address", "builder_name", "builder_license_number",
+        "builder_abn", "hbcf_policy_number", "insurance_expiry_date",
+        "contract_value", "start_date", "status"
+    ];
+
+    for (const key of whitelist) {
+        if (key in updates && updates[key as keyof typeof updates] !== undefined) {
+            allowedFields[key] = updates[key as keyof typeof updates];
+        }
+    }
+
+    if (Object.keys(allowedFields).length === 0) {
+        return { error: "No valid fields to update" };
+    }
+
+    const { error } = await supabase
+        .from("projects")
+        .update(allowedFields)
+        .eq("id", projectId)
+        .eq("user_id", user.id);
+
+    if (error) {
+        return { error: error.message };
+    }
+
+    return { success: true };
+}

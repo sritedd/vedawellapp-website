@@ -39,6 +39,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
         { url: `${BASE_URL}/panchang`, lastModified: new Date(), changeFrequency: "daily", priority: 0.9 },
         { url: `${BASE_URL}/guardian`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
         { url: `${BASE_URL}/guardian/pricing`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
+        { url: `${BASE_URL}/guardian/faq`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
         { url: `${BASE_URL}/about`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
         { url: `${BASE_URL}/privacy`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.3 },
     ];

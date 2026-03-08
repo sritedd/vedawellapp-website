@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { Project, Variation, Defect } from "@/types/guardian";
 
 // Components
+import ProjectSettings from "@/components/guardian/ProjectSettings";
 import ProjectOverview from "@/components/guardian/ProjectOverview";
 import ProjectChecklists from "@/components/guardian/ProjectChecklists";
 import ProjectVariations from "@/components/guardian/ProjectVariations";
@@ -241,6 +242,7 @@ export default function ProjectDetailPage() {
             tabs: [
                 { id: "export", label: "Export Reports", icon: "📤" },
                 { id: "reports", label: "Generate Report", icon: "📑" },
+                { id: "settings", label: "Project Settings", icon: "⚙️" },
             ],
         },
     ];
@@ -441,6 +443,9 @@ export default function ProjectDetailPage() {
                                 builderName={project.builder_name || "Builder"}
                                 contractValue={project.contract_value || 500000}
                             />
+                        )}
+                        {activeTab === "settings" && (
+                            <ProjectSettings project={project} onProjectUpdated={(updated) => setProject(updated)} />
                         )}
                         {activeTab === "reports" && (
                             <ReportGenerator

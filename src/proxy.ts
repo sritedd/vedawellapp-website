@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
     let supabaseResponse = NextResponse.next({
         request,
     })
@@ -50,7 +50,9 @@ export async function middleware(request: NextRequest) {
         pathname === '/guardian' ||
         pathname === '/guardian/login' ||
         pathname === '/guardian/reset-password' ||
-        pathname === '/guardian/resources'
+        pathname === '/guardian/resources' ||
+        pathname === '/guardian/faq' ||
+        pathname === '/guardian/pricing'
 
     if (pathname.startsWith('/guardian') && !isGuardianPublic && !user) {
         const loginUrl = request.nextUrl.clone()
