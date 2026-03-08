@@ -25,6 +25,7 @@
     "stripe": "^20.4.0"
   },
   "devDependencies": {
+    "@netlify/plugin-lighthouse": "^6.0.4",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.1",
