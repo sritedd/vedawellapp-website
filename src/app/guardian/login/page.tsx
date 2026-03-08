@@ -1,23 +1,40 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { getRateLimitSecondsRemaining, recordFailedAttempt, resetRateLimit } from "@/lib/security/rate-limit";
 
 type View = "sign-in" | "sign-up" | "forgot-password";
 
 export default function LoginPage() {
+    const searchParams = useSearchParams();
+    const initialView = searchParams.get("view") === "sign-up" ? "sign-up" : "sign-in";
+
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [fullName, setFullName] = useState("");
     const [phone, setPhone] = useState("");
     const [role, setRole] = useState("homeowner");
     const [showPassword, setShowPassword] = useState(false);
-    const [view, setView] = useState<View>("sign-in");
+    const [view, setView] = useState<View>(initialView);
     const [loading, setLoading] = useState(false);
+    const [checkingAuth, setCheckingAuth] = useState(true);
     const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
     const [rateLimitSeconds, setRateLimitSeconds] = useState(0);
+
+    // Auto-redirect if already logged in
+    useEffect(() => {
+        const supabase = createClient();
+        supabase.auth.getUser().then(({ data }: { data: { user: any } }) => {
+            if (data.user) {
+                window.location.href = "/guardian/dashboard";
+            } else {
+                setCheckingAuth(false);
+            }
+        });
+    }, []);
 
     // Count down rate limit timer
     useEffect(() => {
@@ -46,7 +63,6 @@ export default function LoginPage() {
     const handleSignIn = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Check rate limit before attempting login
         const remaining = getRateLimitSecondsRemaining();
         if (remaining > 0) {
             setRateLimitSeconds(remaining);
@@ -108,9 +124,7 @@ export default function LoginPage() {
             return;
         }
 
-        // If auto-confirmed (no email confirmation), user has a session
         if (data.session) {
-            // Update profile with phone (the trigger handles full_name and role)
             if (phone.trim()) {
                 await supabase.from("profiles").update({
                     phone: phone.trim(),
@@ -119,7 +133,6 @@ export default function LoginPage() {
             setMessage({ type: "success", text: "Account created! Redirecting..." });
             window.location.href = "/guardian/dashboard";
         } else {
-            // Fallback: try auto sign-in
             const { error: signInError } = await supabase.auth.signInWithPassword({
                 email,
                 password,
@@ -196,24 +209,24 @@ export default function LoginPage() {
 
     const strength = getPasswordStrength(password);
 
+    // Show loading while checking auth
+    if (checkingAuth) {
+        return (
+            <div className="min-h-[60vh] flex items-center justify-center">
+                <span className="inline-block w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+            </div>
+        );
+    }
+
     return (
-        <div className="min-h-screen flex flex-col bg-gradient-to-b from-primary/5 to-background">
-            {/* Navigation */}
-            <nav className="border-b border-border bg-card">
-                <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-                    <Link href="/" className="flex items-center gap-2 text-xl font-bold">
-                        <span>🛠️</span>
-                        <span>VedaWell Tools</span>
-                    </Link>
-                    <Link href="/guardian" className="text-muted hover:text-foreground">
+        <div className="py-12 px-6">
+            <main className="flex items-center justify-center">
+                <div className="w-full max-w-md">
+                    {/* Back link */}
+                    <Link href="/guardian" className="inline-flex items-center gap-2 text-muted hover:text-primary mb-8 transition-colors">
                         ← Back to Guardian
                     </Link>
-                </div>
-            </nav>
 
-            {/* Login Form */}
-            <main className="flex-1 flex items-center justify-center px-6 py-12">
-                <div className="w-full max-w-md">
                     <div className="card">
                         <div className="text-center mb-8">
                             <span className="text-5xl block mb-4">🏠</span>

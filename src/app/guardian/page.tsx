@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -18,7 +20,14 @@ export const metadata: Metadata = {
     },
 };
 
-export default function GuardianPage() {
+export default async function GuardianPage() {
+    // Redirect logged-in users straight to dashboard
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+        redirect("/guardian/dashboard");
+    }
+
     return (
         <>
             {/* Guardian Hero */}
@@ -33,36 +42,34 @@ export default function GuardianPage() {
                             Your comprehensive protection system for Australian home construction.
                             Stop dodgy builders from missing insulation and racking up variations.
                         </p>
+
+                        {/* Dual CTA — new users vs returning users */}
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
+                            <Link
+                                href="/guardian/login?view=sign-up"
+                                className="btn-primary text-center flex-1"
+                            >
+                                Start Free
+                            </Link>
+                            <Link
+                                href="/guardian/login"
+                                className="px-6 py-3 border border-border rounded-lg font-semibold hover:bg-muted/10 transition-colors text-center flex-1"
+                            >
+                                Sign In
+                            </Link>
+                        </div>
+                        <p className="text-sm text-muted mt-4">No credit card required</p>
                     </div>
                 </section>
 
-                {/* CTA Section */}
-                <section className="py-12 px-6">
-                    <div className="max-w-xl mx-auto">
-                        <div className="card text-center">
-                            <h2 className="text-2xl font-bold mb-4">Start protecting your build today</h2>
-                            <p className="text-muted mb-6">
-                                Track your first project free. Upgrade to Guardian Pro for unlimited projects, PDF exports, and legal-ready evidence packs.
-                            </p>
-
-                            <div className="space-y-3">
-                                <Link
-                                    href="/guardian/login"
-                                    className="btn-primary w-full block text-center"
-                                >
-                                    Start Free — No Credit Card
-                                </Link>
-                                <Link
-                                    href="/guardian/pricing"
-                                    className="block w-full text-center px-6 py-3 border border-border rounded-lg font-semibold hover:bg-muted/10 transition-colors"
-                                >
-                                    View Pro Plans from $14.99/mo
-                                </Link>
-                            </div>
-
-                            <p className="text-sm text-muted mt-6">
-                                By signing in, you agree to our terms of service and privacy policy.
-                            </p>
+                {/* Trust Indicators */}
+                <section className="pb-12 px-6">
+                    <div className="max-w-3xl mx-auto">
+                        <div className="flex flex-wrap justify-center gap-6 text-sm text-muted">
+                            <span className="flex items-center gap-2">🔒 Bank-grade encryption</span>
+                            <span className="flex items-center gap-2">🇦🇺 Built for Australian standards</span>
+                            <span className="flex items-center gap-2">⚖️ Legal-ready documentation</span>
+                            <span className="flex items-center gap-2">📱 Works on any device</span>
                         </div>
                     </div>
                 </section>
@@ -121,6 +128,61 @@ export default function GuardianPage() {
                                 </p>
                             </div>
 
+                        </div>
+                    </div>
+                </section>
+
+                {/* Pricing Teaser */}
+                <section className="py-16 px-6">
+                    <div className="max-w-3xl mx-auto text-center">
+                        <h2 className="text-2xl font-bold mb-4">Simple, transparent pricing</h2>
+                        <p className="text-muted mb-8">Start free. Upgrade when you need more.</p>
+                        <div className="grid sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
+                            <div className="card text-center">
+                                <h3 className="font-bold text-lg mb-2">Free</h3>
+                                <p className="text-3xl font-extrabold mb-4">$0</p>
+                                <ul className="text-sm text-muted space-y-2 text-left">
+                                    <li>1 project</li>
+                                    <li>3 defect records</li>
+                                    <li>2 variations</li>
+                                </ul>
+                            </div>
+                            <div className="card text-center border-primary/50 ring-1 ring-primary/20">
+                                <h3 className="font-bold text-lg mb-2 text-primary">Guardian Pro</h3>
+                                <p className="text-3xl font-extrabold mb-4">$14.99<span className="text-base font-normal text-muted">/mo</span></p>
+                                <ul className="text-sm text-muted space-y-2 text-left">
+                                    <li>Unlimited projects</li>
+                                    <li>Unlimited defects & variations</li>
+                                    <li>PDF export & certification gates</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <Link
+                            href="/guardian/pricing"
+                            className="inline-block mt-8 text-primary hover:underline font-medium"
+                        >
+                            View full pricing details →
+                        </Link>
+                    </div>
+                </section>
+
+                {/* Bottom CTA */}
+                <section className="py-16 px-6">
+                    <div className="max-w-xl mx-auto text-center">
+                        <h2 className="text-2xl font-bold mb-4">Ready to protect your build?</h2>
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                            <Link
+                                href="/guardian/login?view=sign-up"
+                                className="btn-primary text-center"
+                            >
+                                Start Free — No Credit Card
+                            </Link>
+                            <Link
+                                href="/guardian/login"
+                                className="px-6 py-3 border border-border rounded-lg font-semibold hover:bg-muted/10 transition-colors text-center"
+                            >
+                                Sign In
+                            </Link>
                         </div>
                     </div>
                 </section>
