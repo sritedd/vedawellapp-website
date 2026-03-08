@@ -20,6 +20,28 @@ export async function proxy(request: NextRequest) {
         return supabaseResponse;
     }
 
+    // Only run Supabase auth check for /guardian/* routes to avoid
+    // adding latency to public pages (/, /tools, /games, /blog, etc.)
+    const { pathname } = request.nextUrl
+
+    if (!pathname.startsWith('/guardian')) {
+        return supabaseResponse
+    }
+
+    // Public Guardian pages that don't require auth
+    const isGuardianPublic =
+        pathname === '/guardian' ||
+        pathname === '/guardian/login' ||
+        pathname === '/guardian/reset-password' ||
+        pathname === '/guardian/resources' ||
+        pathname === '/guardian/faq' ||
+        pathname === '/guardian/pricing'
+
+    if (isGuardianPublic) {
+        return supabaseResponse
+    }
+
+    // Protected Guardian route — check auth
     const supabase = createServerClient(
         supabaseUrl,
         supabaseKey,
@@ -41,20 +63,9 @@ export async function proxy(request: NextRequest) {
         }
     )
 
-    // Refresh the auth token — IMPORTANT: do not add code between createServerClient and getUser
     const { data: { user } } = await supabase.auth.getUser()
 
-    // Protect /guardian/* routes — allow landing, login, and resources without auth
-    const { pathname } = request.nextUrl
-    const isGuardianPublic =
-        pathname === '/guardian' ||
-        pathname === '/guardian/login' ||
-        pathname === '/guardian/reset-password' ||
-        pathname === '/guardian/resources' ||
-        pathname === '/guardian/faq' ||
-        pathname === '/guardian/pricing'
-
-    if (pathname.startsWith('/guardian') && !isGuardianPublic && !user) {
+    if (!user) {
         const loginUrl = request.nextUrl.clone()
         loginUrl.pathname = '/guardian/login'
         loginUrl.searchParams.set('redirectTo', pathname)

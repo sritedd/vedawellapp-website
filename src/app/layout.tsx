@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import InstallPrompt from "@/components/pwa/InstallPrompt";
 import GlobalAdSlot from "@/components/GlobalAdSlots";
+import CookieConsent from "@/components/CookieConsent";
 import "./globals.css";
 
 const inter = Inter({
@@ -18,7 +19,7 @@ export const metadata: Metadata = {
     template: "%s | VedaWell Tools",
   },
   description:
-    "90+ free browser-based tools for productivity, development, and wellness. Play classic games. Track your Australian home construction with HomeOwner Guardian.",
+    "VedaWell offers 90+ free online tools, 19 browser games, daily Hindu Panchang, and HomeOwner Guardian for Australian home construction tracking. No downloads, no sign-ups.",
   keywords:
     "free online tools, productivity tools, games, BMI calculator, panchang, home construction tracker, Australian building, defect tracking",
   metadataBase: new URL("https://vedawellapp.com"),
@@ -100,6 +101,22 @@ export default function RootLayout({
             }),
           }}
         />
+        {/* Google Consent Mode v2 — must load BEFORE any Google tags */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('consent', 'default', {
+                ad_storage: 'denied',
+                ad_user_data: 'denied',
+                ad_personalization: 'denied',
+                analytics_storage: 'denied',
+                wait_for_update: 500,
+              });
+            `,
+          }}
+        />
         {/* RSS feed discovery */}
         <link rel="alternate" type="application/rss+xml" title="VedaWell Blog" href="/feed.xml" />
         {/* Google AdSense */}
@@ -138,6 +155,7 @@ export default function RootLayout({
           <GlobalAdSlot position="bottom" />
           <Footer />
           <InstallPrompt />
+          <CookieConsent />
         </div>
       </body>
     </html>

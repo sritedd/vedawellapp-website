@@ -31,10 +31,10 @@ export default function AdBanner({ slot, format = "auto", className = "" }: AdBa
     }, []);
 
     return (
-        <div className={`ad-container w-full overflow-hidden text-center min-h-[90px] ${className}`}>
+        <div className={`ad-container w-full overflow-hidden text-center min-h-[90px] max-h-[250px] ${className}`}>
             <ins
                 className="adsbygoogle"
-                style={{ display: "block", width: "100%", minHeight: "90px" }}
+                style={{ display: "block", width: "100%", minHeight: "90px", maxHeight: "250px" }}
                 data-ad-client={ADSENSE_PUB_ID}
                 data-ad-slot={slot}
                 data-ad-format={format}

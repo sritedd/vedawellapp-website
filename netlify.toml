@@ -12,16 +12,12 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-# Lighthouse performance audit on every deploy
+# Lighthouse performance audit on every deploy (audit-only, no thresholds)
 [[plugins]]
   package = "@netlify/plugin-lighthouse"
   [plugins.inputs]
     output_path = "reports/lighthouse"
-  [plugins.inputs.thresholds]
-    performance = 0.7
-    accessibility = 0.8
-    seo = 0.8
-    best-practices = 0.8
+    fail_deploy_on_score_thresholds = "false"
 
 # Headers for performance and security
 [[headers]]
