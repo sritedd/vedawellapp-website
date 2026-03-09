@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import AdminUserManager from "@/components/guardian/AdminUserManager";
 
-// Only these emails can access the admin page
-const ADMIN_EMAILS = ["sridhar.kothandam@gmail.com", "support@vedawellapp.com"];
+const ADMIN_EMAILS = ["sridhar.kothandam@gmail.com", "sridharkothandan@vedawellapp.com"];
 
 function StatCard({ label, value, sub, color = "" }: { label: string; value: string | number; sub?: string; color?: string }) {
     return (
@@ -10,6 +11,15 @@ function StatCard({ label, value, sub, color = "" }: { label: string; value: str
             <p className="text-sm text-muted mb-1">{label}</p>
             <p className={`text-3xl font-extrabold ${color}`}>{value}</p>
             {sub && <p className="text-xs text-muted mt-1">{sub}</p>}
+        </div>
+    );
+}
+
+function MiniBar({ value, max, color = "bg-primary" }: { value: number; max: number; color?: string }) {
+    const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0;
+    return (
+        <div className="h-2 bg-border rounded-full overflow-hidden w-full">
+            <div className={`h-full ${color} rounded-full transition-all`} style={{ width: `${pct}%` }} />
         </div>
     );
 }
@@ -32,6 +42,11 @@ export default async function AdminPage() {
         .select("*", { count: "exact", head: true })
         .eq("subscription_tier", "guardian_pro");
 
+    const { count: trialUsers } = await supabase
+        .from("profiles")
+        .select("*", { count: "exact", head: true })
+        .eq("subscription_tier", "trial");
+
     const { count: activeUsers7d } = await supabase
         .from("profiles")
         .select("*", { count: "exact", head: true })
@@ -48,12 +63,110 @@ export default async function AdminPage() {
         .select("*", { count: "exact", head: true })
         .eq("status", "active");
 
-    // ── Recent sign-ups (last 10) ────────────────────────────────────
-    const { data: recentUsers } = await supabase
+    // ── Signup trend (last 30 days) ──────────────────────────────────
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 864e5).toISOString();
+    const { data: recentSignups } = await supabase
         .from("profiles")
-        .select("id, email, subscription_tier, last_seen_at, created_at")
+        .select("created_at")
+        .gte("created_at", thirtyDaysAgo)
+        .order("created_at", { ascending: true });
+
+    // Group signups by date
+    const signupsByDate: Record<string, number> = {};
+    for (let i = 29; i >= 0; i--) {
+        const d = new Date(Date.now() - i * 864e5);
+        signupsByDate[d.toISOString().slice(0, 10)] = 0;
+    }
+    for (const s of recentSignups ?? []) {
+        const dateKey = new Date(s.created_at).toISOString().slice(0, 10);
+        if (dateKey in signupsByDate) signupsByDate[dateKey]++;
+    }
+    const signupDays = Object.entries(signupsByDate);
+    const maxSignups = Math.max(...signupDays.map(([, v]) => v), 1);
+
+    // ── Guardian feature stats ───────────────────────────────────────
+    const { count: totalProjects } = await supabase
+        .from("projects")
+        .select("*", { count: "exact", head: true });
+
+    const { data: projectsByStatus } = await supabase
+        .from("projects")
+        .select("status");
+
+    const statusCounts: Record<string, number> = {};
+    for (const p of projectsByStatus ?? []) {
+        statusCounts[p.status] = (statusCounts[p.status] ?? 0) + 1;
+    }
+
+    const { data: projectValues } = await supabase
+        .from("projects")
+        .select("contract_value");
+    const totalContractValue = (projectValues ?? []).reduce((sum: number, p: { contract_value: number | null }) => sum + (p.contract_value || 0), 0);
+
+    const { count: totalDefects } = await supabase
+        .from("defects")
+        .select("*", { count: "exact", head: true });
+
+    const { count: openDefects } = await supabase
+        .from("defects")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "open");
+
+    const { data: defectsBySeverity } = await supabase
+        .from("defects")
+        .select("severity")
+        .eq("status", "open");
+
+    const sevCounts: Record<string, number> = {};
+    for (const d of defectsBySeverity ?? []) {
+        sevCounts[d.severity] = (sevCounts[d.severity] ?? 0) + 1;
+    }
+
+    const { count: totalVariations } = await supabase
+        .from("variations")
+        .select("*", { count: "exact", head: true });
+
+    const { count: approvedVariations } = await supabase
+        .from("variations")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "approved");
+
+    const { count: totalCertifications } = await supabase
+        .from("certifications")
+        .select("*", { count: "exact", head: true });
+
+    const { count: totalInspections } = await supabase
+        .from("inspections")
+        .select("*", { count: "exact", head: true });
+
+    const { count: totalDocuments } = await supabase
+        .from("documents")
+        .select("*", { count: "exact", head: true });
+
+    // ── Conversion funnel ────────────────────────────────────────────
+    const { count: usersWithProjects } = await supabase
+        .from("projects")
+        .select("user_id", { count: "exact", head: true });
+    // Approximate unique users with projects
+    const { data: uniqueProjectUsers } = await supabase
+        .from("projects")
+        .select("user_id");
+    const uniqueProjectUserCount = new Set((uniqueProjectUsers ?? []).map((p: { user_id: string }) => p.user_id)).size;
+
+    const funnelSteps = [
+        { label: "Email Subscribers", value: emailSubs ?? 0, color: "bg-blue-500" },
+        { label: "Registered Users", value: totalUsers ?? 0, color: "bg-indigo-500" },
+        { label: "Created Project", value: uniqueProjectUserCount, color: "bg-purple-500" },
+        { label: "Guardian Pro", value: (proUsers ?? 0) + (trialUsers ?? 0), color: "bg-green-500" },
+    ];
+    const funnelMax = Math.max(...funnelSteps.map(s => s.value), 1);
+
+    // ── All users (for management) ──────────────────────────────────
+    const { data: allUsers } = await supabase
+        .from("profiles")
+        .select("id, email, full_name, subscription_tier, is_admin, trial_ends_at, last_seen_at, created_at")
         .order("created_at", { ascending: false })
-        .limit(10);
+        .limit(50);
 
     // ── Top email subscriber sources ─────────────────────────────────
     const { data: subSources } = await supabase
@@ -80,33 +193,51 @@ export default async function AdminPage() {
     const fmt = (d: string | null) =>
         d ? new Date(d).toLocaleDateString("en-AU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "—";
 
+    const fmtMoney = (v: number) => v >= 1e6 ? `$${(v / 1e6).toFixed(1)}M` : v >= 1e3 ? `$${(v / 1e3).toFixed(0)}K` : `$${v.toFixed(0)}`;
+
     const mrr = (proUsers ?? 0) * 14.99;
 
     return (
         <div className="py-10 px-6">
             <div className="max-w-6xl mx-auto space-y-10">
-                <div className="flex items-center justify-between">
+                {/* Header */}
+                <div className="flex items-center justify-between flex-wrap gap-4">
                     <div>
                         <h1 className="text-3xl font-extrabold">Admin Dashboard</h1>
                         <p className="text-muted text-sm mt-1">VedaWell — live Supabase data</p>
                     </div>
-                    <span className="text-xs bg-yellow-500/10 text-yellow-600 border border-yellow-500/30 px-3 py-1 rounded-full font-semibold">
-                        Private — Admin only
-                    </span>
+                    <div className="flex items-center gap-3">
+                        <Link
+                            href="/api/admin/export?type=users"
+                            className="text-xs px-3 py-1.5 border border-border rounded-lg hover:bg-muted/10 transition-colors font-medium"
+                        >
+                            Export Users CSV
+                        </Link>
+                        <Link
+                            href="/api/admin/export?type=subscribers"
+                            className="text-xs px-3 py-1.5 border border-border rounded-lg hover:bg-muted/10 transition-colors font-medium"
+                        >
+                            Export Subscribers CSV
+                        </Link>
+                        <span className="text-xs bg-yellow-500/10 text-yellow-600 border border-yellow-500/30 px-3 py-1.5 rounded-full font-semibold">
+                            Admin
+                        </span>
+                    </div>
                 </div>
 
-                {/* Revenue snapshot */}
+                {/* ═══ Revenue ═══ */}
                 <section>
                     <h2 className="text-lg font-bold mb-4">Revenue</h2>
-                    <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
-                        <StatCard label="Guardian Pro Users" value={proUsers ?? 0} sub="paying subscribers" color="text-green-600" />
-                        <StatCard label="Est. MRR (AUD)" value={`$${mrr.toFixed(2)}`} sub={`${proUsers ?? 0} × $14.99`} color="text-primary" />
+                    <div className="grid sm:grid-cols-2 md:grid-cols-5 gap-4">
+                        <StatCard label="Guardian Pro" value={proUsers ?? 0} sub="paying subscribers" color="text-green-600" />
+                        <StatCard label="On Trial" value={trialUsers ?? 0} sub="free trial active" color="text-blue-600" />
+                        <StatCard label="Est. MRR (AUD)" value={`$${mrr.toFixed(2)}`} sub={`${proUsers ?? 0} x $14.99`} color="text-primary" />
                         <StatCard label="Est. ARR (AUD)" value={`$${(mrr * 12).toFixed(0)}`} sub="annualised" />
-                        <StatCard label="Free Users" value={(totalUsers ?? 0) - (proUsers ?? 0)} sub="on free tier" />
+                        <StatCard label="Free Users" value={(totalUsers ?? 0) - (proUsers ?? 0) - (trialUsers ?? 0)} sub="on free tier" />
                     </div>
                 </section>
 
-                {/* User activity */}
+                {/* ═══ Users ═══ */}
                 <section>
                     <h2 className="text-lg font-bold mb-4">Users</h2>
                     <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
@@ -117,52 +248,205 @@ export default async function AdminPage() {
                     </div>
                 </section>
 
-                {/* Recent sign-ups */}
+                {/* ═══ Signup Trend (30 days) ═══ */}
                 <section>
-                    <h2 className="text-lg font-bold mb-4">Recent Sign-ups</h2>
-                    <div className="bg-card border border-border rounded-xl overflow-hidden">
+                    <h2 className="text-lg font-bold mb-2">Signup Trend</h2>
+                    <p className="text-muted text-xs mb-3">Last 30 days — {(recentSignups ?? []).length} total signups</p>
+                    <div className="bg-card border border-border rounded-xl p-4">
+                        <div className="flex items-end gap-[2px] h-24">
+                            {signupDays.map(([date, count]) => (
+                                <div key={date} className="flex-1 flex flex-col items-center justify-end h-full group relative">
+                                    <div
+                                        className="w-full bg-primary/80 rounded-t-sm min-h-[2px] transition-all hover:bg-primary"
+                                        style={{ height: `${Math.max((count / maxSignups) * 100, 2)}%` }}
+                                    />
+                                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-foreground text-background text-[10px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-10">
+                                        {date.slice(5)}: {count}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="flex justify-between mt-2 text-[10px] text-muted">
+                            <span>{signupDays[0]?.[0]?.slice(5)}</span>
+                            <span>{signupDays[Math.floor(signupDays.length / 2)]?.[0]?.slice(5)}</span>
+                            <span>{signupDays[signupDays.length - 1]?.[0]?.slice(5)}</span>
+                        </div>
+                    </div>
+                </section>
+
+                {/* ═══ Conversion Funnel ═══ */}
+                <section>
+                    <h2 className="text-lg font-bold mb-4">Conversion Funnel</h2>
+                    <div className="bg-card border border-border rounded-xl p-6 space-y-4">
+                        {funnelSteps.map((step, i) => {
+                            const prevValue = i > 0 ? funnelSteps[i - 1].value : null;
+                            const convRate = prevValue && prevValue > 0 ? ((step.value / prevValue) * 100).toFixed(1) : null;
+                            return (
+                                <div key={step.label}>
+                                    <div className="flex items-center justify-between mb-1">
+                                        <span className="text-sm font-medium">{step.label}</span>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm font-bold">{step.value}</span>
+                                            {convRate && (
+                                                <span className="text-xs text-muted">({convRate}% from above)</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <MiniBar value={step.value} max={funnelMax} color={step.color} />
+                                </div>
+                            );
+                        })}
+                    </div>
+                </section>
+
+                {/* ═══ Guardian Feature Analytics ═══ */}
+                <section>
+                    <h2 className="text-lg font-bold mb-4">Guardian Feature Usage</h2>
+                    <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                        <StatCard label="Total Projects" value={totalProjects ?? 0} sub={`${fmtMoney(totalContractValue)} contract value`} color="text-primary" />
+                        <StatCard label="Defects Logged" value={totalDefects ?? 0} sub={`${openDefects ?? 0} open`} color={openDefects ? "text-red-600" : ""} />
+                        <StatCard label="Variations" value={totalVariations ?? 0} sub={`${approvedVariations ?? 0} approved`} />
+                        <StatCard label="Documents" value={totalDocuments ?? 0} sub={`${totalCertifications ?? 0} certs, ${totalInspections ?? 0} inspections`} />
+                    </div>
+
+                    {/* Project status breakdown */}
+                    <div className="grid sm:grid-cols-2 gap-4">
+                        <div className="bg-card border border-border rounded-xl p-5">
+                            <h3 className="text-sm font-bold mb-3">Projects by Status</h3>
+                            {Object.keys(statusCounts).length === 0 ? (
+                                <p className="text-muted text-sm">No projects yet</p>
+                            ) : (
+                                <div className="space-y-2">
+                                    {Object.entries(statusCounts).sort((a, b) => b[1] - a[1]).map(([status, count]) => (
+                                        <div key={status} className="flex items-center justify-between">
+                                            <span className="text-sm capitalize">{status}</span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-sm font-bold">{count}</span>
+                                                <div className="w-20">
+                                                    <MiniBar value={count} max={totalProjects ?? 1} color={
+                                                        status === "active" ? "bg-green-500" :
+                                                        status === "completed" ? "bg-blue-500" :
+                                                        status === "paused" ? "bg-yellow-500" :
+                                                        "bg-muted"
+                                                    } />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="bg-card border border-border rounded-xl p-5">
+                            <h3 className="text-sm font-bold mb-3">Open Defects by Severity</h3>
+                            {Object.keys(sevCounts).length === 0 ? (
+                                <p className="text-muted text-sm">No open defects</p>
+                            ) : (
+                                <div className="space-y-2">
+                                    {["critical", "major", "minor"].filter(s => sevCounts[s]).map(severity => (
+                                        <div key={severity} className="flex items-center justify-between">
+                                            <span className={`text-sm capitalize font-medium ${
+                                                severity === "critical" ? "text-red-600" :
+                                                severity === "major" ? "text-orange-600" :
+                                                "text-yellow-600"
+                                            }`}>{severity}</span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-sm font-bold">{sevCounts[severity]}</span>
+                                                <div className="w-20">
+                                                    <MiniBar value={sevCounts[severity]} max={openDefects ?? 1} color={
+                                                        severity === "critical" ? "bg-red-500" :
+                                                        severity === "major" ? "bg-orange-500" :
+                                                        "bg-yellow-500"
+                                                    } />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </section>
+
+                {/* ═══ User Management ═══ */}
+                <section>
+                    <h2 className="text-lg font-bold mb-2">User Management</h2>
+                    <p className="text-muted text-sm mb-4">Grant free trials, upgrade users, or revoke access by email.</p>
+                    <div className="bg-card border border-border rounded-xl p-6">
+                        <AdminUserManager />
+                    </div>
+                </section>
+
+                {/* ═══ All Users Table ═══ */}
+                <section>
+                    <h2 className="text-lg font-bold mb-4">All Users (last 50)</h2>
+                    <div className="bg-card border border-border rounded-xl overflow-x-auto">
                         <table className="w-full text-sm">
                             <thead className="bg-muted/10 text-muted text-left">
                                 <tr>
                                     <th className="px-4 py-3 font-medium">Email</th>
+                                    <th className="px-4 py-3 font-medium">Name</th>
                                     <th className="px-4 py-3 font-medium">Tier</th>
+                                    <th className="px-4 py-3 font-medium">Trial ends</th>
+                                    <th className="px-4 py-3 font-medium">Admin</th>
                                     <th className="px-4 py-3 font-medium">Signed up</th>
                                     <th className="px-4 py-3 font-medium">Last seen</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border">
-                                {(recentUsers ?? []).length === 0 ? (
+                                {(allUsers ?? []).length === 0 ? (
                                     <tr>
-                                        <td colSpan={4} className="px-4 py-6 text-center text-muted">No users yet</td>
+                                        <td colSpan={7} className="px-4 py-6 text-center text-muted">No users yet</td>
                                     </tr>
                                 ) : (
                                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                    (recentUsers ?? []).map((u: any) => (
-                                        <tr key={u.id} className="hover:bg-muted/5">
-                                            <td className="px-4 py-3 font-mono text-xs truncate max-w-[200px]">{u.email ?? "—"}</td>
-                                            <td className="px-4 py-3">
-                                                <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                                                    u.subscription_tier === "guardian_pro"
-                                                        ? "bg-green-500/10 text-green-600"
-                                                        : "bg-muted/20 text-muted"
-                                                }`}>
-                                                    {u.subscription_tier ?? "free"}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-3 text-muted">{fmt(u.created_at)}</td>
-                                            <td className="px-4 py-3 text-muted">{fmt(u.last_seen_at)}</td>
-                                        </tr>
-                                    ))
+                                    (allUsers ?? []).map((u: any) => {
+                                        const trialActive = u.trial_ends_at && new Date(u.trial_ends_at) > new Date();
+                                        const trialExpired = u.trial_ends_at && new Date(u.trial_ends_at) <= new Date();
+                                        return (
+                                            <tr key={u.id} className="hover:bg-muted/5">
+                                                <td className="px-4 py-3 font-mono text-xs truncate max-w-[200px]">{u.email ?? "—"}</td>
+                                                <td className="px-4 py-3 text-xs">{u.full_name ?? "—"}</td>
+                                                <td className="px-4 py-3">
+                                                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                                                        u.subscription_tier === "guardian_pro"
+                                                            ? "bg-green-500/10 text-green-600"
+                                                            : u.subscription_tier === "trial"
+                                                            ? trialActive
+                                                                ? "bg-blue-500/10 text-blue-600"
+                                                                : "bg-red-500/10 text-red-600"
+                                                            : "bg-muted/20 text-muted"
+                                                    }`}>
+                                                        {u.subscription_tier === "trial" && trialExpired
+                                                            ? "trial expired"
+                                                            : u.subscription_tier ?? "free"}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-3 text-xs text-muted">
+                                                    {u.trial_ends_at ? fmt(u.trial_ends_at) : "—"}
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    {u.is_admin && (
+                                                        <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-500/10 text-yellow-600">
+                                                            admin
+                                                        </span>
+                                                    )}
+                                                </td>
+                                                <td className="px-4 py-3 text-muted text-xs">{fmt(u.created_at)}</td>
+                                                <td className="px-4 py-3 text-muted text-xs">{fmt(u.last_seen_at)}</td>
+                                            </tr>
+                                        );
+                                    })
                                 )}
                             </tbody>
                         </table>
                     </div>
                 </section>
 
-                {/* Tool usage leaderboard */}
+                {/* ═══ Tool Usage Leaderboard ═══ */}
                 <section>
                     <h2 className="text-lg font-bold mb-2">Tool Usage Leaderboard</h2>
-                    <p className="text-muted text-sm mb-4">Populated once <code className="bg-muted/20 px-1 rounded">GA4 tool_used</code> events are wired up. Run the schema_v4_analytics.sql migration first.</p>
+                    <p className="text-muted text-sm mb-4">Populated once <code className="bg-muted/20 px-1 rounded">trackToolUse</code> events fire. Run schema_v4_analytics.sql migration first.</p>
                     <div className="bg-card border border-border rounded-xl overflow-hidden">
                         <table className="w-full text-sm">
                             <thead className="bg-muted/10 text-muted text-left">
@@ -177,7 +461,7 @@ export default async function AdminPage() {
                                 {(topTools ?? []).length === 0 ? (
                                     <tr>
                                         <td colSpan={4} className="px-4 py-6 text-center text-muted">
-                                            No tool usage data yet — wire up the <code className="bg-muted/20 px-1 rounded">trackToolUse</code> events
+                                            No tool usage data yet
                                         </td>
                                     </tr>
                                 ) : (
@@ -196,7 +480,7 @@ export default async function AdminPage() {
                     </div>
                 </section>
 
-                {/* Email subscriber sources */}
+                {/* ═══ Email Subscriber Sources ═══ */}
                 <section>
                     <h2 className="text-lg font-bold mb-4">Email Subscriber Sources</h2>
                     {topSources.length === 0 ? (

@@ -119,3 +119,77 @@ export async function updateProject(projectId: string, updates: {
 
     return { success: true };
 }
+
+// ── Admin helpers ──────────────────────────────────────────────────
+
+const ADMIN_EMAILS = ["sridhar.kothandam@gmail.com", "sridharkothandan@vedawellapp.com"];
+
+/** Check if the current user is an admin */
+async function requireAdmin() {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user || !ADMIN_EMAILS.includes(user.email ?? "")) {
+        return { supabase: null, error: "Unauthorized" };
+    }
+    return { supabase, error: null };
+}
+
+/** Admin: Grant a free trial to a user by email */
+export async function grantTrial(userEmail: string, days: number) {
+    const { supabase, error } = await requireAdmin();
+    if (error || !supabase) return { error };
+
+    const trialEnd = new Date(Date.now() + days * 864e5).toISOString();
+
+    const { error: updateError } = await supabase
+        .from("profiles")
+        .update({
+            subscription_tier: "trial",
+            trial_ends_at: trialEnd,
+            subscription_updated_at: new Date().toISOString(),
+        })
+        .eq("email", userEmail);
+
+    if (updateError) return { error: updateError.message };
+    return { success: true, trialEnd };
+}
+
+/** Admin: Revoke trial / set user back to free */
+export async function revokeTrial(userEmail: string) {
+    const { supabase, error } = await requireAdmin();
+    if (error || !supabase) return { error };
+
+    const { error: updateError } = await supabase
+        .from("profiles")
+        .update({
+            subscription_tier: "free",
+            trial_ends_at: null,
+            subscription_updated_at: new Date().toISOString(),
+        })
+        .eq("email", userEmail);
+
+    if (updateError) return { error: updateError.message };
+    return { success: true };
+}
+
+/** Admin: Manually set a user's tier (e.g. guardian_pro) */
+export async function setUserTier(userEmail: string, tier: "free" | "guardian_pro" | "trial") {
+    const { supabase, error } = await requireAdmin();
+    if (error || !supabase) return { error };
+
+    const updates: Record<string, any> = {
+        subscription_tier: tier,
+        subscription_updated_at: new Date().toISOString(),
+    };
+    if (tier !== "trial") {
+        updates.trial_ends_at = null;
+    }
+
+    const { error: updateError } = await supabase
+        .from("profiles")
+        .update(updates)
+        .eq("email", userEmail);
+
+    if (updateError) return { error: updateError.message };
+    return { success: true };
+}

@@ -19,12 +19,18 @@ export default async function DashboardPage() {
     // Fetch user profile for subscription tier
     const { data: profile } = await supabase
         .from('profiles')
-        .select('subscription_tier')
+        .select('subscription_tier, is_admin, trial_ends_at')
         .eq('id', user.id)
         .single();
 
-    const tier = profile?.subscription_tier || 'free';
-    const isFree = tier === 'free';
+    const rawTier = profile?.subscription_tier || 'free';
+    const isAdmin = profile?.is_admin === true;
+    const trialActive = rawTier === 'trial' && profile?.trial_ends_at && new Date(profile.trial_ends_at) > new Date();
+
+    // Admins and active trials get full pro access
+    const hasPro = rawTier === 'guardian_pro' || isAdmin || trialActive;
+    const tier = hasPro ? 'guardian_pro' : 'free';
+    const isFree = !hasPro;
 
     // Free tier limits
     const FREE_PROJECT_LIMIT = 1;
@@ -70,7 +76,7 @@ export default async function DashboardPage() {
     // For quick actions, prefer the first active project, fallback to most recent
     const activeProject = projects?.find((p: { status: string }) => p.status === "active");
     const projectId = activeProject?.id || projects?.[0]?.id;
-    const isAdmin = ["sridhar.kothandam@gmail.com", "support@vedawellapp.com"].includes(user.email ?? "");
+    // isAdmin already defined above from profile.is_admin
 
     return (
         <>
@@ -117,6 +123,14 @@ export default async function DashboardPage() {
                         {isFree ? (
                             <Link href="/guardian/pricing" className="text-sm px-3 py-1.5 bg-primary/10 text-primary rounded-full font-medium hover:bg-primary/20 transition-colors">
                                 Free Plan — Upgrade
+                            </Link>
+                        ) : trialActive ? (
+                            <span className="text-sm px-3 py-1.5 bg-blue-500/10 text-blue-600 rounded-full font-medium">
+                                Trial — ends {new Date(profile!.trial_ends_at!).toLocaleDateString("en-AU")}
+                            </span>
+                        ) : isAdmin ? (
+                            <Link href="/guardian/admin" className="text-sm px-3 py-1.5 bg-yellow-500/10 text-yellow-600 rounded-full font-medium hover:bg-yellow-500/20 transition-colors">
+                                Admin — Full Access
                             </Link>
                         ) : (
                             <ManageBillingButton />
