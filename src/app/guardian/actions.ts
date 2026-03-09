@@ -242,3 +242,144 @@ export async function cleanupExpiredTrials() {
     if (cleanupError) return { error: cleanupError.message };
     return { success: true, count: data?.length ?? 0 };
 }
+
+// ── Support messaging ─────────────────────────────────────────────
+
+/** User: Send a support message */
+export async function sendSupportMessage(message: string) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "Not authenticated" };
+
+    const trimmed = message.trim();
+    if (!trimmed || trimmed.length > 2000) return { error: "Message must be 1-2000 characters" };
+
+    const { error } = await supabase
+        .from("support_messages")
+        .insert({ user_id: user.id, message: trimmed, is_admin_reply: false });
+
+    if (error) return { error: error.message };
+    return { success: true };
+}
+
+/** User: Get own support messages */
+export async function getMyMessages() {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "Not authenticated", messages: [] };
+
+    const { data, error } = await supabase
+        .from("support_messages")
+        .select("id, message, is_admin_reply, read_at, created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: true });
+
+    if (error) return { error: error.message, messages: [] };
+
+    // Mark unread admin replies as read
+    const unreadIds = (data ?? [])
+        .filter((m: { is_admin_reply: boolean; read_at: string | null }) => m.is_admin_reply && !m.read_at)
+        .map((m: { id: string }) => m.id);
+    if (unreadIds.length > 0) {
+        await supabase
+            .from("support_messages")
+            .update({ read_at: new Date().toISOString() })
+            .in("id", unreadIds);
+    }
+
+    return { messages: data ?? [] };
+}
+
+/** Admin: Get all conversations grouped by user */
+export async function getAdminConversations() {
+    const { supabase, error } = await requireAdmin();
+    if (error || !supabase) return { error, conversations: [] };
+
+    const { data, error: fetchError } = await supabase
+        .from("support_messages")
+        .select("id, user_id, message, is_admin_reply, read_at, created_at")
+        .order("created_at", { ascending: true });
+
+    if (fetchError) return { error: fetchError.message, conversations: [] };
+
+    type SupportMsg = { id: string; user_id: string; message: string; is_admin_reply: boolean; read_at: string | null; created_at: string };
+
+    // Get user profiles for display
+    const userIds = [...new Set((data ?? []).map((m: SupportMsg) => m.user_id))];
+    const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, email, full_name")
+        .in("id", userIds);
+
+    const profileMap: Record<string, { email: string | null; full_name: string | null }> = {};
+    for (const p of profiles ?? []) {
+        profileMap[p.id] = { email: p.email, full_name: p.full_name };
+    }
+
+    // Group messages by user
+    const grouped: Record<string, {
+        user_id: string;
+        email: string | null;
+        full_name: string | null;
+        messages: SupportMsg[];
+        unread_count: number;
+        last_message_at: string;
+    }> = {};
+
+    for (const m of (data ?? []) as SupportMsg[]) {
+        if (!grouped[m.user_id]) {
+            grouped[m.user_id] = {
+                user_id: m.user_id,
+                email: profileMap[m.user_id]?.email ?? null,
+                full_name: profileMap[m.user_id]?.full_name ?? null,
+                messages: [],
+                unread_count: 0,
+                last_message_at: m.created_at,
+            };
+        }
+        grouped[m.user_id].messages!.push(m);
+        grouped[m.user_id].last_message_at = m.created_at;
+        // Count unread user messages (not admin replies)
+        if (!m.is_admin_reply && !m.read_at) {
+            grouped[m.user_id].unread_count++;
+        }
+    }
+
+    // Sort by most recent message
+    const conversations = Object.values(grouped)
+        .sort((a, b) => new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime());
+
+    return { conversations };
+}
+
+/** Admin: Reply to a user's support thread */
+export async function adminReply(userId: string, message: string) {
+    const { supabase, error } = await requireAdmin();
+    if (error || !supabase) return { error };
+
+    const trimmed = message.trim();
+    if (!trimmed || trimmed.length > 2000) return { error: "Message must be 1-2000 characters" };
+
+    const { data: { user } } = await supabase.auth.getUser();
+
+    const { error: insertError } = await supabase
+        .from("support_messages")
+        .insert({
+            user_id: userId,
+            message: trimmed,
+            is_admin_reply: true,
+            admin_id: user!.id,
+        });
+
+    if (insertError) return { error: insertError.message };
+
+    // Mark all user messages in this thread as read
+    await supabase
+        .from("support_messages")
+        .update({ read_at: new Date().toISOString() })
+        .eq("user_id", userId)
+        .eq("is_admin_reply", false)
+        .is("read_at", null);
+
+    return { success: true };
+}

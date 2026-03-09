@@ -104,6 +104,11 @@ export default async function DashboardPage() {
                         <Link href="/guardian/journey" className="text-muted hover:text-foreground">
                             📚 Learn
                         </Link>
+                        {hasPro && (
+                            <Link href="/guardian/support" className="text-muted hover:text-foreground">
+                                💬 Support
+                            </Link>
+                        )}
                         {isAdmin && (
                             <Link href="/guardian/admin" className="text-yellow-600 hover:text-yellow-500 font-medium text-sm">
                                 ⚙️ Admin

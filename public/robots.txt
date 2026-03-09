@@ -6,6 +6,7 @@ Disallow: /guardian/admin
 Disallow: /guardian/dashboard
 Disallow: /guardian/projects
 Disallow: /guardian/profile
+Disallow: /guardian/support
 Disallow: /api/
 
 Sitemap: https://vedawellapp.com/sitemap.xml

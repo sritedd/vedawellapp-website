@@ -5,6 +5,8 @@ import { isAdminEmail } from "@/lib/admin";
 import AdminUserManager from "@/components/guardian/AdminUserManager";
 import AdminAnnouncementManager from "@/components/guardian/AdminAnnouncementManager";
 import AdminUserSearch from "@/components/guardian/AdminUserSearch";
+import AdminSupportInbox from "@/components/guardian/AdminSupportInbox";
+import { getAdminConversations } from "@/app/guardian/actions";
 
 function StatCard({ label, value, sub, color = "" }: { label: string; value: string | number; sub?: string; color?: string }) {
     return (
@@ -192,6 +194,9 @@ export default async function AdminPage() {
         ...u,
         project_count: projectCountMap[u.id] ?? 0,
     }));
+
+    // ── Support conversations ──────────────────────────────────────
+    const { conversations: supportConversations } = await getAdminConversations();
 
     // ── Top email subscriber sources ─────────────────────────────────
     const { data: subSources } = await supabase
@@ -429,6 +434,25 @@ export default async function AdminPage() {
                     <div className="bg-card border border-border rounded-xl p-4">
                         <AdminUserSearch users={allUsersWithProjects} />
                     </div>
+                </section>
+
+                {/* ═══ Support Inbox ═══ */}
+                <section>
+                    <h2 className="text-lg font-bold mb-2">
+                        Support Inbox
+                        {supportConversations.length > 0 && (
+                            <span className="ml-2 text-sm font-normal text-muted">
+                                {supportConversations.length} conversation(s)
+                                {supportConversations.reduce((s, c) => s + c.unread_count, 0) > 0 && (
+                                    <span className="ml-1 px-1.5 py-0.5 rounded-full bg-red-500 text-white text-xs font-bold">
+                                        {supportConversations.reduce((s, c) => s + c.unread_count, 0)} new
+                                    </span>
+                                )}
+                            </span>
+                        )}
+                    </h2>
+                    <p className="text-muted text-sm mb-4">View and reply to user support messages.</p>
+                    <AdminSupportInbox initial={supportConversations} />
                 </section>
 
                 {/* ═══ Tool Usage Leaderboard ═══ */}
