@@ -75,6 +75,15 @@ export default async function DashboardPage() {
         totalOpenDefects = allDefects?.length || 0;
     }
 
+    // ── Active announcement banner ──────────────────────────────────
+    const { data: announcement } = await supabase
+        .from("announcements")
+        .select("message, type")
+        .eq("active", true)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
     // For quick actions, prefer the first active project, fallback to most recent
     const activeProject = projects?.find((p: { status: string }) => p.status === "active");
     const projectId = activeProject?.id || projects?.[0]?.id;
@@ -138,6 +147,19 @@ export default async function DashboardPage() {
                             <ManageBillingButton />
                         )}
                     </div>
+
+                    {/* Admin announcement banner */}
+                    {announcement && (
+                        <div className={`mb-6 p-4 rounded-lg text-sm font-medium border ${
+                            announcement.type === "warning"
+                                ? "bg-yellow-500/10 text-yellow-700 border-yellow-500/20"
+                                : announcement.type === "success"
+                                ? "bg-green-500/10 text-green-700 border-green-500/20"
+                                : "bg-blue-500/10 text-blue-700 border-blue-500/20"
+                        }`}>
+                            {announcement.message}
+                        </div>
+                    )}
 
                     {/* Free tier upgrade banner */}
                     {isFree && (

@@ -3,6 +3,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { isAdminEmail } from "@/lib/admin";
 import AdminUserManager from "@/components/guardian/AdminUserManager";
+import AdminAnnouncementManager from "@/components/guardian/AdminAnnouncementManager";
+import AdminUserSearch from "@/components/guardian/AdminUserSearch";
 
 function StatCard({ label, value, sub, color = "" }: { label: string; value: string | number; sub?: string; color?: string }) {
     return (
@@ -160,12 +162,36 @@ export default async function AdminPage() {
     ];
     const funnelMax = Math.max(...funnelSteps.map(s => s.value), 1);
 
+    // ── Active announcement ──────────────────────────────────────────
+    const { data: activeAnnouncement } = await supabase
+        .from("announcements")
+        .select("id, message, type, created_at")
+        .eq("active", true)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
     // ── All users (for management) ──────────────────────────────────
     const { data: allUsers } = await supabase
         .from("profiles")
         .select("id, email, full_name, subscription_tier, is_admin, trial_ends_at, last_seen_at, created_at")
         .order("created_at", { ascending: false })
-        .limit(50);
+        .limit(100);
+
+    // ── Project counts per user ──────────────────────────────────────
+    const { data: projectCounts } = await supabase
+        .from("projects")
+        .select("user_id");
+
+    const projectCountMap: Record<string, number> = {};
+    for (const p of projectCounts ?? []) {
+        projectCountMap[p.user_id] = (projectCountMap[p.user_id] ?? 0) + 1;
+    }
+
+    const allUsersWithProjects = (allUsers ?? []).map((u: { id: string; email: string | null; full_name: string | null; subscription_tier: string | null; is_admin: boolean; trial_ends_at: string | null; last_seen_at: string | null; created_at: string }) => ({
+        ...u,
+        project_count: projectCountMap[u.id] ?? 0,
+    }));
 
     // ── Top email subscriber sources ─────────────────────────────────
     const { data: subSources } = await supabase
@@ -367,6 +393,27 @@ export default async function AdminPage() {
                     </div>
                 </section>
 
+                {/* ═══ Announcements ═══ */}
+                <section>
+                    <h2 className="text-lg font-bold mb-2">Announcements & Maintenance</h2>
+                    <p className="text-muted text-sm mb-4">Set a banner visible to all Guardian users, or run maintenance tasks.</p>
+                    {activeAnnouncement && (
+                        <div className={`mb-4 p-3 rounded-lg text-sm font-medium border ${
+                            activeAnnouncement.type === "warning"
+                                ? "bg-yellow-500/10 text-yellow-700 border-yellow-500/20"
+                                : activeAnnouncement.type === "success"
+                                ? "bg-green-500/10 text-green-700 border-green-500/20"
+                                : "bg-blue-500/10 text-blue-700 border-blue-500/20"
+                        }`}>
+                            Active: &quot;{activeAnnouncement.message}&quot;
+                            <span className="text-xs ml-2 opacity-70">({activeAnnouncement.type})</span>
+                        </div>
+                    )}
+                    <div className="bg-card border border-border rounded-xl p-6">
+                        <AdminAnnouncementManager />
+                    </div>
+                </section>
+
                 {/* ═══ User Management ═══ */}
                 <section>
                     <h2 className="text-lg font-bold mb-2">User Management</h2>
@@ -376,69 +423,11 @@ export default async function AdminPage() {
                     </div>
                 </section>
 
-                {/* ═══ All Users Table ═══ */}
+                {/* ═══ All Users Table (searchable) ═══ */}
                 <section>
-                    <h2 className="text-lg font-bold mb-4">All Users (last 50)</h2>
-                    <div className="bg-card border border-border rounded-xl overflow-x-auto">
-                        <table className="w-full text-sm">
-                            <thead className="bg-muted/10 text-muted text-left">
-                                <tr>
-                                    <th className="px-4 py-3 font-medium">Email</th>
-                                    <th className="px-4 py-3 font-medium">Name</th>
-                                    <th className="px-4 py-3 font-medium">Tier</th>
-                                    <th className="px-4 py-3 font-medium">Trial ends</th>
-                                    <th className="px-4 py-3 font-medium">Admin</th>
-                                    <th className="px-4 py-3 font-medium">Signed up</th>
-                                    <th className="px-4 py-3 font-medium">Last seen</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-border">
-                                {(allUsers ?? []).length === 0 ? (
-                                    <tr>
-                                        <td colSpan={7} className="px-4 py-6 text-center text-muted">No users yet</td>
-                                    </tr>
-                                ) : (
-                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                    (allUsers ?? []).map((u: any) => {
-                                        const trialActive = u.trial_ends_at && new Date(u.trial_ends_at) > new Date();
-                                        const trialExpired = u.trial_ends_at && new Date(u.trial_ends_at) <= new Date();
-                                        return (
-                                            <tr key={u.id} className="hover:bg-muted/5">
-                                                <td className="px-4 py-3 font-mono text-xs truncate max-w-[200px]">{u.email ?? "—"}</td>
-                                                <td className="px-4 py-3 text-xs">{u.full_name ?? "—"}</td>
-                                                <td className="px-4 py-3">
-                                                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                                                        u.subscription_tier === "guardian_pro"
-                                                            ? "bg-green-500/10 text-green-600"
-                                                            : u.subscription_tier === "trial"
-                                                            ? trialActive
-                                                                ? "bg-blue-500/10 text-blue-600"
-                                                                : "bg-red-500/10 text-red-600"
-                                                            : "bg-muted/20 text-muted"
-                                                    }`}>
-                                                        {u.subscription_tier === "trial" && trialExpired
-                                                            ? "trial expired"
-                                                            : u.subscription_tier ?? "free"}
-                                                    </span>
-                                                </td>
-                                                <td className="px-4 py-3 text-xs text-muted">
-                                                    {u.trial_ends_at ? fmt(u.trial_ends_at) : "—"}
-                                                </td>
-                                                <td className="px-4 py-3">
-                                                    {u.is_admin && (
-                                                        <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-500/10 text-yellow-600">
-                                                            admin
-                                                        </span>
-                                                    )}
-                                                </td>
-                                                <td className="px-4 py-3 text-muted text-xs">{fmt(u.created_at)}</td>
-                                                <td className="px-4 py-3 text-muted text-xs">{fmt(u.last_seen_at)}</td>
-                                            </tr>
-                                        );
-                                    })
-                                )}
-                            </tbody>
-                        </table>
+                    <h2 className="text-lg font-bold mb-4">All Users ({allUsersWithProjects.length})</h2>
+                    <div className="bg-card border border-border rounded-xl p-4">
+                        <AdminUserSearch users={allUsersWithProjects} />
                     </div>
                 </section>
 

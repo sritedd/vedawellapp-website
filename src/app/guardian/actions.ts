@@ -192,3 +192,53 @@ export async function setUserTier(userEmail: string, tier: "free" | "guardian_pr
     if (updateError) return { error: updateError.message };
     return { success: true };
 }
+
+/** Admin: Create an announcement banner visible to all Guardian users */
+export async function createAnnouncement(message: string, type: "info" | "warning" | "success") {
+    const { supabase, error } = await requireAdmin();
+    if (error || !supabase) return { error };
+
+    // Deactivate all existing announcements first
+    await supabase.from("announcements").update({ active: false }).eq("active", true);
+
+    const { error: insertError } = await supabase
+        .from("announcements")
+        .insert({ message, type, active: true });
+
+    if (insertError) return { error: insertError.message };
+    return { success: true };
+}
+
+/** Admin: Dismiss/deactivate the current announcement */
+export async function dismissAnnouncement() {
+    const { supabase, error } = await requireAdmin();
+    if (error || !supabase) return { error };
+
+    const { error: updateError2 } = await supabase
+        .from("announcements")
+        .update({ active: false })
+        .eq("active", true);
+
+    if (updateError2) return { error: updateError2.message };
+    return { success: true };
+}
+
+/** Admin: Downgrade all expired trials to free tier */
+export async function cleanupExpiredTrials() {
+    const { supabase, error } = await requireAdmin();
+    if (error || !supabase) return { error };
+
+    const { data, error: cleanupError } = await supabase
+        .from("profiles")
+        .update({
+            subscription_tier: "free",
+            trial_ends_at: null,
+            subscription_updated_at: new Date().toISOString(),
+        })
+        .eq("subscription_tier", "trial")
+        .lt("trial_ends_at", new Date().toISOString())
+        .select("email");
+
+    if (cleanupError) return { error: cleanupError.message };
+    return { success: true, count: data?.length ?? 0 };
+}
