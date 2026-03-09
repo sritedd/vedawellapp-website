@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { isAdminEmail } from "@/lib/admin";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -122,13 +123,11 @@ export async function updateProject(projectId: string, updates: {
 
 // ── Admin helpers ──────────────────────────────────────────────────
 
-const ADMIN_EMAILS = ["sridhar.kothandam@gmail.com", "sridharkothandan@vedawellapp.com"];
-
 /** Check if the current user is an admin */
 async function requireAdmin() {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user || !ADMIN_EMAILS.includes(user.email ?? "")) {
+    if (!user || !isAdminEmail(user.email)) {
         return { supabase: null, error: "Unauthorized" };
     }
     return { supabase, error: null };

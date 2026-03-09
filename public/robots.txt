@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+# Block authenticated/admin pages from crawlers
+Disallow: /guardian/admin
+Disallow: /guardian/dashboard
+Disallow: /guardian/projects
+Disallow: /guardian/profile
+Disallow: /api/
+
+Sitemap: https://vedawellapp.com/sitemap.xml

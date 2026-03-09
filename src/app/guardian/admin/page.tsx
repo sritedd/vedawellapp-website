@@ -1,9 +1,8 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { isAdminEmail } from "@/lib/admin";
 import AdminUserManager from "@/components/guardian/AdminUserManager";
-
-const ADMIN_EMAILS = ["sridhar.kothandam@gmail.com", "sridharkothandan@vedawellapp.com"];
 
 function StatCard({ label, value, sub, color = "" }: { label: string; value: string | number; sub?: string; color?: string }) {
     return (
@@ -28,7 +27,7 @@ export default async function AdminPage() {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
-    if (!user || !ADMIN_EMAILS.includes(user.email ?? "")) {
+    if (!user || !isAdminEmail(user.email)) {
         redirect("/guardian/dashboard");
     }
 
