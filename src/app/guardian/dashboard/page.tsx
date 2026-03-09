@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { isAdminEmail } from "@/lib/admin";
 import { formatMoney } from "@/utils/format";
 import { logout, touchLastSeen } from "@/app/guardian/actions";
 import ManageBillingButton from "@/components/guardian/ManageBillingButton";
@@ -24,7 +25,8 @@ export default async function DashboardPage() {
         .single();
 
     const rawTier = profile?.subscription_tier || 'free';
-    const isAdmin = profile?.is_admin === true;
+    // Check admin from DB column OR email allowlist (fallback if RLS blocks the column)
+    const isAdmin = profile?.is_admin === true || isAdminEmail(user.email);
     const trialActive = rawTier === 'trial' && profile?.trial_ends_at && new Date(profile.trial_ends_at) > new Date();
 
     // Admins and active trials get full pro access
