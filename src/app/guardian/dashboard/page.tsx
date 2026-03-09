@@ -104,6 +104,9 @@ export default async function DashboardPage() {
                         <Link href="/guardian/journey" className="text-muted hover:text-foreground">
                             📚 Learn
                         </Link>
+                        <Link href="/guardian/refer" className="text-muted hover:text-foreground">
+                            🎁 Refer
+                        </Link>
                         {hasPro && (
                             <Link href="/guardian/support" className="text-muted hover:text-foreground">
                                 💬 Support

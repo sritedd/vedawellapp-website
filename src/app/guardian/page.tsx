@@ -28,8 +28,28 @@ export default async function GuardianPage() {
         redirect("/guardian/dashboard");
     }
 
+    const jsonLd = {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        name: "HomeOwner Guardian",
+        applicationCategory: "BusinessApplication",
+        operatingSystem: "Web",
+        url: "https://vedawellapp.com/guardian",
+        description: "Track building defects, variations, and construction costs for Australian homeowners.",
+        offers: [
+            { "@type": "Offer", price: "0", priceCurrency: "AUD", name: "Free" },
+            { "@type": "Offer", price: "14.99", priceCurrency: "AUD", name: "Guardian Pro", billingIncrement: "P1M" },
+        ],
+        author: { "@type": "Organization", name: "VedaWell", url: "https://vedawellapp.com" },
+        featureList: "Defect tracking, Variation management, Construction checklists, Photo evidence, Tribunal-ready reports, Cost tracking",
+    };
+
     return (
         <>
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            />
             {/* Guardian Hero */}
             <div className="bg-gradient-to-b from-primary/5 to-background">
                 <section className="py-16 px-6">

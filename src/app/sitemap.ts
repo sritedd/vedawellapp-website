@@ -3,6 +3,7 @@ import { readdirSync } from "fs";
 import { join } from "path";
 import { COMPETITORS } from "@/data/competitors";
 import { BLOG_POSTS } from "@/data/blog/posts";
+import { GUARDIAN_LANDING_PAGES } from "@/data/guardian-landing-pages";
 
 const BASE_URL = "https://vedawellapp.com";
 
@@ -75,5 +76,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
         })),
     ];
 
-    return [...staticPages, ...toolPages, ...gamePages, ...comparePages, ...blogPages];
+    const guardianPages: MetadataRoute.Sitemap = GUARDIAN_LANDING_PAGES.map((p) => ({
+        url: `${BASE_URL}/guardian/learn/${p.slug}`,
+        lastModified: new Date(),
+        changeFrequency: "monthly" as const,
+        priority: 0.7,
+    }));
+
+    return [...staticPages, ...toolPages, ...gamePages, ...comparePages, ...blogPages, ...guardianPages];
 }
