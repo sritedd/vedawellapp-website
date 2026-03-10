@@ -184,25 +184,31 @@ export default async function DashboardPage() {
                         </div>
                     )}
 
-                    {/* Stats Cards */}
+                    {/* Stats Cards — clickable when project exists */}
                     <div className="grid md:grid-cols-4 gap-6 mb-8">
-                        <div className="card">
-                            <div className="text-muted text-sm mb-1">Total Contract Value</div>
-                            <div className="text-2xl font-bold">
-                                {totalContractValue > 0 ? formatMoney(totalContractValue) : '$0'}
+                        {projectId ? (
+                            <Link href={`/guardian/projects/${projectId}`} className="card hover:border-primary transition-colors">
+                                <div className="text-muted text-sm mb-1">Total Contract Value</div>
+                                <div className="text-2xl font-bold">
+                                    {totalContractValue > 0 ? formatMoney(totalContractValue) : '$0'}
+                                </div>
+                                <div className="text-sm text-muted">{projects?.length || 0} project(s)</div>
+                            </Link>
+                        ) : (
+                            <div className="card">
+                                <div className="text-muted text-sm mb-1">Total Contract Value</div>
+                                <div className="text-2xl font-bold">$0</div>
+                                <div className="text-sm text-muted">0 projects</div>
                             </div>
-                            <div className="text-sm text-muted">
-                                {projects?.length || 0} project(s)
-                            </div>
-                        </div>
-                        <div className="card">
+                        )}
+                        <Link href={projectId ? `/guardian/projects/${projectId}?tab=variations` : "/guardian/projects"} className="card hover:border-primary transition-colors">
                             <div className="text-muted text-sm mb-1">Total Variations</div>
                             <div className={`text-2xl font-bold ${totalVariations > 0 ? 'text-orange-500' : ''}`}>
                                 {totalVariations > 0 ? '+' : ''}{formatMoney(totalVariations)}
                             </div>
                             <div className="text-sm text-muted">{totalVariationsCount} variation(s)</div>
-                        </div>
-                        <div className="card">
+                        </Link>
+                        <Link href={projectId ? `/guardian/projects/${projectId}?tab=defects` : "/guardian/projects"} className="card hover:border-primary transition-colors">
                             <div className="text-muted text-sm mb-1">Open Defects</div>
                             <div className={`text-2xl font-bold ${totalOpenDefects > 0 ? 'text-red-500' : 'text-green-500'}`}>
                                 {totalOpenDefects}
@@ -210,14 +216,14 @@ export default async function DashboardPage() {
                             <div className="text-sm text-muted">
                                 {totalOpenDefects === 0 ? 'All clear!' : 'Need attention'}
                             </div>
-                        </div>
-                        <div className="card">
+                        </Link>
+                        <Link href={projectId ? `/guardian/projects/${projectId}?tab=budget` : "/guardian/projects"} className="card hover:border-primary transition-colors">
                             <div className="text-muted text-sm mb-1">Projected Total</div>
                             <div className="text-2xl font-bold text-primary">
                                 {formatMoney(totalContractValue + totalVariations)}
                             </div>
                             <div className="text-sm text-muted">Contracts + Variations</div>
-                        </div>
+                        </Link>
                     </div>
 
                     {/* Quick Actions */}

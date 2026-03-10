@@ -1,30 +1,30 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
+import { createClient } from "@/lib/supabase/client";
 import {
-    getOpenDefects,
-    countDefectsBySeverity,
     createDefectStatusUpdate,
     Defect as UtilDefect,
 } from "@/lib/guardian/calculations";
 
 interface Defect {
     id: string;
+    project_id: string;
     title: string;
     description: string;
     location: string;
     stage: string;
     severity: "critical" | "major" | "minor" | "cosmetic";
     status: "open" | "reported" | "in_progress" | "rectified" | "verified" | "disputed";
-    reportedDate: string;
-    dueDate?: string;
-    rectifiedDate?: string;
-    verifiedDate?: string;
-    photos: string[];
-    rectificationPhotos: string[];
-    builderNotes?: string;
-    homeownerNotes?: string;
-    reminderCount: number;
+    reported_date: string;
+    due_date?: string | null;
+    rectified_date?: string | null;
+    verified_date?: string | null;
+    image_url?: string | null;
+    builder_notes?: string | null;
+    homeowner_notes?: string | null;
+    reminder_count: number;
+    created_at: string;
 }
 
 interface ProjectDefectsProps {
@@ -55,59 +55,17 @@ const LOCATIONS = [
 
 const STAGES = ["Base/Slab", "Frame", "Lockup", "Fixing", "Practical Completion", "Post-Handover"];
 
-const INITIAL_DEFECTS: Defect[] = [
-    {
-        id: "1",
-        title: "Cracked tile in Master Ensuite",
-        description: "Hairline crack visible on floor tile near shower entry",
-        location: "Master Ensuite",
-        stage: "Fixing",
-        severity: "minor",
-        status: "reported",
-        reportedDate: "2025-08-01",
-        dueDate: "2025-08-15",
-        photos: [],
-        rectificationPhotos: [],
-        homeownerNotes: "Noticed during inspection",
-        reminderCount: 1,
-    },
-    {
-        id: "2",
-        title: "Paint peeling on garage ceiling",
-        description: "Paint bubbling and peeling in two areas, approximately 30cm x 30cm each",
-        location: "Garage",
-        stage: "Practical Completion",
-        severity: "cosmetic",
-        status: "open",
-        reportedDate: "2025-08-05",
-        photos: [],
-        rectificationPhotos: [],
-        reminderCount: 0,
-    },
-    {
-        id: "3",
-        title: "Door not closing properly - Bedroom 2",
-        description: "Door rubs against frame, requires excessive force to close",
-        location: "Bedroom 2",
-        stage: "Fixing",
-        severity: "major",
-        status: "in_progress",
-        reportedDate: "2025-07-28",
-        dueDate: "2025-08-10",
-        photos: [],
-        rectificationPhotos: [],
-        builderNotes: "Carpenter scheduled for next week",
-        reminderCount: 2,
-    },
-];
-
 export default function ProjectDefects({ projectId }: ProjectDefectsProps) {
-    const [defects, setDefects] = useState<Defect[]>(INITIAL_DEFECTS);
+    const [defects, setDefects] = useState<Defect[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
     const [showForm, setShowForm] = useState(false);
     const [filterStatus, setFilterStatus] = useState<string>("all");
     const [filterSeverity, setFilterSeverity] = useState<string>("all");
-    const [selectedDefect, setSelectedDefect] = useState<Defect | null>(null);
+    const [error, setError] = useState("");
+    const [uploadingPhotoId, setUploadingPhotoId] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const activeDefectRef = useRef<string | null>(null);
 
     const [newDefect, setNewDefect] = useState({
         title: "",
@@ -116,61 +74,213 @@ export default function ProjectDefects({ projectId }: ProjectDefectsProps) {
         stage: "Practical Completion",
         severity: "minor" as Defect["severity"],
         dueDate: "",
+        homeownerNotes: "",
     });
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        const defect: Defect = {
-            id: Date.now().toString(),
-            ...newDefect,
-            status: "open",
-            reportedDate: new Date().toISOString().split("T")[0],
-            photos: [],
-            rectificationPhotos: [],
-            reminderCount: 0,
-        };
-        setDefects([defect, ...defects]);
-        setShowForm(false);
-        setNewDefect({ title: "", description: "", location: "Kitchen", stage: "Practical Completion", severity: "minor", dueDate: "" });
-    };
+    // Fetch defects from database
+    useEffect(() => {
+        const fetchDefects = async () => {
+            const supabase = createClient();
+            const { data, error: fetchError } = await supabase
+                .from("defects")
+                .select("*")
+                .eq("project_id", projectId)
+                .order("created_at", { ascending: false });
 
-    const updateStatus = (id: string, newStatus: Defect["status"]) => {
-        setDefects(defects.map(d => {
-            if (d.id === id) {
-                // Use tested utility function to create status update
-                const statusUpdate = createDefectStatusUpdate(newStatus as UtilDefect['status']);
-                return { ...d, ...statusUpdate };
+            if (fetchError) {
+                console.error("Error fetching defects:", fetchError);
+                setError("Failed to load defects");
+            } else {
+                const mapped = (data || []).map((d: Record<string, unknown>) => ({
+                    id: d.id as string,
+                    project_id: d.project_id as string,
+                    title: d.title as string,
+                    description: (d.description as string) || "",
+                    location: (d.location as string) || "Other",
+                    stage: (d.stage as string) || "Practical Completion",
+                    severity: (d.severity as Defect["severity"]) || "minor",
+                    status: (d.status as Defect["status"]) || "open",
+                    reported_date: ((d.reported_date as string) || (d.created_at as string) || "").split("T")[0],
+                    due_date: d.due_date as string | null,
+                    rectified_date: d.rectified_date as string | null,
+                    verified_date: d.verified_date as string | null,
+                    image_url: d.image_url as string | null,
+                    builder_notes: d.builder_notes as string | null,
+                    homeowner_notes: d.homeowner_notes as string | null,
+                    reminder_count: (d.reminder_count as number) || 0,
+                    created_at: d.created_at as string,
+                }));
+                setDefects(mapped);
             }
-            return d;
-        }));
+            setLoading(false);
+        };
+        fetchDefects();
+    }, [projectId]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newDefect.title.trim()) return;
+
+        setSaving(true);
+        setError("");
+
+        const supabase = createClient();
+        const { data, error: insertError } = await supabase
+            .from("defects")
+            .insert({
+                project_id: projectId,
+                title: newDefect.title.trim(),
+                description: newDefect.description.trim(),
+                location: newDefect.location,
+                stage: newDefect.stage,
+                severity: newDefect.severity,
+                status: "open",
+                reported_date: new Date().toISOString().split("T")[0],
+                due_date: newDefect.dueDate || null,
+                homeowner_notes: newDefect.homeownerNotes.trim() || null,
+                reminder_count: 0,
+            })
+            .select()
+            .single();
+
+        if (insertError) {
+            setError(`Failed to save: ${insertError.message}`);
+        } else if (data) {
+            setDefects([{
+                ...data,
+                reported_date: (data.reported_date || data.created_at || "").split("T")[0],
+                reminder_count: data.reminder_count || 0,
+            }, ...defects]);
+            setShowForm(false);
+            setNewDefect({ title: "", description: "", location: "Kitchen", stage: "Practical Completion", severity: "minor", dueDate: "", homeownerNotes: "" });
+        }
+        setSaving(false);
     };
 
-    const sendReminder = (id: string) => {
+    const updateStatus = async (id: string, newStatus: Defect["status"]) => {
+        const supabase = createClient();
+        const updates: Record<string, unknown> = { status: newStatus };
+
+        if (newStatus === "rectified") updates.rectified_date = new Date().toISOString().split("T")[0];
+        if (newStatus === "verified") updates.verified_date = new Date().toISOString().split("T")[0];
+
+        const { error: updateError } = await supabase
+            .from("defects")
+            .update(updates)
+            .eq("id", id);
+
+        if (!updateError) {
+            setDefects(defects.map(d =>
+                d.id === id ? { ...d, ...updates } as Defect : d
+            ));
+        }
+    };
+
+    const sendReminder = async (id: string) => {
+        const supabase = createClient();
+        const defect = defects.find(d => d.id === id);
+        if (!defect) return;
+
+        const newCount = defect.reminder_count + 1;
+        await supabase.from("defects").update({ reminder_count: newCount }).eq("id", id);
         setDefects(defects.map(d =>
-            d.id === id ? { ...d, reminderCount: d.reminderCount + 1 } : d
+            d.id === id ? { ...d, reminder_count: newCount } : d
         ));
     };
 
+    const handlePhotoClick = (defectId: string) => {
+        activeDefectRef.current = defectId;
+        fileInputRef.current?.click();
+    };
+
+    const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        const defectId = activeDefectRef.current;
+        if (!file || !defectId) return;
+
+        if (!file.type.startsWith("image/")) {
+            setError("Please select an image file");
+            return;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+            setError("Image must be under 10MB");
+            return;
+        }
+
+        setUploadingPhotoId(defectId);
+        setError("");
+
+        try {
+            const supabase = createClient();
+            const timestamp = Date.now();
+            const ext = file.name.split(".").pop() || "jpg";
+            const filePath = `${projectId}/defects/${defectId}_${timestamp}.${ext}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from("evidence")
+                .upload(filePath, file);
+
+            if (uploadError) {
+                setError(`Upload failed: ${uploadError.message}`);
+                setUploadingPhotoId(null);
+                return;
+            }
+
+            const { data: urlData } = supabase.storage
+                .from("evidence")
+                .getPublicUrl(filePath);
+
+            await supabase
+                .from("defects")
+                .update({ image_url: urlData.publicUrl })
+                .eq("id", defectId);
+
+            setDefects(defects.map(d =>
+                d.id === defectId ? { ...d, image_url: urlData.publicUrl } : d
+            ));
+        } catch {
+            setError("Photo upload failed. Please try again.");
+        }
+
+        setUploadingPhotoId(null);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+    };
+
+    const deleteDefect = async (id: string) => {
+        if (!confirm("Delete this defect? This cannot be undone.")) return;
+
+        const supabase = createClient();
+        const defect = defects.find(d => d.id === id);
+
+        if (defect?.image_url) {
+            const urlParts = defect.image_url.split("/evidence/");
+            if (urlParts[1]) {
+                await supabase.storage.from("evidence").remove([urlParts[1]]);
+            }
+        }
+
+        await supabase.from("defects").delete().eq("id", id);
+        setDefects(defects.filter(d => d.id !== id));
+    };
+
     const generateExportList = () => {
-        // Use tested utility function for filtering
-        const openDefects = getOpenDefects(defects as UtilDefect[]) as Defect[];
-        let text = "🏠 DEFECT REPORT\n";
-        text += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n";
+        const openDefects = defects.filter(d => !["verified", "rectified"].includes(d.status));
+        let text = "DEFECT REPORT\n";
+        text += "========================================\n\n";
         text += `Date: ${new Date().toLocaleDateString("en-AU")}\n`;
         text += `Total Open Defects: ${openDefects.length}\n\n`;
 
         openDefects.forEach((d, i) => {
             const severity = SEVERITY_CONFIG[d.severity];
             text += `${i + 1}. ${d.title} [${severity.label.toUpperCase()}]\n`;
-            text += `   📍 Location: ${d.location}\n`;
-            text += `   📝 ${d.description}\n`;
-            if (d.dueDate) text += `   📅 Due: ${new Date(d.dueDate).toLocaleDateString("en-AU")}\n`;
+            text += `   Location: ${d.location}\n`;
+            text += `   ${d.description}\n`;
+            if (d.due_date) text += `   Due: ${new Date(d.due_date).toLocaleDateString("en-AU")}\n`;
             text += `   Status: ${STATUS_CONFIG[d.status].label}\n\n`;
         });
 
-        text += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
+        text += "========================================\n";
         text += "Please address these defects as per the contract.\n";
-
         return text;
     };
 
@@ -193,14 +303,32 @@ export default function ProjectDefects({ projectId }: ProjectDefectsProps) {
 
     const openCount = defects.filter(d => !["verified", "rectified"].includes(d.status)).length;
     const criticalCount = defects.filter(d => d.severity === "critical" && !["verified", "rectified"].includes(d.status)).length;
-    const overdueCount = defects.filter(d => d.dueDate && new Date(d.dueDate) < new Date() && !["verified", "rectified"].includes(d.status)).length;
+    const overdueCount = defects.filter(d => d.due_date && new Date(d.due_date) < new Date() && !["verified", "rectified"].includes(d.status)).length;
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center p-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">
+            {/* Hidden file input for photo uploads */}
+            <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={handlePhotoUpload}
+            />
+
             {/* Header */}
             <div className="flex justify-between items-center">
                 <div>
-                    <h2 className="text-2xl font-bold">🛠️ Defect & Snag List</h2>
+                    <h2 className="text-2xl font-bold">Defect &amp; Snag List</h2>
                     <p className="text-muted-foreground">Track and manage construction defects</p>
                 </div>
                 <button
@@ -233,15 +361,25 @@ export default function ProjectDefects({ projectId }: ProjectDefectsProps) {
                 </div>
             </div>
 
+            {/* Error */}
+            {error && (
+                <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+                    {error}
+                    <button onClick={() => setError("")} className="ml-2 text-red-500 hover:underline">dismiss</button>
+                </div>
+            )}
+
             {/* Share Actions */}
-            <div className="flex gap-3">
-                <button onClick={copyList} className="px-4 py-2 bg-gray-100 rounded-lg text-sm hover:bg-gray-200">
-                    📋 Copy List
-                </button>
-                <button onClick={emailList} className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm hover:bg-blue-200">
-                    📧 Email to Builder
-                </button>
-            </div>
+            {defects.length > 0 && (
+                <div className="flex gap-3">
+                    <button onClick={copyList} className="px-4 py-2 bg-gray-100 rounded-lg text-sm hover:bg-gray-200">
+                        Copy List
+                    </button>
+                    <button onClick={emailList} className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm hover:bg-blue-200">
+                        Email to Builder
+                    </button>
+                </div>
+            )}
 
             {/* Add Form */}
             {showForm && (
@@ -314,9 +452,23 @@ export default function ProjectDefects({ projectId }: ProjectDefectsProps) {
                                 className="w-full p-3 border border-border rounded-lg"
                             />
                         </div>
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-medium mb-1">Your Notes</label>
+                            <input
+                                type="text"
+                                value={newDefect.homeownerNotes}
+                                onChange={(e) => setNewDefect({ ...newDefect, homeownerNotes: e.target.value })}
+                                className="w-full p-3 border border-border rounded-lg"
+                                placeholder="Any additional notes..."
+                            />
+                        </div>
                     </div>
-                    <button type="submit" className="w-full py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700">
-                        Report Defect
+                    <button
+                        type="submit"
+                        disabled={saving}
+                        className="w-full py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 disabled:opacity-50"
+                    >
+                        {saving ? "Saving..." : "Report Defect"}
                     </button>
                 </form>
             )}
@@ -343,33 +495,34 @@ export default function ProjectDefects({ projectId }: ProjectDefectsProps) {
                 {filteredDefects.length === 0 ? (
                     <div className="p-12 text-center border border-dashed border-border rounded-xl">
                         <span className="text-4xl block mb-2">✨</span>
-                        <p className="text-muted-foreground">No defects found. Great work!</p>
+                        <p className="text-muted-foreground">
+                            {defects.length === 0 ? "No defects reported yet. Report your first defect above." : "No defects match your filters."}
+                        </p>
                     </div>
                 ) : (
                     filteredDefects.map((defect) => {
                         const severity = SEVERITY_CONFIG[defect.severity];
                         const status = STATUS_CONFIG[defect.status];
-                        const isOverdue = defect.dueDate && new Date(defect.dueDate) < new Date() && !["verified", "rectified"].includes(defect.status);
+                        const isOverdue = defect.due_date && new Date(defect.due_date) < new Date() && !["verified", "rectified"].includes(defect.status);
 
                         return (
                             <div
                                 key={defect.id}
-                                className={`p-5 rounded-xl border-2 ${severity.bgLight} ${severity.border} ${isOverdue ? "ring-2 ring-red-500" : ""
-                                    }`}
+                                className={`p-5 rounded-xl border-2 ${severity.bgLight} ${severity.border} ${isOverdue ? "ring-2 ring-red-500" : ""}`}
                             >
                                 <div className="flex justify-between items-start mb-3">
-                                    <div>
+                                    <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 mb-1">
-                                            <h3 className="font-bold text-lg">{defect.title}</h3>
+                                            <h3 className="font-bold text-lg truncate">{defect.title}</h3>
                                             {isOverdue && (
-                                                <span className="px-2 py-0.5 bg-red-500 text-white text-xs rounded">
+                                                <span className="px-2 py-0.5 bg-red-500 text-white text-xs rounded shrink-0">
                                                     OVERDUE
                                                 </span>
                                             )}
                                         </div>
                                         <p className="text-sm text-gray-600">{defect.description}</p>
                                     </div>
-                                    <div className="flex flex-col items-end gap-1">
+                                    <div className="flex flex-col items-end gap-1 ml-3 shrink-0">
                                         <span className={`px-2 py-0.5 rounded text-xs font-bold ${severity.color} text-white`}>
                                             {severity.label}
                                         </span>
@@ -379,25 +532,36 @@ export default function ProjectDefects({ projectId }: ProjectDefectsProps) {
                                     </div>
                                 </div>
 
+                                {/* Photo */}
+                                {defect.image_url && (
+                                    <div className="mb-3">
+                                        <img
+                                            src={defect.image_url}
+                                            alt={`Defect: ${defect.title}`}
+                                            className="w-32 h-32 object-cover rounded-lg border border-border"
+                                        />
+                                    </div>
+                                )}
+
                                 <div className="flex flex-wrap gap-4 text-xs text-gray-500 mb-4">
-                                    <span>📍 {defect.location}</span>
-                                    <span>🔧 {defect.stage}</span>
-                                    <span>📅 Reported: {new Date(defect.reportedDate).toLocaleDateString("en-AU")}</span>
-                                    {defect.dueDate && (
-                                        <span>⏰ Due: {new Date(defect.dueDate).toLocaleDateString("en-AU")}</span>
+                                    <span>{defect.location}</span>
+                                    <span>{defect.stage}</span>
+                                    <span>Reported: {defect.reported_date ? new Date(defect.reported_date).toLocaleDateString("en-AU") : "N/A"}</span>
+                                    {defect.due_date && (
+                                        <span>Due: {new Date(defect.due_date).toLocaleDateString("en-AU")}</span>
                                     )}
-                                    {defect.reminderCount > 0 && (
-                                        <span className="text-orange-600">🔔 {defect.reminderCount} reminders</span>
+                                    {defect.reminder_count > 0 && (
+                                        <span className="text-orange-600">{defect.reminder_count} reminder{defect.reminder_count !== 1 ? "s" : ""}</span>
                                     )}
                                 </div>
 
-                                {(defect.builderNotes || defect.homeownerNotes) && (
+                                {(defect.builder_notes || defect.homeowner_notes) && (
                                     <div className="mb-4 p-3 bg-white/50 rounded-lg text-sm">
-                                        {defect.builderNotes && (
-                                            <p><span className="font-medium">Builder:</span> {defect.builderNotes}</p>
+                                        {defect.builder_notes && (
+                                            <p><span className="font-medium">Builder:</span> {defect.builder_notes}</p>
                                         )}
-                                        {defect.homeownerNotes && (
-                                            <p><span className="font-medium">Notes:</span> {defect.homeownerNotes}</p>
+                                        {defect.homeowner_notes && (
+                                            <p><span className="font-medium">Notes:</span> {defect.homeowner_notes}</p>
                                         )}
                                     </div>
                                 )}
@@ -409,7 +573,7 @@ export default function ProjectDefects({ projectId }: ProjectDefectsProps) {
                                             onClick={() => updateStatus(defect.id, "reported")}
                                             className="px-3 py-1.5 bg-orange-100 text-orange-700 rounded text-sm"
                                         >
-                                            📧 Mark Reported
+                                            Mark Reported
                                         </button>
                                     )}
                                     {defect.status === "reported" && (
@@ -418,13 +582,13 @@ export default function ProjectDefects({ projectId }: ProjectDefectsProps) {
                                                 onClick={() => updateStatus(defect.id, "in_progress")}
                                                 className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded text-sm"
                                             >
-                                                🔧 Mark In Progress
+                                                Mark In Progress
                                             </button>
                                             <button
                                                 onClick={() => sendReminder(defect.id)}
                                                 className="px-3 py-1.5 bg-amber-100 text-amber-700 rounded text-sm"
                                             >
-                                                🔔 Send Reminder
+                                                Send Reminder
                                             </button>
                                         </>
                                     )}
@@ -433,7 +597,7 @@ export default function ProjectDefects({ projectId }: ProjectDefectsProps) {
                                             onClick={() => updateStatus(defect.id, "rectified")}
                                             className="px-3 py-1.5 bg-purple-100 text-purple-700 rounded text-sm"
                                         >
-                                            ✓ Mark Rectified
+                                            Mark Rectified
                                         </button>
                                     )}
                                     {defect.status === "rectified" && (
@@ -442,21 +606,31 @@ export default function ProjectDefects({ projectId }: ProjectDefectsProps) {
                                                 onClick={() => updateStatus(defect.id, "verified")}
                                                 className="px-3 py-1.5 bg-green-100 text-green-700 rounded text-sm"
                                             >
-                                                ✅ Verify Fixed
+                                                Verify Fixed
                                             </button>
                                             <button
                                                 onClick={() => updateStatus(defect.id, "disputed")}
                                                 className="px-3 py-1.5 bg-red-100 text-red-700 rounded text-sm"
                                             >
-                                                ❌ Not Fixed
+                                                Not Fixed
                                             </button>
                                         </>
                                     )}
                                     {!["verified"].includes(defect.status) && (
-                                        <button className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded text-sm">
-                                            📸 Add Photo
+                                        <button
+                                            onClick={() => handlePhotoClick(defect.id)}
+                                            disabled={uploadingPhotoId === defect.id}
+                                            className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded text-sm hover:bg-gray-200 disabled:opacity-50"
+                                        >
+                                            {uploadingPhotoId === defect.id ? "Uploading..." : defect.image_url ? "Update Photo" : "Add Photo"}
                                         </button>
                                     )}
+                                    <button
+                                        onClick={() => deleteDefect(defect.id)}
+                                        className="px-3 py-1.5 text-red-400 hover:text-red-600 rounded text-sm ml-auto"
+                                    >
+                                        Delete
+                                    </button>
                                 </div>
                             </div>
                         );
@@ -466,7 +640,7 @@ export default function ProjectDefects({ projectId }: ProjectDefectsProps) {
 
             {/* Help */}
             <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-800">
-                <p className="font-medium mb-1">💡 Defect Tracking Tips</p>
+                <p className="font-medium mb-1">Defect Tracking Tips</p>
                 <ul className="list-disc list-inside space-y-1">
                     <li>Always take photos of defects before and after rectification</li>
                     <li>Report defects in writing and keep copies of all communications</li>

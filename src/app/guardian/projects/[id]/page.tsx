@@ -41,6 +41,8 @@ export default function ProjectDetailPage() {
     const [loading, setLoading] = useState(true);
     const [paymentBlocked, setPaymentBlocked] = useState(false);
     const [blockReason, setBlockReason] = useState("");
+    const [currentStage, setCurrentStage] = useState("frame");
+    const [nextStage, setNextStage] = useState("Lockup");
     const [openDropdown, setOpenDropdown] = useState<string | null>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -77,6 +79,30 @@ export default function ProjectDetailPage() {
 
             if (data) {
                 setProject(data);
+
+                // Compute current stage from stages table
+                const STAGE_ORDER = ["site_prep", "base_slab", "frame", "lockup", "fixing", "practical_completion", "handover"];
+                const { data: stages } = await supabase
+                    .from("stages")
+                    .select("name, status")
+                    .eq("project_id", params.id)
+                    .order("created_at", { ascending: true });
+
+                if (stages && stages.length > 0) {
+                    // Find the first non-completed stage
+                    const activeStage = stages.find((s: { status: string }) => s.status !== "completed");
+                    if (activeStage) {
+                        setCurrentStage(activeStage.name.toLowerCase().replace(/[\s/]+/g, "_"));
+                        const idx = stages.indexOf(activeStage);
+                        if (idx < stages.length - 1) {
+                            setNextStage(stages[idx + 1].name);
+                        }
+                    } else {
+                        // All completed — set to last stage
+                        const lastStage = stages[stages.length - 1];
+                        setCurrentStage(lastStage.name.toLowerCase().replace(/[\s/]+/g, "_"));
+                    }
+                }
 
                 // Fetch variations for reports
                 const { data: varsData } = await supabase
@@ -393,16 +419,15 @@ export default function ProjectDetailPage() {
                                 builderEmail={project.builder_email}
                             />
                         )}
-                        {/* TODO: currentStage/nextStage should come from project data, not hardcoded */}
                         {activeTab === "stagegate" && (
                             <StageGate
                                 projectId={project.id}
-                                currentStage="lockup"
-                                nextStage="Fixing"
+                                currentStage={currentStage}
+                                nextStage={nextStage}
                             />
                         )}
                         {activeTab === "stages" && (
-                            <StageChecklist projectId={project.id} currentStage="frame" />
+                            <StageChecklist projectId={project.id} currentStage={currentStage} />
                         )}
                         {activeTab === "checklists" && <ProjectChecklists projectId={project.id} />}
                         {activeTab === "variations" && <ProjectVariations projectId={project.id} />}
@@ -412,13 +437,13 @@ export default function ProjectDetailPage() {
                         {activeTab === "certificates" && (
                             <CertificationGate
                                 projectId={project.id}
-                                currentStage="lockup"
+                                currentStage={currentStage}
                                 onPaymentBlocked={handlePaymentBlocked}
                             />
                         )}
                         {activeTab === "checkins" && <WeeklyCheckIn projectId={project.id} />}
                         {activeTab === "inspections" && (
-                            <InspectionTimeline projectId={project.id} currentStage="Lockup" />
+                            <InspectionTimeline projectId={project.id} currentStage={currentStage} />
                         )}
                         {activeTab === "materials" && <MaterialRegistry projectId={project.id} />}
                         {activeTab === "communication" && <CommunicationLog projectId={project.id} />}

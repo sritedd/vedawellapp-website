@@ -1,12 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
 import {
     generateEmail,
     createMailtoLink,
-    createDefectReminderEmail,
-    createPaymentDueEmail,
-    createWeeklyCheckinEmail,
     type NotificationPreferences,
 } from "@/lib/notifications/email-service";
 
@@ -16,52 +14,17 @@ interface NotificationCenterProps {
     builderEmail?: string;
 }
 
-interface ScheduledNotification {
+interface ComputedNotification {
     id: string;
-    type: "defect" | "payment" | "certificate" | "checkin";
+    type: "defect" | "payment" | "certificate" | "checkin" | "warranty" | "followup";
     title: string;
     dueDate: string;
     status: "pending" | "sent" | "snoozed";
-    reminderCount: number;
 }
 
-const SAMPLE_NOTIFICATIONS: ScheduledNotification[] = [
-    {
-        id: "1",
-        type: "defect",
-        title: "Reminder: Cracked tile in Master Ensuite",
-        dueDate: "2025-08-15",
-        status: "pending",
-        reminderCount: 2,
-    },
-    {
-        id: "2",
-        type: "payment",
-        title: "Payment Due: Lockup Stage",
-        dueDate: "2025-08-20",
-        status: "pending",
-        reminderCount: 0,
-    },
-    {
-        id: "3",
-        type: "certificate",
-        title: "Certificate Expiring: Builder Public Liability",
-        dueDate: "2025-09-01",
-        status: "pending",
-        reminderCount: 0,
-    },
-    {
-        id: "4",
-        type: "checkin",
-        title: "Weekly Site Check-in Reminder",
-        dueDate: "2025-08-16",
-        status: "pending",
-        reminderCount: 0,
-    },
-];
-
 export default function NotificationCenter({ projectId, projectName, builderEmail }: NotificationCenterProps) {
-    const [notifications, setNotifications] = useState<ScheduledNotification[]>(SAMPLE_NOTIFICATIONS);
+    const [notifications, setNotifications] = useState<ComputedNotification[]>([]);
+    const [loading, setLoading] = useState(true);
     const [preferences, setPreferences] = useState<NotificationPreferences>({
         defectReminders: true,
         paymentAlerts: true,
@@ -70,122 +33,223 @@ export default function NotificationCenter({ projectId, projectName, builderEmai
         emailAddress: builderEmail || "",
     });
     const [showSettings, setShowSettings] = useState(false);
+    const [snoozedIds, setSnoozedIds] = useState<Set<string>>(new Set());
+    const [sentIds, setSentIds] = useState<Set<string>>(new Set());
 
-    const getTypeConfig = (type: ScheduledNotification["type"]) => {
+    // Compute notifications from real project data
+    useEffect(() => {
+        const computeNotifications = async () => {
+            const supabase = createClient();
+            const alerts: ComputedNotification[] = [];
+
+            // 1. Overdue defects
+            const { data: defects } = await supabase
+                .from("defects")
+                .select("id, title, due_date, status")
+                .eq("project_id", projectId)
+                .not("status", "in", '("verified","rectified")');
+
+            if (defects) {
+                for (const d of defects) {
+                    if (d.due_date) {
+                        const daysUntil = Math.ceil((new Date(d.due_date).getTime() - Date.now()) / 86400000);
+                        if (daysUntil <= 7) {
+                            alerts.push({
+                                id: `defect-${d.id}`,
+                                type: "defect",
+                                title: `${daysUntil < 0 ? "OVERDUE" : "Due soon"}: ${d.title}`,
+                                dueDate: d.due_date,
+                                status: "pending",
+                            });
+                        }
+                    }
+                }
+            }
+
+            // 2. Expiring certifications
+            const { data: certs } = await supabase
+                .from("certifications")
+                .select("id, type, expiry_date")
+                .eq("project_id", projectId)
+                .not("expiry_date", "is", null);
+
+            if (certs) {
+                for (const c of certs) {
+                    if (c.expiry_date) {
+                        const daysUntil = Math.ceil((new Date(c.expiry_date).getTime() - Date.now()) / 86400000);
+                        if (daysUntil <= 30 && daysUntil > -7) {
+                            alerts.push({
+                                id: `cert-${c.id}`,
+                                type: "certificate",
+                                title: `Certificate expiring: ${c.type}`,
+                                dueDate: c.expiry_date,
+                                status: "pending",
+                            });
+                        }
+                    }
+                }
+            }
+
+            // 3. Follow-up reminders from communication log
+            const { data: comms } = await supabase
+                .from("communication_log")
+                .select("id, summary, follow_up_date")
+                .eq("project_id", projectId)
+                .eq("follow_up_required", true)
+                .not("follow_up_date", "is", null);
+
+            if (comms) {
+                for (const c of comms) {
+                    if (c.follow_up_date) {
+                        const daysUntil = Math.ceil((new Date(c.follow_up_date).getTime() - Date.now()) / 86400000);
+                        if (daysUntil <= 3) {
+                            alerts.push({
+                                id: `followup-${c.id}`,
+                                type: "followup",
+                                title: `Follow up: ${c.summary}`,
+                                dueDate: c.follow_up_date,
+                                status: "pending",
+                            });
+                        }
+                    }
+                }
+            }
+
+            // 4. Insurance expiry from project
+            const { data: project } = await supabase
+                .from("projects")
+                .select("insurance_expiry_date, handover_date")
+                .eq("id", projectId)
+                .single();
+
+            if (project?.insurance_expiry_date) {
+                const daysUntil = Math.ceil((new Date(project.insurance_expiry_date).getTime() - Date.now()) / 86400000);
+                if (daysUntil <= 30 && daysUntil > -7) {
+                    alerts.push({
+                        id: "insurance-expiry",
+                        type: "certificate",
+                        title: "Builder insurance expiring soon",
+                        dueDate: project.insurance_expiry_date,
+                        status: "pending",
+                    });
+                }
+            }
+
+            // 5. Warranty milestones (if handover date exists)
+            if (project?.handover_date) {
+                const handover = new Date(project.handover_date);
+                const warrantyDates = [
+                    { days: 90, label: "90-day defect warranty deadline" },
+                    { days: 730, label: "2-year non-structural warranty deadline" },
+                    { days: 2190, label: "6-year structural warranty deadline" },
+                ];
+                for (const w of warrantyDates) {
+                    const deadline = new Date(handover.getTime() + w.days * 86400000);
+                    const daysUntil = Math.ceil((deadline.getTime() - Date.now()) / 86400000);
+                    if (daysUntil > 0 && daysUntil <= 30) {
+                        alerts.push({
+                            id: `warranty-${w.days}`,
+                            type: "warranty",
+                            title: w.label,
+                            dueDate: deadline.toISOString().split("T")[0],
+                            status: "pending",
+                        });
+                    }
+                }
+            }
+
+            // Sort by due date (most urgent first)
+            alerts.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+
+            setNotifications(alerts);
+            setLoading(false);
+        };
+
+        computeNotifications();
+    }, [projectId]);
+
+    const getTypeConfig = (type: ComputedNotification["type"]) => {
         switch (type) {
             case "defect":
-                return { icon: "🛠️", color: "bg-red-50 border-red-200", label: "Defect Reminder" };
+                return { icon: "🛠️", color: "bg-red-50 border-red-200", label: "Defect" };
             case "payment":
-                return { icon: "💳", color: "bg-blue-50 border-blue-200", label: "Payment Alert" };
+                return { icon: "💳", color: "bg-blue-50 border-blue-200", label: "Payment" };
             case "certificate":
-                return { icon: "📜", color: "bg-amber-50 border-amber-200", label: "Certificate Expiry" };
+                return { icon: "📜", color: "bg-amber-50 border-amber-200", label: "Certificate" };
             case "checkin":
-                return { icon: "📅", color: "bg-green-50 border-green-200", label: "Weekly Check-in" };
+                return { icon: "📅", color: "bg-green-50 border-green-200", label: "Check-in" };
+            case "warranty":
+                return { icon: "🛡️", color: "bg-purple-50 border-purple-200", label: "Warranty" };
+            case "followup":
+                return { icon: "📞", color: "bg-cyan-50 border-cyan-200", label: "Follow-up" };
         }
     };
 
-    const sendReminder = (notification: ScheduledNotification) => {
-        let emailData: { subject: string; body: string };
+    const getEffectiveStatus = (n: ComputedNotification) => {
+        if (snoozedIds.has(n.id)) return "snoozed";
+        if (sentIds.has(n.id)) return "sent";
+        return n.status;
+    };
 
-        switch (notification.type) {
-            case "defect":
-                emailData = generateEmail("defect_reminder", {
-                    title: notification.title.replace("Reminder: ", ""),
-                    location: "See defect details",
-                    severity: "Medium",
-                    dueDate: new Date(notification.dueDate).toLocaleDateString("en-AU"),
-                    description: "Please address this defect at your earliest convenience.",
-                    reminderCount: notification.reminderCount + 1,
-                });
-                break;
-            case "payment":
-                emailData = generateEmail("payment_due", {
-                    projectName,
-                    stage: "Lockup",
-                    amount: "$50,000",
-                    dueDate: new Date(notification.dueDate).toLocaleDateString("en-AU"),
-                    certificates: "- Waterproofing Certificate\n- Electrical Rough-in Certificate",
-                });
-                break;
-            case "certificate":
-                emailData = generateEmail("certificate_expiry", {
-                    certificateName: notification.title.replace("Certificate Expiring: ", ""),
-                    expiryDate: new Date(notification.dueDate).toLocaleDateString("en-AU"),
-                    daysRemaining: Math.ceil((new Date(notification.dueDate).getTime() - Date.now()) / 86400000),
-                });
-                break;
-            case "checkin":
-                emailData = generateEmail("weekly_checkin", {
-                    projectName,
-                    weekDate: new Date().toLocaleDateString("en-AU"),
-                    stage: "Lockup",
-                    openDefects: "3",
-                    pendingActions: "5",
-                    pendingCertificates: "2",
-                });
-                break;
-        }
-
-        const mailtoUrl = createMailtoLink(preferences.emailAddress || builderEmail || "", emailData.subject, emailData.body);
+    const sendReminder = (notification: ComputedNotification) => {
+        const { subject, body } = generateEmail("defect_reminder", {
+            title: notification.title,
+            location: "See project details",
+            severity: "Medium",
+            dueDate: new Date(notification.dueDate).toLocaleDateString("en-AU"),
+            description: `Action required for: ${notification.title}`,
+            reminderCount: 1,
+        });
+        const mailtoUrl = createMailtoLink(preferences.emailAddress || builderEmail || "", subject, body);
         window.open(mailtoUrl, "_blank");
-
-        // Update notification
-        setNotifications(notifications.map(n =>
-            n.id === notification.id
-                ? { ...n, status: "sent" as const, reminderCount: n.reminderCount + 1 }
-                : n
-        ));
+        setSentIds(new Set([...sentIds, notification.id]));
     };
 
     const snoozeNotification = (id: string) => {
-        setNotifications(notifications.map(n =>
-            n.id === id ? { ...n, status: "snoozed" as const } : n
-        ));
+        setSnoozedIds(new Set([...snoozedIds, id]));
     };
 
-    const pendingCount = notifications.filter(n => n.status === "pending").length;
+    const pendingCount = notifications.filter(n => getEffectiveStatus(n) === "pending").length;
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center p-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">
             {/* Header */}
             <div className="flex justify-between items-center">
                 <div>
-                    <h2 className="text-2xl font-bold">🔔 Notification Center</h2>
+                    <h2 className="text-2xl font-bold">Alerts &amp; Reminders</h2>
                     <p className="text-muted-foreground">
-                        Email reminders and alerts for your project
+                        Computed from your project data — defects, certificates, warranties
                     </p>
                 </div>
                 <button
                     onClick={() => setShowSettings(!showSettings)}
                     className="px-4 py-2 bg-muted rounded-lg hover:bg-muted/80"
                 >
-                    ⚙️ Settings
+                    Settings
                 </button>
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-4 gap-4">
-                <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl text-center">
-                    <div className="text-2xl font-bold text-blue-600">{pendingCount}</div>
-                    <div className="text-xs text-blue-700">Pending</div>
+            <div className="grid grid-cols-3 gap-4">
+                <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-center">
+                    <div className="text-2xl font-bold text-red-600">{pendingCount}</div>
+                    <div className="text-xs text-red-700">Need Attention</div>
                 </div>
                 <div className="p-4 bg-green-50 border border-green-200 rounded-xl text-center">
-                    <div className="text-2xl font-bold text-green-600">
-                        {notifications.filter(n => n.status === "sent").length}
-                    </div>
-                    <div className="text-xs text-green-700">Sent</div>
+                    <div className="text-2xl font-bold text-green-600">{sentIds.size}</div>
+                    <div className="text-xs text-green-700">Actioned</div>
                 </div>
-                <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-center">
-                    <div className="text-2xl font-bold text-amber-600">
-                        {notifications.filter(n => n.status === "snoozed").length}
-                    </div>
-                    <div className="text-xs text-amber-700">Snoozed</div>
-                </div>
-                <div className="p-4 bg-purple-50 border border-purple-200 rounded-xl text-center">
-                    <div className="text-2xl font-bold text-purple-600">
-                        {notifications.reduce((sum, n) => sum + n.reminderCount, 0)}
-                    </div>
-                    <div className="text-xs text-purple-700">Total Sent</div>
+                <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl text-center">
+                    <div className="text-2xl font-bold text-gray-600">{snoozedIds.size}</div>
+                    <div className="text-xs text-gray-700">Snoozed</div>
                 </div>
             </div>
 
@@ -193,7 +257,6 @@ export default function NotificationCenter({ projectId, projectName, builderEmai
             {showSettings && (
                 <div className="p-6 bg-card border border-border rounded-xl space-y-4">
                     <h3 className="font-bold">Notification Preferences</h3>
-
                     <div>
                         <label className="block text-sm font-medium mb-1">Builder Email Address</label>
                         <input
@@ -204,67 +267,27 @@ export default function NotificationCenter({ projectId, projectName, builderEmai
                             placeholder="builder@example.com"
                         />
                     </div>
-
-                    <div className="space-y-3">
-                        <label className="flex items-center gap-3">
-                            <input
-                                type="checkbox"
-                                checked={preferences.defectReminders}
-                                onChange={(e) => setPreferences({ ...preferences, defectReminders: e.target.checked })}
-                                className="w-5 h-5"
-                            />
-                            <span>🛠️ Defect Reminders</span>
-                        </label>
-                        <label className="flex items-center gap-3">
-                            <input
-                                type="checkbox"
-                                checked={preferences.paymentAlerts}
-                                onChange={(e) => setPreferences({ ...preferences, paymentAlerts: e.target.checked })}
-                                className="w-5 h-5"
-                            />
-                            <span>💳 Payment Due Alerts</span>
-                        </label>
-                        <label className="flex items-center gap-3">
-                            <input
-                                type="checkbox"
-                                checked={preferences.certificateExpiry}
-                                onChange={(e) => setPreferences({ ...preferences, certificateExpiry: e.target.checked })}
-                                className="w-5 h-5"
-                            />
-                            <span>📜 Certificate Expiry Warnings</span>
-                        </label>
-                        <label className="flex items-center gap-3">
-                            <input
-                                type="checkbox"
-                                checked={preferences.weeklyDigest}
-                                onChange={(e) => setPreferences({ ...preferences, weeklyDigest: e.target.checked })}
-                                className="w-5 h-5"
-                            />
-                            <span>📅 Weekly Check-in Prompts</span>
-                        </label>
-                    </div>
                 </div>
             )}
 
             {/* Notification List */}
             <div className="space-y-3">
-                <h3 className="font-bold">Upcoming Notifications</h3>
-
                 {notifications.length === 0 ? (
                     <div className="p-8 text-center border border-dashed border-border rounded-xl">
                         <span className="text-3xl block mb-2">✨</span>
-                        <p className="text-muted-foreground">No pending notifications</p>
+                        <p className="text-muted-foreground">No alerts right now. Everything looks good!</p>
                     </div>
                 ) : (
                     notifications.map((notification) => {
                         const config = getTypeConfig(notification.type);
                         const daysUntil = Math.ceil((new Date(notification.dueDate).getTime() - Date.now()) / 86400000);
                         const isOverdue = daysUntil < 0;
+                        const effectiveStatus = getEffectiveStatus(notification);
 
                         return (
                             <div
                                 key={notification.id}
-                                className={`p-4 rounded-xl border-2 ${config.color} ${notification.status === "snoozed" ? "opacity-50" : ""}`}
+                                className={`p-4 rounded-xl border-2 ${config.color} ${effectiveStatus === "snoozed" ? "opacity-50" : ""}`}
                             >
                                 <div className="flex justify-between items-start">
                                     <div className="flex items-start gap-3">
@@ -272,31 +295,25 @@ export default function NotificationCenter({ projectId, projectName, builderEmai
                                         <div>
                                             <div className="flex items-center gap-2">
                                                 <span className="font-medium">{notification.title}</span>
-                                                {notification.status === "sent" && (
-                                                    <span className="text-xs px-2 py-0.5 bg-green-200 text-green-700 rounded">
-                                                        Sent
-                                                    </span>
+                                                {effectiveStatus === "sent" && (
+                                                    <span className="text-xs px-2 py-0.5 bg-green-200 text-green-700 rounded">Sent</span>
                                                 )}
-                                                {notification.status === "snoozed" && (
-                                                    <span className="text-xs px-2 py-0.5 bg-gray-200 text-gray-700 rounded">
-                                                        Snoozed
-                                                    </span>
+                                                {effectiveStatus === "snoozed" && (
+                                                    <span className="text-xs px-2 py-0.5 bg-gray-200 text-gray-700 rounded">Snoozed</span>
                                                 )}
                                             </div>
                                             <div className="text-sm text-gray-600 mt-1">
-                                                <span className="mr-4">
-                                                    📅 {isOverdue ? "Overdue by" : "Due in"} {Math.abs(daysUntil)} day{Math.abs(daysUntil) !== 1 && "s"}
+                                                {isOverdue
+                                                    ? `Overdue by ${Math.abs(daysUntil)} day${Math.abs(daysUntil) !== 1 ? "s" : ""}`
+                                                    : `Due in ${daysUntil} day${daysUntil !== 1 ? "s" : ""}`}
+                                                <span className="ml-2 text-xs text-gray-400">
+                                                    {new Date(notification.dueDate).toLocaleDateString("en-AU")}
                                                 </span>
-                                                {notification.reminderCount > 0 && (
-                                                    <span className="text-orange-600">
-                                                        🔔 {notification.reminderCount} reminder{notification.reminderCount !== 1 && "s"} sent
-                                                    </span>
-                                                )}
                                             </div>
                                         </div>
                                     </div>
 
-                                    {notification.status === "pending" && (
+                                    {effectiveStatus === "pending" && (
                                         <div className="flex gap-2">
                                             <button
                                                 onClick={() => snoozeNotification(notification.id)}
@@ -308,7 +325,7 @@ export default function NotificationCenter({ projectId, projectName, builderEmai
                                                 onClick={() => sendReminder(notification)}
                                                 className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
                                             >
-                                                📧 Send
+                                                Email
                                             </button>
                                         </div>
                                     )}
@@ -319,51 +336,13 @@ export default function NotificationCenter({ projectId, projectName, builderEmai
                 )}
             </div>
 
-            {/* Quick Actions */}
-            <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
-                <h3 className="font-bold mb-3">⚡ Quick Send</h3>
-                <div className="flex flex-wrap gap-3">
-                    <button
-                        onClick={() => {
-                            const email = createWeeklyCheckinEmail(preferences.emailAddress, {
-                                projectName,
-                                weekDate: new Date().toLocaleDateString("en-AU"),
-                                stage: "Lockup",
-                                openDefects: 3,
-                                pendingActions: 5,
-                                pendingCertificates: 2,
-                            });
-                            const mailtoUrl = createMailtoLink(email.to, email.subject, email.body);
-                            window.open(mailtoUrl, "_blank");
-                        }}
-                        className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm hover:bg-gray-50"
-                    >
-                        📅 Weekly Digest
-                    </button>
-                    <button
-                        onClick={() => {
-                            const { subject, body } = generateEmail("action_required", {
-                                projectName,
-                                count: "5",
-                                actionItems: "1. Fix cracked tile\n2. Provide waterproofing cert\n3. Schedule frame inspection",
-                            });
-                            const mailtoUrl = createMailtoLink(preferences.emailAddress, subject, body);
-                            window.open(mailtoUrl, "_blank");
-                        }}
-                        className="px-4 py-2 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600"
-                    >
-                        🚨 Action Required
-                    </button>
-                </div>
-            </div>
-
             {/* Info */}
             <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-800">
-                <p className="font-medium mb-1">📧 How Email Notifications Work</p>
+                <p className="font-medium mb-1">How Alerts Work</p>
                 <p>
-                    Clicking "Send" opens your default email app with a pre-filled message.
-                    This creates a paper trail of all communications with your builder.
-                    All emails are sent from YOUR email address, keeping you in control.
+                    Alerts are computed automatically from your project data: overdue defects, expiring
+                    certificates, warranty deadlines, and follow-up reminders. Click &quot;Email&quot; to
+                    send a pre-filled message to your builder.
                 </p>
             </div>
         </div>

@@ -46,11 +46,38 @@ export async function deleteProject(projectId: string) {
         return { error: "Project not found or access denied" };
     }
 
-    // Delete related data first (cascade may handle this via RLS, but be explicit)
+    // Clean up storage files for this project (evidence, documents, certificates)
+    for (const bucket of ["evidence", "documents", "certificates"]) {
+        const { data: files } = await supabase.storage
+            .from(bucket)
+            .list(projectId, { limit: 1000 });
+        if (files && files.length > 0) {
+            // List files recursively (including subdirectories)
+            const filePaths = files.map((f: { name: string }) => `${projectId}/${f.name}`);
+            await supabase.storage.from(bucket).remove(filePaths);
+        }
+        // Also check subdirectories (photos, defects, certs)
+        for (const subdir of ["photos", "defects", "certs"]) {
+            const { data: subFiles } = await supabase.storage
+                .from(bucket)
+                .list(`${projectId}/${subdir}`, { limit: 1000 });
+            if (subFiles && subFiles.length > 0) {
+                const subPaths = subFiles.map((f: { name: string }) => `${projectId}/${subdir}/${f.name}`);
+                await supabase.storage.from(bucket).remove(subPaths);
+            }
+        }
+    }
+
+    // Delete related data (most have ON DELETE CASCADE, but be explicit for safety)
     await supabase.from("checklist_items").delete().in(
         "stage_id",
         (await supabase.from("stages").select("id").eq("project_id", projectId)).data?.map((s: { id: string }) => s.id) || []
     );
+    await supabase.from("progress_photos").delete().eq("project_id", projectId);
+    await supabase.from("communication_log").delete().eq("project_id", projectId);
+    await supabase.from("documents").delete().eq("project_id", projectId);
+    await supabase.from("inspections").delete().eq("project_id", projectId);
+    await supabase.from("weekly_checkins").delete().eq("project_id", projectId);
     await supabase.from("stages").delete().eq("project_id", projectId);
     await supabase.from("variations").delete().eq("project_id", projectId);
     await supabase.from("defects").delete().eq("project_id", projectId);
