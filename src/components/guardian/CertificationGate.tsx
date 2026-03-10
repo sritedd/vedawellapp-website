@@ -32,7 +32,11 @@ export default function CertificationGate({
 
     // Get required certificates for current stage from workflow data
     const nswWorkflow = australianData.workflows.new_build.NSW;
-    const stageData = nswWorkflow.stages.find((s) => s.id === currentStage);
+    const stageData = nswWorkflow.stages.find((s) =>
+        s.id.toLowerCase() === currentStage.toLowerCase() ||
+        s.id.toLowerCase().includes(currentStage.toLowerCase()) ||
+        currentStage.toLowerCase().includes(s.id.toLowerCase())
+    );
     const requiredCerts = stageData?.certificates || [];
 
     // Get mandatory certificates from data

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
 import {
     getBlockingItems,
     getOverridableItems,
@@ -20,7 +21,7 @@ interface StageRequirement {
     blocksProgress: boolean;
     evidence?: string;
     notes?: string;
-    canOverride?: boolean; // Allow proceeding with logging
+    canOverride?: boolean;
 }
 
 interface LoggedDefect {
@@ -37,78 +38,184 @@ interface StageGateProps {
     onProceed?: () => void;
 }
 
-const STAGES_CONFIG: Record<string, { name: string; requirements: StageRequirement[] }> = {
-    "slab": {
-        name: "Base/Slab",
-        requirements: [
-            { id: "1", category: "inspection", name: "Footing inspection passed", required: true, completed: true, blocksProgress: true },
-            { id: "2", category: "certificate", name: "Slab inspection certificate", required: true, completed: true, blocksProgress: true },
-            { id: "3", category: "defect", name: "All slab defects rectified", required: true, completed: true, blocksProgress: true, canOverride: true },
-        ]
-    },
-    "frame": {
-        name: "Frame",
-        requirements: [
-            { id: "1", category: "inspection", name: "Frame inspection passed", required: true, completed: true, blocksProgress: true },
-            { id: "2", category: "certificate", name: "Frame certificate received", required: true, completed: true, blocksProgress: true },
-            { id: "3", category: "certificate", name: "Termite treatment certificate", required: true, completed: true, blocksProgress: true },
-            { id: "4", category: "defect", name: "All frame defects rectified", required: true, completed: true, blocksProgress: true, canOverride: true },
-        ]
-    },
-    "lockup": {
-        name: "Lockup",
-        requirements: [
-            { id: "1", category: "inspection", name: "Waterproofing inspection passed", required: true, completed: true, blocksProgress: true },
-            { id: "2", category: "certificate", name: "Waterproofing certificate", required: true, completed: true, blocksProgress: true },
-            { id: "3", category: "inspection", name: "Pre-plasterboard electrical rough-in", required: true, completed: true, blocksProgress: true },
-            { id: "4", category: "certificate", name: "Electrical rough-in certificate", required: true, completed: true, blocksProgress: true },
-            { id: "5", category: "inspection", name: "Plumbing rough-in inspection", required: true, completed: true, blocksProgress: true },
-            { id: "6", category: "defect", name: "All lockup defects rectified", required: true, completed: true, blocksProgress: true, canOverride: true },
-            { id: "7", category: "variation", name: "All variations signed", required: false, completed: true, blocksProgress: false },
-        ]
-    },
-    "fixing": {
-        name: "Fixing",
-        requirements: [
-            { id: "1", category: "inspection", name: "Final electrical inspection", required: true, completed: true, blocksProgress: true },
-            { id: "2", category: "certificate", name: "EICC (Electrical) Certificate", required: true, completed: true, blocksProgress: true },
-            { id: "3", category: "inspection", name: "Final plumbing inspection", required: true, completed: true, blocksProgress: true },
-            { id: "4", category: "certificate", name: "Plumbing compliance certificate", required: true, completed: true, blocksProgress: true },
-            { id: "5", category: "defect", name: "All fixing stage defects rectified", required: true, completed: true, blocksProgress: true, canOverride: true },
-            { id: "6", category: "certificate", name: "Insulation certificate", required: true, completed: true, blocksProgress: true },
-        ]
-    },
-    "pc": {
-        name: "Practical Completion",
-        requirements: [
-            { id: "1", category: "inspection", name: "Final building inspection passed", required: true, completed: true, blocksProgress: true },
-            { id: "2", category: "certificate", name: "Occupation Certificate (OC) issued", required: true, completed: false, blocksProgress: true },
-            { id: "3", category: "defect", name: "All defects cleared OR logged for post-OC rectification", required: true, completed: false, blocksProgress: true, canOverride: true },
-            { id: "4", category: "certificate", name: "HBCF Insurance Certificate", required: true, completed: true, blocksProgress: true },
-            { id: "5", category: "certificate", name: "Smoke alarm compliance certificate", required: true, completed: true, blocksProgress: true },
-            { id: "6", category: "certificate", name: "All appliance warranties collected", required: true, completed: false, blocksProgress: false, canOverride: true },
-        ]
-    }
-};
-
 export default function StageGate({ projectId, currentStage, nextStage, onProceed }: StageGateProps) {
-    const [selectedStage, setSelectedStage] = useState(currentStage.toLowerCase() || "pc");
-    const stageConfig = STAGES_CONFIG[selectedStage] || STAGES_CONFIG["pc"];
-    const [requirements, setRequirements] = useState<StageRequirement[]>(stageConfig.requirements);
+    const [requirements, setRequirements] = useState<StageRequirement[]>([]);
+    const [loading, setLoading] = useState(true);
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [showOverrideModal, setShowOverrideModal] = useState(false);
     const [loggedDefects, setLoggedDefects] = useState<LoggedDefect[]>([]);
     const [overrideReason, setOverrideReason] = useState("");
     const [acknowledgeRisk, setAcknowledgeRisk] = useState(false);
+    const [stageName, setStageName] = useState(currentStage);
 
-    // Reset requirements when stage changes
-    const handleStageChange = (newStage: string) => {
-        setSelectedStage(newStage);
-        setRequirements(STAGES_CONFIG[newStage]?.requirements || []);
-        setLoggedDefects([]);
-        setShowConfirmation(false);
-        setShowOverrideModal(false);
-    };
+    // Compute requirements from real project data
+    useEffect(() => {
+        const computeRequirements = async () => {
+            const supabase = createClient();
+            const reqs: StageRequirement[] = [];
+            const stageNameLower = currentStage.toLowerCase();
+
+            // Get actual stage name from DB
+            const { data: stageData } = await supabase
+                .from("stages")
+                .select("name")
+                .eq("project_id", projectId)
+                .ilike("name", `%${currentStage}%`)
+                .limit(1)
+                .single();
+
+            if (stageData) setStageName(stageData.name);
+
+            // 1. Check inspections for this stage
+            const { data: inspections } = await supabase
+                .from("inspections")
+                .select("id, type, result, certificate_received, stage")
+                .eq("project_id", projectId);
+
+            if (inspections) {
+                const stageInspections = inspections.filter((i: { stage: string | null }) =>
+                    i.stage && (
+                        i.stage.toLowerCase().includes(stageNameLower) ||
+                        stageNameLower.includes(i.stage.toLowerCase())
+                    )
+                );
+
+                for (const insp of stageInspections) {
+                    reqs.push({
+                        id: `insp-${insp.id}`,
+                        category: "inspection",
+                        name: `${insp.type} inspection passed`,
+                        required: true,
+                        completed: insp.result === "passed" || insp.result === "pass",
+                        blocksProgress: true,
+                    });
+
+                    reqs.push({
+                        id: `cert-insp-${insp.id}`,
+                        category: "certificate",
+                        name: `${insp.type} certificate received`,
+                        required: true,
+                        completed: insp.certificate_received === true,
+                        blocksProgress: true,
+                    });
+                }
+            }
+
+            // 2. Check certifications for this stage
+            const { data: certs } = await supabase
+                .from("certifications")
+                .select("id, type, status, required_for_stage")
+                .eq("project_id", projectId);
+
+            if (certs) {
+                const stageCerts = certs.filter((c: { required_for_stage: string | null }) =>
+                    c.required_for_stage && (
+                        c.required_for_stage.toLowerCase().includes(stageNameLower) ||
+                        stageNameLower.includes(c.required_for_stage.toLowerCase())
+                    )
+                );
+
+                for (const cert of stageCerts) {
+                    // Don't duplicate if already added from inspections
+                    const existing = reqs.find(r => r.category === "certificate" && r.name.toLowerCase().includes(cert.type.toLowerCase()));
+                    if (!existing) {
+                        reqs.push({
+                            id: `cert-${cert.id}`,
+                            category: "certificate",
+                            name: `${cert.type} certificate`,
+                            required: true,
+                            completed: cert.status === "uploaded" || cert.status === "verified",
+                            blocksProgress: true,
+                        });
+                    }
+                }
+            }
+
+            // 3. Check open defects for this stage
+            const { data: defects } = await supabase
+                .from("defects")
+                .select("id, title, status, stage, override_reason")
+                .eq("project_id", projectId)
+                .not("status", "in", '("verified","rectified")');
+
+            if (defects) {
+                const stageDefects = defects.filter((d: { stage: string | null }) =>
+                    d.stage && (
+                        d.stage.toLowerCase().includes(stageNameLower) ||
+                        stageNameLower.includes(d.stage.toLowerCase())
+                    )
+                );
+
+                if (stageDefects.length > 0) {
+                    reqs.push({
+                        id: "defects-clear",
+                        category: "defect",
+                        name: `All ${stageName} defects rectified (${stageDefects.length} open)`,
+                        required: true,
+                        completed: false,
+                        blocksProgress: true,
+                        canOverride: true,
+                    });
+                } else {
+                    reqs.push({
+                        id: "defects-clear",
+                        category: "defect",
+                        name: `All ${stageName} defects rectified`,
+                        required: true,
+                        completed: true,
+                        blocksProgress: true,
+                        canOverride: true,
+                    });
+                }
+
+                // Load previously overridden defects
+                const overridden = defects.filter((d: { override_reason: string | null; status: string }) => d.override_reason && d.status === "disputed");
+                if (overridden.length > 0) {
+                    setLoggedDefects(overridden.map((d: { id: string; title: string }) => ({
+                        id: d.id,
+                        name: d.title,
+                        loggedAt: new Date(),
+                        acknowledgedRisk: true,
+                    })));
+                }
+            }
+
+            // 4. Check unsigned variations
+            const { data: variations } = await supabase
+                .from("variations")
+                .select("id, status")
+                .eq("project_id", projectId)
+                .neq("status", "approved");
+
+            if (variations && variations.length > 0) {
+                reqs.push({
+                    id: "variations-signed",
+                    category: "variation",
+                    name: `All variations signed (${variations.length} unsigned)`,
+                    required: false,
+                    completed: false,
+                    blocksProgress: false,
+                });
+            }
+
+            // If no requirements found, show a message
+            if (reqs.length === 0) {
+                reqs.push({
+                    id: "no-data",
+                    category: "inspection",
+                    name: "No inspections or certificates recorded for this stage yet",
+                    required: false,
+                    completed: false,
+                    blocksProgress: false,
+                });
+            }
+
+            setRequirements(reqs);
+            setLoading(false);
+        };
+
+        computeRequirements();
+    }, [projectId, currentStage, stageName]);
 
     const toggleComplete = (id: string) => {
         setRequirements(requirements.map(r =>
@@ -125,7 +232,7 @@ export default function StageGate({ projectId, currentStage, nextStage, onProcee
     const totalRequired = requirements.filter(r => r.required).length;
     const canProceed = canProceedToNextStage(requirements as UtilStageRequirement[]);
     const canOverride = canOverrideToNextStage(requirements as UtilStageRequirement[]);
-    const isPCStage = currentStage.toLowerCase() === "pc";
+    const isPCStage = currentStage.toLowerCase().includes("completion") || currentStage.toLowerCase() === "pc";
 
     const getCategoryIcon = (category: StageRequirement["category"]) => {
         switch (category) {
@@ -147,21 +254,42 @@ export default function StageGate({ projectId, currentStage, nextStage, onProcee
         setShowOverrideModal(true);
     };
 
-    const confirmOverride = () => {
+    const confirmOverride = async () => {
         if (!acknowledgeRisk || !overrideReason.trim()) return;
 
-        // Log the defects being overridden
-        const newLoggedDefects: LoggedDefect[] = overridableItems.map(item => ({
-            id: item.id,
-            name: item.name,
-            loggedAt: new Date(),
-            acknowledgedRisk: true,
-        }));
-        setLoggedDefects([...loggedDefects, ...newLoggedDefects]);
+        const supabase = createClient();
 
-        // Mark as "completed with override"
+        // Get open defects for this stage and mark them as disputed with override reason
+        const { data: defects } = await supabase
+            .from("defects")
+            .select("id, title")
+            .eq("project_id", projectId)
+            .not("status", "in", '("verified","rectified","disputed")');
+
+        if (defects) {
+            const stageDefects = defects.filter((d: { id: string; title: string }) => true); // All open defects at this point
+            for (const defect of stageDefects) {
+                await supabase
+                    .from("defects")
+                    .update({
+                        status: "disputed",
+                        override_reason: overrideReason,
+                    })
+                    .eq("id", defect.id);
+            }
+
+            const newLoggedDefects: LoggedDefect[] = stageDefects.map((d: { id: string; title: string }) => ({
+                id: d.id,
+                name: d.title,
+                loggedAt: new Date(),
+                acknowledgedRisk: true,
+            }));
+            setLoggedDefects([...loggedDefects, ...newLoggedDefects]);
+        }
+
+        // Mark defect requirement as completed with override
         setRequirements(requirements.map(r => {
-            if (overridableItems.find(o => o.id === r.id)) {
+            if (r.canOverride && !r.completed) {
                 return { ...r, completed: true, notes: `OVERRIDDEN: ${overrideReason}` };
             }
             return r;
@@ -172,37 +300,35 @@ export default function StageGate({ projectId, currentStage, nextStage, onProcee
         setAcknowledgeRisk(false);
     };
 
-    const confirmProceed = () => {
+    const confirmProceed = async () => {
+        // Update stage status in DB
+        const supabase = createClient();
+        await supabase
+            .from("stages")
+            .update({ status: "completed", completion_date: new Date().toISOString().split("T")[0] })
+            .eq("project_id", projectId)
+            .ilike("name", `%${currentStage}%`);
+
         setShowConfirmation(false);
         onProceed?.();
     };
 
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center p-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-6">
-            {/* Header with Stage Selector */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div>
-                    <h2 className="text-2xl font-bold">🚧 Stage Gate: {stageConfig.name}</h2>
-                    <p className="text-muted-foreground">
-                        Complete all requirements before proceeding to {nextStage}
-                    </p>
-                </div>
-
-                {/* Stage Selector for Testing */}
-                <div className="flex items-center gap-2 p-3 bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-700 rounded-xl">
-                    <span className="text-sm font-medium text-purple-700 dark:text-purple-300">🧪 Test Stage:</span>
-                    <select
-                        value={selectedStage}
-                        onChange={(e) => handleStageChange(e.target.value)}
-                        className="px-3 py-1.5 border border-purple-300 dark:border-purple-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-400"
-                    >
-                        <option value="slab" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">📦 Base/Slab</option>
-                        <option value="frame" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">🏗️ Frame</option>
-                        <option value="lockup" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">🔒 Lockup</option>
-                        <option value="fixing" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">🔧 Fixing</option>
-                        <option value="pc" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">🏠 Practical Completion (OC)</option>
-                    </select>
-                </div>
+            {/* Header */}
+            <div>
+                <h2 className="text-2xl font-bold">Stage Gate: {stageName}</h2>
+                <p className="text-muted-foreground">
+                    Complete all requirements before proceeding to {nextStage}
+                </p>
             </div>
 
             {/* Progress */}
@@ -238,14 +364,11 @@ export default function StageGate({ projectId, currentStage, nextStage, onProcee
                             <li key={defect.id} className="flex items-center gap-2 text-amber-700">
                                 <span>⚠️</span>
                                 <span>{defect.name}</span>
-                                <span className="text-xs bg-amber-200 px-2 py-0.5 rounded">
-                                    Logged {defect.loggedAt.toLocaleDateString()}
-                                </span>
                             </li>
                         ))}
                     </ul>
                     <p className="mt-3 text-sm text-amber-600 font-medium">
-                        ✅ You may proceed with OC. Builder must rectify these items within warranty period.
+                        Builder must rectify these items within warranty period.
                     </p>
                 </div>
             )}
@@ -254,7 +377,6 @@ export default function StageGate({ projectId, currentStage, nextStage, onProcee
             {blockingItems.length > 0 && (
                 <div className="p-4 bg-red-50 border-2 border-red-300 rounded-xl">
                     <h3 className="font-bold text-red-800 flex items-center gap-2 mb-3">
-                        <span className="text-2xl">⛔</span>
                         {blockingItems.length} Item{blockingItems.length !== 1 && "s"} Blocking Stage Progression
                     </h3>
                     <ul className="space-y-2">
@@ -264,14 +386,14 @@ export default function StageGate({ projectId, currentStage, nextStage, onProcee
                                 <span>{item.name}</span>
                                 {item.canOverride && (
                                     <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">
-                                        Can Log & Proceed
+                                        Can Log &amp; Proceed
                                     </span>
                                 )}
                             </li>
                         ))}
                     </ul>
                     <p className="mt-4 text-sm text-red-600 font-medium">
-                        ⚠️ Do NOT release payment until blocking items are resolved.
+                        Do NOT release payment until blocking items are resolved.
                     </p>
                 </div>
             )}
@@ -329,12 +451,6 @@ export default function StageGate({ projectId, currentStage, nextStage, onProcee
                                     </div>
                                 </div>
                             </div>
-
-                            {!req.completed && (
-                                <button className="px-3 py-1 text-sm bg-white border border-gray-300 rounded hover:bg-gray-50">
-                                    Upload Evidence
-                                </button>
-                            )}
                         </div>
                     </div>
                 ))}
@@ -347,7 +463,7 @@ export default function StageGate({ projectId, currentStage, nextStage, onProcee
                         onClick={handleProceed}
                         className="w-full py-4 bg-green-500 text-white rounded-xl font-bold text-lg hover:bg-green-600 transition-colors"
                     >
-                        ✅ All Clear - Proceed to {nextStage}
+                        All Clear - Proceed to {nextStage}
                     </button>
                 ) : canOverride ? (
                     <div className="space-y-3">
@@ -355,13 +471,13 @@ export default function StageGate({ projectId, currentStage, nextStage, onProcee
                             disabled
                             className="w-full py-4 bg-gray-300 text-gray-500 rounded-xl font-bold text-lg cursor-not-allowed"
                         >
-                            🚫 Cannot Proceed - {blockingItems.length} Item{blockingItems.length !== 1 && "s"} Pending
+                            Cannot Proceed - {blockingItems.length} Item{blockingItems.length !== 1 && "s"} Pending
                         </button>
                         <button
                             onClick={handleOverride}
                             className="w-full py-4 bg-amber-500 text-white rounded-xl font-bold text-lg hover:bg-amber-600 transition-colors"
                         >
-                            ⚠️ Log Defects & Proceed with OC (Accept with Defects)
+                            Log Defects &amp; Proceed (Accept with Defects)
                         </button>
                     </div>
                 ) : (
@@ -369,7 +485,7 @@ export default function StageGate({ projectId, currentStage, nextStage, onProcee
                         disabled
                         className="w-full py-4 bg-gray-300 text-gray-500 rounded-xl font-bold text-lg cursor-not-allowed"
                     >
-                        🚫 Cannot Proceed - {hardBlockingItems.length} Critical Item{hardBlockingItems.length !== 1 && "s"} Required
+                        Cannot Proceed - {hardBlockingItems.length} Critical Item{hardBlockingItems.length !== 1 && "s"} Required
                     </button>
                 )}
             </div>
@@ -377,11 +493,11 @@ export default function StageGate({ projectId, currentStage, nextStage, onProcee
             {/* Override Modal */}
             {showOverrideModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
-                        <h3 className="text-xl font-bold mb-4">⚠️ Proceed with Unresolved Defects</h3>
+                    <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
+                        <h3 className="text-xl font-bold mb-4">Proceed with Unresolved Defects</h3>
 
                         <div className="p-4 bg-red-50 border border-red-200 rounded-xl mb-4 text-sm text-red-800">
-                            <p className="font-bold mb-2">⚠️ IMPORTANT: You are about to accept your new home with the following defects still unresolved:</p>
+                            <p className="font-bold mb-2">IMPORTANT: You are about to accept your home with defects still unresolved:</p>
                             <ul className="mt-2 space-y-1">
                                 {overridableItems.map(item => (
                                     <li key={item.id}>• {item.name}</li>
@@ -418,16 +534,6 @@ export default function StageGate({ projectId, currentStage, nextStage, onProcee
                             </div>
                         </div>
 
-                        <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl mb-6 text-sm text-blue-800">
-                            <p className="font-medium">📋 What happens next:</p>
-                            <ul className="mt-2 space-y-1">
-                                <li>• Defects will be logged with timestamp</li>
-                                <li>• Builder legally obligated to rectify within warranty</li>
-                                <li>• You can report to Fair Trading if not rectified</li>
-                                <li>• HBCF insurance covers structural defects for 6 years</li>
-                            </ul>
-                        </div>
-
                         <div className="flex gap-3">
                             <button
                                 onClick={() => setShowOverrideModal(false)}
@@ -443,7 +549,7 @@ export default function StageGate({ projectId, currentStage, nextStage, onProcee
                                     : "bg-gray-200 text-gray-400 cursor-not-allowed"
                                     }`}
                             >
-                                Log Defects & Proceed
+                                Log Defects &amp; Proceed
                             </button>
                         </div>
                     </div>
@@ -453,9 +559,9 @@ export default function StageGate({ projectId, currentStage, nextStage, onProcee
             {/* Confirmation Modal */}
             {showConfirmation && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl p-6 max-w-md w-full">
-                        <h3 className="text-xl font-bold mb-4">🎉 Confirm {isPCStage ? "Handover" : "Stage Progression"}</h3>
-                        <p className="text-gray-600 mb-6">
+                    <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 max-w-md w-full">
+                        <h3 className="text-xl font-bold mb-4">Confirm {isPCStage ? "Handover" : "Stage Progression"}</h3>
+                        <p className="text-muted-foreground mb-6">
                             {isPCStage ? (
                                 <>
                                     Congratulations! All requirements for <strong>Practical Completion</strong> are met.
@@ -463,20 +569,11 @@ export default function StageGate({ projectId, currentStage, nextStage, onProcee
                                 </>
                             ) : (
                                 <>
-                                    You have confirmed all requirements for <strong>{stageConfig.name}</strong> are complete.
+                                    All requirements for <strong>{stageName}</strong> are complete.
                                     Are you ready to proceed to <strong>{nextStage}</strong> and authorize the stage payment?
                                 </>
                             )}
                         </p>
-                        <div className="p-4 bg-green-50 border border-green-200 rounded-xl mb-6 text-sm text-green-800">
-                            <p className="font-medium">✅ Before confirming:</p>
-                            <ul className="mt-2 space-y-1">
-                                <li>• All certificates are filed in your documents</li>
-                                <li>• You have photos of the completed work</li>
-                                {isPCStage && <li>• You have meter readings recorded</li>}
-                                {loggedDefects.length > 0 && <li>• {loggedDefects.length} defect(s) logged for post-handover rectification</li>}
-                            </ul>
-                        </div>
                         <div className="flex gap-3">
                             <button
                                 onClick={() => setShowConfirmation(false)}
@@ -488,7 +585,7 @@ export default function StageGate({ projectId, currentStage, nextStage, onProcee
                                 onClick={confirmProceed}
                                 className="flex-1 py-3 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600"
                             >
-                                {isPCStage ? "🎉 Complete Handover" : "Confirm & Proceed"}
+                                {isPCStage ? "Complete Handover" : "Confirm & Proceed"}
                             </button>
                         </div>
                     </div>
@@ -497,7 +594,7 @@ export default function StageGate({ projectId, currentStage, nextStage, onProcee
 
             {/* Legal Info */}
             <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-800">
-                <p className="font-medium mb-1">📚 NSW Home Building Act Reminder</p>
+                <p className="font-medium mb-1">NSW Home Building Act Reminder</p>
                 <p>
                     {isPCStage ? (
                         <>
@@ -517,4 +614,3 @@ export default function StageGate({ projectId, currentStage, nextStage, onProcee
         </div>
     );
 }
-

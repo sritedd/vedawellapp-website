@@ -84,8 +84,8 @@ export default async function DashboardPage() {
         .limit(1)
         .single();
 
-    // For quick actions, prefer the first active project, fallback to most recent
-    const activeProject = projects?.find((p: { status: string }) => p.status === "active");
+    // For quick actions, prefer active/planning project, fallback to most recent
+    const activeProject = projects?.find((p: { status: string }) => p.status === "active" || p.status === "planning");
     const projectId = activeProject?.id || projects?.[0]?.id;
     // isAdmin already defined above from profile.is_admin
 

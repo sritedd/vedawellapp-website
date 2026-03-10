@@ -59,34 +59,6 @@ export default function CommunicationLog({ projectId }: CommunicationLogProps) {
 
         if (!error && data) {
             setEntries(data);
-        } else {
-            // Mock data for development
-            setEntries([
-                {
-                    id: "1",
-                    project_id: projectId,
-                    type: "call",
-                    date: "2026-01-08",
-                    summary: "Weekly progress update call",
-                    details: "Discussed frame stage timeline. Builder confirmed frame inspection for next week.",
-                    builder_response: "Will send inspection booking confirmation by email.",
-                    follow_up_required: true,
-                    follow_up_date: "2026-01-10",
-                    created_at: new Date().toISOString(),
-                },
-                {
-                    id: "2",
-                    project_id: projectId,
-                    type: "email",
-                    date: "2026-01-05",
-                    summary: "Variation request for upgraded tiles",
-                    details: "Builder sent variation for $3,500 to upgrade floor tiles in living area.",
-                    builder_response: "",
-                    follow_up_required: true,
-                    follow_up_date: "2026-01-07",
-                    created_at: new Date().toISOString(),
-                },
-            ]);
         }
         setLoading(false);
     };

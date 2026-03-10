@@ -10,27 +10,49 @@ interface ProjectOverviewProps {
     variationsTotal?: number;
 }
 
+interface StageRow {
+    id: string;
+    name: string;
+    status: string;
+    order_index?: number;
+}
+
 export default function ProjectOverview({ project }: ProjectOverviewProps) {
     const [variationsTotal, setVariationsTotal] = useState(0);
+    const [stages, setStages] = useState<StageRow[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchVariationsTotal = async () => {
+        const fetchData = async () => {
             const supabase = createClient();
-            const { data, error } = await supabase
+
+            // Fetch variations total
+            const { data: varData, error: varError } = await supabase
                 .from("variations")
                 .select("additional_cost")
                 .eq("project_id", project.id)
                 .eq("status", "approved");
 
-            if (!error && data) {
-                const total = data.reduce((sum: number, v: { additional_cost: number | null }) => sum + (v.additional_cost || 0), 0);
+            if (!varError && varData) {
+                const total = varData.reduce((sum: number, v: { additional_cost: number | null }) => sum + (v.additional_cost || 0), 0);
                 setVariationsTotal(total);
             }
+
+            // Fetch real stages from DB
+            const { data: stageData } = await supabase
+                .from("stages")
+                .select("id, name, status")
+                .eq("project_id", project.id)
+                .order("created_at", { ascending: true });
+
+            if (stageData && stageData.length > 0) {
+                setStages(stageData);
+            }
+
             setLoading(false);
         };
 
-        fetchVariationsTotal();
+        fetchData();
     }, [project.id]);
 
     const contractValue = project.contract_value || 0;
@@ -139,43 +161,46 @@ export default function ProjectOverview({ project }: ProjectOverviewProps) {
                 <div className="bg-card border border-border rounded-xl p-6">
                     <h3 className="text-lg font-bold mb-6">Construction Progress</h3>
                     <div className="space-y-6 relative before:absolute before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-border">
-                        {[
-                            { id: "1", name: "Site Start", completed: true },
-                            { id: "2", name: "Slab Down", completed: true },
-                            { id: "3", name: "Frame Stage", completed: false, current: true },
-                            { id: "4", name: "Lockup / Enclosed", completed: false },
-                            { id: "5", name: "Fixing", completed: false },
-                            { id: "6", name: "Practical Completion", completed: false },
-                        ].map((stage) => (
+                        {stages.length === 0 ? (
+                            <p className="text-muted-foreground text-sm pl-10">No stages configured for this project.</p>
+                        ) : stages.map((stage, idx) => {
+                            const isCompleted = stage.status === "completed" || stage.status === "verified";
+                            const isCurrent = stage.status === "in_progress";
+                            const isPending = stage.status === "pending";
+                            // If no stage is in_progress, the first pending stage is "current"
+                            const isFirstPending = isPending && !stages.some(s => s.status === "in_progress") && stages.findIndex(s => s.status === "pending") === idx;
+
+                            return (
                             <div key={stage.id} className="relative flex items-start gap-4 pl-0">
                                 <div
-                                    className={`relative z-10 w-6 h-6 rounded-full border-2 flex items-center justify-center bg-background ${stage.completed
+                                    className={`relative z-10 w-6 h-6 rounded-full border-2 flex items-center justify-center bg-background ${isCompleted
                                             ? "border-green-500 bg-green-500"
-                                            : stage.current
+                                            : (isCurrent || isFirstPending)
                                                 ? "border-primary"
                                                 : "border-border"
                                         }`}
                                 >
-                                    {stage.completed && <span className="text-white text-xs">✓</span>}
-                                    {stage.current && (
+                                    {isCompleted && <span className="text-white text-xs">✓</span>}
+                                    {(isCurrent || isFirstPending) && (
                                         <span className="w-2.5 h-2.5 rounded-full bg-primary"></span>
                                     )}
                                 </div>
                                 <div>
                                     <h4
-                                        className={`font-medium ${stage.completed || stage.current
+                                        className={`font-medium ${isCompleted || isCurrent || isFirstPending
                                                 ? "text-foreground"
                                                 : "text-muted-foreground"
                                             }`}
                                     >
                                         {stage.name}
                                     </h4>
-                                    {stage.current && (
-                                        <p className="text-xs text-primary mt-1">Current Stage • In Progress</p>
+                                    {(isCurrent || isFirstPending) && (
+                                        <p className="text-xs text-primary mt-1">Current Stage • {isCurrent ? "In Progress" : "Up Next"}</p>
                                     )}
                                 </div>
                             </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
 

@@ -117,60 +117,6 @@ export default function ProjectDetailPage() {
                     .select("*")
                     .eq("project_id", params.id);
                 if (defectsData) setDefects(defectsData);
-            } else if (process.env.NODE_ENV === "development") {
-                // Mock Data Fallback
-                console.log("Using Mock Data for Project Detail");
-                setProject({
-                    id: "mock-project-1",
-                    user_id: "mock-user-1",
-                    name: "Demo Project: Dream Home",
-                    address: "123 Test St, Sydney",
-                    builder_name: "Metricon",
-                    builder_license_number: "123456C",
-                    hbcf_policy_number: "HBCF-2024-001",
-                    insurance_expiry_date: "2026-12-31",
-                    status: "active",
-                    contract_value: 500000,
-                    created_at: new Date().toISOString(),
-                    start_date: new Date().toISOString(),
-                });
-                setVariations([
-                    {
-                        id: "1",
-                        project_id: "mock-project-1",
-                        title: "Upgraded Kitchen Benchtop",
-                        description: "Stone benchtop upgrade from laminate",
-                        additional_cost: 8500,
-                        status: "approved",
-                        created_at: new Date().toISOString(),
-                    },
-                    {
-                        id: "2",
-                        project_id: "mock-project-1",
-                        title: "Extra Downlights",
-                        description: "Additional 8 LED downlights in living area",
-                        additional_cost: 1200,
-                        status: "draft",
-                        created_at: new Date().toISOString(),
-                    },
-                ]);
-                setDefects([
-                    {
-                        id: "1",
-                        project_id: "mock-project-1",
-                        title: "Paint scratches on hallway wall",
-                        description: "Multiple scratches visible near front door",
-                        location: "Hallway",
-                        stage: "Fixing",
-                        severity: "minor",
-                        status: "open",
-                        reportedDate: new Date().toISOString().split("T")[0],
-                        photos: [],
-                        rectificationPhotos: [],
-                        reminderCount: 0,
-                        created_at: new Date().toISOString(),
-                    },
-                ]);
             } else {
                 console.error("Error fetching project:", error);
             }
@@ -448,10 +394,10 @@ export default function ProjectDetailPage() {
                         {activeTab === "materials" && <MaterialRegistry projectId={project.id} />}
                         {activeTab === "communication" && <CommunicationLog projectId={project.id} />}
                         {activeTab === "payments" && (
-                            <PaymentSchedule projectId={project.id} contractValue={project.contract_value || 500000} />
+                            <PaymentSchedule projectId={project.id} contractValue={project.contract_value || 0} />
                         )}
                         {activeTab === "budget" && (
-                            <BudgetDashboard projectId={project.id} contractValue={project.contract_value || 500000} />
+                            <BudgetDashboard projectId={project.id} contractValue={project.contract_value || 0} />
                         )}
                         {activeTab === "documents" && <DocumentVault projectId={project.id} />}
                         {activeTab === "notifications" && (
@@ -466,7 +412,7 @@ export default function ProjectDetailPage() {
                                 projectId={project.id}
                                 projectName={project.name}
                                 builderName={project.builder_name || "Builder"}
-                                contractValue={project.contract_value || 500000}
+                                contractValue={project.contract_value || 0}
                             />
                         )}
                         {activeTab === "settings" && (

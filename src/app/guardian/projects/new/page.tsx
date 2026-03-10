@@ -63,6 +63,31 @@ export default function NewProjectPage() {
         }
 
         try {
+            // Check free tier limits
+            const { data: profile } = await supabase
+                .from("profiles")
+                .select("subscription_tier, is_admin, trial_ends_at")
+                .eq("id", user.id)
+                .single();
+
+            const tier = profile?.subscription_tier || "free";
+            const isAdmin = profile?.is_admin === true;
+            const trialActive = tier === "trial" && profile?.trial_ends_at && new Date(profile.trial_ends_at) > new Date();
+            const hasPro = tier === "guardian_pro" || isAdmin || trialActive;
+
+            if (!hasPro) {
+                const { count } = await supabase
+                    .from("projects")
+                    .select("id", { count: "exact", head: true })
+                    .eq("user_id", user.id);
+
+                if ((count || 0) >= 1) {
+                    setError("Free plan allows 1 project. Upgrade to Guardian Pro for unlimited projects.");
+                    setLoading(false);
+                    return;
+                }
+            }
+
             // 1. Create Project with enhanced fields
             const { data: projectData, error: insertError } = await supabase
                 .from("projects")

@@ -1,28 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
 import {
     getInspectionStatusColor,
     getInspectionStatusLabel,
-    countPassedInspections,
-    countRequiredInspections,
-    countCertificatesReceived,
-    countCertificatesRequired,
-    isStageComplete,
-    Inspection as UtilInspection,
 } from "@/lib/guardian/calculations";
 
 interface Inspection {
     id: string;
-    name: string;
-    stage: string;
-    status: "pending" | "scheduled" | "passed" | "failed" | "na";
-    scheduledDate: string | null;
-    completedDate: string | null;
-    inspector: string;
-    certificateRequired: boolean;
-    certificateReceived: boolean;
-    notes: string;
+    type: string;
+    stage: string | null;
+    result: string | null; // maps to status: pending/scheduled/passed/failed
+    scheduled_date: string | null;
+    date: string | null; // completed date
+    inspector: string | null;
+    certificate_received: boolean;
+    notes: string | null;
 }
 
 interface InspectionTimelineProps {
@@ -30,230 +24,401 @@ interface InspectionTimelineProps {
     currentStage: string;
 }
 
-const INSPECTIONS: Inspection[] = [
-    { id: "1", name: "Footing/Slab Inspection", stage: "Base/Slab", status: "passed", scheduledDate: "2025-06-15", completedDate: "2025-06-15", inspector: "Council", certificateRequired: true, certificateReceived: true, notes: "All OK" },
-    { id: "2", name: "Frame Inspection", stage: "Frame", status: "passed", scheduledDate: "2025-07-20", completedDate: "2025-07-20", inspector: "Private Certifier", certificateRequired: true, certificateReceived: true, notes: "" },
-    { id: "3", name: "Pre-Plasterboard (EICC Rough-in)", stage: "Lockup", status: "scheduled", scheduledDate: "2025-08-10", completedDate: null, inspector: "Electrician", certificateRequired: true, certificateReceived: false, notes: "Scheduled for next week" },
-    { id: "4", name: "Waterproofing Inspection", stage: "Lockup", status: "pending", scheduledDate: null, completedDate: null, inspector: "Waterproofer", certificateRequired: true, certificateReceived: false, notes: "" },
-    { id: "5", name: "Plumbing Rough-in", stage: "Lockup", status: "pending", scheduledDate: null, completedDate: null, inspector: "Licensed Plumber", certificateRequired: true, certificateReceived: false, notes: "" },
-    { id: "6", name: "Final Plumbing", stage: "Fixing", status: "pending", scheduledDate: null, completedDate: null, inspector: "Licensed Plumber", certificateRequired: true, certificateReceived: false, notes: "" },
-    { id: "7", name: "Final Electrical (EICC)", stage: "Fixing", status: "pending", scheduledDate: null, completedDate: null, inspector: "Electrician", certificateRequired: true, certificateReceived: false, notes: "" },
-    { id: "8", name: "Final Building Inspection", stage: "Practical Completion", status: "pending", scheduledDate: null, completedDate: null, inspector: "Private Certifier", certificateRequired: true, certificateReceived: false, notes: "" },
-    { id: "9", name: "Occupation Certificate", stage: "Final", status: "pending", scheduledDate: null, completedDate: null, inspector: "Council/Certifier", certificateRequired: true, certificateReceived: false, notes: "" },
-];
-
-const STAGES = ["Base/Slab", "Frame", "Lockup", "Fixing", "Practical Completion", "Final"];
+// Map DB result values to display status
+function getStatus(result: string | null): "pending" | "scheduled" | "passed" | "failed" {
+    if (!result || result === "pending") return "pending";
+    if (result === "scheduled") return "scheduled";
+    if (result === "passed" || result === "pass") return "passed";
+    if (result === "failed" || result === "fail") return "failed";
+    return "pending";
+}
 
 export default function InspectionTimeline({ projectId, currentStage }: InspectionTimelineProps) {
-    const [inspections, setInspections] = useState<Inspection[]>(INSPECTIONS);
-    const [expandedStage, setExpandedStage] = useState<string | null>(currentStage);
+    const [inspections, setInspections] = useState<Inspection[]>([]);
+    const [stages, setStages] = useState<string[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [expandedStage, setExpandedStage] = useState<string | null>(null);
+    const [showAddForm, setShowAddForm] = useState(false);
+    const [newInspection, setNewInspection] = useState({
+        type: "",
+        stage: "",
+        inspector: "",
+        scheduled_date: "",
+        notes: "",
+    });
 
-    // Use tested utility functions
-    const getStatusColor = (status: Inspection["status"]) =>
-        getInspectionStatusColor(status as UtilInspection['status']);
+    useEffect(() => {
+        const fetchData = async () => {
+            const supabase = createClient();
 
-    const getStatusLabel = (status: Inspection["status"]) =>
-        getInspectionStatusLabel(status as UtilInspection['status']);
+            // Fetch project stages for grouping
+            const { data: stageData } = await supabase
+                .from("stages")
+                .select("name")
+                .eq("project_id", projectId)
+                .order("created_at", { ascending: true });
 
-    const updateInspection = (id: string, updates: Partial<Inspection>) => {
-        setInspections(inspections.map(i =>
+            const stageNames = stageData?.map((s: { name: string }) => s.name) || [];
+            setStages(stageNames);
+
+            // Fetch inspections from DB
+            const { data: inspData } = await supabase
+                .from("inspections")
+                .select("id, type, stage, result, scheduled_date, date, inspector, certificate_received, notes")
+                .eq("project_id", projectId)
+                .order("created_at", { ascending: true });
+
+            setInspections(inspData || []);
+
+            // Auto-expand the current stage
+            if (currentStage && stageNames.length > 0) {
+                // Find best matching stage name
+                const match = stageNames.find((s: string) =>
+                    s.toLowerCase().includes(currentStage.toLowerCase()) ||
+                    currentStage.toLowerCase().includes(s.toLowerCase())
+                );
+                setExpandedStage(match || stageNames[0]);
+            }
+
+            setLoading(false);
+        };
+
+        fetchData();
+    }, [projectId, currentStage]);
+
+    const updateInspection = async (id: string, updates: Partial<{ result: string; date: string; certificate_received: boolean; scheduled_date: string }>) => {
+        const supabase = createClient();
+
+        // Optimistic update
+        setInspections(prev => prev.map(i =>
             i.id === id ? { ...i, ...updates } : i
         ));
+
+        const { error } = await supabase
+            .from("inspections")
+            .update(updates)
+            .eq("id", id);
+
+        if (error) {
+            // Revert — refetch
+            const { data } = await supabase
+                .from("inspections")
+                .select("id, type, stage, result, scheduled_date, date, inspector, certificate_received, notes")
+                .eq("project_id", projectId)
+                .order("created_at", { ascending: true });
+            setInspections(data || []);
+        }
     };
 
-    // Calculate using tested utility functions
-    const passedCount = countPassedInspections(inspections as UtilInspection[]);
-    const totalRequired = countRequiredInspections(inspections as UtilInspection[]);
-    const certsReceived = countCertificatesReceived(inspections as UtilInspection[]);
-    const certsRequired = countCertificatesRequired(inspections as UtilInspection[]);
+    const addInspection = async () => {
+        if (!newInspection.type.trim()) return;
 
-    const inspectionsByStage = STAGES.map(stage => {
-        const stageInspections = inspections.filter(i => i.stage === stage);
+        const supabase = createClient();
+        const { data, error } = await supabase
+            .from("inspections")
+            .insert({
+                project_id: projectId,
+                type: newInspection.type,
+                stage: newInspection.stage || null,
+                inspector: newInspection.inspector || null,
+                scheduled_date: newInspection.scheduled_date || null,
+                result: newInspection.scheduled_date ? "scheduled" : "pending",
+                notes: newInspection.notes || null,
+                certificate_received: false,
+            })
+            .select()
+            .single();
+
+        if (!error && data) {
+            setInspections(prev => [...prev, data]);
+            setNewInspection({ type: "", stage: "", inspector: "", scheduled_date: "", notes: "" });
+            setShowAddForm(false);
+        }
+    };
+
+    const passedCount = inspections.filter(i => getStatus(i.result) === "passed").length;
+    const totalCount = inspections.length;
+    const certsReceived = inspections.filter(i => i.certificate_received).length;
+
+    // Group inspections by stage
+    const inspectionsByStage = stages.map(stage => {
+        const stageInspections = inspections.filter(i =>
+            i.stage && (i.stage.toLowerCase() === stage.toLowerCase() ||
+            stage.toLowerCase().includes(i.stage.toLowerCase()) ||
+            i.stage.toLowerCase().includes(stage.toLowerCase()))
+        );
         return {
             stage,
             inspections: stageInspections,
-            isComplete: isStageComplete(stageInspections as UtilInspection[]),
-            isCurrent: stage === currentStage,
+            isComplete: stageInspections.length > 0 && stageInspections.every(i => getStatus(i.result) === "passed"),
         };
     });
 
+    // Ungrouped inspections (no stage or unmatched stage)
+    const groupedIds = new Set(inspectionsByStage.flatMap(g => g.inspections.map(i => i.id)));
+    const ungrouped = inspections.filter(i => !groupedIds.has(i.id));
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center p-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-6">
-            <div>
-                <h2 className="text-2xl font-bold">🔍 Inspection Timeline</h2>
-                <p className="text-muted-foreground">
-                    Track mandatory inspections and certificates for your build.
-                </p>
+            <div className="flex justify-between items-center">
+                <div>
+                    <h2 className="text-2xl font-bold">Inspection Timeline</h2>
+                    <p className="text-muted-foreground">
+                        Track mandatory inspections and certificates for your build.
+                    </p>
+                </div>
+                <button
+                    onClick={() => setShowAddForm(!showAddForm)}
+                    className="px-4 py-2 bg-primary text-white rounded-lg text-sm hover:bg-primary/90"
+                >
+                    + Add Inspection
+                </button>
             </div>
+
+            {/* Add Form */}
+            {showAddForm && (
+                <div className="p-4 bg-card border border-border rounded-xl space-y-3">
+                    <h3 className="font-bold">Add New Inspection</h3>
+                    <div className="grid md:grid-cols-2 gap-3">
+                        <input
+                            type="text"
+                            placeholder="Inspection type (e.g. Frame Inspection)"
+                            value={newInspection.type}
+                            onChange={e => setNewInspection({ ...newInspection, type: e.target.value })}
+                            className="w-full p-2 border border-border rounded-lg text-sm"
+                        />
+                        <select
+                            value={newInspection.stage}
+                            onChange={e => setNewInspection({ ...newInspection, stage: e.target.value })}
+                            className="w-full p-2 border border-border rounded-lg text-sm"
+                        >
+                            <option value="">Select stage</option>
+                            {stages.map(s => <option key={s} value={s}>{s}</option>)}
+                        </select>
+                        <input
+                            type="text"
+                            placeholder="Inspector (e.g. Council, Private Certifier)"
+                            value={newInspection.inspector}
+                            onChange={e => setNewInspection({ ...newInspection, inspector: e.target.value })}
+                            className="w-full p-2 border border-border rounded-lg text-sm"
+                        />
+                        <input
+                            type="date"
+                            value={newInspection.scheduled_date}
+                            onChange={e => setNewInspection({ ...newInspection, scheduled_date: e.target.value })}
+                            className="w-full p-2 border border-border rounded-lg text-sm"
+                        />
+                    </div>
+                    <div className="flex gap-2">
+                        <button onClick={addInspection} className="px-4 py-2 bg-primary text-white rounded-lg text-sm">Save</button>
+                        <button onClick={() => setShowAddForm(false)} className="px-4 py-2 bg-muted rounded-lg text-sm">Cancel</button>
+                    </div>
+                </div>
+            )}
 
             {/* Progress Stats */}
-            <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 bg-green-50 border border-green-200 rounded-xl">
-                    <div className="flex justify-between items-center">
-                        <span className="text-green-700 font-medium">Inspections Passed</span>
-                        <span className="text-2xl font-bold text-green-600">{passedCount}/{totalRequired}</span>
+            {inspections.length > 0 && (
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 bg-green-50 border border-green-200 rounded-xl">
+                        <div className="flex justify-between items-center">
+                            <span className="text-green-700 font-medium">Inspections Passed</span>
+                            <span className="text-2xl font-bold text-green-600">{passedCount}/{totalCount}</span>
+                        </div>
+                        <div className="w-full h-2 bg-green-200 rounded-full mt-2 overflow-hidden">
+                            <div
+                                className="h-full bg-green-500 transition-all"
+                                style={{ width: `${totalCount > 0 ? (passedCount / totalCount) * 100 : 0}%` }}
+                            />
+                        </div>
                     </div>
-                    <div className="w-full h-2 bg-green-200 rounded-full mt-2 overflow-hidden">
-                        <div
-                            className="h-full bg-green-500 transition-all"
-                            style={{ width: `${(passedCount / totalRequired) * 100}%` }}
-                        />
+                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                        <div className="flex justify-between items-center">
+                            <span className="text-blue-700 font-medium">Certificates Received</span>
+                            <span className="text-2xl font-bold text-blue-600">{certsReceived}/{totalCount}</span>
+                        </div>
+                        <div className="w-full h-2 bg-blue-200 rounded-full mt-2 overflow-hidden">
+                            <div
+                                className="h-full bg-blue-500 transition-all"
+                                style={{ width: `${totalCount > 0 ? (certsReceived / totalCount) * 100 : 0}%` }}
+                            />
+                        </div>
                     </div>
                 </div>
-                <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
-                    <div className="flex justify-between items-center">
-                        <span className="text-blue-700 font-medium">Certificates Received</span>
-                        <span className="text-2xl font-bold text-blue-600">{certsReceived}/{certsRequired}</span>
-                    </div>
-                    <div className="w-full h-2 bg-blue-200 rounded-full mt-2 overflow-hidden">
-                        <div
-                            className="h-full bg-blue-500 transition-all"
-                            style={{ width: `${(certsReceived / certsRequired) * 100}%` }}
-                        />
-                    </div>
-                </div>
-            </div>
+            )}
 
             {/* Timeline */}
-            <div className="space-y-4">
-                {inspectionsByStage.map(({ stage, inspections: stageInspections, isComplete, isCurrent }) => (
-                    <div
-                        key={stage}
-                        className={`border rounded-xl overflow-hidden ${isCurrent ? "border-primary" : "border-border"
-                            }`}
-                    >
-                        {/* Stage Header */}
-                        <button
-                            onClick={() => setExpandedStage(expandedStage === stage ? null : stage)}
-                            className={`w-full p-4 flex justify-between items-center ${isCurrent ? "bg-primary/10" : "bg-card"
-                                }`}
+            {inspections.length === 0 ? (
+                <div className="p-8 text-center border border-dashed border-border rounded-xl">
+                    <p className="text-muted-foreground mb-2">No inspections recorded yet.</p>
+                    <p className="text-sm text-muted-foreground">
+                        Add inspections as they are scheduled to track your build progress.
+                    </p>
+                </div>
+            ) : (
+                <div className="space-y-4">
+                    {inspectionsByStage.filter(g => g.inspections.length > 0).map(({ stage, inspections: stageInspections, isComplete }) => (
+                        <div
+                            key={stage}
+                            className={`border rounded-xl overflow-hidden ${expandedStage === stage ? "border-primary" : "border-border"}`}
                         >
-                            <div className="flex items-center gap-3">
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white ${isComplete ? "bg-green-500" : isCurrent ? "bg-primary" : "bg-gray-300"
-                                    }`}>
-                                    {isComplete ? "✓" : STAGES.indexOf(stage) + 1}
+                            <button
+                                onClick={() => setExpandedStage(expandedStage === stage ? null : stage)}
+                                className={`w-full p-4 flex justify-between items-center ${expandedStage === stage ? "bg-primary/10" : "bg-card"}`}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm ${isComplete ? "bg-green-500" : "bg-gray-300"}`}>
+                                        {isComplete ? "✓" : stageInspections.length}
+                                    </div>
+                                    <span className="font-medium">{stage}</span>
                                 </div>
-                                <span className="font-medium">{stage}</span>
-                                {isCurrent && (
-                                    <span className="px-2 py-0.5 bg-primary text-white text-xs rounded">
-                                        Current
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm text-muted-foreground">
+                                        {stageInspections.filter(i => getStatus(i.result) === "passed").length}/{stageInspections.length} complete
                                     </span>
-                                )}
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <span className="text-sm text-muted-foreground">
-                                    {stageInspections.filter(i => i.status === "passed").length}/{stageInspections.length} complete
-                                </span>
-                                <span>{expandedStage === stage ? "▼" : "▶"}</span>
-                            </div>
-                        </button>
+                                    <span>{expandedStage === stage ? "▼" : "▶"}</span>
+                                </div>
+                            </button>
 
-                        {/* Inspections */}
-                        {expandedStage === stage && (
-                            <div className="p-4 space-y-3 bg-muted/10">
-                                {stageInspections.map((inspection) => (
-                                    <div
-                                        key={inspection.id}
-                                        className="p-4 bg-card border border-border rounded-lg"
-                                    >
-                                        <div className="flex justify-between items-start mb-2">
-                                            <div>
-                                                <div className="font-medium">{inspection.name}</div>
-                                                <div className="text-sm text-muted-foreground">
-                                                    Inspector: {inspection.inspector}
+                            {expandedStage === stage && (
+                                <div className="p-4 space-y-3 bg-muted/10">
+                                    {stageInspections.map((inspection) => {
+                                        const status = getStatus(inspection.result);
+                                        return (
+                                            <div key={inspection.id} className="p-4 bg-card border border-border rounded-lg">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <div>
+                                                        <div className="font-medium">{inspection.type}</div>
+                                                        {inspection.inspector && (
+                                                            <div className="text-sm text-muted-foreground">
+                                                                Inspector: {inspection.inspector}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <span className={`px-2 py-1 rounded text-xs text-white ${getInspectionStatusColor(status)}`}>
+                                                        {getInspectionStatusLabel(status)}
+                                                    </span>
                                                 </div>
-                                            </div>
-                                            <span className={`px-2 py-1 rounded text-xs text-white ${getStatusColor(inspection.status)}`}>
-                                                {getStatusLabel(inspection.status)}
-                                            </span>
-                                        </div>
 
-                                        <div className="grid grid-cols-2 gap-2 text-sm mt-3">
-                                            {inspection.scheduledDate && (
-                                                <div>
-                                                    <span className="text-muted-foreground">Scheduled: </span>
-                                                    {new Date(inspection.scheduledDate).toLocaleDateString("en-AU")}
+                                                <div className="grid grid-cols-2 gap-2 text-sm mt-3">
+                                                    {inspection.scheduled_date && (
+                                                        <div>
+                                                            <span className="text-muted-foreground">Scheduled: </span>
+                                                            {new Date(inspection.scheduled_date).toLocaleDateString("en-AU")}
+                                                        </div>
+                                                    )}
+                                                    {inspection.date && (
+                                                        <div>
+                                                            <span className="text-muted-foreground">Completed: </span>
+                                                            {new Date(inspection.date).toLocaleDateString("en-AU")}
+                                                        </div>
+                                                    )}
                                                 </div>
-                                            )}
-                                            {inspection.completedDate && (
-                                                <div>
-                                                    <span className="text-muted-foreground">Completed: </span>
-                                                    {new Date(inspection.completedDate).toLocaleDateString("en-AU")}
-                                                </div>
-                                            )}
-                                        </div>
 
-                                        {inspection.certificateRequired && (
-                                            <div className="mt-3 flex items-center gap-2">
-                                                <span className={`px-2 py-1 rounded text-xs ${inspection.certificateReceived
-                                                    ? "bg-green-100 text-green-700"
-                                                    : "bg-amber-100 text-amber-700"
-                                                    }`}>
-                                                    {inspection.certificateReceived
-                                                        ? "📜 Certificate Received"
-                                                        : "⚠️ Certificate Required"}
-                                                </span>
-                                                {!inspection.certificateReceived && (
-                                                    <button
-                                                        onClick={() => updateInspection(inspection.id, { certificateReceived: true })}
-                                                        className="text-xs text-primary hover:underline"
-                                                    >
-                                                        Mark as received
-                                                    </button>
+                                                {/* Certificate status */}
+                                                <div className="mt-3 flex items-center gap-2">
+                                                    <span className={`px-2 py-1 rounded text-xs ${inspection.certificate_received
+                                                        ? "bg-green-100 text-green-700"
+                                                        : "bg-amber-100 text-amber-700"
+                                                        }`}>
+                                                        {inspection.certificate_received
+                                                            ? "Certificate Received"
+                                                            : "Certificate Required"}
+                                                    </span>
+                                                    {!inspection.certificate_received && (
+                                                        <button
+                                                            onClick={() => updateInspection(inspection.id, { certificate_received: true })}
+                                                            className="text-xs text-primary hover:underline"
+                                                        >
+                                                            Mark as received
+                                                        </button>
+                                                    )}
+                                                </div>
+
+                                                {inspection.notes && (
+                                                    <div className="mt-2 text-sm text-muted-foreground italic">
+                                                        {inspection.notes}
+                                                    </div>
+                                                )}
+
+                                                {/* Quick Actions */}
+                                                {status === "pending" && (
+                                                    <div className="mt-3 flex gap-2">
+                                                        <button
+                                                            onClick={() => updateInspection(inspection.id, {
+                                                                result: "scheduled",
+                                                                scheduled_date: new Date().toISOString().split("T")[0]
+                                                            })}
+                                                            className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm"
+                                                        >
+                                                            Schedule
+                                                        </button>
+                                                    </div>
+                                                )}
+                                                {status === "scheduled" && (
+                                                    <div className="mt-3 flex gap-2">
+                                                        <button
+                                                            onClick={() => updateInspection(inspection.id, {
+                                                                result: "passed",
+                                                                date: new Date().toISOString().split("T")[0]
+                                                            })}
+                                                            className="px-3 py-1 bg-green-100 text-green-700 rounded text-sm"
+                                                        >
+                                                            Mark Passed
+                                                        </button>
+                                                        <button
+                                                            onClick={() => updateInspection(inspection.id, {
+                                                                result: "failed",
+                                                                date: new Date().toISOString().split("T")[0]
+                                                            })}
+                                                            className="px-3 py-1 bg-red-100 text-red-700 rounded text-sm"
+                                                        >
+                                                            Mark Failed
+                                                        </button>
+                                                    </div>
                                                 )}
                                             </div>
-                                        )}
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    ))}
 
-                                        {inspection.notes && (
-                                            <div className="mt-2 text-sm text-muted-foreground italic">
-                                                {inspection.notes}
+                    {/* Ungrouped inspections */}
+                    {ungrouped.length > 0 && (
+                        <div className="border rounded-xl overflow-hidden border-border">
+                            <div className="p-4 bg-card font-medium">Other Inspections</div>
+                            <div className="p-4 space-y-3 bg-muted/10">
+                                {ungrouped.map(inspection => {
+                                    const status = getStatus(inspection.result);
+                                    return (
+                                        <div key={inspection.id} className="p-4 bg-card border border-border rounded-lg">
+                                            <div className="flex justify-between items-start">
+                                                <div className="font-medium">{inspection.type}</div>
+                                                <span className={`px-2 py-1 rounded text-xs text-white ${getInspectionStatusColor(status)}`}>
+                                                    {getInspectionStatusLabel(status)}
+                                                </span>
                                             </div>
-                                        )}
-
-                                        {/* Quick Actions */}
-                                        {inspection.status === "pending" && (
-                                            <div className="mt-3 flex gap-2">
-                                                <button
-                                                    onClick={() => updateInspection(inspection.id, {
-                                                        status: "scheduled",
-                                                        scheduledDate: new Date().toISOString().split("T")[0]
-                                                    })}
-                                                    className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm"
-                                                >
-                                                    Schedule
-                                                </button>
-                                            </div>
-                                        )}
-                                        {inspection.status === "scheduled" && (
-                                            <div className="mt-3 flex gap-2">
-                                                <button
-                                                    onClick={() => updateInspection(inspection.id, {
-                                                        status: "passed",
-                                                        completedDate: new Date().toISOString().split("T")[0]
-                                                    })}
-                                                    className="px-3 py-1 bg-green-100 text-green-700 rounded text-sm"
-                                                >
-                                                    Mark Passed
-                                                </button>
-                                                <button
-                                                    onClick={() => updateInspection(inspection.id, { status: "failed" })}
-                                                    className="px-3 py-1 bg-red-100 text-red-700 rounded text-sm"
-                                                >
-                                                    Mark Failed
-                                                </button>
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
+                                        </div>
+                                    );
+                                })}
                             </div>
-                        )}
-                    </div>
-                ))}
-            </div>
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* NSW Info */}
             <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800">
-                <p className="font-medium mb-1">⚠️ Important for NSW Builds</p>
+                <p className="font-medium mb-1">Important for NSW Builds</p>
                 <p>
                     Critical inspections (frame, waterproofing, final) must be completed before
                     progressing to the next stage. Never pay for a stage without the required
