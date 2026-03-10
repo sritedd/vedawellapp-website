@@ -2,19 +2,35 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Metadata } from "next";
 import { COMPETITORS } from "@/data/competitors";
+import { GUARDIAN_COMPETITORS } from "@/data/guardian-competitors";
 import { TOOLS } from "@/data/tool-catalog";
 import JsonLd from "@/components/seo/JsonLd";
+import GuardianCompare from "./guardian-compare";
 
 interface Props {
     params: Promise<{ slug: string }>;
 }
 
 export async function generateStaticParams() {
-    return COMPETITORS.map(c => ({ slug: `vedawell-vs-${c.slug}` }));
+    const toolSlugs = COMPETITORS.map(c => ({ slug: `vedawell-vs-${c.slug}` }));
+    const guardianSlugs = GUARDIAN_COMPETITORS.map(c => ({ slug: `guardian-vs-${c.slug}` }));
+    return [...toolSlugs, ...guardianSlugs];
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { slug } = await params;
+
+    // Guardian competitor
+    const guardianComp = GUARDIAN_COMPETITORS.find(c => `guardian-vs-${c.slug}` === slug);
+    if (guardianComp) {
+        return {
+            title: `HomeOwner Guardian vs ${guardianComp.name} — Australian Home Building App Comparison 2026`,
+            description: `Compare HomeOwner Guardian vs ${guardianComp.name}. ${guardianComp.tagline}. See why Australian homeowners choose Guardian for defect tracking, variations, and dispute evidence.`,
+            keywords: [`guardian vs ${guardianComp.slug}`, `${guardianComp.name} alternative`, `home building app australia`, `defect tracker australia`, `${guardianComp.name} comparison`],
+        };
+    }
+
+    // Tool competitor
     const comp = COMPETITORS.find(c => `vedawell-vs-${c.slug}` === slug);
     if (!comp) return {};
 
@@ -27,6 +43,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ComparePage({ params }: Props) {
     const { slug } = await params;
+
+    // Guardian competitor pages
+    const guardianComp = GUARDIAN_COMPETITORS.find(c => `guardian-vs-${c.slug}` === slug);
+    if (guardianComp) {
+        return <GuardianCompare comp={guardianComp} />;
+    }
+
+    // Tool competitor pages
     const comp = COMPETITORS.find(c => `vedawell-vs-${c.slug}` === slug);
     if (!comp) notFound();
 

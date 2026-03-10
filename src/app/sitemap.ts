@@ -2,6 +2,7 @@ import { MetadataRoute } from "next";
 import { readdirSync } from "fs";
 import { join } from "path";
 import { COMPETITORS } from "@/data/competitors";
+import { GUARDIAN_COMPETITORS } from "@/data/guardian-competitors";
 import { BLOG_POSTS } from "@/data/blog/posts";
 import { GUARDIAN_LANDING_PAGES } from "@/data/guardian-landing-pages";
 
@@ -83,5 +84,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
         priority: 0.7,
     }));
 
-    return [...staticPages, ...toolPages, ...gamePages, ...comparePages, ...blogPages, ...guardianPages];
+    const guardianComparePages: MetadataRoute.Sitemap = GUARDIAN_COMPETITORS.map((c) => ({
+        url: `${BASE_URL}/compare/guardian-vs-${c.slug}`,
+        lastModified: new Date(),
+        changeFrequency: "monthly" as const,
+        priority: 0.7,
+    }));
+
+    return [...staticPages, ...toolPages, ...gamePages, ...comparePages, ...guardianComparePages, ...blogPages, ...guardianPages];
 }
