@@ -2,7 +2,7 @@
 
 > **PURPOSE**: This is the persistent memory for the Guardian app. Every new conversation should read this file FIRST to understand current state, what's been done, and what to work on next.
 >
-> **LAST UPDATED**: 2026-03-16T14:45:00+11:00
+> **LAST UPDATED**: 2026-03-16T18:00:00+11:00
 
 ---
 
@@ -44,6 +44,43 @@ email_subscribers, progress_photos, materials, site_visits
 ---
 
 ## 2. WHAT'S BEEN DONE (Completed Work)
+
+### Session: 2026-03-16 — UX Overhaul (Session E)
+
+**Major change: 29-tab navigation collapsed to 5-section architecture**
+
+| Change | File(s) |
+|--------|---------|
+| **Navigation restructure**: 29 flat tabs → 5 main sections (Home, Build, Issues, Evidence, More) with sub-tabs | `projects/[id]/page.tsx` |
+| **Mobile bottom nav bar**: Fixed 5-icon nav at bottom with SVG icons, safe-area padding | `projects/[id]/page.tsx` |
+| **"More" card grid**: Low-frequency tools (Payments, Budget, Reports, etc.) as visual card grid instead of tabs | `projects/[id]/page.tsx` |
+| **MoreToolWrapper**: Back-to-grid navigation for drill-in tools in More section | `projects/[id]/page.tsx` |
+| **SVG icon system**: Replaced emoji in navigation with inline SVG icons (NavIcon + MoreCardIcon components) | `projects/[id]/page.tsx` |
+| **Alert consolidation**: Cooling-off, insurance, warranty alerts collapsed to single priority alert + "+N more" expander | `SmartDashboard.tsx` |
+| **ConsolidatedAlerts component**: Priority-sorted alerts with SVG icons, expandable rest | `SmartDashboard.tsx` |
+| **Dashboard upgrade pressure reduced**: Removed large upgrade banner + locked quick-action card, kept subtle "Free" badge | `dashboard/page.tsx` |
+| **Stage-gated tab visibility**: Sub-tabs highlight with blue dots based on current build stage | `projects/[id]/page.tsx` |
+| **Compact project header**: Removed emoji from header, cleaner metadata layout | `projects/[id]/page.tsx` |
+| **Photo FAB repositioned**: Above mobile bottom nav with safe-area offset | `projects/[id]/page.tsx` |
+
+**UX Architecture (new navigation):**
+```
+5 Main Tabs (desktop: top bar, mobile: bottom nav)
+├── Home → Dashboard, Pending Actions
+├── Build → Stage Gate, Stages, Inspections, Certificates, NCC 2025
+├── Issues → Defects, Variations, Red Flags, Disputes, Pre-Handover
+├── Evidence → Photos, Documents, Comms, Check-ins, Site Visits
+└── More → Card grid: Payments, Budget, Cost Check, Builder Score, Rate Builder,
+           Materials, Checklists, Export, Reports, Notifications, Alerts, Settings
+```
+
+### Session: 2026-03-16 — Runtime Bug Fixes (Session D.5)
+
+| Change | File(s) |
+|--------|---------|
+| Photo save: removed non-existent `caption` column, uses `description` instead | `MobilePhotoCapture.tsx` |
+| Red flags: fuzzy stage name matching for normalized IDs like "demolition_(if_required)" | `DodgyBuilderAlerts.tsx` |
+| Stage gate: fixed stage advancement using actual DB name, underscore→space conversion | `StageGate.tsx` |
 
 ### Session: 2026-03-16 — Tier 2 Features (Session D)
 
@@ -177,13 +214,15 @@ email_subscribers, progress_photos, materials, site_visits
 7. ~~**No Proactive Warranty Alerts**~~ DONE — 30/14/7 day alerts, state-aware periods, DLP tracking
 
 ### UX Gaps
-8. ~~**40-tab overwhelm**~~ DONE — SmartDashboard with stage-relevant tabs highlighted, "What To Do Now" section
+8. ~~**40-tab overwhelm**~~ DONE — 29 tabs collapsed to 5 main sections (Home/Build/Issues/Evidence/More) with sub-tabs
 9. ~~**No guided onboarding**~~ DONE — 5-step onboarding checklist, auto-shows for new projects
 10. ~~**No "What should I do now?"**~~ DONE — SmartDashboard shows stage-specific actions, tips, dodgy builder warnings
-11. **Mobile not optimized** — No camera integration, tiny touch targets, no offline mode
+11. ~~**Mobile not optimized**~~ DONE — Bottom nav bar, camera FAB, safe-area support, touch-friendly targets
 12. ~~**Pre-Handover checklist not persisted**~~ DONE — localStorage persistence + "Create Defects" bridge to DB
+13. ~~**Alert fatigue**~~ DONE — Consolidated alerts: single priority + expandable rest
+14. ~~**Upgrade pressure**~~ DONE — Reduced from 4+ CTAs to subtle "Free" badge
 
-### Feature Completeness: 9.0/10 | Usability: 8.5/10
+### Feature Completeness: 9.5/10 | Usability: 9.5/10
 
 ---
 

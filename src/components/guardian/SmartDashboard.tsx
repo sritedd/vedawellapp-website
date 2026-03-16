@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { formatMoney } from "@/utils/format";
 import type { Project } from "@/types/guardian";
@@ -153,6 +153,107 @@ const DEFAULT_GUIDANCE = {
         "Never pay ahead of the schedule in your contract",
     ],
 };
+
+/* ------------------------------------------------------------------ */
+/*  Consolidated Alerts — show #1 priority + expandable rest           */
+/* ------------------------------------------------------------------ */
+
+function ConsolidatedAlerts({
+    coolingOff,
+    insuranceAlerts,
+    warrantyAlerts,
+    insuranceConfig,
+}: {
+    coolingOff: CoolingOffStatus | null;
+    insuranceAlerts: InsuranceAlert[];
+    warrantyAlerts: WarrantyAlert[];
+    insuranceConfig: ReturnType<typeof getStateInsuranceConfig>;
+}) {
+    const [expanded, setExpanded] = useState(false);
+
+    // Build a unified, priority-sorted alerts list
+    const allAlerts = useMemo(() => {
+        const alerts: { key: string; level: string; title: string; message: string; type: string }[] = [];
+
+        if (coolingOff?.isActive) {
+            alerts.push({
+                key: "cooling-off",
+                level: "warning",
+                title: `Cooling-Off Active \u2014 ${coolingOff.daysRemaining} day${coolingOff.daysRemaining !== 1 ? "s" : ""} left`,
+                message: `Cancel without penalty until ${coolingOff.endDate.toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })}. ${coolingOff.stateNote}.`,
+                type: "cooling_off",
+            });
+        }
+        for (const alert of insuranceAlerts) {
+            alerts.push({ key: `ins-${alerts.length}`, level: alert.level, title: alert.title, message: alert.message, type: "insurance" });
+        }
+        for (const alert of warrantyAlerts) {
+            alerts.push({ key: `war-${alerts.length}`, level: alert.level, title: alert.title, message: alert.message, type: "warranty" });
+        }
+
+        // Sort: critical first, then warning, then info
+        const priority: Record<string, number> = { critical: 0, warning: 1, info: 2 };
+        alerts.sort((a, b) => (priority[a.level] ?? 2) - (priority[b.level] ?? 2));
+        return alerts;
+    }, [coolingOff, insuranceAlerts, warrantyAlerts]);
+
+    if (allAlerts.length === 0) return null;
+
+    const topAlert = allAlerts[0];
+    const remainingAlerts = allAlerts.slice(1);
+
+    const alertStyle = (level: string) =>
+        level === "critical"
+            ? "bg-red-500/10 border-red-500/30 text-red-800 dark:text-red-300"
+            : level === "warning"
+                ? "bg-amber-500/10 border-amber-500/30 text-amber-800 dark:text-amber-300"
+                : "bg-blue-500/10 border-blue-500/30 text-blue-800 dark:text-blue-300";
+
+    const alertIcon = (level: string) =>
+        level === "critical"
+            ? <svg className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
+            : level === "warning"
+                ? <svg className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
+                : <svg className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></svg>;
+
+    return (
+        <div className="space-y-2">
+            {/* Top priority alert — always visible */}
+            <div className={`p-4 rounded-lg border flex items-start gap-3 ${alertStyle(topAlert.level)}`}>
+                {alertIcon(topAlert.level)}
+                <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-sm">{topAlert.title}</h4>
+                    <p className="text-sm opacity-80 mt-0.5">{topAlert.message}</p>
+                    {topAlert.type === "insurance" && insuranceConfig && (
+                        <a href={insuranceConfig.verifyUrl} target="_blank" rel="noopener noreferrer"
+                            className="mt-1 text-sm text-primary hover:underline inline-block">
+                            Check {insuranceConfig.scheme} status &rarr;
+                        </a>
+                    )}
+                </div>
+                {remainingAlerts.length > 0 && (
+                    <button
+                        onClick={() => setExpanded(!expanded)}
+                        className="text-xs font-medium px-2 py-1 rounded bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 whitespace-nowrap transition-colors"
+                    >
+                        {expanded ? "Hide" : `+${remainingAlerts.length} more`}
+                    </button>
+                )}
+            </div>
+
+            {/* Remaining alerts — collapsed by default */}
+            {expanded && remainingAlerts.map((alert) => (
+                <div key={alert.key} className={`p-3 rounded-lg border flex items-start gap-3 ${alertStyle(alert.level)}`}>
+                    {alertIcon(alert.level)}
+                    <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-sm">{alert.title}</h4>
+                        <p className="text-xs opacity-80 mt-0.5">{alert.message}</p>
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+}
 
 interface SmartDashboardProps {
     project: Project;
@@ -414,64 +515,13 @@ export default function SmartDashboard({ project, currentStage, stageNames, onNa
                 </div>
             </div>
 
-            {/* Cooling-Off Countdown */}
-            {coolingOff?.isActive && (
-                <div className="p-4 rounded-lg border border-blue-500/30 bg-blue-500/10">
-                    <div className="flex items-start gap-3">
-                        <span className="text-2xl">&#9201;&#65039;</span>
-                        <div className="flex-1">
-                            <h4 className="font-bold text-blue-700 dark:text-blue-400">
-                                Cooling-Off Period Active — {coolingOff.daysRemaining} day{coolingOff.daysRemaining !== 1 ? 's' : ''} remaining
-                            </h4>
-                            <p className="text-sm text-muted-foreground mt-1">
-                                Cancel without penalty until{' '}
-                                <strong>{coolingOff.endDate.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</strong>.
-                                {' '}{coolingOff.stateNote}.
-                            </p>
-                            <div className="mt-3 w-full bg-blue-200 dark:bg-blue-900 rounded-full h-2">
-                                <div
-                                    className="bg-blue-600 h-2 rounded-full transition-all"
-                                    style={{ width: `${Math.max(5, (coolingOff.daysRemaining / coolingOff.totalDays) * 100)}%` }}
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Insurance & Warranty Alerts */}
-            {[...insuranceAlerts.map((alert, idx) => ({ ...alert, key: `ins-${idx}`, type: "insurance" as const })),
-              ...warrantyAlerts.map((alert, idx) => ({ ...alert, key: `war-${idx}`, type: "warranty" as const }))
-            ].map((alert) => (
-                <div
-                    key={alert.key}
-                    className={`p-4 rounded-lg flex items-start gap-3 ${
-                        alert.level === 'critical'
-                            ? "bg-red-500/10 border border-red-500/30"
-                            : alert.level === 'warning'
-                                ? "bg-amber-500/10 border border-amber-500/30"
-                                : "bg-blue-500/10 border border-blue-500/30"
-                    }`}
-                >
-                    <span className="text-2xl">
-                        {alert.level === 'critical' ? '\u{1F6A8}' : alert.level === 'warning' ? '\u26A0\uFE0F' : '\u2139\uFE0F'}
-                    </span>
-                    <div>
-                        <h4 className="font-bold">{alert.title}</h4>
-                        <p className="text-sm text-muted-foreground mt-1">{alert.message}</p>
-                        {alert.type === "insurance" && insuranceConfig && (
-                            <a
-                                href={insuranceConfig.verifyUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="mt-2 text-sm text-primary hover:underline inline-block"
-                            >
-                                Check {insuranceConfig.scheme} status &rarr;
-                            </a>
-                        )}
-                    </div>
-                </div>
-            ))}
+            {/* Consolidated Alerts — show top priority + expandable rest */}
+            <ConsolidatedAlerts
+                coolingOff={coolingOff}
+                insuranceAlerts={insuranceAlerts}
+                warrantyAlerts={warrantyAlerts}
+                insuranceConfig={insuranceConfig}
+            />
 
             {/* Action Summary Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

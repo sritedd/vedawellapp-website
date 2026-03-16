@@ -138,22 +138,24 @@ export default async function DashboardPage() {
             <div className="bg-background">
                 <div className="max-w-7xl mx-auto px-6 py-8">
                     <div className="flex items-center justify-between mb-8">
-                        <h1 className="text-3xl font-bold">🏠 HomeOwner Guardian Dashboard</h1>
-                        {isFree ? (
-                            <Link href="/guardian/pricing" className="text-sm px-3 py-1.5 bg-primary/10 text-primary rounded-full font-medium hover:bg-primary/20 transition-colors">
-                                Free Plan — Upgrade
-                            </Link>
-                        ) : trialActive ? (
-                            <span className="text-sm px-3 py-1.5 bg-blue-500/10 text-blue-600 rounded-full font-medium">
-                                Trial — ends {new Date(profile!.trial_ends_at!).toLocaleDateString("en-AU")}
-                            </span>
-                        ) : isAdmin ? (
-                            <Link href="/guardian/admin" className="text-sm px-3 py-1.5 bg-yellow-500/10 text-yellow-600 rounded-full font-medium hover:bg-yellow-500/20 transition-colors">
-                                Admin — Full Access
-                            </Link>
-                        ) : (
-                            <ManageBillingButton />
-                        )}
+                        <h1 className="text-3xl font-bold">HomeOwner Guardian</h1>
+                        <div className="flex items-center gap-3">
+                            {isFree ? (
+                                <span className="text-xs px-2 py-1 bg-muted text-muted-foreground rounded-full font-medium">
+                                    Free
+                                </span>
+                            ) : trialActive ? (
+                                <span className="text-xs px-2 py-1 bg-blue-500/10 text-blue-600 rounded-full font-medium">
+                                    Trial — ends {new Date(profile!.trial_ends_at!).toLocaleDateString("en-AU")}
+                                </span>
+                            ) : isAdmin ? (
+                                <Link href="/guardian/admin" className="text-xs px-2 py-1 bg-yellow-500/10 text-yellow-600 rounded-full font-medium hover:bg-yellow-500/20 transition-colors">
+                                    Admin
+                                </Link>
+                            ) : (
+                                <ManageBillingButton />
+                            )}
+                        </div>
                     </div>
 
                     {/* Admin announcement banner */}
@@ -165,21 +167,6 @@ export default async function DashboardPage() {
                                     : "bg-blue-500/10 text-blue-700 border-blue-500/20"
                             }`}>
                             {announcement.message}
-                        </div>
-                    )}
-
-                    {/* Free tier upgrade banner */}
-                    {isFree && (
-                        <div className="mb-8 p-4 bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 rounded-lg flex items-center justify-between">
-                            <div>
-                                <p className="font-semibold">Unlock unlimited projects, PDF exports & evidence packs</p>
-                                <p className="text-sm text-muted">
-                                    Free plan: {FREE_PROJECT_LIMIT} project, {FREE_DEFECT_LIMIT} defects, {FREE_VARIATION_LIMIT} variations
-                                </p>
-                            </div>
-                            <Link href="/guardian/pricing" className="px-4 py-2 bg-primary text-white rounded-lg font-semibold text-sm hover:bg-primary/90 transition-colors whitespace-nowrap">
-                                Upgrade to Pro
-                            </Link>
                         </div>
                     )}
 
@@ -228,23 +215,15 @@ export default async function DashboardPage() {
                     {/* Quick Actions */}
                     <h2 className="text-xl font-bold mb-4">Quick Actions</h2>
                     <div className="grid md:grid-cols-4 gap-6 mb-8">
-                        {isFree && (projects?.length || 0) >= FREE_PROJECT_LIMIT ? (
-                            <Link href="/guardian/pricing" className="card hover:border-primary transition-colors border-dashed opacity-80">
-                                <span className="text-3xl mb-3 block">🔒</span>
-                                <h3 className="font-bold mb-2">Upgrade for More Projects</h3>
-                                <p className="text-muted text-sm">
-                                    Free plan allows {FREE_PROJECT_LIMIT} project. Upgrade to Pro for unlimited.
-                                </p>
-                            </Link>
-                        ) : (
-                            <Link href="/guardian/projects/new" className="card hover:border-primary transition-colors">
-                                <span className="text-3xl mb-3 block">➕</span>
-                                <h3 className="font-bold mb-2">Create New Project</h3>
-                                <p className="text-muted text-sm">
-                                    Start tracking a new home construction project
-                                </p>
-                            </Link>
-                        )}
+                        <Link href={isFree && (projects?.length || 0) >= FREE_PROJECT_LIMIT ? "/guardian/pricing" : "/guardian/projects/new"} className="card hover:border-primary transition-colors">
+                            <span className="text-3xl mb-3 block">+</span>
+                            <h3 className="font-bold mb-2">New Project</h3>
+                            <p className="text-muted text-sm">
+                                {isFree && (projects?.length || 0) >= FREE_PROJECT_LIMIT
+                                    ? "Upgrade to add more projects"
+                                    : "Start tracking a construction project"}
+                            </p>
+                        </Link>
                         {projectId && (
                             <Link href={`/guardian/projects/${projectId}`} className="card hover:border-primary transition-colors">
                                 <span className="text-3xl mb-3 block">📋</span>

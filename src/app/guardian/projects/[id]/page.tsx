@@ -8,7 +8,6 @@ import type { Project, Variation, Defect } from "@/types/guardian";
 
 // Components
 import ProjectSettings from "@/components/guardian/ProjectSettings";
-import ProjectOverview from "@/components/guardian/ProjectOverview";
 import SmartDashboard from "@/components/guardian/SmartDashboard";
 import ProjectChecklists from "@/components/guardian/ProjectChecklists";
 import ProjectVariations from "@/components/guardian/ProjectVariations";
@@ -40,6 +39,134 @@ import PushNotificationSetup from "@/components/guardian/PushNotificationSetup";
 import CostBenchmarking from "@/components/guardian/CostBenchmarking";
 import BuilderRatings from "@/components/guardian/BuilderRatings";
 
+/* ------------------------------------------------------------------ */
+/*  Navigation Structure — 5 main sections                            */
+/* ------------------------------------------------------------------ */
+
+const SECTIONS = [
+    { id: "home", label: "Home", defaultTab: "overview" },
+    { id: "build", label: "Build", defaultTab: "stagegate" },
+    { id: "issues", label: "Issues", defaultTab: "defects" },
+    { id: "evidence", label: "Evidence", defaultTab: "photos" },
+    { id: "more", label: "More", defaultTab: "more_grid" },
+] as const;
+
+type SectionId = (typeof SECTIONS)[number]["id"];
+
+const SECTION_SUBTABS: Record<SectionId, { id: string; label: string }[]> = {
+    home: [
+        { id: "overview", label: "Dashboard" },
+        { id: "actions", label: "Pending Actions" },
+    ],
+    build: [
+        { id: "stagegate", label: "Stage Gate" },
+        { id: "stages", label: "Stages" },
+        { id: "inspections", label: "Inspections" },
+        { id: "certificates", label: "Certificates" },
+        { id: "ncc2025", label: "NCC 2025" },
+    ],
+    issues: [
+        { id: "defects", label: "Defects" },
+        { id: "variations", label: "Variations" },
+        { id: "redflags", label: "Red Flags" },
+        { id: "disputes", label: "Disputes" },
+        { id: "prehandover", label: "Pre-Handover" },
+    ],
+    evidence: [
+        { id: "photos", label: "Photos" },
+        { id: "documents", label: "Documents" },
+        { id: "communication", label: "Comms" },
+        { id: "checkins", label: "Check-ins" },
+        { id: "visits", label: "Site Visits" },
+    ],
+    more: [], // "More" uses a card grid, not sub-tabs
+};
+
+// Items shown in the "More" card grid
+const MORE_ITEMS = [
+    { id: "payments", label: "Payments", desc: "Track progress payments", icon: "payments" },
+    { id: "budget", label: "Budget", desc: "Budget overview", icon: "budget" },
+    { id: "benchmarking", label: "Cost Check", desc: "Compare costs to benchmarks", icon: "cost" },
+    { id: "accountability", label: "Builder Score", desc: "Builder accountability rating", icon: "score" },
+    { id: "ratings", label: "Rate Builder", desc: "Leave a builder rating", icon: "rate" },
+    { id: "materials", label: "Materials", desc: "Track materials delivered", icon: "materials" },
+    { id: "checklists", label: "Checklists", desc: "Custom checklists", icon: "checklists" },
+    { id: "export", label: "Export", desc: "Export reports & evidence", icon: "export" },
+    { id: "reports", label: "Reports", desc: "Generate formal reports", icon: "reports" },
+    { id: "pushnotifs", label: "Notifications", desc: "Push notification settings", icon: "notifs" },
+    { id: "notifications", label: "Alerts", desc: "View all alerts", icon: "alerts" },
+    { id: "settings", label: "Settings", desc: "Project settings", icon: "settings" },
+];
+
+// Reverse lookup: tab ID → section ID
+const TAB_SECTION_MAP: Record<string, SectionId> = {};
+for (const [sectionId, tabs] of Object.entries(SECTION_SUBTABS)) {
+    for (const tab of tabs) {
+        TAB_SECTION_MAP[tab.id] = sectionId as SectionId;
+    }
+}
+// Map "more" items too
+for (const item of MORE_ITEMS) {
+    TAB_SECTION_MAP[item.id] = "more";
+}
+TAB_SECTION_MAP["more_grid"] = "more";
+
+// Stages where certain tabs become visible/relevant
+const STAGE_VISIBLE_TABS: Record<string, Set<string>> = {
+    site_start: new Set(["inspections", "certificates", "photos", "payments"]),
+    slab: new Set(["inspections", "certificates", "photos", "defects"]),
+    frame: new Set(["inspections", "certificates", "defects", "photos", "payments"]),
+    lockup: new Set(["inspections", "certificates", "payments", "defects"]),
+    pre_plasterboard: new Set(["inspections", "photos", "certificates", "defects", "checklists"]),
+    fixing: new Set(["inspections", "certificates", "defects", "payments", "variations"]),
+    practical_completion: new Set(["inspections", "certificates", "defects", "payments", "documents", "prehandover"]),
+};
+
+/* ------------------------------------------------------------------ */
+/*  SVG Nav Icons                                                      */
+/* ------------------------------------------------------------------ */
+
+function NavIcon({ type, className = "w-5 h-5" }: { type: string; className?: string }) {
+    const props = { className, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.5, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+    switch (type) {
+        case "home":
+            return <svg {...props}><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>;
+        case "build":
+            return <svg {...props}><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" /></svg>;
+        case "issues":
+            return <svg {...props}><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>;
+        case "evidence":
+            return <svg {...props}><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></svg>;
+        case "more":
+            return <svg {...props}><circle cx="12" cy="12" r="1" fill="currentColor" /><circle cx="19" cy="12" r="1" fill="currentColor" /><circle cx="5" cy="12" r="1" fill="currentColor" /></svg>;
+        default:
+            return null;
+    }
+}
+
+function MoreCardIcon({ type, className = "w-6 h-6" }: { type: string; className?: string }) {
+    const props = { className, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.5, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+    switch (type) {
+        case "payments": return <svg {...props}><rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg>;
+        case "budget": return <svg {...props}><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>;
+        case "cost": return <svg {...props}><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>;
+        case "score": return <svg {...props}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>;
+        case "rate": return <svg {...props}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>;
+        case "materials": return <svg {...props}><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /></svg>;
+        case "checklists": return <svg {...props}><path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" /></svg>;
+        case "export": return <svg {...props}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>;
+        case "reports": return <svg {...props}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>;
+        case "notifs": return <svg {...props}><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>;
+        case "alerts": return <svg {...props}><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>;
+        case "settings": return <svg {...props}><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>;
+        default: return <svg {...props}><circle cx="12" cy="12" r="10" /></svg>;
+    }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Page Component                                                     */
+/* ------------------------------------------------------------------ */
+
 export default function ProjectDetailPage() {
     const params = useParams();
     const router = useRouter();
@@ -57,6 +184,20 @@ export default function ProjectDetailPage() {
     const [stageNames, setStageNames] = useState<string[]>([]);
     const [showOnboarding, setShowOnboarding] = useState(false);
     const [showPhotoCapture, setShowPhotoCapture] = useState(false);
+
+    // Derive active section from active tab
+    const activeSection: SectionId = TAB_SECTION_MAP[activeTab] || "home";
+    const currentSubTabs = SECTION_SUBTABS[activeSection];
+
+    // Stage-aware tab relevance
+    const normalizedStage = currentStage.toLowerCase().replace(/[\s/]+/g, "_");
+    const relevantTabs = STAGE_VISIBLE_TABS[normalizedStage] || new Set<string>();
+
+    // Handle section click — navigate to default tab for that section
+    const handleSectionClick = (sectionId: SectionId) => {
+        const section = SECTIONS.find(s => s.id === sectionId);
+        if (section) setActiveTab(section.defaultTab);
+    };
 
     // State-aware license verification URLs
     const getLicenseVerificationUrl = (state?: string) => {
@@ -97,10 +238,8 @@ export default function ProjectDetailPage() {
                 .order("created_at", { ascending: true });
 
             if (stages && stages.length > 0) {
-                // Store stage names for child components
                 setStageNames(stages.map((s: { name: string }) => s.name));
 
-                // Find the first non-completed stage
                 const activeStage = stages.find((s: { status: string }) => s.status !== "completed");
                 if (activeStage) {
                     setCurrentStage(activeStage.name.toLowerCase().replace(/[\s/]+/g, "_"));
@@ -109,7 +248,6 @@ export default function ProjectDetailPage() {
                         setNextStage(stages[idx + 1].name);
                     }
                 } else {
-                    // All completed — set to last stage
                     const lastStage = stages[stages.length - 1];
                     setCurrentStage(lastStage.name.toLowerCase().replace(/[\s/]+/g, "_"));
                     setNextStage("Handover Complete");
@@ -160,118 +298,109 @@ export default function ProjectDetailPage() {
             <div className="min-h-screen flex flex-col items-center justify-center bg-background p-6">
                 <h1 className="text-2xl font-bold mb-4">Project Not Found</h1>
                 <Link href="/guardian/projects" className="text-primary hover:underline">
-                    ← Back to Projects
+                    Back to Projects
                 </Link>
             </div>
         );
     }
 
-    // Stage-relevant tab indicators — highlight what matters now
-    const STAGE_RELEVANT_TABS: Record<string, string[]> = {
-        site_start: ["inspections", "certificates", "photos", "payments"],
-        slab: ["inspections", "certificates", "photos", "defects"],
-        frame: ["inspections", "certificates", "defects", "photos", "payments"],
-        lockup: ["inspections", "certificates", "payments", "defects"],
-        pre_plasterboard: ["inspections", "photos", "certificates", "defects", "checklists"],
-        fixing: ["inspections", "certificates", "defects", "payments", "variations"],
-        practical_completion: ["inspections", "certificates", "defects", "payments", "documents"],
-    };
-    const normalizedStage = currentStage.toLowerCase().replace(/[\s/]+/g, "_");
-    const relevantTabs = new Set(STAGE_RELEVANT_TABS[normalizedStage] || []);
-
-    // Flat navigation tabs — grouped visually with separators, no dropdowns
-    const navSections = [
-        {
-            label: "Overview",
-            tabs: [
-                { id: "overview", label: "Dashboard" },
-                { id: "actions", label: "Pending Actions" },
-                { id: "stagegate", label: "Stage Gate" },
-            ],
-        },
-        {
-            label: "Build",
-            tabs: [
-                { id: "stages", label: "Stages" },
-                { id: "defects", label: "Defects" },
-                { id: "inspections", label: "Inspections" },
-                { id: "variations", label: "Variations" },
-                { id: "redflags", label: "Red Flags" },
-                { id: "ncc2025", label: "NCC 2025" },
-            ],
-        },
-        {
-            label: "Money",
-            tabs: [
-                { id: "payments", label: "Payments" },
-                { id: "budget", label: "Budget" },
-                { id: "certificates", label: "Certificates" },
-                { id: "benchmarking", label: "Cost Check" },
-            ],
-        },
-        {
-            label: "Records",
-            tabs: [
-                { id: "photos", label: "Photos" },
-                { id: "documents", label: "Documents" },
-                { id: "communication", label: "Comms Log" },
-            ],
-        },
-        {
-            label: "Protect",
-            tabs: [
-                { id: "disputes", label: "Disputes" },
-                { id: "accountability", label: "Builder Score" },
-                { id: "ratings", label: "Rate Builder" },
-                { id: "prehandover", label: "Pre-Handover" },
-            ],
-        },
-        {
-            label: "More",
-            tabs: [
-                { id: "checklists", label: "Checklists" },
-                { id: "materials", label: "Materials" },
-                { id: "visits", label: "Site Visits" },
-                { id: "checkins", label: "Weekly Check-ins" },
-                { id: "pushnotifs", label: "Notifications" },
-                { id: "notifications", label: "Alerts" },
-                { id: "export", label: "Export" },
-                { id: "reports", label: "Reports" },
-                { id: "settings", label: "Settings" },
-            ],
-        },
-    ];
-
-    // For breadcrumb display
-    const activeSection = navSections.find((s) =>
-        s.tabs.some((t) => t.id === activeTab)
-    ) || navSections[0];
-    const activeTabLabel = activeSection.tabs.find((t) => t.id === activeTab)?.label || "Dashboard";
-
     return (
-        <div className="min-h-screen flex flex-col bg-background">
-            {/* Guardian Sub-Navigation */}
-            <div className="border-b border-border bg-muted/5">
-                <div className="max-w-7xl mx-auto px-6 py-3 flex items-center gap-6">
-                    <Link href="/guardian/projects" className="text-muted hover:text-foreground text-sm">
-                        ← Back to Projects
+        <div className="min-h-screen flex flex-col bg-background pb-16 md:pb-0">
+            {/* Top Bar — Back + Project Name */}
+            <div className="border-b border-border bg-card">
+                <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 flex items-center justify-between">
+                    <Link href="/guardian/projects" className="text-muted-foreground hover:text-foreground text-sm flex items-center gap-1">
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><polyline points="15 18 9 12 15 6" /></svg>
+                        Projects
                     </Link>
-                    <Link href="/guardian/journey" className="text-muted hover:text-foreground text-sm">
-                        📚 Learn
-                    </Link>
+                    <div className="flex items-center gap-3">
+                        {paymentBlocked && (
+                            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-500/10 text-red-600 border border-red-500/20">
+                                Payment Blocked
+                            </span>
+                        )}
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium uppercase tracking-wider border ${
+                            project.status === "active" ? "bg-green-500/10 text-green-600 border-green-500/20"
+                                : project.status === "completed" ? "bg-blue-500/10 text-blue-600 border-blue-500/20"
+                                    : "bg-gray-500/10 text-gray-600 border-gray-500/20"
+                        }`}>
+                            {project.status}
+                        </span>
+                    </div>
                 </div>
             </div>
 
-            <main className="flex-1 py-8 px-6">
+            {/* Desktop: Main 5-Section Tabs */}
+            <div className="hidden md:block border-b border-border bg-card">
+                <div className="max-w-7xl mx-auto px-6">
+                    <nav className="flex items-center gap-1">
+                        {SECTIONS.map((section) => (
+                            <button
+                                key={section.id}
+                                onClick={() => handleSectionClick(section.id)}
+                                className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 transition-colors ${
+                                    activeSection === section.id
+                                        ? "border-primary text-primary"
+                                        : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+                                }`}
+                            >
+                                <NavIcon type={section.id} className="w-4 h-4" />
+                                {section.label}
+                            </button>
+                        ))}
+                    </nav>
+                </div>
+            </div>
+
+            {/* Sub-tabs (when section has them) */}
+            {currentSubTabs.length > 0 && (
+                <div className="border-b border-border bg-muted/30">
+                    <div className="max-w-7xl mx-auto px-4 md:px-6">
+                        <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+                            <div className="flex items-center gap-1 min-w-max py-1">
+                                {currentSubTabs.map((tab) => {
+                                    const isRelevant = relevantTabs.has(tab.id);
+                                    return (
+                                        <button
+                                            key={tab.id}
+                                            onClick={() => setActiveTab(tab.id)}
+                                            className={`relative px-3 py-2 rounded-lg text-sm whitespace-nowrap transition-colors ${
+                                                activeTab === tab.id
+                                                    ? "bg-primary text-white font-medium"
+                                                    : isRelevant
+                                                        ? "text-foreground font-medium hover:bg-primary/10"
+                                                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                            }`}
+                                        >
+                                            {tab.label}
+                                            {isRelevant && activeTab !== tab.id && (
+                                                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-primary rounded-full" />
+                                            )}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <main className="flex-1 py-6 px-4 md:px-6">
                 <div className="max-w-7xl mx-auto">
-                    {/* Header */}
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                        <div>
-                            <h1 className="text-3xl font-bold mb-1">{project.name}</h1>
-                            <div className="flex flex-wrap gap-4 text-muted text-sm">
-                                <span>📍 {project.address}</span>
-                                <span>👷 {project.builder_name}</span>
-                                {project.builder_license_number && (
+                    {/* Project Header — compact */}
+                    <div className="mb-6">
+                        <h1 className="text-2xl md:text-3xl font-bold mb-1">{project.name}</h1>
+                        <div className="flex flex-wrap gap-3 text-muted-foreground text-sm">
+                            {project.address && <span>{project.address}</span>}
+                            {project.builder_name && (
+                                <>
+                                    <span className="hidden sm:inline">|</span>
+                                    <span>{project.builder_name}</span>
+                                </>
+                            )}
+                            {project.builder_license_number && (
+                                <>
+                                    <span className="hidden sm:inline">|</span>
                                     <a
                                         href={getLicenseVerificationUrl(project.state)}
                                         target="_blank"
@@ -280,83 +409,21 @@ export default function ProjectDetailPage() {
                                     >
                                         License: {project.builder_license_number}
                                     </a>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="flex gap-3 items-center">
-                            {paymentBlocked && (
-                                <span className="px-3 py-1 rounded-full text-sm font-medium bg-red-500/10 text-red-600 border border-red-500/20">
-                                    🚫 Payment Blocked
-                                </span>
+                                </>
                             )}
-                            <span
-                                className={`px-3 py-1 rounded-full text-sm font-medium uppercase tracking-wider border ${project.status === "active"
-                                    ? "bg-green-500/10 text-green-600 border-green-500/20"
-                                    : project.status === "completed"
-                                        ? "bg-blue-500/10 text-blue-600 border-blue-500/20"
-                                        : "bg-gray-500/10 text-gray-600 border-gray-500/20"
-                                    }`}
-                            >
-                                {project.status}
-                            </span>
                         </div>
                     </div>
 
                     {/* Payment Blocked Warning */}
                     {paymentBlocked && (
-                        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
-                            <div className="flex items-center gap-3">
-                                <span className="text-2xl">🚫</span>
-                                <div>
-                                    <h3 className="font-bold text-red-800">Payment Milestone Blocked</h3>
-                                    <p className="text-sm text-red-700">{blockReason}</p>
-                                </div>
+                        <div className="mb-6 p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-xl flex items-center gap-3">
+                            <svg className="w-6 h-6 text-red-600 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="10" /><line x1="4.93" y1="4.93" x2="19.07" y2="19.07" /></svg>
+                            <div>
+                                <h3 className="font-bold text-red-800 dark:text-red-400">Payment Milestone Blocked</h3>
+                                <p className="text-sm text-red-700 dark:text-red-300">{blockReason}</p>
                             </div>
                         </div>
                     )}
-
-                    {/* Navigation — horizontal scrollable, grouped with labels */}
-                    <div className="mb-6">
-                        <div className="overflow-x-auto -mx-6 px-6">
-                            <div className="flex items-center gap-1 min-w-max pb-3 border-b border-border">
-                                {navSections.map((section, sectionIdx) => (
-                                    <div key={section.label} className="flex items-center gap-1">
-                                        {sectionIdx > 0 && (
-                                            <div className="w-px h-6 bg-border mx-2" />
-                                        )}
-                                        <span className="text-[10px] uppercase tracking-wider text-muted-foreground mr-1 hidden sm:inline">
-                                            {section.label}
-                                        </span>
-                                        {section.tabs.map((tab) => (
-                                            <button
-                                                key={tab.id}
-                                                onClick={() => setActiveTab(tab.id)}
-                                                className={`relative px-3 py-1.5 rounded-lg text-sm whitespace-nowrap transition-colors ${activeTab === tab.id
-                                                    ? "bg-primary text-white font-medium"
-                                                    : relevantTabs.has(tab.id)
-                                                        ? "text-foreground font-medium hover:bg-primary/10"
-                                                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                                                    }`}
-                                            >
-                                                {tab.label}
-                                                {relevantTabs.has(tab.id) && activeTab !== tab.id && (
-                                                    <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-primary rounded-full" />
-                                                )}
-                                            </button>
-                                        ))}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Breadcrumb */}
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
-                            <span>{activeSection.label}</span>
-                            <span>/</span>
-                            <span className="text-foreground font-medium">{activeTabLabel}</span>
-                        </div>
-                    </div>
 
                     {/* Guided Onboarding */}
                     {showOnboarding && (
@@ -370,7 +437,32 @@ export default function ProjectDetailPage() {
                     )}
 
                     {/* Tab Content */}
-                    <div className="min-h-[500px]">
+                    <div className="min-h-[400px]">
+                        {/* ── "More" Grid View ── */}
+                        {activeTab === "more_grid" && (
+                            <div>
+                                <h2 className="text-xl font-bold mb-4">Tools & Settings</h2>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                                    {MORE_ITEMS.map((item) => (
+                                        <button
+                                            key={item.id}
+                                            onClick={() => setActiveTab(item.id)}
+                                            className="flex flex-col items-center gap-2 p-4 rounded-xl border border-border bg-card hover:border-primary hover:bg-primary/5 transition-colors text-center group"
+                                        >
+                                            <div className="w-10 h-10 rounded-lg bg-muted/50 group-hover:bg-primary/10 flex items-center justify-center text-muted-foreground group-hover:text-primary transition-colors">
+                                                <MoreCardIcon type={item.icon} className="w-5 h-5" />
+                                            </div>
+                                            <div>
+                                                <div className="font-medium text-sm">{item.label}</div>
+                                                <div className="text-xs text-muted-foreground mt-0.5">{item.desc}</div>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ── Home Section ── */}
                         {activeTab === "overview" && (
                             <SmartDashboard
                                 project={project}
@@ -387,13 +479,14 @@ export default function ProjectDetailPage() {
                                 builderEmail={project.builder_email}
                             />
                         )}
+
+                        {/* ── Build Section ── */}
                         {activeTab === "stagegate" && (
                             <StageGate
                                 projectId={project.id}
                                 currentStage={currentStage}
                                 nextStage={nextStage}
                                 onProceed={() => {
-                                    // Re-fetch project data to advance the stage
                                     fetchProject();
                                     setActiveTab("overview");
                                 }}
@@ -402,21 +495,15 @@ export default function ProjectDetailPage() {
                         {activeTab === "stages" && (
                             <StageChecklist projectId={project.id} currentStage={currentStage} />
                         )}
-                        {activeTab === "checklists" && <ProjectChecklists projectId={project.id} />}
-                        {activeTab === "variations" && <ProjectVariations projectId={project.id} contractValue={project.contract_value || 0} onDataChanged={fetchProject} />}
-                        {activeTab === "defects" && <ProjectDefects projectId={project.id} stages={stageNames} builderEmail={project.builder_email || ""} onDataChanged={fetchProject} />}
-                        {activeTab === "photos" && <ProgressPhotos projectId={project.id} stages={stageNames} />}
-                        {activeTab === "visits" && <SiteVisitLog projectId={project.id} />}
+                        {activeTab === "inspections" && (
+                            <InspectionTimeline projectId={project.id} currentStage={currentStage} />
+                        )}
                         {activeTab === "certificates" && (
                             <CertificationGate
                                 projectId={project.id}
                                 currentStage={currentStage}
                                 onPaymentBlocked={handlePaymentBlocked}
                             />
-                        )}
-                        {activeTab === "checkins" && <WeeklyCheckIn projectId={project.id} />}
-                        {activeTab === "inspections" && (
-                            <InspectionTimeline projectId={project.id} currentStage={currentStage} />
                         )}
                         {activeTab === "ncc2025" && (
                             <NCC2025Compliance
@@ -425,6 +512,10 @@ export default function ProjectDetailPage() {
                                 buildCategory={project.build_category}
                             />
                         )}
+
+                        {/* ── Issues Section ── */}
+                        {activeTab === "defects" && <ProjectDefects projectId={project.id} stages={stageNames} builderEmail={project.builder_email || ""} onDataChanged={fetchProject} />}
+                        {activeTab === "variations" && <ProjectVariations projectId={project.id} contractValue={project.contract_value || 0} onDataChanged={fetchProject} />}
                         {activeTab === "redflags" && (
                             <DodgyBuilderAlerts
                                 projectId={project.id}
@@ -442,12 +533,6 @@ export default function ProjectDetailPage() {
                                 projectAddress={project.address}
                             />
                         )}
-                        {activeTab === "accountability" && (
-                            <AccountabilityScore
-                                projectId={project.id}
-                                builderName={project.builder_name}
-                            />
-                        )}
                         {activeTab === "prehandover" && (
                             <PreHandoverChecklist
                                 projectId={project.id}
@@ -457,82 +542,134 @@ export default function ProjectDetailPage() {
                                 }}
                             />
                         )}
-                        {activeTab === "ratings" && (
-                            <BuilderRatings
-                                projectId={project.id}
-                                builderName={project.builder_name}
-                                builderLicense={project.builder_license_number}
-                                stateCode={project.state}
-                            />
-                        )}
-                        {activeTab === "benchmarking" && (
-                            <CostBenchmarking
-                                projectId={project.id}
-                                contractValue={project.contract_value}
-                                stateCode={project.state}
-                            />
-                        )}
-                        {activeTab === "pushnotifs" && (
-                            <PushNotificationSetup
-                                projectId={project.id}
-                                projectName={project.name}
-                            />
-                        )}
-                        {activeTab === "materials" && <MaterialRegistry projectId={project.id} />}
+
+                        {/* ── Evidence Section ── */}
+                        {activeTab === "photos" && <ProgressPhotos projectId={project.id} stages={stageNames} />}
+                        {activeTab === "documents" && <DocumentVault projectId={project.id} />}
                         {activeTab === "communication" && <CommunicationLog projectId={project.id} />}
+                        {activeTab === "checkins" && <WeeklyCheckIn projectId={project.id} />}
+                        {activeTab === "visits" && <SiteVisitLog projectId={project.id} />}
+
+                        {/* ── More Section (individual tools) ── */}
                         {activeTab === "payments" && (
-                            <PaymentSchedule projectId={project.id} contractValue={project.contract_value || 0} />
+                            <MoreToolWrapper title="Payments" onBack={() => setActiveTab("more_grid")}>
+                                <PaymentSchedule projectId={project.id} contractValue={project.contract_value || 0} />
+                            </MoreToolWrapper>
                         )}
                         {activeTab === "budget" && (
-                            <BudgetDashboard projectId={project.id} contractValue={project.contract_value || 0} />
+                            <MoreToolWrapper title="Budget" onBack={() => setActiveTab("more_grid")}>
+                                <BudgetDashboard projectId={project.id} contractValue={project.contract_value || 0} />
+                            </MoreToolWrapper>
                         )}
-                        {activeTab === "documents" && <DocumentVault projectId={project.id} />}
-                        {activeTab === "notifications" && (
-                            <NotificationCenter
-                                projectId={project.id}
-                                projectName={project.name}
-                                builderEmail={project.builder_email || ""}
-                            />
+                        {activeTab === "benchmarking" && (
+                            <MoreToolWrapper title="Cost Check" onBack={() => setActiveTab("more_grid")}>
+                                <CostBenchmarking projectId={project.id} contractValue={project.contract_value} stateCode={project.state} />
+                            </MoreToolWrapper>
+                        )}
+                        {activeTab === "accountability" && (
+                            <MoreToolWrapper title="Builder Score" onBack={() => setActiveTab("more_grid")}>
+                                <AccountabilityScore projectId={project.id} builderName={project.builder_name} />
+                            </MoreToolWrapper>
+                        )}
+                        {activeTab === "ratings" && (
+                            <MoreToolWrapper title="Rate Builder" onBack={() => setActiveTab("more_grid")}>
+                                <BuilderRatings projectId={project.id} builderName={project.builder_name} builderLicense={project.builder_license_number} stateCode={project.state} />
+                            </MoreToolWrapper>
+                        )}
+                        {activeTab === "materials" && (
+                            <MoreToolWrapper title="Materials" onBack={() => setActiveTab("more_grid")}>
+                                <MaterialRegistry projectId={project.id} />
+                            </MoreToolWrapper>
+                        )}
+                        {activeTab === "checklists" && (
+                            <MoreToolWrapper title="Checklists" onBack={() => setActiveTab("more_grid")}>
+                                <ProjectChecklists projectId={project.id} />
+                            </MoreToolWrapper>
                         )}
                         {activeTab === "export" && (
-                            <ExportCenter
-                                projectId={project.id}
-                                projectName={project.name}
-                                builderName={project.builder_name || "Builder"}
-                                contractValue={project.contract_value || 0}
-                            />
-                        )}
-                        {activeTab === "settings" && (
-                            <ProjectSettings project={project} onProjectUpdated={(updated) => setProject(updated)} />
+                            <MoreToolWrapper title="Export" onBack={() => setActiveTab("more_grid")}>
+                                <ExportCenter projectId={project.id} projectName={project.name} builderName={project.builder_name || "Builder"} contractValue={project.contract_value || 0} />
+                            </MoreToolWrapper>
                         )}
                         {activeTab === "reports" && (
-                            <ReportGenerator
-                                projectId={project.id}
-                                projectName={project.name}
-                                builderName={project.builder_name}
-                                contractValue={project.contract_value}
-                                variations={variations}
-                                defects={defects}
-                            />
+                            <MoreToolWrapper title="Reports" onBack={() => setActiveTab("more_grid")}>
+                                <ReportGenerator projectId={project.id} projectName={project.name} builderName={project.builder_name} contractValue={project.contract_value} variations={variations} defects={defects} />
+                            </MoreToolWrapper>
+                        )}
+                        {activeTab === "pushnotifs" && (
+                            <MoreToolWrapper title="Notifications" onBack={() => setActiveTab("more_grid")}>
+                                <PushNotificationSetup projectId={project.id} projectName={project.name} />
+                            </MoreToolWrapper>
+                        )}
+                        {activeTab === "notifications" && (
+                            <MoreToolWrapper title="Alerts" onBack={() => setActiveTab("more_grid")}>
+                                <NotificationCenter projectId={project.id} projectName={project.name} builderEmail={project.builder_email || ""} />
+                            </MoreToolWrapper>
+                        )}
+                        {activeTab === "settings" && (
+                            <MoreToolWrapper title="Settings" onBack={() => setActiveTab("more_grid")}>
+                                <ProjectSettings project={project} onProjectUpdated={(updated) => setProject(updated)} />
+                            </MoreToolWrapper>
                         )}
                     </div>
                 </div>
             </main>
 
-            {/* Mobile Photo FAB */}
-            <PhotoFAB onClick={() => setShowPhotoCapture(true)} />
+            {/* ── Mobile Bottom Navigation ── */}
+            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border z-50"
+                style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+                <div className="flex items-center justify-around">
+                    {SECTIONS.map((section) => (
+                        <button
+                            key={section.id}
+                            onClick={() => handleSectionClick(section.id)}
+                            className={`flex flex-col items-center gap-0.5 py-2 px-3 min-w-[60px] transition-colors ${
+                                activeSection === section.id
+                                    ? "text-primary"
+                                    : "text-muted-foreground"
+                            }`}
+                        >
+                            <NavIcon type={section.id} className={`w-5 h-5 ${activeSection === section.id ? "stroke-[2]" : ""}`} />
+                            <span className="text-[10px] font-medium">{section.label}</span>
+                        </button>
+                    ))}
+                </div>
+            </nav>
+
+            {/* Mobile Photo FAB — positioned above bottom nav */}
+            <div className="md:block" style={{ position: "fixed", bottom: "max(80px, calc(56px + env(safe-area-inset-bottom) + 16px))", right: "16px", zIndex: 40 }}>
+                <PhotoFAB onClick={() => setShowPhotoCapture(true)} />
+            </div>
 
             {/* Mobile Photo Capture Overlay */}
             {showPhotoCapture && (
                 <MobilePhotoCapture
                     projectId={project.id}
                     stage={currentStage}
-                    onPhotoSaved={() => {
-                        fetchProject();
-                    }}
+                    onPhotoSaved={() => { fetchProject(); }}
                     onClose={() => setShowPhotoCapture(false)}
                 />
             )}
+        </div>
+    );
+}
+
+/* ------------------------------------------------------------------ */
+/*  "More" Tool Wrapper — adds back button for drill-in tools          */
+/* ------------------------------------------------------------------ */
+
+function MoreToolWrapper({ title, onBack, children }: { title: string; onBack: () => void; children: React.ReactNode }) {
+    return (
+        <div>
+            <button
+                onClick={onBack}
+                className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors"
+            >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><polyline points="15 18 9 12 15 6" /></svg>
+                Back to Tools
+            </button>
+            <h2 className="text-xl font-bold mb-4">{title}</h2>
+            {children}
         </div>
     );
 }
