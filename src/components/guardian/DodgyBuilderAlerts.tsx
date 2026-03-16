@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useToast } from "@/components/guardian/Toast";
 
 interface Stage {
   id: string;
@@ -18,6 +19,7 @@ interface DodgyBuilderAlertsProps {
   currentStage: string;
   stateCode?: string;
   buildCategory?: string;
+  onNavigateTab?: (tabId: string) => void;
 }
 
 // Severity levels based on warning indicator count
@@ -61,30 +63,48 @@ function SeverityBadge({ severity }: { severity: Severity }) {
   );
 }
 
+type VerificationStatus = "verified" | "issue" | null;
+
 function WarningCard({
   warning,
   variant = "current",
+  verificationStatus,
+  onVerify,
+  onFoundIssue,
 }: {
   warning: string;
   variant?: "current" | "next";
+  verificationStatus?: VerificationStatus;
+  onVerify?: () => void;
+  onFoundIssue?: () => void;
 }) {
   const severity = classifySeverity(warning);
   const text = stripIndicators(warning);
 
   const isSevere = severity === "critical" || severity === "high";
   const isNext = variant === "next";
+  const isVerified = verificationStatus === "verified";
+  const isIssue = verificationStatus === "issue";
 
-  const borderColor = isNext
-    ? "border-slate-200 dark:border-slate-700"
-    : isSevere
-      ? "border-red-300 dark:border-red-800"
-      : "border-amber-300 dark:border-amber-800";
+  const borderColor = isVerified
+    ? "border-green-300 dark:border-green-800"
+    : isIssue
+      ? "border-red-400 dark:border-red-700"
+      : isNext
+        ? "border-slate-200 dark:border-slate-700"
+        : isSevere
+          ? "border-red-300 dark:border-red-800"
+          : "border-amber-300 dark:border-amber-800";
 
-  const bgColor = isNext
-    ? "bg-slate-50 dark:bg-slate-800/50"
-    : isSevere
-      ? "bg-red-50 dark:bg-red-950/30"
-      : "bg-amber-50 dark:bg-amber-950/30";
+  const bgColor = isVerified
+    ? "bg-green-50 dark:bg-green-950/30"
+    : isIssue
+      ? "bg-red-100 dark:bg-red-950/40"
+      : isNext
+        ? "bg-slate-50 dark:bg-slate-800/50"
+        : isSevere
+          ? "bg-red-50 dark:bg-red-950/30"
+          : "bg-amber-50 dark:bg-amber-950/30";
 
   return (
     <div
@@ -92,7 +112,11 @@ function WarningCard({
     >
       <div className="flex items-start gap-3">
         <div className="mt-0.5 flex-shrink-0">
-          {isNext ? (
+          {isVerified ? (
+            <span className="text-green-600 dark:text-green-400 text-lg">{"\u2713"}</span>
+          ) : isIssue ? (
+            <span className="text-red-600 dark:text-red-400 text-lg">{"\u{1F6A9}"}</span>
+          ) : isNext ? (
             <span className="text-slate-400 dark:text-slate-500 text-lg">
               {"\u25CB"}
             </span>
@@ -108,19 +132,60 @@ function WarningCard({
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            {!isNext && <SeverityBadge severity={severity} />}
+            {!isNext && !isVerified && !isIssue && <SeverityBadge severity={severity} />}
+            {isVerified && (
+              <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-bold text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                VERIFIED OK
+              </span>
+            )}
+            {isIssue && (
+              <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-bold text-red-800 dark:bg-red-900/30 dark:text-red-400">
+                ISSUE FOUND
+              </span>
+            )}
           </div>
           <p
             className={
-              isNext
-                ? "text-sm text-muted-foreground"
-                : isSevere
+              isVerified
+                ? "text-sm text-green-800 dark:text-green-300 line-through opacity-70"
+                : isIssue
                   ? "text-sm font-medium text-red-900 dark:text-red-200"
-                  : "text-sm font-medium text-amber-900 dark:text-amber-200"
+                  : isNext
+                    ? "text-sm text-muted-foreground"
+                    : isSevere
+                      ? "text-sm font-medium text-red-900 dark:text-red-200"
+                      : "text-sm font-medium text-amber-900 dark:text-amber-200"
             }
           >
             {text}
           </p>
+          {/* Action buttons — only for current stage warnings */}
+          {!isNext && onVerify && onFoundIssue && (
+            <div className="flex items-center gap-2 mt-3">
+              <button
+                type="button"
+                onClick={onVerify}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors min-h-[36px] ${
+                  isVerified
+                    ? "bg-green-600 text-white"
+                    : "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900/50"
+                }`}
+              >
+                <span>{"\u2713"}</span> Verified OK
+              </button>
+              <button
+                type="button"
+                onClick={onFoundIssue}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors min-h-[36px] ${
+                  isIssue
+                    ? "bg-red-600 text-white"
+                    : "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900/50"
+                }`}
+              >
+                <span>{"\u{1F6A9}"}</span> Found Issue
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -132,14 +197,23 @@ function AccordionItem({
   isOpen,
   onToggle,
   isCurrent,
+  verifications,
+  onVerify,
+  onFoundIssue,
 }: {
   stage: Stage;
   isOpen: boolean;
   onToggle: () => void;
   isCurrent: boolean;
+  verifications: Record<string, VerificationStatus>;
+  onVerify: (key: string) => void;
+  onFoundIssue: (key: string) => void;
 }) {
   const warnings = stage.dodgyBuilderWarnings ?? [];
   if (warnings.length === 0) return null;
+
+  const verifiedCount = warnings.filter((_, i) => verifications[`${stage.id}-${i}`] === "verified").length;
+  const issueCount = warnings.filter((_, i) => verifications[`${stage.id}-${i}`] === "issue").length;
 
   return (
     <div
@@ -152,13 +226,24 @@ function AccordionItem({
       <button
         type="button"
         onClick={onToggle}
-        className="w-full flex items-center justify-between px-4 py-3 text-left bg-card hover:bg-accent/50 transition-colors"
+        aria-expanded={isOpen}
+        className="w-full flex items-center justify-between px-4 py-3 text-left bg-card hover:bg-accent/50 transition-colors focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-[-2px]"
       >
         <div className="flex items-center gap-2">
           <span className="font-medium text-sm">{stage.name}</span>
           <span className="text-xs text-muted-foreground rounded-full bg-muted px-2 py-0.5">
             {warnings.length} warning{warnings.length !== 1 ? "s" : ""}
           </span>
+          {verifiedCount > 0 && (
+            <span className="text-xs rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-0.5">
+              {verifiedCount} OK
+            </span>
+          )}
+          {issueCount > 0 && (
+            <span className="text-xs rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 px-2 py-0.5">
+              {issueCount} issue{issueCount !== 1 ? "s" : ""}
+            </span>
+          )}
           {isCurrent && (
             <span className="text-xs rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 px-2 py-0.5 font-semibold">
               CURRENT
@@ -175,9 +260,18 @@ function AccordionItem({
       </button>
       {isOpen && (
         <div className="px-4 pb-4 pt-2 space-y-2 bg-card">
-          {warnings.map((w, i) => (
-            <WarningCard key={i} warning={w} />
-          ))}
+          {warnings.map((w, i) => {
+            const key = `${stage.id}-${i}`;
+            return (
+              <WarningCard
+                key={i}
+                warning={w}
+                verificationStatus={verifications[key]}
+                onVerify={() => onVerify(key)}
+                onFoundIssue={() => onFoundIssue(key)}
+              />
+            );
+          })}
         </div>
       )}
     </div>
@@ -189,9 +283,37 @@ export default function DodgyBuilderAlerts({
   currentStage,
   stateCode = "NSW",
   buildCategory = "new_build",
+  onNavigateTab,
 }: DodgyBuilderAlertsProps) {
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
   const [showAllStages, setShowAllStages] = useState(false);
+  const [verifications, setVerifications] = useState<Record<string, VerificationStatus>>({});
+  const { toast } = useToast();
+
+  // Load verifications from localStorage
+  const verifyStorageKey = `redflag-verify-${projectId}`;
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(verifyStorageKey);
+      if (raw) setVerifications(JSON.parse(raw));
+    } catch { /* ignore */ }
+  }, [verifyStorageKey]);
+
+  const setVerification = (key: string, status: VerificationStatus) => {
+    setVerifications((prev) => {
+      const next = { ...prev, [key]: prev[key] === status ? null : status };
+      try { localStorage.setItem(verifyStorageKey, JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
+    if (status === "verified") {
+      toast("Marked as verified", "success");
+    } else if (status === "issue") {
+      toast("Issue flagged \u2014 log it as a defect", "error");
+      if (onNavigateTab) {
+        setTimeout(() => onNavigateTab("defects"), 1500);
+      }
+    }
+  };
 
   const { stages, currentStageData, nextStageData, error } = useMemo(() => {
     try {
@@ -300,6 +422,9 @@ export default function DodgyBuilderAlerts({
                   isOpen={!!openSections[stage.id]}
                   onToggle={() => toggleSection(stage.id)}
                   isCurrent={false}
+                  verifications={verifications}
+                  onVerify={(k) => setVerification(k, "verified")}
+                  onFoundIssue={(k) => setVerification(k, "issue")}
                 />
               ))}
             </div>
@@ -340,10 +465,34 @@ export default function DodgyBuilderAlerts({
             Watch for these red flags right now
           </p>
           <div className="space-y-3">
-            {currentWarnings.map((warning, index) => (
-              <WarningCard key={index} warning={warning} variant="current" />
-            ))}
+            {currentWarnings.map((warning, index) => {
+              const key = `${currentStageData!.id}-${index}`;
+              return (
+                <WarningCard
+                  key={index}
+                  warning={warning}
+                  variant="current"
+                  verificationStatus={verifications[key]}
+                  onVerify={() => setVerification(key, "verified")}
+                  onFoundIssue={() => setVerification(key, "issue")}
+                />
+              );
+            })}
           </div>
+          {/* Verification summary */}
+          {currentWarnings.length > 0 && (() => {
+            const verified = currentWarnings.filter((_, i) => verifications[`${currentStageData!.id}-${i}`] === "verified").length;
+            const issues = currentWarnings.filter((_, i) => verifications[`${currentStageData!.id}-${i}`] === "issue").length;
+            const remaining = currentWarnings.length - verified - issues;
+            if (verified === 0 && issues === 0) return null;
+            return (
+              <div className="mt-4 pt-3 border-t border-border/50 flex items-center gap-3 text-xs">
+                {verified > 0 && <span className="text-green-700 dark:text-green-400 font-medium">{verified} verified</span>}
+                {issues > 0 && <span className="text-red-700 dark:text-red-400 font-medium">{issues} issue{issues !== 1 ? "s" : ""}</span>}
+                {remaining > 0 && <span className="text-muted-foreground">{remaining} remaining</span>}
+              </div>
+            );
+          })()}
         </div>
       )}
 
@@ -399,6 +548,9 @@ export default function DodgyBuilderAlerts({
                 isOpen={!!openSections[stage.id]}
                 onToggle={() => toggleSection(stage.id)}
                 isCurrent={stage.id === currentStage}
+                verifications={verifications}
+                onVerify={(k) => setVerification(k, "verified")}
+                onFoundIssue={(k) => setVerification(k, "issue")}
               />
             ))}
           </div>

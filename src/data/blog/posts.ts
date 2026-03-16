@@ -13,6 +13,665 @@ export interface BlogPost {
 
 export const BLOG_POSTS: BlogPost[] = [
     {
+        slug: "homeowner-guardian-app-launch",
+        title: "Introducing HomeOwner Guardian: Your Construction Watchdog for Australian Home Builds",
+        description: "HomeOwner Guardian is the first app built specifically for Australian homeowners to monitor construction quality, track inspections, and catch building defects before handover.",
+        date: "2026-03-16",
+        author: "VedaWell Team",
+        readTime: "6 min read",
+        keywords: ["homeowner guardian app", "construction monitoring app", "building defect tracker", "Australian home building app", "new home construction tracking"],
+        category: "HomeOwner Guardian",
+        relatedTools: [],
+        content: `
+<p>Building a home in Australia is likely the biggest financial commitment you'll ever make. The average new build costs $350,000–$700,000, yet most homeowners have <strong>zero visibility</strong> into what's happening on site between their occasional visits.</p>
+
+<p>That's why we built <strong>HomeOwner Guardian</strong> — a dedicated construction monitoring app that gives Australian homeowners the tools to protect their investment from day one.</p>
+
+<h2>The Problem We're Solving</h2>
+<p>Every year, thousands of Australian homeowners discover defects in their new builds — often too late to fix cheaply. Common issues include:</p>
+<ul>
+<li>Waterproofing failures that don't show up until months after handover</li>
+<li>Structural steel not installed to engineering specifications</li>
+<li>Substandard materials substituted without consent</li>
+<li>Missed inspections that should have caught problems early</li>
+<li>Builders rushing through stages without proper quality checks</li>
+</ul>
+<p>The NSW Building Commissioner found that <strong>85% of new apartment buildings</strong> had at least one serious defect. Houses aren't much better.</p>
+
+<h2>What HomeOwner Guardian Does</h2>
+<p>Guardian is your personal construction watchdog. Here's what you get:</p>
+
+<h3>Stage-by-Stage Tracking</h3>
+<p>Every construction stage — from site preparation to handover — is tracked with checklists based on the National Construction Code. You'll know exactly what should happen at each stage and whether it's been done.</p>
+
+<h3>Inspection Management</h3>
+<p>Schedule, track, and document every inspection. Get reminders before critical inspections and store results with photos. Never miss a mandatory check again.</p>
+
+<h3>Defect Documentation</h3>
+<p>Found a problem? Log it with photos, location markers, and severity ratings. Track the builder's response and resolution. Build a paper trail that protects you legally.</p>
+
+<h3>Dodgy Builder Alerts</h3>
+<p>Our red flag detection system warns you about common builder tactics — like rushing through wet area waterproofing, substituting cheaper materials, or scheduling inspections before work is actually ready.</p>
+
+<h3>NCC 2025 Compliance</h3>
+<p>Check your build against the latest National Construction Code requirements. Each stage has specific compliance items that your certifier should be verifying.</p>
+
+<h3>Progress Photos</h3>
+<p>Upload and organise progress photos by stage. Create a visual record of your build that's invaluable for disputes, insurance claims, or just peace of mind.</p>
+
+<h2>Who Is It For?</h2>
+<p>HomeOwner Guardian is designed for:</p>
+<ul>
+<li><strong>First-home buyers</strong> who've never navigated a construction contract before</li>
+<li><strong>Owner builders</strong> managing their own project and trades</li>
+<li><strong>Experienced homeowners</strong> who've been burned by dodgy builders before</li>
+<li><strong>Building consultants</strong> who want to give clients a professional tracking tool</li>
+</ul>
+
+<h2>Pricing</h2>
+<p>HomeOwner Guardian costs <strong>$14.99/month</strong> — less than a single tradie call-out fee. Cancel anytime. Your first project is free to try.</p>
+<p>Compare that to the cost of fixing a waterproofing failure ($15,000–$50,000) or rectifying structural defects ($20,000–$100,000+). Guardian pays for itself the first time it catches a problem.</p>
+
+<h2>Get Started</h2>
+<p>Ready to protect your home build? <a href="/guardian"><strong>Start your free trial</strong></a> — no credit card required for your first project.</p>`,
+    },
+    {
+        slug: "10-construction-defects-australian-homes",
+        title: "10 Most Common Construction Defects in Australian New Homes (And How to Spot Them)",
+        description: "Learn the 10 most frequent building defects found in Australian new homes, what they look like, and how to catch them before it's too late.",
+        date: "2026-03-15",
+        author: "VedaWell Team",
+        readTime: "9 min read",
+        keywords: ["construction defects Australia", "building defects new home", "common building defects", "new home defects checklist", "building inspection defects"],
+        category: "HomeOwner Guardian",
+        relatedTools: [],
+        content: `
+<p>The NSW Building Commissioner's data is sobering: the majority of new homes in Australia have at least one significant defect. But most homeowners don't discover these problems until after handover — when fixing them is expensive, stressful, and legally complicated.</p>
+
+<p>Here are the 10 most common defects we see, how to spot them during construction, and what to do about them.</p>
+
+<h2>1. Waterproofing Failures</h2>
+<p><strong>Where:</strong> Bathrooms, laundries, balconies, shower recesses</p>
+<p><strong>The problem:</strong> Inadequate or missing waterproofing membrane. Water seeps through tiles into the substrate, causing rot, mould, and structural damage.</p>
+<p><strong>How to spot it:</strong> Ask to see the waterproofing membrane BEFORE tiling. It should extend 150mm up walls (1800mm in showers). Look for complete coverage with no gaps, especially around penetrations (pipes, drains).</p>
+<p><strong>Cost to fix later:</strong> $8,000–$50,000 depending on extent</p>
+
+<h2>2. Structural Cracking</h2>
+<p><strong>Where:</strong> Foundation slab, load-bearing walls, lintels above windows/doors</p>
+<p><strong>The problem:</strong> Cracks wider than 2mm, stair-step cracking in brickwork, or horizontal cracks suggest structural movement or inadequate engineering.</p>
+<p><strong>How to spot it:</strong> Monitor cracks during construction. Hairline cracks in concrete are normal (shrinkage). But cracks that grow, are wider than a credit card, or follow stair-step patterns in masonry need immediate investigation.</p>
+<p><strong>Cost to fix later:</strong> $10,000–$100,000+</p>
+
+<h2>3. Roof & Flashing Defects</h2>
+<p><strong>Where:</strong> Roof-wall junctions, valleys, penetrations, gutters</p>
+<p><strong>The problem:</strong> Poorly installed or missing flashing allows water into the building envelope. This is particularly common where roofing meets walls, around skylights, and at valley gutters.</p>
+<p><strong>How to spot it:</strong> Inspect flashing installation before cladding covers it. Flashing should overlap correctly (upper piece over lower), be properly sealed, and extend at least 75mm under each surface.</p>
+<p><strong>Cost to fix later:</strong> $3,000–$30,000</p>
+
+<h2>4. Non-Compliant Drainage</h2>
+<p><strong>Where:</strong> Sub-floor, perimeter, stormwater systems</p>
+<p><strong>The problem:</strong> Inadequate fall on stormwater pipes, missing ag drains around foundations, or surface water draining toward the building instead of away.</p>
+<p><strong>How to spot it:</strong> Check that ground slopes away from the building (minimum 1:50 for 1 metre). Stormwater pipes should have minimum 1:100 fall. Ask to see the drainage plan and verify it matches what's installed.</p>
+<p><strong>Cost to fix later:</strong> $5,000–$25,000</p>
+
+<h2>5. Window & Door Installation Issues</h2>
+<p><strong>Where:</strong> All window and external door openings</p>
+<p><strong>The problem:</strong> Windows installed without proper head flashings, missing sill flashings, inadequate sealing, or wrong glass type for the orientation (not meeting BAL or energy ratings).</p>
+<p><strong>How to spot it:</strong> Check that head flashings are installed above every window before cladding. Verify glass type matches the window schedule. Open and close all windows — they should operate smoothly without binding.</p>
+<p><strong>Cost to fix later:</strong> $2,000–$15,000 per window</p>
+
+<h2>6. Electrical Non-Compliance</h2>
+<p><strong>Where:</strong> Switchboard, power points, lighting, smoke alarms</p>
+<p><strong>The problem:</strong> Missing safety switches (RCDs), incorrect circuit protection, smoke alarms not interconnected, or power points in wrong positions (too close to water sources).</p>
+<p><strong>How to spot it:</strong> All circuits must have RCD protection (NCC 2025). Smoke alarms must be interconnected and in every bedroom plus hallways. Get your electrical certificate of compliance (CCEW) before handover.</p>
+<p><strong>Cost to fix later:</strong> $1,000–$10,000</p>
+
+<h2>7. Insulation Gaps</h2>
+<p><strong>Where:</strong> Ceiling, walls, floors (especially in climate zones 6–8)</p>
+<p><strong>The problem:</strong> Missing insulation, compressed batts, or gaps between batts. This causes energy rating non-compliance and uncomfortable rooms.</p>
+<p><strong>How to spot it:</strong> Inspect insulation BEFORE plasterboard goes up. Batts should fill the cavity completely with no gaps, compression, or missing sections. Check the R-value matches what's specified in your energy assessment.</p>
+<p><strong>Cost to fix later:</strong> $3,000–$15,000</p>
+
+<h2>8. Tiling Defects</h2>
+<p><strong>Where:</strong> Bathrooms, kitchens, living areas</p>
+<p><strong>The problem:</strong> Hollow tiles (not properly adhered), uneven grout lines, cracked tiles, or tiles installed over waterproofing that hasn't cured.</p>
+<p><strong>How to spot it:</strong> Tap tiles with a coin or knuckle — hollow sounds indicate adhesion failure. Check grout is consistent and complete. Large-format tiles (over 300mm) require back-buttering.</p>
+<p><strong>Cost to fix later:</strong> $2,000–$20,000</p>
+
+<h2>9. Plasterboard & Paint Defects</h2>
+<p><strong>Where:</strong> Internal walls and ceilings</p>
+<p><strong>The problem:</strong> Visible joins, nail pops, uneven surfaces, paint runs, or insufficient coats. While cosmetic, these indicate rushed or substandard work.</p>
+<p><strong>How to spot it:</strong> Use a bright torch held at a low angle against walls — this reveals bumps, depressions, and join lines. Check corners and edges are straight. Ceiling should have no visible joins.</p>
+<p><strong>Cost to fix later:</strong> $1,000–$5,000</p>
+
+<h2>10. External Cladding Issues</h2>
+<p><strong>Where:</strong> All external walls</p>
+<p><strong>The problem:</strong> Insufficient clearance from ground level (timber framing must be 75mm minimum above finished ground), missing weep holes in brick veneer, or damaged cladding hidden by landscaping.</p>
+<p><strong>How to spot it:</strong> Check clearance measurements before landscaping. Verify weep holes are open and unblocked at every third course minimum. Look for cracked or damaged cladding boards.</p>
+<p><strong>Cost to fix later:</strong> $5,000–$40,000</p>
+
+<h2>Protect Your Build</h2>
+<p>The best time to catch a defect is <strong>during construction</strong>, not after handover. <a href="/guardian"><strong>HomeOwner Guardian</strong></a> helps you track every stage with NCC-compliant checklists, defect documentation tools, and red flag alerts for common builder shortcuts. Start protecting your investment today.</p>`,
+    },
+    {
+        slug: "what-to-check-before-concrete-slab-poured",
+        title: "What to Check Before Your Concrete Slab Is Poured: A Homeowner's Pre-Slab Guide",
+        description: "Your slab is the foundation of everything. Here's exactly what to inspect before concrete is poured — with photos and checkpoints Australian homeowners can follow.",
+        date: "2026-03-14",
+        author: "VedaWell Team",
+        readTime: "7 min read",
+        keywords: ["pre-slab inspection checklist", "concrete slab inspection", "before slab pour checklist", "foundation inspection Australia", "slab inspection homeowner"],
+        category: "HomeOwner Guardian",
+        relatedTools: [],
+        content: `
+<p>Your concrete slab is quite literally the foundation of your entire home. Once it's poured, there's no going back — any problems underneath are locked in forever. That's why the pre-slab inspection is arguably the <strong>most important inspection</strong> of your entire build.</p>
+
+<p>Here's what every homeowner should check before that concrete truck arrives.</p>
+
+<h2>When to Do This Inspection</h2>
+<p>The pre-slab inspection happens after:</p>
+<ul>
+<li>Excavation and site preparation is complete</li>
+<li>Footings are dug to the correct depth</li>
+<li>Plumbing rough-in is installed (pipes in the slab)</li>
+<li>Steel reinforcement (rebar and mesh) is placed</li>
+<li>Vapour barrier (plastic membrane) is laid</li>
+</ul>
+<p>Your certifier (private or council) must sign off BEFORE any concrete is poured. But don't rely solely on the certifier — they have limited time on site and may miss things.</p>
+
+<h2>Steel Reinforcement</h2>
+<p>This is critical. The steel gives your slab its tensile strength.</p>
+<ul>
+<li><strong>Bar size and spacing:</strong> Check against the engineering drawings. Typical residential is N12 bars at 200mm centres, but this varies by soil class and slab design.</li>
+<li><strong>Bar chairs:</strong> Steel must be lifted off the ground on bar chairs (plastic supports). The bottom cover should be minimum 40mm for ground contact. If the steel is sitting on the ground, it will rust and fail.</li>
+<li><strong>Lapping:</strong> Where bars overlap, the minimum lap length is typically 500mm (40 x bar diameter for N12). They should be tied with wire at the overlap.</li>
+<li><strong>Edge bars and trench mesh:</strong> Check that footing trenches have the correct trench mesh or individual bars as per the engineer's design.</li>
+</ul>
+
+<h2>Plumbing Rough-In</h2>
+<ul>
+<li>Check all pipe positions against the floor plan — once concrete is poured, moving a toilet or shower waste is extremely expensive</li>
+<li>Pipes should be properly supported and not resting on steel reinforcement</li>
+<li>All pipe ends should be capped to prevent concrete entering</li>
+<li>Water test should be completed (plumber fills pipes and checks for leaks under pressure)</li>
+</ul>
+
+<h2>Vapour Barrier</h2>
+<ul>
+<li>The plastic membrane (typically 200μm polyethylene) should cover the entire slab area</li>
+<li>Joints should overlap by minimum 200mm and be taped</li>
+<li>No tears, holes, or damage — if you can see through the membrane, it's too thin or damaged</li>
+<li>Turned up at edges to prevent moisture wicking up through the slab edge</li>
+</ul>
+
+<h2>Formwork & Levels</h2>
+<ul>
+<li>Edge formwork (boards around the perimeter) should be straight, level, and at the correct height</li>
+<li>Check the finished floor level (FFL) against the site plan — getting this wrong affects drainage, steps, and compliance</li>
+<li>Step-downs for wet areas (bathrooms, laundries) should be formed correctly (typically 25mm)</li>
+<li>Garage slab should step down from the house slab (check your plans)</li>
+</ul>
+
+<h2>Termite Management</h2>
+<p>Your slab design should include a termite management system. Common options:</p>
+<ul>
+<li><strong>Chemical barrier:</strong> Termiticide applied under and around the slab (look for a certificate from the pest controller)</li>
+<li><strong>Physical barrier:</strong> Stainless steel mesh or crusite sheeting installed under the slab and turned up at edges</li>
+<li><strong>Combination:</strong> Both chemical and physical barriers</li>
+</ul>
+<p>Whichever system is specified, verify it's actually installed — this is a common corner-cutting area.</p>
+
+<h2>Take Photos</h2>
+<p>This is crucial: take extensive photos of <strong>everything</strong> before concrete is poured. Once the concrete goes in, you'll never see any of this again. Photograph:</p>
+<ul>
+<li>All steel reinforcement from multiple angles</li>
+<li>Plumbing pipe locations</li>
+<li>Vapour barrier installation</li>
+<li>Termite barrier installation</li>
+<li>Any areas where you have concerns</li>
+</ul>
+
+<p><a href="/guardian"><strong>HomeOwner Guardian</strong></a> makes it easy to organise your pre-slab photos by stage and tag them for future reference. If a dispute arises later, these photos are your evidence.</p>
+
+<h2>Red Flags</h2>
+<p>Walk away (or call your certifier immediately) if you see:</p>
+<ul>
+<li>Steel sitting directly on the ground with no bar chairs</li>
+<li>Damaged or torn vapour barrier with no repairs</li>
+<li>Pipes without caps or end protection</li>
+<li>The builder pressuring you to approve before you've finished inspecting</li>
+<li>Concrete trucks already on site before the certifier has signed off</li>
+</ul>
+
+<p>Your slab sets the tone for the entire build. A builder who cuts corners here will cut corners everywhere else. Document everything with <a href="/guardian"><strong>HomeOwner Guardian</strong></a> and hold your builder accountable from the start.</p>`,
+    },
+    {
+        slug: "homeowner-rights-building-disputes-australia",
+        title: "Your Rights as a Homeowner: Navigating Building Disputes in Australia",
+        description: "Know your legal rights when dealing with building defects, builder disputes, and warranty claims in Australia. State-by-state guide for NSW, VIC, QLD, SA, and WA.",
+        date: "2026-03-13",
+        author: "VedaWell Team",
+        readTime: "11 min read",
+        keywords: ["homeowner rights building dispute", "building dispute Australia", "builder warranty Australia", "defective building work rights", "NCAT building dispute"],
+        category: "HomeOwner Guardian",
+        relatedTools: [],
+        content: `
+<p>When you discover defects in your new home, it's easy to feel powerless. The builder has the expertise, the lawyers, and the industry connections. But Australian law provides strong protections for homeowners — you just need to know how to use them.</p>
+
+<h2>Your Statutory Warranties</h2>
+<p>Every residential building contract in Australia includes <strong>statutory warranties</strong> — legal guarantees that can't be contracted out, even if your builder tries to exclude them in the contract. These typically include:</p>
+<ul>
+<li>Work will be done with due care and skill</li>
+<li>Work will comply with the Building Code of Australia (NCC)</li>
+<li>Materials will be suitable for purpose and new (unless otherwise specified)</li>
+<li>Work will be done in accordance with the plans and specifications</li>
+<li>Work will be completed within the agreed timeframe (or a reasonable time)</li>
+</ul>
+
+<h2>Warranty Periods by State</h2>
+<table>
+<tr><th>State</th><th>Structural Defects</th><th>Non-Structural</th><th>Legislation</th></tr>
+<tr><td>NSW</td><td>6 years</td><td>2 years</td><td>Home Building Act 1989</td></tr>
+<tr><td>VIC</td><td>10 years</td><td>6 years</td><td>Domestic Building Contracts Act 1995</td></tr>
+<tr><td>QLD</td><td>6 years 6 months</td><td>6 months</td><td>QBCC Act 1991</td></tr>
+<tr><td>SA</td><td>10 years</td><td>5 years</td><td>Building Work Contractors Act 1995</td></tr>
+<tr><td>WA</td><td>6 years</td><td>6 years</td><td>Building Services Act 2011</td></tr>
+</table>
+
+<h2>Step 1: Document Everything</h2>
+<p>Before contacting your builder about a defect, document it thoroughly:</p>
+<ul>
+<li><strong>Photographs:</strong> Take clear, dated photos of every defect from multiple angles. Include a ruler or coin for scale.</li>
+<li><strong>Written description:</strong> Note exactly what the defect is, where it is, and when you first noticed it.</li>
+<li><strong>Impact:</strong> How does the defect affect the use or habitability of your home?</li>
+<li><strong>Reference:</strong> If possible, note which section of the NCC or Australian Standard the work should comply with.</li>
+</ul>
+<p><a href="/guardian"><strong>HomeOwner Guardian</strong></a> gives you a structured defect logging system with photos, severity ratings, and NCC references — exactly what you need for a formal complaint or tribunal application.</p>
+
+<h2>Step 2: Written Notice to Builder</h2>
+<p>Always communicate in writing. Send a formal defect notice that includes:</p>
+<ul>
+<li>Your contract details and property address</li>
+<li>A list of all defects with photos</li>
+<li>Reference to the statutory warranty that applies</li>
+<li>A reasonable timeframe for response (14–28 days is typical)</li>
+<li>A clear statement that you expect the defects to be rectified at no cost</li>
+</ul>
+<p>Keep copies of everything. Send via email AND registered post so you have proof of delivery.</p>
+
+<h2>Step 3: Builder Won't Respond?</h2>
+<p>If your builder ignores your notice or refuses to rectify:</p>
+
+<h3>NSW</h3>
+<ul>
+<li>Lodge a complaint with <strong>NSW Fair Trading</strong> — they'll attempt mediation</li>
+<li>If unresolved, apply to <strong>NCAT</strong> (NSW Civil and Administrative Tribunal) — claims up to $500,000</li>
+<li>For larger claims: District or Supreme Court</li>
+</ul>
+
+<h3>VIC</h3>
+<ul>
+<li>Lodge a complaint with <strong>Domestic Building Dispute Resolution Victoria (DBDRV)</strong></li>
+<li>DBDRV will attempt conciliation</li>
+<li>If unresolved: <strong>VCAT</strong> (Victorian Civil and Administrative Tribunal)</li>
+</ul>
+
+<h3>QLD</h3>
+<ul>
+<li>Lodge a complaint with the <strong>QBCC</strong> (Queensland Building and Construction Commission)</li>
+<li>QBCC can issue rectification orders to the builder</li>
+<li>If unresolved: <strong>QCAT</strong> or the courts</li>
+</ul>
+
+<h2>Step 4: Getting an Independent Report</h2>
+<p>An independent building inspection report strengthens your case enormously. Hire a building inspector or structural engineer (not affiliated with your builder) to:</p>
+<ul>
+<li>Identify all defects</li>
+<li>Assess whether they breach the NCC or Australian Standards</li>
+<li>Estimate the cost of rectification</li>
+<li>Provide an expert report suitable for tribunal proceedings</li>
+</ul>
+<p>Budget $500–$2,000 for a comprehensive defect report. This is money well spent if you're heading to a tribunal.</p>
+
+<h2>HBCF / Home Warranty Insurance</h2>
+<p>In NSW, builders must take out <strong>Home Building Compensation Fund (HBCF)</strong> insurance for work over $20,000. This covers you if the builder:</p>
+<ul>
+<li>Dies or disappears</li>
+<li>Becomes insolvent</li>
+<li>Has their licence suspended</li>
+</ul>
+<p>HBCF does NOT cover defects if the builder is still operating — you need to pursue the builder directly first.</p>
+
+<h2>Key Tips</h2>
+<ul>
+<li><strong>Act quickly:</strong> Don't sit on defects. Report them within warranty periods and in writing.</li>
+<li><strong>Don't fix it yourself:</strong> If you fix defects before giving the builder a chance to rectify, you may lose your right to claim the cost.</li>
+<li><strong>Keep paying:</strong> Don't withhold progress payments without legal advice. Non-payment can put YOU in breach of contract.</li>
+<li><strong>Get legal advice early:</strong> Many building lawyers offer free initial consultations. The sooner you get advice, the better your position.</li>
+</ul>
+
+<p>The best defence is good documentation from day one. <a href="/guardian"><strong>HomeOwner Guardian</strong></a> helps you track every inspection, log every defect with evidence, and maintain the paper trail that tribunals and courts rely on.</p>`,
+    },
+    {
+        slug: "stage-by-stage-new-home-construction",
+        title: "The 8 Stages of Building a New Home in Australia: What to Expect at Each Step",
+        description: "A complete walkthrough of every stage in a new home build — from site preparation to handover. Know what happens, what to check, and what to watch out for.",
+        date: "2026-03-12",
+        author: "VedaWell Team",
+        readTime: "12 min read",
+        keywords: ["stages of building a house Australia", "new home construction stages", "home building process", "construction stages checklist", "what to expect building a house"],
+        category: "HomeOwner Guardian",
+        relatedTools: [],
+        content: `
+<p>Building a new home in Australia typically takes 6–12 months and follows a predictable sequence of stages. Understanding each stage helps you know what to inspect, when to raise concerns, and how to spot potential problems early.</p>
+
+<h2>Stage 1: Site Preparation</h2>
+<p><strong>Duration:</strong> 1–3 weeks</p>
+<p><strong>What happens:</strong></p>
+<ul>
+<li>Site clearing — trees, vegetation, existing structures removed</li>
+<li>Soil testing and classification (determines slab design)</li>
+<li>Surveyor marks out the building footprint with pegs and string lines</li>
+<li>Erosion and sediment control installed (silt fencing, hay bales)</li>
+<li>Temporary fencing and site signage erected</li>
+</ul>
+<p><strong>What to check:</strong> Verify the setout matches your approved plans. Measure from boundary pegs to building corners. This is your last chance to catch positioning errors.</p>
+
+<h2>Stage 2: Slab / Foundation</h2>
+<p><strong>Duration:</strong> 2–4 weeks</p>
+<p><strong>What happens:</strong></p>
+<ul>
+<li>Excavation of footings</li>
+<li>Plumbing rough-in (pipes cast into the slab)</li>
+<li>Termite treatment or barrier installation</li>
+<li>Vapour barrier laid</li>
+<li>Steel reinforcement placed</li>
+<li>Pre-slab inspection by certifier</li>
+<li>Concrete pour</li>
+<li>Curing period (minimum 7 days before loading)</li>
+</ul>
+<p><strong>What to check:</strong> See our <a href="/blog/what-to-check-before-concrete-slab-poured">pre-slab inspection guide</a> for a detailed checklist. This is the most critical inspection of your build.</p>
+
+<h2>Stage 3: Frame</h2>
+<p><strong>Duration:</strong> 2–4 weeks</p>
+<p><strong>What happens:</strong></p>
+<ul>
+<li>Timber or steel wall frames erected</li>
+<li>Roof trusses installed and braced</li>
+<li>Window and door openings formed</li>
+<li>Bracing installed per engineering design</li>
+<li>Frame inspection by certifier</li>
+</ul>
+<p><strong>What to check:</strong> Frame should be plumb (vertical) and straight. Check that bracing matches the bracing plan. Verify all connection brackets and fixings are installed. Look for damaged or split timber members.</p>
+
+<h2>Stage 4: Lockup</h2>
+<p><strong>Duration:</strong> 4–8 weeks</p>
+<p><strong>What happens:</strong></p>
+<ul>
+<li>Roof covering installed (tiles or metal)</li>
+<li>External cladding (brick, rendered panels, weatherboard)</li>
+<li>Windows and external doors fitted</li>
+<li>Sarking/building wrap installed</li>
+<li>Flashings installed at all junctions</li>
+<li>Fascia, guttering, and downpipes</li>
+</ul>
+<p><strong>What to check:</strong> Building should be weather-tight. Check all flashings are properly installed. Verify weep holes in brickwork are open. Check window glass type matches specifications.</p>
+
+<h2>Stage 5: Rough-In (Fit-Out Stage 1)</h2>
+<p><strong>Duration:</strong> 2–4 weeks</p>
+<p><strong>What happens:</strong></p>
+<ul>
+<li>Electrical wiring and switchboard installation</li>
+<li>Plumbing rough-in (second fix)</li>
+<li>HVAC ductwork</li>
+<li>Insulation installed in walls and ceiling</li>
+<li>Waterproofing to wet areas</li>
+</ul>
+<p><strong>What to check:</strong> This is your last chance to see behind the walls. Check insulation coverage (no gaps), electrical point positions, and most critically — waterproofing in all wet areas. Waterproofing must be inspected and signed off BEFORE tiling.</p>
+
+<h2>Stage 6: Fixing (Fit-Out Stage 2)</h2>
+<p><strong>Duration:</strong> 4–6 weeks</p>
+<p><strong>What happens:</strong></p>
+<ul>
+<li>Plasterboard installed and finished</li>
+<li>Internal doors hung</li>
+<li>Skirting boards and architraves</li>
+<li>Kitchen and bathroom cabinetry</li>
+<li>Tiling</li>
+<li>Internal painting</li>
+</ul>
+<p><strong>What to check:</strong> Use a torch on walls to check for defects. Test all taps and fixtures. Open and close every door and window. Check tile work for hollow tiles (tap with a coin).</p>
+
+<h2>Stage 7: Practical Completion / Handover</h2>
+<p><strong>Duration:</strong> 1–2 weeks</p>
+<p><strong>What happens:</strong></p>
+<ul>
+<li>Final electrical and plumbing connections</li>
+<li>Appliance installation</li>
+<li>Landscaping and driveway</li>
+<li>Final clean</li>
+<li>Occupation certificate issued by certifier</li>
+<li>Final inspection with builder (the "PCI" — Practical Completion Inspection)</li>
+</ul>
+<p><strong>What to check:</strong> Do a thorough PCI. Check every room, every fixture, every surface. Test every tap, every power point, every switch. Bring your defect list and don't sign off until you're satisfied. You can (and should) withhold 5% as a retention amount until defects are fixed.</p>
+
+<h2>Stage 8: Defects Liability Period</h2>
+<p><strong>Duration:</strong> Typically 90 days after handover</p>
+<p><strong>What happens:</strong></p>
+<ul>
+<li>You live in the house and discover any remaining defects</li>
+<li>Builder returns to fix defects on your list</li>
+<li>Final retention payment released once all defects are resolved</li>
+</ul>
+<p><strong>What to check:</strong> Keep documenting defects as you find them. Check for settlement cracks, sticking doors, plumbing leaks, electrical issues. Many defects only appear after the house has been lived in and settled.</p>
+
+<h2>Track Every Stage</h2>
+<p><a href="/guardian"><strong>HomeOwner Guardian</strong></a> follows you through every stage with NCC-compliant checklists, inspection tracking, photo documentation, and defect management. It's like having a building consultant in your pocket — for less than the cost of a single site visit.</p>`,
+    },
+    {
+        slug: "why-builders-hate-informed-homeowners",
+        title: "Why Some Builders Don't Want You to Know Your Rights (And What to Do About It)",
+        description: "Some builders rely on homeowner ignorance to cut corners. Here's how to be the informed client that builders respect — and the tactics to watch out for.",
+        date: "2026-03-11",
+        author: "VedaWell Team",
+        readTime: "8 min read",
+        keywords: ["dodgy builder tactics Australia", "builder cutting corners", "homeowner building rights", "builder disputes Australia", "protecting yourself from bad builders"],
+        category: "HomeOwner Guardian",
+        relatedTools: [],
+        content: `
+<p>Let's be honest: not every builder is out to get you. The majority are skilled professionals who take pride in their work. But the building industry also has its share of operators who profit from homeowner ignorance — and knowing their tactics is the best way to protect yourself.</p>
+
+<h2>Tactic 1: "Trust Me, It's Industry Standard"</h2>
+<p><strong>What they say:</strong> "That's how everyone does it. It's industry standard."</p>
+<p><strong>The reality:</strong> "Industry standard" is not a legal standard. The only standards that matter are the National Construction Code (NCC), relevant Australian Standards, and your contract specifications.</p>
+<p><strong>What to do:</strong> Ask them to show you which section of the NCC or AS permits what they're proposing. If they can't, it's probably not compliant.</p>
+
+<h2>Tactic 2: Rushing You Past Inspections</h2>
+<p><strong>What they say:</strong> "The concrete truck is booked for tomorrow, we can't wait for the inspector."</p>
+<p><strong>The reality:</strong> Mandatory inspections exist for a reason. A builder who books the next trade before the previous stage is inspected is either disorganised or deliberately trying to cover their work before anyone checks it.</p>
+<p><strong>What to do:</strong> Your contract gives you the right to inspect. Remind the builder that pouring concrete without a pre-slab sign-off is non-compliant and could affect their insurance. Do NOT be pressured into skipping inspections.</p>
+
+<h2>Tactic 3: Material Substitutions</h2>
+<p><strong>What they say:</strong> "This product is equivalent. Same thing, different brand."</p>
+<p><strong>The reality:</strong> Material substitutions must be approved in writing by you AND may need engineer sign-off if they're structural. "Equivalent" products may have different warranties, fire ratings, or durability.</p>
+<p><strong>What to do:</strong> Any substitution should be documented with the product spec sheet, and you should approve it in writing. If it's structural (steel, concrete, engineered timber), the engineer must approve it.</p>
+
+<h2>Tactic 4: The Verbal Variation</h2>
+<p><strong>What they say:</strong> "Don't worry about paperwork, I'll just do it and we'll sort it out later."</p>
+<p><strong>The reality:</strong> Verbal agreements are almost impossible to enforce. If a variation isn't in writing with an agreed price, you'll end up in a "he said, she said" dispute at handover when you get an inflated invoice.</p>
+<p><strong>What to do:</strong> Every variation must be in writing, with a price and your signature. This is actually a legal requirement in most states for residential building contracts.</p>
+
+<h2>Tactic 5: Withholding Access</h2>
+<p><strong>What they say:</strong> "It's a work site — you can't just show up. Insurance won't cover you."</p>
+<p><strong>The reality:</strong> While there are legitimate WHS restrictions on construction sites, you have a <strong>contractual right to inspect</strong> the work at reasonable times. Your builder should arrange access for you with appropriate notice.</p>
+<p><strong>What to do:</strong> Give 24 hours' notice in writing that you'd like to visit. Wear appropriate PPE (hard hat, hi-vis, closed-toe shoes). Take photos. If the builder refuses access altogether, that's a major red flag — put your concern in writing immediately.</p>
+
+<h2>Tactic 6: The Progress Payment Pressure</h2>
+<p><strong>What they say:</strong> "I need payment now or the trades won't show up Monday."</p>
+<p><strong>The reality:</strong> Progress payments should only be made for completed stages, after inspection. Your contract should specify the payment schedule tied to completion milestones. A builder demanding payment before completing the corresponding work is a serious warning sign.</p>
+<p><strong>What to do:</strong> Stick to your contract payment schedule. Never pay more than what's due for completed work. If the builder has cash flow problems that severe, consider whether they're financially stable enough to complete your project.</p>
+
+<h2>How to Be the Client Builders Respect</h2>
+<ul>
+<li><strong>Read your contract</strong> — all of it. Know your rights and obligations.</li>
+<li><strong>Document everything</strong> — photos, emails, site diaries. If it's not in writing, it didn't happen.</li>
+<li><strong>Ask questions</strong> — good builders welcome informed clients. Bad builders get defensive.</li>
+<li><strong>Be reasonable</strong> — pick your battles. Not every imperfection is a defect. Focus on safety, compliance, and quality.</li>
+<li><strong>Use technology</strong> — <a href="/guardian"><strong>HomeOwner Guardian</strong></a> gives you a professional-grade tracking system with red flag alerts, NCC checklists, and defect documentation that would impress any building inspector or tribunal.</li>
+</ul>
+
+<p>The best builders will appreciate you using tools like Guardian — it keeps everyone accountable and makes handover smoother. And the not-so-great builders? They'll quickly learn that you're not someone to be messed with.</p>`,
+    },
+    {
+        slug: "first-home-buyer-construction-mistakes",
+        title: "7 Costly Mistakes First-Home Buyers Make During Construction (And How to Avoid Them)",
+        description: "First-time home builders often make the same expensive mistakes. Learn from others' experiences and save yourself thousands in rectification costs.",
+        date: "2026-03-10",
+        author: "VedaWell Team",
+        readTime: "7 min read",
+        keywords: ["first home buyer construction", "new home building mistakes", "first home construction tips", "building mistakes to avoid", "first home buyer guide Australia"],
+        category: "HomeOwner Guardian",
+        relatedTools: [],
+        content: `
+<p>Building your first home is exciting — and overwhelming. You've spent months choosing a builder, selecting finishes, and sorting finance. But once construction starts, many first-home buyers make critical mistakes that cost thousands to fix.</p>
+
+<p>Here are the 7 most common mistakes we see, and how to avoid every one of them.</p>
+
+<h2>Mistake 1: Not Visiting the Site Regularly</h2>
+<p>"I trust my builder" is fine — but trust should be backed by verification. Homeowners who visit their site at least weekly catch problems early, while they're still cheap to fix.</p>
+<p><strong>The cost:</strong> Problems hidden behind plasterboard can cost 10x more to fix than if caught during construction.</p>
+<p><strong>The fix:</strong> Visit weekly. Take photos at every visit. You don't need to be an expert — just document what you see. <a href="/guardian"><strong>HomeOwner Guardian</strong></a> helps you organize photos by stage and flag anything that looks wrong.</p>
+
+<h2>Mistake 2: Not Understanding the Contract</h2>
+<p>Most first-home buyers sign a construction contract without truly understanding it. Key things people miss:</p>
+<ul>
+<li><strong>Allowances vs. actual costs:</strong> "PC items" (prime cost) and "provisional sums" are estimates. If the actual cost is higher, you pay the difference.</li>
+<li><strong>Variation process:</strong> How are changes priced and approved? Most disputes start with variations.</li>
+<li><strong>Defects liability period:</strong> How long does the builder have to fix defects after handover?</li>
+<li><strong>Payment schedule:</strong> When is each payment due, and what triggers it?</li>
+</ul>
+<p><strong>The fix:</strong> Have a building lawyer review your contract BEFORE signing. Budget $500–$1,500 for this — it's the best money you'll spend.</p>
+
+<h2>Mistake 3: Choosing the Cheapest Builder</h2>
+<p>The cheapest quote often becomes the most expensive build. Low-ball quotes typically mean:</p>
+<ul>
+<li>Inferior materials or products</li>
+<li>More provisional sums and allowances (which blow out)</li>
+<li>Cutting corners on things you can't see (waterproofing, insulation, steel)</li>
+<li>A builder who underprices to win work, then uses variations to recover margin</li>
+</ul>
+<p><strong>The fix:</strong> Get 3–5 quotes and compare them in detail, not just on price. Ask each builder to break down their quote by stage. Check their licence, insurance, and references.</p>
+
+<h2>Mistake 4: Skipping Independent Inspections</h2>
+<p>Your certifier does mandatory inspections, but these are compliance checks — they don't assess quality. A private building inspector will examine workmanship, materials, and detail that certifiers don't have time for.</p>
+<p><strong>The cost:</strong> Private inspections cost $300–$600 per stage. Missing a defect can cost $5,000–$50,000+.</p>
+<p><strong>The fix:</strong> Budget for at least 3 independent inspections: pre-slab, frame, and pre-handover (PCI). These are the stages where defects are most common and most expensive to fix later.</p>
+
+<h2>Mistake 5: Not Documenting Variations</h2>
+<p>You decide to upgrade to stone benchtops instead of laminate. The builder says "no worries, about $3K extra." Then at handover, the variation invoice says $7,500.</p>
+<p><strong>The cost:</strong> Undocumented variations are the #1 cause of building contract disputes in Australia.</p>
+<p><strong>The fix:</strong> Every variation must be in writing with:</p>
+<ul>
+<li>A description of the change</li>
+<li>The agreed price (or method of pricing)</li>
+<li>Both parties' signatures</li>
+<li>Impact on the timeline</li>
+</ul>
+<p>Use <a href="/guardian"><strong>HomeOwner Guardian's variation tracking</strong></a> to log every change with photos and approval status.</p>
+
+<h2>Mistake 6: Paying Ahead of Completed Work</h2>
+<p>Some builders ask for payment before the corresponding stage is complete. This is a serious red flag and puts you at risk if the builder becomes insolvent.</p>
+<p><strong>The cost:</strong> If your builder goes bust after you've overpaid, you may lose tens of thousands. HBCF insurance has limits and exclusions.</p>
+<p><strong>The fix:</strong> Only pay for completed, inspected stages as per your contract schedule. Never pay the final payment until you have your occupation certificate and all defects are resolved.</p>
+
+<h2>Mistake 7: Rushing the Handover Inspection</h2>
+<p>After months of building, it's tempting to rush through the PCI (Practical Completion Inspection) to get your keys. Builders know this and sometimes schedule the PCI late on a Friday afternoon when you're tired and light is fading.</p>
+<p><strong>The cost:</strong> Defects you miss at PCI are harder to get fixed during the defects liability period.</p>
+<p><strong>The fix:</strong> Schedule your PCI on a weekday morning with good natural light. Bring a checklist, a torch, and a friend. Take your time. Don't sign off until you've checked every room, every fixture, every surface. Use <a href="/guardian"><strong>HomeOwner Guardian's defect logger</strong></a> to document everything on the spot with photos.</p>
+
+<h2>The Bottom Line</h2>
+<p>Every one of these mistakes comes down to the same thing: <strong>lack of documentation and oversight</strong>. First-home buyers who stay informed, visit regularly, and keep records overwhelmingly have better building outcomes.</p>
+
+<p><a href="/guardian"><strong>HomeOwner Guardian</strong></a> was built specifically for homeowners like you — people who want to protect their investment without needing a building degree. Start your free project today and build with confidence.</p>`,
+    },
+    {
+        slug: "ncc-2025-changes-homeowners-need-to-know",
+        title: "NCC 2025 Changes Every Australian Homeowner Should Know About",
+        description: "The National Construction Code 2025 update brings significant changes to energy efficiency, accessibility, and condensation management. Here's what it means for your build.",
+        date: "2026-03-09",
+        author: "VedaWell Team",
+        readTime: "8 min read",
+        keywords: ["NCC 2025 changes", "National Construction Code 2025", "NCC energy efficiency", "building code changes Australia 2025", "NCC condensation management"],
+        category: "HomeOwner Guardian",
+        relatedTools: [],
+        content: `
+<p>The National Construction Code (NCC) 2025 update is the most significant change to Australian building standards in a decade. If you're building a new home, these changes directly affect your build quality, energy costs, and long-term comfort.</p>
+
+<h2>What Is the NCC?</h2>
+<p>The NCC is Australia's primary set of technical design and construction standards for buildings. It sets the minimum requirements that all buildings must meet. The NCC is updated every three years, and the 2025 edition took effect on 1 May 2025.</p>
+
+<h2>Key Change 1: Higher Energy Efficiency Standards</h2>
+<p>The NCC 2025 increases the minimum energy efficiency rating from 6 stars to <strong>7 stars</strong> under the Nationwide House Energy Rating Scheme (NatHERS).</p>
+<p>What this means for your build:</p>
+<ul>
+<li><strong>Better insulation:</strong> Higher R-values required for walls, ceilings, and floors</li>
+<li><strong>Improved glazing:</strong> Better performing windows (lower U-values) particularly in climate zones 6–8</li>
+<li><strong>Reduced air leakage:</strong> Tighter building envelope to prevent conditioned air escaping</li>
+<li><strong>Whole-of-home energy budget:</strong> Total energy consumption (not just the shell) is now assessed, including hot water, lighting, and pool pumps</li>
+</ul>
+<p><strong>Why it matters to you:</strong> Higher upfront cost for better insulation and windows, but significantly lower energy bills for the life of the home. A 7-star home can save $1,000–$2,000+ per year on heating and cooling compared to a 6-star home.</p>
+
+<h2>Key Change 2: Condensation Management</h2>
+<p>This is a major new requirement. The NCC 2025 introduces <strong>mandatory condensation management</strong> for all new homes — addressing a problem that has caused widespread mould, rot, and health issues in Australian buildings.</p>
+<p>Requirements include:</p>
+<ul>
+<li><strong>Vapour barriers:</strong> Required on the warm side of insulation in climate zones where condensation is likely</li>
+<li><strong>Ventilation:</strong> Improved ventilation requirements to manage moisture</li>
+<li><strong>Material compatibility:</strong> Ensuring wall systems are designed to manage moisture movement through the building envelope</li>
+</ul>
+<p><strong>Why it matters to you:</strong> If your builder isn't up to date with condensation management requirements, you could end up with a home that develops mould within the first few years. Ask your builder specifically how they're addressing NCC 2025 condensation requirements.</p>
+
+<h2>Key Change 3: Livable Housing Design</h2>
+<p>The NCC 2025 introduces "silver level" Livable Housing Design Guidelines as a minimum standard. This means all new homes must include basic accessibility features:</p>
+<ul>
+<li><strong>Step-free entry:</strong> At least one entrance must be step-free (or have a ramp)</li>
+<li><strong>Wider doorways:</strong> Internal doors must be minimum 820mm clear opening</li>
+<li><strong>Accessible toilet:</strong> Ground floor toilet must be accessible (reinforced walls for future grab rails)</li>
+<li><strong>Wider hallways:</strong> Minimum 1000mm wide</li>
+</ul>
+<p><strong>Why it matters to you:</strong> Even if you don't need accessibility features now, these requirements make homes more livable for everyone and add resale value. They also make it easier to age in place.</p>
+
+<h2>Key Change 4: Plumbing and Fire Safety</h2>
+<ul>
+<li><strong>Interconnected smoke alarms:</strong> All smoke alarms must be interconnected (when one sounds, they all sound)</li>
+<li><strong>Updated plumbing standards:</strong> New requirements for water efficiency and grey water systems</li>
+<li><strong>Improved bushfire protection:</strong> Updated BAL (Bushfire Attack Level) requirements in bushfire-prone areas</li>
+</ul>
+
+<h2>How to Verify NCC 2025 Compliance</h2>
+<p>As a homeowner, you can't be expected to know every clause of the NCC. But you can:</p>
+<ul>
+<li>Ask your builder to confirm which version of the NCC your build is designed to</li>
+<li>Request your energy assessment report (NatHERS certificate) and check it shows 7+ stars</li>
+<li>Ask specifically about condensation management strategy</li>
+<li>Verify accessibility features are included in your plans</li>
+<li>Use <a href="/guardian"><strong>HomeOwner Guardian's NCC 2025 compliance checker</strong></a> to verify key requirements at each stage</li>
+</ul>
+
+<h2>What If Your Builder Isn't Up to Date?</h2>
+<p>Some builders, particularly smaller operators, may not be fully across the NCC 2025 changes. Warning signs:</p>
+<ul>
+<li>They're still quoting for 6-star energy ratings</li>
+<li>They don't mention condensation management</li>
+<li>They push back on accessibility features ("no one needs that")</li>
+<li>They can't explain how the new energy budget assessment works</li>
+</ul>
+<p>If your builder isn't across NCC 2025, consider whether they're the right builder for your project.</p>
+
+<h2>Stay Informed</h2>
+<p><a href="/guardian"><strong>HomeOwner Guardian</strong></a> includes an NCC 2025 compliance module that checks your build against key code requirements at every stage. You don't need to be a building expert — Guardian translates complex code requirements into simple yes/no checks that you can verify on site.</p>`,
+    },
+    {
         slug: "best-free-online-tools-2026",
         title: "25 Best Free Online Tools You Need in 2026 — No Download Required",
         description: "Discover 25 powerful free browser tools for productivity, development, and creativity. All run locally in your browser with zero downloads or signups.",
@@ -569,7 +1228,7 @@ export const BLOG_POSTS: BlogPost[] = [
         author: "VedaWell Team",
         readTime: "7 min read",
         keywords: ["pre-slab checklist", "slab inspection Australia", "building slab check", "home construction checklist"],
-        category: "Home Construction",
+        category: "Construction",
         relatedTools: [],
         content: `
 <p>The concrete slab is the foundation of your entire home. Once it's poured, mistakes are incredibly expensive \u2014 or impossible \u2014 to fix. Yet many Australian homeowners skip the pre-slab inspection, trusting their builder to get it right.</p>
@@ -641,7 +1300,7 @@ export const BLOG_POSTS: BlogPost[] = [
         author: "VedaWell Team",
         readTime: "8 min read",
         keywords: ["dodgy builders Australia", "builder red flags", "verify builder license NSW", "building contract warning signs"],
-        category: "Home Construction",
+        category: "Construction",
         relatedTools: [],
         content: `
 <p>Every year, thousands of Australian homeowners fall victim to dodgy builders. From disappearing mid-project to cutting corners on insulation, the building industry has more than its share of bad actors. Here's how to spot them before you sign.</p>
@@ -770,7 +1429,7 @@ export const BLOG_POSTS: BlogPost[] = [
         author: "VedaWell Team",
         readTime: "7 min read",
         keywords: ["pre-plasterboard inspection", "pre-drywall check Australia", "insulation inspection new home", "building inspection checklist"],
-        category: "Home Construction",
+        category: "Construction",
         relatedTools: [],
         content: `
 <p>The pre-plasterboard inspection is arguably the single most important checkpoint in your entire build. Once the plasterboard goes up, everything behind it \u2014 insulation, wiring, plumbing, fire barriers \u2014 is sealed away forever. If something's wrong, you won't know until it's too late.</p>
@@ -830,7 +1489,7 @@ export const BLOG_POSTS: BlogPost[] = [
         author: "VedaWell Team",
         readTime: "8 min read",
         keywords: ["construction variations Australia", "building variation costs", "variation order home build", "manage builder variations"],
-        category: "Home Construction",
+        category: "Construction",
         relatedTools: [],
         content: `
 <p>Construction variations are one of the biggest sources of conflict between homeowners and builders. A variation is any change to the original scope of work in your building contract \u2014 and they can add up fast.</p>
@@ -1042,7 +1701,7 @@ export const BLOG_POSTS: BlogPost[] = [
         author: "VedaWell Team",
         readTime: "10 min read",
         keywords: ["owner builder Australia", "owner builder permit NSW", "owner builder insurance", "owner builder guide 2026"],
-        category: "Home Construction",
+        category: "Construction",
         relatedTools: [],
         content: `
 <p>Thinking about being your own builder? Owner building can save you significant money, but it comes with serious responsibilities. Here's everything Australian homeowners need to know about owner building in 2026.</p>

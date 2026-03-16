@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useToast } from "@/components/guardian/Toast";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -331,6 +332,7 @@ export default function NCC2025Compliance({
   });
   const [tooltipOpen, setTooltipOpen] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const { toast } = useToast();
 
   /* Load from localStorage on mount */
   useEffect(() => {
@@ -357,8 +359,12 @@ export default function NCC2025Compliance({
   }, [checked, storageKey, loaded]);
 
   const toggleItem = useCallback((id: string) => {
-    setChecked((prev) => ({ ...prev, [id]: !prev[id] }));
-  }, []);
+    setChecked((prev) => {
+      const newVal = !prev[id];
+      if (newVal) toast("Item verified", "success");
+      return { ...prev, [id]: newVal };
+    });
+  }, [toast]);
 
   const toggleSection = useCallback((key: string) => {
     setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -367,6 +373,30 @@ export default function NCC2025Compliance({
   const toggleTooltip = useCallback((id: string) => {
     setTooltipOpen((prev) => (prev === id ? null : id));
   }, []);
+
+  /* Shortcut verification state (binary: verified OK / found issue) */
+  const shortcutStorageKey = `ncc2025-shortcuts-${projectId}`;
+  const [shortcutVerifications, setShortcutVerifications] = useState<Record<string, "verified" | "issue" | null>>({});
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(shortcutStorageKey);
+      if (raw) setShortcutVerifications(JSON.parse(raw));
+    } catch { /* ignore */ }
+  }, [shortcutStorageKey]);
+
+  const toggleShortcutVerification = useCallback((id: string, status: "verified" | "issue") => {
+    setShortcutVerifications((prev) => {
+      const next = { ...prev, [id]: prev[id] === status ? null : status };
+      try { localStorage.setItem(shortcutStorageKey, JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
+    if (status === "verified") {
+      toast("Marked as compliant", "success");
+    } else {
+      toast("Non-compliance flagged", "error");
+    }
+  }, [shortcutStorageKey, toast]);
 
   /* Scoring helpers */
   const sectionScore = (section: ComplianceSection) => {
@@ -467,7 +497,9 @@ export default function NCC2025Compliance({
             <button
               type="button"
               onClick={() => toggleSection(section.key)}
-              className="w-full flex items-center justify-between gap-3 p-5 text-left hover:bg-muted/50 transition-colors"
+              aria-expanded={!!isOpen}
+              aria-controls={`ncc-section-${section.key}`}
+              className="w-full flex items-center justify-between gap-3 p-5 text-left hover:bg-muted/50 transition-colors focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-[-2px]"
             >
               <div className="flex items-center gap-3 min-w-0">
                 <ChevronIcon open={!!isOpen} />
@@ -505,7 +537,7 @@ export default function NCC2025Compliance({
 
             {/* Checklist items */}
             {isOpen && (
-              <div className="p-5 pt-4 space-y-2">
+              <div id={`ncc-section-${section.key}`} role="region" aria-label={section.title} className="p-5 pt-4 space-y-2">
                 {section.items.map((item) => {
                   const isChecked = !!checked[item.id];
                   const isTooltipOpen = tooltipOpen === item.id;
@@ -518,7 +550,7 @@ export default function NCC2025Compliance({
                           id={item.id}
                           checked={isChecked}
                           onChange={() => toggleItem(item.id)}
-                          className="mt-1 h-4 w-4 rounded border-border accent-green-600 shrink-0 cursor-pointer"
+                          className="mt-0.5 h-5 w-5 min-h-[20px] min-w-[20px] rounded border-border accent-green-600 shrink-0 cursor-pointer"
                         />
                         <label
                           htmlFor={item.id}
@@ -533,8 +565,9 @@ export default function NCC2025Compliance({
                         <button
                           type="button"
                           onClick={() => toggleTooltip(item.id)}
-                          className="mt-0.5 hover:opacity-70 transition-opacity"
+                          className="p-2 -m-2 hover:opacity-70 transition-opacity focus-visible:outline-2 focus-visible:outline-primary rounded"
                           aria-label={`More info about: ${item.label}`}
+                          aria-expanded={isTooltipOpen}
                         >
                           <InfoIcon />
                         </button>
@@ -553,34 +586,92 @@ export default function NCC2025Compliance({
         );
       })}
 
-      {/* ---- Warning panel ---- */}
-      <div className="bg-red-50 border border-red-200 rounded-xl p-5 space-y-3">
+      {/* ---- Warning panel with binary actions ---- */}
+      <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-xl p-5 space-y-3">
         <div className="flex items-center gap-2">
           <WarningIcon />
-          <h3 className="font-bold text-red-800 text-sm">
+          <h3 className="font-bold text-red-800 dark:text-red-400 text-sm">
             Common NCC 2025 Shortcuts Builders Take
           </h3>
         </div>
-        <p className="text-xs text-red-700">
-          Watch out for these red flags. If your builder is cutting corners on
-          any of these items, raise it immediately in writing.
+        <p className="text-xs text-red-700 dark:text-red-400">
+          Check each item and mark whether your builder has complied.
         </p>
-        <ul className="space-y-2">
-          {BUILDER_SHORTCUTS.map((shortcut) => (
-            <li
-              key={shortcut.id}
-              className="flex items-start gap-2 text-sm text-red-800"
-            >
-              <span
-                className="shrink-0 mt-0.5 w-4 h-4 rounded-full bg-red-200 flex items-center justify-center text-red-700 text-xs font-bold"
-                aria-hidden="true"
+        <div className="space-y-3">
+          {BUILDER_SHORTCUTS.map((shortcut) => {
+            const status = shortcutVerifications[shortcut.id];
+            return (
+              <div
+                key={shortcut.id}
+                className={`p-3 rounded-lg border transition-colors ${
+                  status === "verified"
+                    ? "bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-800"
+                    : status === "issue"
+                      ? "bg-red-100 dark:bg-red-950/40 border-red-400 dark:border-red-700"
+                      : "bg-white/60 dark:bg-red-950/10 border-red-200 dark:border-red-800/50"
+                }`}
               >
-                &#x2715;
-              </span>
-              <span>{shortcut.text}</span>
-            </li>
-          ))}
-        </ul>
+                <div className="flex items-start gap-2">
+                  <span className="shrink-0 mt-0.5">
+                    {status === "verified" ? (
+                      <span className="text-green-600">{"\u2713"}</span>
+                    ) : status === "issue" ? (
+                      <span className="text-red-600">{"\u{1F6A9}"}</span>
+                    ) : (
+                      <span className="w-4 h-4 rounded-full bg-red-200 dark:bg-red-800 flex items-center justify-center text-red-700 dark:text-red-300 text-xs font-bold">
+                        &#x2715;
+                      </span>
+                    )}
+                  </span>
+                  <span className={`text-sm flex-1 ${
+                    status === "verified"
+                      ? "text-green-800 dark:text-green-300 line-through opacity-70"
+                      : "text-red-800 dark:text-red-300"
+                  }`}>
+                    {shortcut.text}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 mt-2 ml-6">
+                  <button
+                    type="button"
+                    onClick={() => toggleShortcutVerification(shortcut.id, "verified")}
+                    className={`flex items-center gap-1 px-2.5 py-1.5 rounded text-xs font-medium transition-colors min-h-[36px] ${
+                      status === "verified"
+                        ? "bg-green-600 text-white"
+                        : "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 hover:bg-green-200"
+                    }`}
+                  >
+                    {"\u2713"} OK
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => toggleShortcutVerification(shortcut.id, "issue")}
+                    className={`flex items-center gap-1 px-2.5 py-1.5 rounded text-xs font-medium transition-colors min-h-[36px] ${
+                      status === "issue"
+                        ? "bg-red-600 text-white"
+                        : "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 hover:bg-red-200"
+                    }`}
+                  >
+                    {"\u{1F6A9}"} Issue
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        {/* Summary */}
+        {(() => {
+          const verified = BUILDER_SHORTCUTS.filter(s => shortcutVerifications[s.id] === "verified").length;
+          const issues = BUILDER_SHORTCUTS.filter(s => shortcutVerifications[s.id] === "issue").length;
+          if (verified === 0 && issues === 0) return null;
+          return (
+            <div className="pt-2 border-t border-red-200/50 dark:border-red-800/50 flex items-center gap-3 text-xs">
+              {verified > 0 && <span className="text-green-700 dark:text-green-400 font-medium">{verified} clear</span>}
+              {issues > 0 && <span className="text-red-700 dark:text-red-400 font-medium">{issues} issue{issues !== 1 ? "s" : ""} found</span>}
+              <span className="text-muted-foreground">{BUILDER_SHORTCUTS.length - verified - issues} unchecked</span>
+            </div>
+          );
+        })()}
       </div>
 
       {/* ---- State-specific note ---- */}

@@ -333,12 +333,14 @@ export default function ProjectDetailPage() {
             {/* Desktop: Main 5-Section Tabs */}
             <div className="hidden md:block border-b border-border bg-card">
                 <div className="max-w-7xl mx-auto px-6">
-                    <nav className="flex items-center gap-1">
+                    <nav aria-label="Main navigation" role="tablist" className="flex items-center gap-1">
                         {SECTIONS.map((section) => (
                             <button
                                 key={section.id}
+                                role="tab"
+                                aria-selected={activeSection === section.id}
                                 onClick={() => handleSectionClick(section.id)}
-                                className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 transition-colors ${
+                                className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 transition-colors focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-[-2px] ${
                                     activeSection === section.id
                                         ? "border-primary text-primary"
                                         : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
@@ -357,14 +359,16 @@ export default function ProjectDetailPage() {
                 <div className="border-b border-border bg-muted/30">
                     <div className="max-w-7xl mx-auto px-4 md:px-6">
                         <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
-                            <div className="flex items-center gap-1 min-w-max py-1">
+                            <div role="tablist" aria-label={`${activeSection} sub-navigation`} className="flex items-center gap-1 min-w-max py-1">
                                 {currentSubTabs.map((tab) => {
                                     const isRelevant = relevantTabs.has(tab.id);
                                     return (
                                         <button
                                             key={tab.id}
+                                            role="tab"
+                                            aria-selected={activeTab === tab.id}
                                             onClick={() => setActiveTab(tab.id)}
-                                            className={`relative px-3 py-2 rounded-lg text-sm whitespace-nowrap transition-colors ${
+                                            className={`relative px-3 py-2 rounded-lg text-sm whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-primary ${
                                                 activeTab === tab.id
                                                     ? "bg-primary text-white font-medium"
                                                     : isRelevant
@@ -385,7 +389,7 @@ export default function ProjectDetailPage() {
                 </div>
             )}
 
-            <main className="flex-1 py-6 px-4 md:px-6">
+            <main role="main" aria-label="Project content" className="flex-1 py-6 px-4 md:px-6">
                 <div className="max-w-7xl mx-auto">
                     {/* Project Header — compact */}
                     <div className="mb-6">
@@ -437,7 +441,7 @@ export default function ProjectDetailPage() {
                     )}
 
                     {/* Tab Content */}
-                    <div className="min-h-[400px]">
+                    <div role="tabpanel" aria-label={activeTab} className="min-h-[400px]">
                         {/* ── "More" Grid View ── */}
                         {activeTab === "more_grid" && (
                             <div>
@@ -522,6 +526,7 @@ export default function ProjectDetailPage() {
                                 currentStage={currentStage}
                                 stateCode={project.state}
                                 buildCategory={project.build_category}
+                                onNavigateTab={setActiveTab}
                             />
                         )}
                         {activeTab === "disputes" && (
@@ -616,14 +621,15 @@ export default function ProjectDetailPage() {
             </main>
 
             {/* ── Mobile Bottom Navigation ── */}
-            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border z-50"
+            <nav aria-label="Mobile navigation" className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border z-50"
                 style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
                 <div className="flex items-center justify-around">
                     {SECTIONS.map((section) => (
                         <button
                             key={section.id}
+                            aria-current={activeSection === section.id ? "page" : undefined}
                             onClick={() => handleSectionClick(section.id)}
-                            className={`flex flex-col items-center gap-0.5 py-2 px-3 min-w-[60px] transition-colors ${
+                            className={`flex flex-col items-center gap-0.5 py-2 px-3 min-w-[60px] min-h-[44px] transition-colors ${
                                 activeSection === section.id
                                     ? "text-primary"
                                     : "text-muted-foreground"

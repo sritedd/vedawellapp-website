@@ -165,60 +165,79 @@ export default async function AdminPage() {
     const funnelMax = Math.max(...funnelSteps.map(s => s.value), 1);
 
     // ── Active announcement ──────────────────────────────────────────
-    const { data: activeAnnouncement } = await supabase
-        .from("announcements")
-        .select("id, message, type, created_at")
-        .eq("active", true)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .single();
+    let activeAnnouncement: { id: string; message: string; type: string; created_at: string } | null = null;
+    try {
+        const { data: annData } = await supabase
+            .from("announcements")
+            .select("id, message, type, created_at")
+            .eq("active", true)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .single();
+        activeAnnouncement = annData;
+    } catch { /* table may not exist */ }
 
     // ── All users (for management) ──────────────────────────────────
-    const { data: allUsers } = await supabase
-        .from("profiles")
-        .select("id, email, full_name, subscription_tier, is_admin, trial_ends_at, last_seen_at, created_at")
-        .order("created_at", { ascending: false })
-        .limit(100);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let allUsersWithProjects: any[] = [];
+    try {
+        const { data: allUsers } = await supabase
+            .from("profiles")
+            .select("id, email, full_name, subscription_tier, is_admin, trial_ends_at, last_seen_at, created_at")
+            .order("created_at", { ascending: false })
+            .limit(100);
 
-    // ── Project counts per user ──────────────────────────────────────
-    const { data: projectCounts } = await supabase
-        .from("projects")
-        .select("user_id");
+        const { data: projectCounts } = await supabase
+            .from("projects")
+            .select("user_id");
 
-    const projectCountMap: Record<string, number> = {};
-    for (const p of projectCounts ?? []) {
-        projectCountMap[p.user_id] = (projectCountMap[p.user_id] ?? 0) + 1;
-    }
+        const projectCountMap: Record<string, number> = {};
+        for (const p of projectCounts ?? []) {
+            projectCountMap[p.user_id] = (projectCountMap[p.user_id] ?? 0) + 1;
+        }
 
-    const allUsersWithProjects = (allUsers ?? []).map((u: { id: string; email: string | null; full_name: string | null; subscription_tier: string | null; is_admin: boolean; trial_ends_at: string | null; last_seen_at: string | null; created_at: string }) => ({
-        ...u,
-        project_count: projectCountMap[u.id] ?? 0,
-    }));
+        allUsersWithProjects = (allUsers ?? []).map((u: { id: string; email: string | null; full_name: string | null; subscription_tier: string | null; is_admin: boolean; trial_ends_at: string | null; last_seen_at: string | null; created_at: string }) => ({
+            ...u,
+            project_count: projectCountMap[u.id] ?? 0,
+        }));
+    } catch { /* column may not exist if migration not run */ }
 
     // ── Support conversations ──────────────────────────────────────
-    const { conversations: supportConversations } = await getAdminConversations();
+    let supportConversations: Awaited<ReturnType<typeof getAdminConversations>>["conversations"] = [];
+    try {
+        const result = await getAdminConversations();
+        supportConversations = result.conversations;
+    } catch { /* table may not exist */ }
 
     // ── Top email subscriber sources ─────────────────────────────────
-    const { data: subSources } = await supabase
-        .from("email_subscribers")
-        .select("source")
-        .eq("status", "active")
-        .order("source");
+    let topSources: [string, number][] = [];
+    try {
+        const { data: subSources } = await supabase
+            .from("email_subscribers")
+            .select("source")
+            .eq("status", "active")
+            .order("source");
 
-    const sourceCounts: Record<string, number> = {};
-    for (const { source } of subSources ?? []) {
-        sourceCounts[source] = (sourceCounts[source] ?? 0) + 1;
-    }
-    const topSources = Object.entries(sourceCounts)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 8);
+        const sourceCounts: Record<string, number> = {};
+        for (const { source } of subSources ?? []) {
+            sourceCounts[source] = (sourceCounts[source] ?? 0) + 1;
+        }
+        topSources = Object.entries(sourceCounts)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 8);
+    } catch { /* table may not exist */ }
 
     // ── Tool usage leaderboard ───────────────────────────────────────
-    const { data: topTools } = await supabase
-        .from("tool_usage")
-        .select("tool_slug, use_count, last_used_at")
-        .order("use_count", { ascending: false })
-        .limit(15);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let topTools: any[] | null = null;
+    try {
+        const { data: toolData } = await supabase
+            .from("tool_usage")
+            .select("tool_slug, use_count, last_used_at")
+            .order("use_count", { ascending: false })
+            .limit(15);
+        topTools = toolData;
+    } catch { /* table may not exist */ }
 
     const fmt = (d: string | null) =>
         d ? new Date(d).toLocaleDateString("en-AU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "—";

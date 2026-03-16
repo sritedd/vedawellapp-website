@@ -360,10 +360,15 @@ export async function getAdminConversations() {
 
     // Get user profiles for display
     const userIds = [...new Set((data ?? []).map((m: SupportMsg) => m.user_id))];
-    const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, email, full_name")
-        .in("id", userIds);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let profiles: any[] | null = null;
+    if (userIds.length > 0) {
+        const { data: profileData } = await supabase
+            .from("profiles")
+            .select("id, email, full_name")
+            .in("id", userIds);
+        profiles = profileData;
+    }
 
     const profileMap: Record<string, { email: string | null; full_name: string | null }> = {};
     for (const p of profiles ?? []) {

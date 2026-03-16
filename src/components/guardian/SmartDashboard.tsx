@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { formatMoney } from "@/utils/format";
+import { useToast } from "@/components/guardian/Toast";
 import type { Project } from "@/types/guardian";
 import {
     getInsuranceAlerts,
@@ -16,12 +17,18 @@ import {
     type WarrantyAlert,
 } from "@/lib/guardian/calculations";
 
+// Stage tip with optional action target
+interface StageTip {
+    text: string;
+    action?: { tab: string; label: string }; // navigate to tab when acted on
+}
+
 // Stage-specific guidance: which tabs matter and what to focus on
 const STAGE_GUIDANCE: Record<string, {
     focus: string;
     description: string;
     relevantTabs: { id: string; label: string; reason: string }[];
-    tips: string[];
+    tips: StageTip[];
 }> = {
     site_start: {
         focus: "Site preparation and approvals",
@@ -33,9 +40,9 @@ const STAGE_GUIDANCE: Record<string, {
             { id: "payments", label: "Payments", reason: "Base stage payment may be due" },
         ],
         tips: [
-            "Take dated photos of the empty site before any work begins",
-            "Confirm soil report matches what was quoted in the contract",
-            "Verify site set-out matches approved plans",
+            { text: "Take dated photos of the empty site before any work begins", action: { tab: "photos", label: "Open Photos" } },
+            { text: "Confirm soil report matches what was quoted in the contract", action: { tab: "documents", label: "Check Documents" } },
+            { text: "Verify site set-out matches approved plans" },
         ],
     },
     slab: {
@@ -48,9 +55,9 @@ const STAGE_GUIDANCE: Record<string, {
             { id: "defects", label: "Defects", reason: "Log any footing issues" },
         ],
         tips: [
-            "Be on site when concrete is poured if possible",
-            "Verify reinforcement steel matches engineering specs",
-            "Check plumbing rough-in is complete and tested",
+            { text: "Be on site when concrete is poured if possible", action: { tab: "visits", label: "Log Visit" } },
+            { text: "Verify reinforcement steel matches engineering specs", action: { tab: "photos", label: "Take Photo" } },
+            { text: "Check plumbing rough-in is complete and tested", action: { tab: "inspections", label: "Check Inspections" } },
         ],
     },
     frame: {
@@ -64,13 +71,13 @@ const STAGE_GUIDANCE: Record<string, {
             { id: "payments", label: "Payments", reason: "Frame stage payment" },
         ],
         tips: [
-            "Check window and door openings match your contract plans",
-            "Look for twisted or damaged timber in frames",
-            "Ensure cladding doesn't start before frame inspection passes",
+            { text: "Check window and door openings match your contract plans", action: { tab: "photos", label: "Take Photo" } },
+            { text: "Look for twisted or damaged timber in frames", action: { tab: "defects", label: "Log Defect" } },
+            { text: "Ensure cladding doesn't start before frame inspection passes", action: { tab: "inspections", label: "Check Inspections" } },
         ],
     },
     lockup: {
-        focus: "Lockup — building is enclosed",
+        focus: "Lockup \u2014 building is enclosed",
         description: "Roof complete, walls clad, windows and doors installed. The building should be lockable and weatherproof.",
         relevantTabs: [
             { id: "inspections", label: "Inspections", reason: "Pre-cladding & waterproofing" },
@@ -79,13 +86,13 @@ const STAGE_GUIDANCE: Record<string, {
             { id: "defects", label: "Defects", reason: "Check seals and gaps" },
         ],
         tips: [
-            "Check all windows and doors seal properly — no gaps",
-            "Verify termite barrier/protection is installed",
-            "Don't pay lockup without EICC certificate",
+            { text: "Check all windows and doors seal properly \u2014 no gaps", action: { tab: "defects", label: "Log Defect" } },
+            { text: "Verify termite barrier/protection is installed", action: { tab: "certificates", label: "Check Certs" } },
+            { text: "Don't pay lockup without EICC certificate", action: { tab: "certificates", label: "Check Certs" } },
         ],
     },
     pre_plasterboard: {
-        focus: "CRITICAL — Last chance to see inside walls",
+        focus: "CRITICAL \u2014 Last chance to see inside walls",
         description: "This is the most important inspection stage. Once plasterboard goes up, you can never see inside the walls again.",
         relevantTabs: [
             { id: "inspections", label: "Inspections", reason: "Pre-plasterboard inspection" },
@@ -95,11 +102,11 @@ const STAGE_GUIDANCE: Record<string, {
             { id: "checklists", label: "Checklists", reason: "Use pre-plaster checklist" },
         ],
         tips: [
-            "Check ceiling insulation batts are installed (R4.0 minimum)",
-            "Verify wall insulation if contracted",
-            "Check waterproofing membrane in wet areas",
-            "Look for fire collars at penetrations",
-            "Take photos of EVERYTHING before walls close up",
+            { text: "Check ceiling insulation batts are installed (R4.0 minimum)", action: { tab: "photos", label: "Take Photo" } },
+            { text: "Verify wall insulation if contracted", action: { tab: "photos", label: "Take Photo" } },
+            { text: "Check waterproofing membrane in wet areas", action: { tab: "certificates", label: "Check Certs" } },
+            { text: "Look for fire collars at penetrations", action: { tab: "defects", label: "Log Defect" } },
+            { text: "Take photos of EVERYTHING before walls close up", action: { tab: "photos", label: "Open Photos" } },
         ],
     },
     fixing: {
@@ -113,9 +120,9 @@ const STAGE_GUIDANCE: Record<string, {
             { id: "variations", label: "Variations", reason: "Spec changes during fit-out" },
         ],
         tips: [
-            "Verify tiles are installed AFTER waterproofing is certified",
-            "Check cabinet quality matches contract specifications",
-            "Compare tap, fixture and appliance brands to what was quoted",
+            { text: "Verify tiles are installed AFTER waterproofing is certified", action: { tab: "certificates", label: "Check Certs" } },
+            { text: "Check cabinet quality matches contract specifications", action: { tab: "photos", label: "Take Photo" } },
+            { text: "Compare tap, fixture and appliance brands to what was quoted", action: { tab: "defects", label: "Log Defect" } },
         ],
     },
     practical_completion: {
@@ -125,14 +132,14 @@ const STAGE_GUIDANCE: Record<string, {
             { id: "inspections", label: "Inspections", reason: "Final + OC inspection" },
             { id: "certificates", label: "Certificates", reason: "OC, electrical, plumbing, smoke alarm" },
             { id: "defects", label: "Defects", reason: "Snag list from final walk-through" },
-            { id: "payments", label: "Payments", reason: "Final payment — only after OC!" },
+            { id: "payments", label: "Payments", reason: "Final payment \u2014 only after OC!" },
             { id: "documents", label: "Documents", reason: "Collect all handover documents" },
         ],
         tips: [
-            "NEVER pay the final amount before you have the Occupation Certificate",
-            "Do a thorough walk-through and log every defect before signing off",
-            "Collect all warranties, manuals, certificates at handover",
-            "Set the handover date — this starts your warranty period",
+            { text: "NEVER pay the final amount before you have the Occupation Certificate", action: { tab: "certificates", label: "Check Certs" } },
+            { text: "Do a thorough walk-through and log every defect before signing off", action: { tab: "prehandover", label: "Pre-Handover Checklist" } },
+            { text: "Collect all warranties, manuals, certificates at handover", action: { tab: "documents", label: "Documents" } },
+            { text: "Set the handover date \u2014 this starts your warranty period", action: { tab: "settings", label: "Settings" } },
         ],
     },
 };
@@ -148,9 +155,9 @@ const DEFAULT_GUIDANCE = {
         { id: "communication", label: "Comms Log", reason: "Record builder communication" },
     ],
     tips: [
-        "Take progress photos at every site visit",
-        "Keep all communication with the builder in writing",
-        "Never pay ahead of the schedule in your contract",
+        { text: "Take progress photos at every site visit", action: { tab: "photos", label: "Open Photos" } },
+        { text: "Keep all communication with the builder in writing", action: { tab: "communication", label: "Comms Log" } },
+        { text: "Never pay ahead of the schedule in your contract" },
     ],
 };
 
@@ -457,6 +464,28 @@ export default function SmartDashboard({ project, currentStage, stageNames, onNa
     const licenseUrl = getLicenseVerificationUrl(stateCode);
     const licenseLabel = getLicenseVerificationLabel(stateCode);
 
+    // Dismissed tips state (persisted per project+stage in localStorage)
+    const { toast } = useToast();
+    const tipsStorageKey = `tips-dismissed-${project.id}-${normalizedStage}`;
+    const [dismissedTips, setDismissedTips] = useState<Record<number, boolean>>({});
+
+    useEffect(() => {
+        try {
+            const raw = localStorage.getItem(tipsStorageKey);
+            if (raw) setDismissedTips(JSON.parse(raw));
+            else setDismissedTips({});
+        } catch { /* ignore */ }
+    }, [tipsStorageKey]);
+
+    const dismissTip = useCallback((idx: number) => {
+        setDismissedTips((prev) => {
+            const next = { ...prev, [idx]: true };
+            try { localStorage.setItem(tipsStorageKey, JSON.stringify(next)); } catch { /* ignore */ }
+            return next;
+        });
+        toast("Tip completed", "success");
+    }, [tipsStorageKey, toast]);
+
     // Completion stats
     const completedStages = stages.filter(s => s.status === "completed" || s.status === "verified").length;
     const totalStages = stages.length;
@@ -466,6 +495,24 @@ export default function SmartDashboard({ project, currentStage, stageNames, onNa
     const currentStageName = stages.find(
         s => s.name.toLowerCase().replace(/[\s/]+/g, "_") === normalizedStage
     )?.name || currentStage;
+
+    // Celebration messages based on project state
+    const celebrations = useMemo(() => {
+        const msgs: { text: string; icon: string }[] = [];
+        if (!loading) {
+            if (openDefects === 0 && recentActivity.some(a => a.type === "defect")) {
+                msgs.push({ text: "All defects resolved! Clean sheet.", icon: "\u{1F389}" });
+            }
+            if (progressPercent === 100 && totalStages > 0) {
+                msgs.push({ text: "All stages complete! Your build is done.", icon: "\u{1F3C6}" });
+            } else if (progressPercent >= 75 && totalStages > 0) {
+                msgs.push({ text: `${progressPercent}% complete \u2014 almost there!`, icon: "\u{1F4AA}" });
+            } else if (progressPercent >= 50 && totalStages > 0) {
+                msgs.push({ text: "Halfway through your build!", icon: "\u{1F680}" });
+            }
+        }
+        return msgs;
+    }, [loading, openDefects, recentActivity, progressPercent, totalStages]);
 
     if (loading) {
         return (
@@ -514,6 +561,18 @@ export default function SmartDashboard({ project, currentStage, stageNames, onNa
                     </div>
                 </div>
             </div>
+
+            {/* Celebration Moments */}
+            {celebrations.length > 0 && (
+                <div className="space-y-2">
+                    {celebrations.map((c, i) => (
+                        <div key={i} className="p-4 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border border-green-200 dark:border-green-800 flex items-center gap-3">
+                            <span className="text-2xl">{c.icon}</span>
+                            <span className="font-semibold text-green-800 dark:text-green-300">{c.text}</span>
+                        </div>
+                    ))}
+                </div>
+            )}
 
             {/* Consolidated Alerts — show top priority + expandable rest */}
             <ConsolidatedAlerts
@@ -607,17 +666,54 @@ export default function SmartDashboard({ project, currentStage, stageNames, onNa
                 </div>
             </div>
 
-            {/* Stage Tips */}
+            {/* Stage Tips — Dismissable Micro-Task Cards */}
             <div className="bg-card border border-border rounded-xl p-6">
-                <h3 className="text-lg font-bold mb-3">Tips for {currentStageName}</h3>
-                <ul className="space-y-2">
-                    {guidance.tips.map((tip, idx) => (
-                        <li key={idx} className="flex items-start gap-2 text-sm">
-                            <span className="text-primary font-bold mt-0.5">-</span>
-                            <span className="text-muted-foreground">{tip}</span>
-                        </li>
-                    ))}
-                </ul>
+                <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-lg font-bold">Tips for {currentStageName}</h3>
+                    <span className="text-xs text-muted-foreground">
+                        {Object.keys(dismissedTips).filter(k => dismissedTips[Number(k)]).length}/{guidance.tips.length} done
+                    </span>
+                </div>
+                <div className="space-y-2">
+                    {guidance.tips.map((tip, idx) => {
+                        const isDismissed = !!dismissedTips[idx];
+                        return (
+                            <div
+                                key={idx}
+                                className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${
+                                    isDismissed
+                                        ? "bg-green-50/50 dark:bg-green-950/20 border-green-200 dark:border-green-800/50 opacity-60"
+                                        : "bg-muted/30 border-border hover:border-primary/30"
+                                }`}
+                            >
+                                <button
+                                    type="button"
+                                    onClick={() => dismissTip(idx)}
+                                    className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors min-w-[20px] min-h-[20px] ${
+                                        isDismissed
+                                            ? "bg-green-500 border-green-500 text-white"
+                                            : "border-muted-foreground/40 hover:border-primary"
+                                    }`}
+                                    aria-label={isDismissed ? "Completed" : "Mark as done"}
+                                >
+                                    {isDismissed && <span className="text-xs">{"\u2713"}</span>}
+                                </button>
+                                <span className={`text-sm flex-1 ${isDismissed ? "line-through text-muted-foreground" : "text-foreground"}`}>
+                                    {tip.text}
+                                </span>
+                                {tip.action && !isDismissed && (
+                                    <button
+                                        type="button"
+                                        onClick={() => onNavigateTab(tip.action!.tab)}
+                                        className="flex-shrink-0 px-2.5 py-1 rounded-md text-xs font-medium text-primary bg-primary/10 hover:bg-primary/20 transition-colors whitespace-nowrap min-h-[28px]"
+                                    >
+                                        {tip.action.label}
+                                    </button>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
 
             {/* Dodgy Builder Warnings */}
@@ -723,19 +819,37 @@ export default function SmartDashboard({ project, currentStage, stageNames, onNa
                                 No activity yet. Start by logging a defect, uploading photos, or recording a communication.
                             </p>
                         ) : (
-                            <div className="space-y-3">
-                                {recentActivity.map((item) => (
-                                    <div key={item.id} className="flex items-start gap-3 py-2 border-b border-border/30 last:border-0">
-                                        <span className="text-lg">{item.icon}</span>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="font-medium text-sm truncate">{item.title}</div>
-                                            <div className="text-xs text-muted-foreground">{item.detail}</div>
-                                        </div>
-                                        <div className="text-xs text-muted-foreground whitespace-nowrap">
-                                            {new Date(item.date).toLocaleDateString("en-AU", { day: "numeric", month: "short" })}
-                                        </div>
-                                    </div>
-                                ))}
+                            <div className="space-y-1">
+                                {recentActivity.map((item) => {
+                                    const tabMap: Record<string, string> = {
+                                        defect: "defects",
+                                        variation: "variations",
+                                        inspection: "inspections",
+                                        payment: "payments",
+                                        photo: "photos",
+                                        communication: "communication",
+                                    };
+                                    const targetTab = tabMap[item.type] || "overview";
+                                    return (
+                                        <button
+                                            key={item.id}
+                                            onClick={() => onNavigateTab(targetTab)}
+                                            className="w-full flex items-start gap-3 py-2.5 px-2 -mx-2 rounded-lg border-b border-border/30 last:border-0 hover:bg-muted/50 transition-colors text-left group"
+                                        >
+                                            <span className="text-lg">{item.icon}</span>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="font-medium text-sm truncate group-hover:text-primary transition-colors">{item.title}</div>
+                                                <div className="text-xs text-muted-foreground">{item.detail}</div>
+                                            </div>
+                                            <div className="flex items-center gap-1">
+                                                <span className="text-xs text-muted-foreground whitespace-nowrap">
+                                                    {new Date(item.date).toLocaleDateString("en-AU", { day: "numeric", month: "short" })}
+                                                </span>
+                                                <svg className="w-3.5 h-3.5 text-muted-foreground/50 group-hover:text-primary transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><polyline points="9 18 15 12 9 6" /></svg>
+                                            </div>
+                                        </button>
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
