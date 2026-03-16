@@ -409,6 +409,365 @@ export function calculateContingencyPercent(contingencyActual: number, contingen
 }
 
 // ===========================================
+// INSURANCE VALIDATION
+// ===========================================
+
+interface StateInsuranceConfig {
+    scheme: string;
+    threshold: number;
+    label: string;
+    verifyUrl: string;
+}
+
+const STATE_INSURANCE: Record<string, StateInsuranceConfig> = {
+    NSW: {
+        scheme: 'HBCF (Home Building Compensation Fund)',
+        threshold: 20000,
+        label: 'HBCF Policy #',
+        verifyUrl: 'https://www.fairtrading.nsw.gov.au/trades-and-businesses/licensing-and-registrations/public-register',
+    },
+    VIC: {
+        scheme: 'Domestic Building Insurance (DBI)',
+        threshold: 16000,
+        label: 'DBI Policy #',
+        verifyUrl: 'https://www.vba.vic.gov.au/consumers/home-building-insurance',
+    },
+    QLD: {
+        scheme: 'QBCC Home Warranty Insurance',
+        threshold: 3300,
+        label: 'QBCC Insurance #',
+        verifyUrl: 'https://www.qbcc.qld.gov.au/licence-search',
+    },
+    WA: {
+        scheme: 'Home Indemnity Insurance',
+        threshold: 20000,
+        label: 'Home Indemnity Policy #',
+        verifyUrl: 'https://www.commerce.wa.gov.au/building-commission/search-registered-building-service-providers',
+    },
+    SA: {
+        scheme: "Builder's Indemnity Insurance",
+        threshold: 12000,
+        label: 'Indemnity Policy #',
+        verifyUrl: 'https://plan.sa.gov.au',
+    },
+    TAS: {
+        scheme: 'Building Practitioner Accreditation (voluntary insurance)',
+        threshold: 20000,
+        label: 'Accreditation #',
+        verifyUrl: 'https://www.cbos.tas.gov.au/topics/housing-building/building-practitioners',
+    },
+    ACT: {
+        scheme: 'ACT Fidelity Fund Certificate',
+        threshold: 12000,
+        label: 'Fidelity Certificate #',
+        verifyUrl: 'https://www.accesscanberra.act.gov.au/s/building-and-construction',
+    },
+    NT: {
+        scheme: 'Home Building Certification Fund (HBCF)',
+        threshold: 12000,
+        label: 'HBCF Policy #',
+        verifyUrl: 'https://nt.gov.au/property/building-and-development/find-a-licensed-builder',
+    },
+};
+
+/**
+ * Get insurance config for a state.
+ */
+export function getStateInsuranceConfig(stateCode: string): StateInsuranceConfig | null {
+    return STATE_INSURANCE[stateCode] || null;
+}
+
+/**
+ * Check if insurance is required based on contract value and state threshold.
+ */
+export function isInsuranceRequired(contractValue: number, stateCode: string): boolean {
+    const config = STATE_INSURANCE[stateCode];
+    if (!config) return false;
+    return contractValue >= config.threshold;
+}
+
+/**
+ * Validate insurance status for a project.
+ * Returns alerts that should be shown to the user.
+ */
+export interface InsuranceAlert {
+    level: 'critical' | 'warning' | 'info';
+    title: string;
+    message: string;
+}
+
+export function getInsuranceAlerts(
+    contractValue: number,
+    stateCode: string,
+    policyNumber: string | undefined,
+    insuranceExpiryDate: string | undefined,
+): InsuranceAlert[] {
+    const alerts: InsuranceAlert[] = [];
+    const config = STATE_INSURANCE[stateCode];
+    if (!config) return alerts;
+
+    const required = contractValue >= config.threshold;
+
+    if (required && !policyNumber) {
+        alerts.push({
+            level: 'critical',
+            title: `${config.scheme} Required`,
+            message: `Your contract value ($${contractValue.toLocaleString()}) exceeds the $${config.threshold.toLocaleString()} threshold. Your builder MUST have valid ${config.scheme} before work begins. Do NOT make any payments without this.`,
+        });
+    }
+
+    if (policyNumber && insuranceExpiryDate) {
+        const daysLeft = Math.ceil(
+            (new Date(insuranceExpiryDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
+        );
+        if (daysLeft < 0) {
+            alerts.push({
+                level: 'critical',
+                title: 'Builder Insurance EXPIRED',
+                message: `Your builder's ${config.scheme} expired ${Math.abs(daysLeft)} days ago. STOP all payments immediately and request an updated certificate.`,
+            });
+        } else if (daysLeft <= 30) {
+            alerts.push({
+                level: 'warning',
+                title: 'Insurance Expiring Soon',
+                message: `Your builder's ${config.scheme} expires in ${daysLeft} days. Request an updated certificate now.`,
+            });
+        }
+    }
+
+    return alerts;
+}
+
+// ===========================================
+// COOLING-OFF PERIOD
+// ===========================================
+
+const STATE_COOLING_OFF: Record<string, { days: number; type: 'business' | 'calendar'; note: string }> = {
+    NSW: { days: 5, type: 'business', note: 'Under Home Building Act 1989 s.7BA' },
+    VIC: { days: 5, type: 'business', note: 'Under Domestic Building Contracts Act 1995' },
+    QLD: { days: 5, type: 'business', note: 'Under QBCC Act 1991' },
+    WA: { days: 0, type: 'business', note: 'No statutory cooling-off period for building contracts in WA' },
+    SA: { days: 5, type: 'business', note: 'Under Building Work Contractors Act 1995' },
+    TAS: { days: 5, type: 'business', note: 'Under Building Act 2016' },
+    ACT: { days: 5, type: 'business', note: 'Under Building Act 2004' },
+    NT: { days: 0, type: 'business', note: 'No statutory cooling-off period for building contracts in NT' },
+};
+
+/**
+ * Get cooling-off period config for a state.
+ */
+export function getCoolingOffConfig(stateCode: string): { days: number; type: 'business' | 'calendar'; note: string } | null {
+    return STATE_COOLING_OFF[stateCode] || null;
+}
+
+/**
+ * Add business days to a date (skips weekends).
+ */
+export function addBusinessDays(startDate: Date | string, businessDays: number): Date {
+    const date = new Date(startDate);
+    let added = 0;
+    while (added < businessDays) {
+        date.setDate(date.getDate() + 1);
+        const dayOfWeek = date.getDay();
+        if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+            added++;
+        }
+    }
+    return date;
+}
+
+/**
+ * Calculate cooling-off end date and status.
+ */
+export interface CoolingOffStatus {
+    endDate: Date;
+    daysRemaining: number;
+    isActive: boolean;
+    stateNote: string;
+    totalDays: number;
+}
+
+export function getCoolingOffStatus(
+    contractSignedDate: string,
+    stateCode: string,
+): CoolingOffStatus | null {
+    const config = STATE_COOLING_OFF[stateCode];
+    if (!config || config.days === 0) return null;
+
+    const endDate = config.type === 'business'
+        ? addBusinessDays(contractSignedDate, config.days)
+        : (() => { const d = new Date(contractSignedDate); d.setDate(d.getDate() + config.days); return d; })();
+
+    const now = new Date();
+    const msRemaining = endDate.getTime() - now.getTime();
+    const daysRemaining = Math.ceil(msRemaining / (1000 * 60 * 60 * 24));
+
+    return {
+        endDate,
+        daysRemaining: Math.max(0, daysRemaining),
+        isActive: daysRemaining > 0,
+        stateNote: config.note,
+        totalDays: config.days,
+    };
+}
+
+// ===========================================
+// STATE-SPECIFIC WARRANTY PERIODS
+// ===========================================
+
+const STATE_WARRANTY_PERIODS: Record<string, { structural: number; nonStructural: number }> = {
+    NSW: { structural: 6, nonStructural: 2 },
+    VIC: { structural: 6, nonStructural: 2 },
+    QLD: { structural: 6.5, nonStructural: 0.5 },
+    WA: { structural: 6, nonStructural: 2 },
+    SA: { structural: 5, nonStructural: 1 },
+    TAS: { structural: 6, nonStructural: 1 },
+    ACT: { structural: 6, nonStructural: 2 },
+    NT: { structural: 6, nonStructural: 1 },
+};
+
+/**
+ * Get warranty periods for a state (in years).
+ */
+export function getStateWarrantyPeriods(stateCode: string): { structural: number; nonStructural: number } {
+    return STATE_WARRANTY_PERIODS[stateCode] || STATE_WARRANTY_PERIODS['NSW'];
+}
+
+/**
+ * Generate proactive warranty alerts based on handover date and state.
+ */
+export interface WarrantyAlert {
+    level: 'critical' | 'warning' | 'info';
+    type: string;
+    title: string;
+    message: string;
+    daysLeft: number;
+    expiryDate: Date;
+}
+
+export function getWarrantyAlerts(
+    handoverDate: string,
+    stateCode: string,
+): WarrantyAlert[] {
+    const alerts: WarrantyAlert[] = [];
+    const periods = getStateWarrantyPeriods(stateCode);
+    const handover = new Date(handoverDate);
+    const now = new Date();
+
+    // Non-structural warranty
+    const nonStructExpiry = new Date(handover);
+    nonStructExpiry.setFullYear(nonStructExpiry.getFullYear() + Math.floor(periods.nonStructural));
+    nonStructExpiry.setMonth(nonStructExpiry.getMonth() + Math.round((periods.nonStructural % 1) * 12));
+    const nonStructDays = Math.ceil((nonStructExpiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+    if (nonStructDays <= 90 && nonStructDays > 0) {
+        alerts.push({
+            level: nonStructDays <= 14 ? 'critical' : nonStructDays <= 30 ? 'warning' : 'info',
+            type: 'non-structural',
+            title: `Non-Structural Warranty Expiring`,
+            message: nonStructDays <= 14
+                ? `Only ${nonStructDays} days left! Report ALL minor defects (paint, tiles, plumbing leaks) to your builder IN WRITING immediately.`
+                : nonStructDays <= 30
+                    ? `${nonStructDays} days remaining. Schedule a thorough inspection and document any cosmetic defects now.`
+                    : `${nonStructDays} days remaining on your ${periods.nonStructural}-year non-structural warranty. Start inspecting for minor defects.`,
+            daysLeft: nonStructDays,
+            expiryDate: nonStructExpiry,
+        });
+    } else if (nonStructDays <= 0) {
+        alerts.push({
+            level: 'critical',
+            type: 'non-structural',
+            title: `Non-Structural Warranty Expired`,
+            message: `Your ${periods.nonStructural}-year non-structural warranty expired ${Math.abs(nonStructDays)} days ago. You can no longer claim minor defects.`,
+            daysLeft: nonStructDays,
+            expiryDate: nonStructExpiry,
+        });
+    }
+
+    // Structural warranty
+    const structExpiry = new Date(handover);
+    structExpiry.setFullYear(structExpiry.getFullYear() + Math.floor(periods.structural));
+    structExpiry.setMonth(structExpiry.getMonth() + Math.round((periods.structural % 1) * 12));
+    const structDays = Math.ceil((structExpiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+    if (structDays <= 180 && structDays > 0) {
+        alerts.push({
+            level: structDays <= 30 ? 'critical' : structDays <= 90 ? 'warning' : 'info',
+            type: 'structural',
+            title: `Structural Warranty Expiring`,
+            message: structDays <= 30
+                ? `Only ${structDays} days left on your ${periods.structural}-year structural warranty! Get a professional building inspection NOW and report any structural issues in writing.`
+                : structDays <= 90
+                    ? `${structDays} days remaining. Schedule a professional structural inspection to identify any foundation, framing, or load-bearing defects.`
+                    : `${structDays} days remaining on your ${periods.structural}-year structural warranty. Consider scheduling a professional inspection.`,
+            daysLeft: structDays,
+            expiryDate: structExpiry,
+        });
+    } else if (structDays <= 0) {
+        alerts.push({
+            level: 'critical',
+            type: 'structural',
+            title: `Structural Warranty Expired`,
+            message: `Your ${periods.structural}-year structural warranty expired ${Math.abs(structDays)} days ago.`,
+            daysLeft: structDays,
+            expiryDate: structExpiry,
+        });
+    }
+
+    // Defect liability period (90 days from handover — universal)
+    const dlpExpiry = new Date(handover);
+    dlpExpiry.setDate(dlpExpiry.getDate() + 90);
+    const dlpDays = Math.ceil((dlpExpiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+    if (dlpDays <= 90 && dlpDays > 0) {
+        alerts.push({
+            level: dlpDays <= 7 ? 'critical' : dlpDays <= 14 ? 'warning' : 'info',
+            type: 'defect-liability',
+            title: `Defect Liability Period`,
+            message: dlpDays <= 7
+                ? `Only ${dlpDays} days left in defect liability period! Builder MUST fix all reported defects within this window. Document everything with photos.`
+                : `${dlpDays} days remaining. Your builder is obligated to fix all defects reported during this 90-day window.`,
+            daysLeft: dlpDays,
+            expiryDate: dlpExpiry,
+        });
+    }
+
+    return alerts;
+}
+
+// ===========================================
+// LICENSE VERIFICATION URLs
+// ===========================================
+
+export function getLicenseVerificationUrl(stateCode: string): string {
+    const urls: Record<string, string> = {
+        NSW: 'https://www.fairtrading.nsw.gov.au/trades-and-businesses/licensing-and-registrations/public-register',
+        VIC: 'https://www.vba.vic.gov.au/consumers/check-a-builder-or-tradesperson',
+        QLD: 'https://www.qbcc.qld.gov.au/licence-search',
+        WA: 'https://www.commerce.wa.gov.au/building-commission/search-registered-building-service-providers',
+        SA: 'https://plan.sa.gov.au',
+        TAS: 'https://www.cbos.tas.gov.au/topics/housing-building/building-practitioners',
+        ACT: 'https://www.accesscanberra.act.gov.au/s/building-and-construction',
+        NT: 'https://nt.gov.au/property/building-and-development/find-a-licensed-builder',
+    };
+    return urls[stateCode] || urls['NSW'];
+}
+
+export function getLicenseVerificationLabel(stateCode: string): string {
+    const labels: Record<string, string> = {
+        NSW: 'Verify on Fair Trading',
+        VIC: 'Verify on VBA',
+        QLD: 'Verify on QBCC',
+        WA: 'Verify on DMIRS',
+        SA: 'Verify on PlanSA',
+        TAS: 'Verify on CBOS',
+        ACT: 'Verify on Access Canberra',
+        NT: 'Verify on NT Gov',
+    };
+    return labels[stateCode] || 'Verify License';
+}
+
+// ===========================================
 // WARRANTY CALCULATIONS
 // ===========================================
 

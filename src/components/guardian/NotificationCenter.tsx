@@ -25,16 +25,43 @@ interface ComputedNotification {
 export default function NotificationCenter({ projectId, projectName, builderEmail }: NotificationCenterProps) {
     const [notifications, setNotifications] = useState<ComputedNotification[]>([]);
     const [loading, setLoading] = useState(true);
-    const [preferences, setPreferences] = useState<NotificationPreferences>({
-        defectReminders: true,
-        paymentAlerts: true,
-        certificateExpiry: true,
-        weeklyDigest: true,
-        emailAddress: builderEmail || "",
+
+    // Load preferences from localStorage
+    const [preferences, setPreferences] = useState<NotificationPreferences>(() => {
+        if (typeof window === "undefined") return { defectReminders: true, paymentAlerts: true, certificateExpiry: true, weeklyDigest: true, emailAddress: builderEmail || "" };
+        try {
+            const saved = localStorage.getItem(`guardian_notif_prefs_${projectId}`);
+            return saved ? JSON.parse(saved) : { defectReminders: true, paymentAlerts: true, certificateExpiry: true, weeklyDigest: true, emailAddress: builderEmail || "" };
+        } catch { return { defectReminders: true, paymentAlerts: true, certificateExpiry: true, weeklyDigest: true, emailAddress: builderEmail || "" }; }
     });
     const [showSettings, setShowSettings] = useState(false);
-    const [snoozedIds, setSnoozedIds] = useState<Set<string>>(new Set());
-    const [sentIds, setSentIds] = useState<Set<string>>(new Set());
+
+    // Load snoozed/sent IDs from localStorage
+    const [snoozedIds, setSnoozedIds] = useState<Set<string>>(() => {
+        if (typeof window === "undefined") return new Set();
+        try {
+            const saved = localStorage.getItem(`guardian_snoozed_${projectId}`);
+            return saved ? new Set(JSON.parse(saved)) : new Set();
+        } catch { return new Set(); }
+    });
+    const [sentIds, setSentIds] = useState<Set<string>>(() => {
+        if (typeof window === "undefined") return new Set();
+        try {
+            const saved = localStorage.getItem(`guardian_sent_${projectId}`);
+            return saved ? new Set(JSON.parse(saved)) : new Set();
+        } catch { return new Set(); }
+    });
+
+    // Persist to localStorage on change
+    useEffect(() => {
+        try { localStorage.setItem(`guardian_notif_prefs_${projectId}`, JSON.stringify(preferences)); } catch { }
+    }, [preferences, projectId]);
+    useEffect(() => {
+        try { localStorage.setItem(`guardian_snoozed_${projectId}`, JSON.stringify([...snoozedIds])); } catch { }
+    }, [snoozedIds, projectId]);
+    useEffect(() => {
+        try { localStorage.setItem(`guardian_sent_${projectId}`, JSON.stringify([...sentIds])); } catch { }
+    }, [sentIds, projectId]);
 
     // Compute notifications from real project data
     useEffect(() => {
@@ -47,7 +74,7 @@ export default function NotificationCenter({ projectId, projectName, builderEmai
                 .from("defects")
                 .select("id, title, due_date, status")
                 .eq("project_id", projectId)
-                .not("status", "in", '("verified","rectified")');
+                .not("status", "in", "(verified,rectified)");
 
             if (defects) {
                 for (const d of defects) {

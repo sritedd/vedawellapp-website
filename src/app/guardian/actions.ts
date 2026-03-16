@@ -47,41 +47,68 @@ export async function deleteProject(projectId: string) {
     }
 
     // Clean up storage files for this project (evidence, documents, certificates)
+    const cleanupErrors: string[] = [];
+
     for (const bucket of ["evidence", "documents", "certificates"]) {
-        const { data: files } = await supabase.storage
-            .from(bucket)
-            .list(projectId, { limit: 1000 });
-        if (files && files.length > 0) {
-            // List files recursively (including subdirectories)
-            const filePaths = files.map((f: { name: string }) => `${projectId}/${f.name}`);
-            await supabase.storage.from(bucket).remove(filePaths);
-        }
-        // Also check subdirectories (photos, defects, certs)
-        for (const subdir of ["photos", "defects", "certs"]) {
-            const { data: subFiles } = await supabase.storage
+        try {
+            const { data: files } = await supabase.storage
                 .from(bucket)
-                .list(`${projectId}/${subdir}`, { limit: 1000 });
-            if (subFiles && subFiles.length > 0) {
-                const subPaths = subFiles.map((f: { name: string }) => `${projectId}/${subdir}/${f.name}`);
-                await supabase.storage.from(bucket).remove(subPaths);
+                .list(projectId, { limit: 1000 });
+            if (files && files.length > 0) {
+                const filePaths = files.map((f: { name: string }) => `${projectId}/${f.name}`);
+                await supabase.storage.from(bucket).remove(filePaths);
             }
+            // Also check subdirectories (photos, defects, certs)
+            for (const subdir of ["photos", "defects", "certs", "signatures"]) {
+                const { data: subFiles } = await supabase.storage
+                    .from(bucket)
+                    .list(`${projectId}/${subdir}`, { limit: 1000 });
+                if (subFiles && subFiles.length > 0) {
+                    const subPaths = subFiles.map((f: { name: string }) => `${projectId}/${subdir}/${f.name}`);
+                    await supabase.storage.from(bucket).remove(subPaths);
+                }
+            }
+        } catch (e) {
+            cleanupErrors.push(`Storage cleanup (${bucket}): ${e}`);
         }
     }
 
-    // Delete related data (most have ON DELETE CASCADE, but be explicit for safety)
-    await supabase.from("checklist_items").delete().in(
-        "stage_id",
-        (await supabase.from("stages").select("id").eq("project_id", projectId)).data?.map((s: { id: string }) => s.id) || []
-    );
-    await supabase.from("progress_photos").delete().eq("project_id", projectId);
-    await supabase.from("communication_log").delete().eq("project_id", projectId);
-    await supabase.from("documents").delete().eq("project_id", projectId);
-    await supabase.from("inspections").delete().eq("project_id", projectId);
-    await supabase.from("weekly_checkins").delete().eq("project_id", projectId);
-    await supabase.from("stages").delete().eq("project_id", projectId);
-    await supabase.from("variations").delete().eq("project_id", projectId);
-    await supabase.from("defects").delete().eq("project_id", projectId);
-    await supabase.from("certifications").delete().eq("project_id", projectId);
+    // Delete related data (best-effort — continue even if some fail)
+    const tables = [
+        { name: "checklist_items", method: "nested" as const },
+        { name: "progress_photos", method: "direct" as const },
+        { name: "communication_log", method: "direct" as const },
+        { name: "documents", method: "direct" as const },
+        { name: "inspections", method: "direct" as const },
+        { name: "weekly_checkins", method: "direct" as const },
+        { name: "payments", method: "direct" as const },
+        { name: "stages", method: "direct" as const },
+        { name: "variations", method: "direct" as const },
+        { name: "defects", method: "direct" as const },
+        { name: "certifications", method: "direct" as const },
+    ];
+
+    for (const table of tables) {
+        try {
+            if (table.method === "nested" && table.name === "checklist_items") {
+                const { data: stageIds } = await supabase.from("stages").select("id").eq("project_id", projectId);
+                if (stageIds && stageIds.length > 0) {
+                    await supabase.from("checklist_items").delete().in(
+                        "stage_id",
+                        stageIds.map((s: { id: string }) => s.id)
+                    );
+                }
+            } else {
+                await supabase.from(table.name).delete().eq("project_id", projectId);
+            }
+        } catch (e) {
+            cleanupErrors.push(`Delete ${table.name}: ${e}`);
+        }
+    }
+
+    if (cleanupErrors.length > 0) {
+        console.warn("Project cleanup warnings:", cleanupErrors);
+    }
 
     // Delete the project itself
     const { error } = await supabase

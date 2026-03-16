@@ -3,19 +3,19 @@
 import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 
+interface ProgressPhotosProps {
+    projectId: string;
+    stages?: string[];
+}
+
 interface ProgressPhoto {
     id: string;
-    project_id: string;
     stage: string;
     area: string;
     description: string;
     photo_url: string;
     tags: string[];
     created_at: string;
-}
-
-interface ProgressPhotosProps {
-    projectId: string;
 }
 
 const AREAS = [
@@ -25,9 +25,10 @@ const AREAS = [
     "Roof", "Driveway", "Landscaping", "Electrical", "Plumbing", "Other"
 ];
 
-const STAGES = ["Site Prep", "Base/Slab", "Frame", "Lockup", "Fixing", "Practical Completion", "Handover"];
+const DEFAULT_STAGES = ["Site Prep", "Base/Slab", "Frame", "Lockup", "Fixing", "Practical Completion", "Handover"];
 
-export default function ProgressPhotos({ projectId }: ProgressPhotosProps) {
+export default function ProgressPhotos({ projectId, stages }: ProgressPhotosProps) {
+    const STAGES = stages && stages.length > 0 ? stages : DEFAULT_STAGES;
     const [photos, setPhotos] = useState<ProgressPhoto[]>([]);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
@@ -81,9 +82,18 @@ export default function ProgressPhotos({ projectId }: ProgressPhotosProps) {
         }
 
         setSelectedFile(file);
+        // Revoke previous preview URL to prevent memory leak
+        if (previewUrl) URL.revokeObjectURL(previewUrl);
         setPreviewUrl(URL.createObjectURL(file));
         setError("");
     };
+
+    // Cleanup preview URL on unmount
+    useEffect(() => {
+        return () => {
+            if (previewUrl) URL.revokeObjectURL(previewUrl);
+        };
+    }, [previewUrl]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -163,10 +173,22 @@ export default function ProgressPhotos({ projectId }: ProgressPhotosProps) {
 
         const supabase = createClient();
 
-        // Delete from storage
-        const urlParts = photo.photo_url.split("/evidence/");
-        if (urlParts[1]) {
-            await supabase.storage.from("evidence").remove([urlParts[1]]);
+        // Delete from storage - extract path robustly
+        try {
+            const url = new URL(photo.photo_url);
+            const pathMatch = url.pathname.match(/\/object\/(?:public|sign)\/evidence\/(.+)/);
+            if (pathMatch?.[1]) {
+                await supabase.storage.from("evidence").remove([decodeURIComponent(pathMatch[1])]);
+            } else {
+                // Fallback: try the old split method
+                const urlParts = photo.photo_url.split("/evidence/");
+                if (urlParts[1]) {
+                    await supabase.storage.from("evidence").remove([urlParts[1]]);
+                }
+            }
+        } catch {
+            // If URL parsing fails, still delete the DB record
+            console.warn("Could not parse storage URL for cleanup:", photo.photo_url);
         }
 
         await supabase.from("progress_photos").delete().eq("id", photo.id);

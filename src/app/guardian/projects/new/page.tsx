@@ -27,6 +27,7 @@ export default function NewProjectPage() {
         contract_value: "",
         address: "",
         start_date: "",
+        contract_signed_date: "",
         build_category: "",
         state: "NSW",
     });
@@ -100,10 +101,13 @@ export default function NewProjectPage() {
                         builder_abn: formData.builder_abn || null,
                         hbcf_policy_number: formData.hbcf_policy_number || null,
                         insurance_expiry_date: formData.insurance_expiry_date || null,
-                        contract_value: parseFloat(formData.contract_value) || 0,
+                        contract_value: Math.max(0, parseFloat(formData.contract_value) || 0),
                         address: formData.address,
                         start_date: formData.start_date || null,
+                        contract_signed_date: formData.contract_signed_date || null,
                         status: "planning",
+                        state: formData.state || "NSW",
+                        build_category: formData.build_category || "new_build",
                     },
                 ])
                 .select()
@@ -125,12 +129,17 @@ export default function NewProjectPage() {
 
             // 3. Seed stages and checklist items based on workflow
             for (const stageTemplate of stages) {
+                const paymentPercent = (stageTemplate as any).paymentMilestone
+                    ? parseFloat(((stageTemplate as any).paymentMilestone as string).match(/\d+/)?.[0] || "0")
+                    : 0;
+
                 const { data: stageData, error: stageError } = await supabase
                     .from("stages")
                     .insert({
                         project_id: projectId,
                         name: stageTemplate.name,
                         status: "pending",
+                        payment_percentage: paymentPercent,
                     })
                     .select()
                     .single();
@@ -173,9 +182,23 @@ export default function NewProjectPage() {
                 for (const cert of certificates) {
                     await supabase.from("certifications").insert({
                         project_id: projectId,
-                        type: cert.toLowerCase().replace(/[^a-z]/g, "_").substring(0, 20),
+                        type: cert.toLowerCase().replace(/[^a-z]/g, "_").substring(0, 50),
                         status: "pending",
-                        required_for_stage: stageTemplate.id,
+                        required_for_stage: stageData.id,
+                    });
+                }
+
+                // Seed payment milestone for this stage (if it has a payment)
+                if (paymentPercent > 0) {
+                    const contractVal = Math.max(0, parseFloat(formData.contract_value) || 0);
+                    const certsForPayment = (stageTemplate as any).certificates || [];
+                    await supabase.from("payments").insert({
+                        project_id: projectId,
+                        stage_name: stageTemplate.name,
+                        percentage: paymentPercent,
+                        amount: Math.round((paymentPercent / 100) * contractVal),
+                        status: "pending",
+                        certificates_required: certsForPayment,
                     });
                 }
             }
@@ -376,11 +399,26 @@ export default function NewProjectPage() {
 
                                 {/* Start Date */}
                                 <div>
-                                    <label className="block text-sm font-medium text-foreground mb-2">Start Date (Estimated)</label>
+                                    <label className="block text-sm font-medium text-foreground mb-2">Construction Start Date (Estimated)</label>
                                     <input
                                         type="date"
                                         name="start_date"
                                         value={formData.start_date}
+                                        onChange={handleChange}
+                                        className="w-full px-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                                    />
+                                </div>
+
+                                {/* Contract Signed Date */}
+                                <div>
+                                    <label className="block text-sm font-medium text-foreground mb-2">
+                                        Contract Signed Date
+                                        <span className="text-xs text-muted ml-1">(for cooling-off period tracking)</span>
+                                    </label>
+                                    <input
+                                        type="date"
+                                        name="contract_signed_date"
+                                        value={formData.contract_signed_date}
                                         onChange={handleChange}
                                         className="w-full px-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
                                     />

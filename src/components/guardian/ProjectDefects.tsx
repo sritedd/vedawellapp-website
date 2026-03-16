@@ -2,8 +2,10 @@
 
 import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
+import Link from "next/link";
 import {
     createDefectStatusUpdate,
+    isValidStatusTransition,
     Defect as UtilDefect,
 } from "@/lib/guardian/calculations";
 
@@ -29,7 +31,12 @@ interface Defect {
 
 interface ProjectDefectsProps {
     projectId: string;
+    stages?: string[];
+    builderEmail?: string;
+    onDataChanged?: () => void;
 }
+
+const FREE_DEFECT_LIMIT = 3;
 
 const SEVERITY_CONFIG = {
     critical: { label: "Critical", color: "bg-red-500", bgLight: "bg-red-50", border: "border-red-300", description: "Safety or structural issue" },
@@ -53,9 +60,9 @@ const LOCATIONS = [
     "Hallway", "Stairs", "Balcony", "Alfresco", "External", "Roof", "Driveway", "Landscaping"
 ];
 
-const STAGES = ["Base/Slab", "Frame", "Lockup", "Fixing", "Practical Completion", "Post-Handover"];
+const DEFAULT_STAGES = ["Base/Slab", "Frame", "Lockup", "Fixing", "Practical Completion", "Post-Handover"];
 
-export default function ProjectDefects({ projectId }: ProjectDefectsProps) {
+export default function ProjectDefects({ projectId, stages, builderEmail, onDataChanged }: ProjectDefectsProps) {
     const [defects, setDefects] = useState<Defect[]>([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -64,8 +71,11 @@ export default function ProjectDefects({ projectId }: ProjectDefectsProps) {
     const [filterSeverity, setFilterSeverity] = useState<string>("all");
     const [error, setError] = useState("");
     const [uploadingPhotoId, setUploadingPhotoId] = useState<string | null>(null);
+    const [tierLimited, setTierLimited] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const activeDefectRef = useRef<string | null>(null);
+
+    const STAGES = stages && stages.length > 0 ? stages : DEFAULT_STAGES;
 
     const [newDefect, setNewDefect] = useState({
         title: "",
@@ -117,9 +127,40 @@ export default function ProjectDefects({ projectId }: ProjectDefectsProps) {
         fetchDefects();
     }, [projectId]);
 
+    // Check free tier limits
+    useEffect(() => {
+        const checkTier = async () => {
+            const supabase = createClient();
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+
+            const { data: profile } = await supabase
+                .from("profiles")
+                .select("subscription_tier, is_admin, trial_ends_at")
+                .eq("id", user.id)
+                .single();
+
+            const tier = profile?.subscription_tier || "free";
+            const isAdmin = profile?.is_admin === true;
+            const trialActive = tier === "trial" && profile?.trial_ends_at && new Date(profile.trial_ends_at) > new Date();
+            const hasPro = tier === "guardian_pro" || isAdmin || trialActive;
+
+            if (!hasPro) {
+                setTierLimited(true);
+            }
+        };
+        checkTier();
+    }, []);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newDefect.title.trim()) return;
+
+        // Enforce free tier limit
+        if (tierLimited && defects.length >= FREE_DEFECT_LIMIT) {
+            setError(`Free plan allows ${FREE_DEFECT_LIMIT} defect reports. Upgrade to Guardian Pro for unlimited.`);
+            return;
+        }
 
         setSaving(true);
         setError("");
@@ -153,11 +194,21 @@ export default function ProjectDefects({ projectId }: ProjectDefectsProps) {
             }, ...defects]);
             setShowForm(false);
             setNewDefect({ title: "", description: "", location: "Kitchen", stage: "Practical Completion", severity: "minor", dueDate: "", homeownerNotes: "" });
+            onDataChanged?.();
         }
         setSaving(false);
     };
 
     const updateStatus = async (id: string, newStatus: Defect["status"]) => {
+        // Validate transition using business rules from calculations.ts
+        const defect = defects.find(d => d.id === id);
+        if (!defect) return;
+
+        if (!isValidStatusTransition(defect.status as UtilDefect["status"], newStatus as UtilDefect["status"])) {
+            setError(`Cannot transition from "${defect.status}" to "${newStatus}".`);
+            return;
+        }
+
         const supabase = createClient();
         const updates: Record<string, unknown> = { status: newStatus };
 
@@ -173,6 +224,7 @@ export default function ProjectDefects({ projectId }: ProjectDefectsProps) {
             setDefects(defects.map(d =>
                 d.id === id ? { ...d, ...updates } as Defect : d
             ));
+            onDataChanged?.();
         }
     };
 
@@ -186,6 +238,23 @@ export default function ProjectDefects({ projectId }: ProjectDefectsProps) {
         setDefects(defects.map(d =>
             d.id === id ? { ...d, reminder_count: newCount } : d
         ));
+
+        // Open mailto with defect details
+        const email = builderEmail || "";
+        const subject = encodeURIComponent(`Defect Reminder #${newCount}: ${defect.title}`);
+        const body = encodeURIComponent(
+            `Hi,\n\nThis is reminder #${newCount} regarding the following defect:\n\n` +
+            `Title: ${defect.title}\n` +
+            `Severity: ${defect.severity.toUpperCase()}\n` +
+            `Location: ${defect.location}\n` +
+            `Stage: ${defect.stage}\n` +
+            `Status: ${defect.status}\n` +
+            `Reported: ${defect.reported_date}\n` +
+            (defect.due_date ? `Due: ${defect.due_date}\n` : "") +
+            `\nDescription: ${defect.description}\n` +
+            `\nPlease address this defect as soon as possible.\n\nRegards`
+        );
+        window.open(`mailto:${email}?subject=${subject}&body=${body}`, "_self");
     };
 
     const handlePhotoClick = (defectId: string) => {
@@ -253,14 +322,25 @@ export default function ProjectDefects({ projectId }: ProjectDefectsProps) {
         const defect = defects.find(d => d.id === id);
 
         if (defect?.image_url) {
-            const urlParts = defect.image_url.split("/evidence/");
-            if (urlParts[1]) {
-                await supabase.storage.from("evidence").remove([urlParts[1]]);
+            try {
+                const url = new URL(defect.image_url);
+                const pathMatch = url.pathname.match(/\/object\/(?:public|sign)\/evidence\/(.+)/);
+                if (pathMatch?.[1]) {
+                    await supabase.storage.from("evidence").remove([decodeURIComponent(pathMatch[1])]);
+                } else {
+                    const urlParts = defect.image_url.split("/evidence/");
+                    if (urlParts[1]) {
+                        await supabase.storage.from("evidence").remove([urlParts[1]]);
+                    }
+                }
+            } catch {
+                console.warn("Could not parse storage URL for cleanup:", defect.image_url);
             }
         }
 
         await supabase.from("defects").delete().eq("id", id);
         setDefects(defects.filter(d => d.id !== id));
+        onDataChanged?.();
     };
 
     const generateExportList = () => {
@@ -569,12 +649,20 @@ export default function ProjectDefects({ projectId }: ProjectDefectsProps) {
                                 {/* Actions */}
                                 <div className="flex flex-wrap gap-2">
                                     {defect.status === "open" && (
-                                        <button
-                                            onClick={() => updateStatus(defect.id, "reported")}
-                                            className="px-3 py-1.5 bg-orange-100 text-orange-700 rounded text-sm"
-                                        >
-                                            Mark Reported
-                                        </button>
+                                        <>
+                                            <button
+                                                onClick={() => updateStatus(defect.id, "reported")}
+                                                className="px-3 py-1.5 bg-orange-100 text-orange-700 rounded text-sm"
+                                            >
+                                                Mark Reported
+                                            </button>
+                                            <button
+                                                onClick={() => updateStatus(defect.id, "disputed")}
+                                                className="px-3 py-1.5 bg-red-100 text-red-700 rounded text-sm"
+                                            >
+                                                Dispute
+                                            </button>
+                                        </>
                                     )}
                                     {defect.status === "reported" && (
                                         <>
@@ -588,17 +676,37 @@ export default function ProjectDefects({ projectId }: ProjectDefectsProps) {
                                                 onClick={() => sendReminder(defect.id)}
                                                 className="px-3 py-1.5 bg-amber-100 text-amber-700 rounded text-sm"
                                             >
-                                                Send Reminder
+                                                📧 Send Reminder
+                                            </button>
+                                            <button
+                                                onClick={() => updateStatus(defect.id, "disputed")}
+                                                className="px-3 py-1.5 bg-red-100 text-red-700 rounded text-sm"
+                                            >
+                                                Dispute
                                             </button>
                                         </>
                                     )}
                                     {defect.status === "in_progress" && (
-                                        <button
-                                            onClick={() => updateStatus(defect.id, "rectified")}
-                                            className="px-3 py-1.5 bg-purple-100 text-purple-700 rounded text-sm"
-                                        >
-                                            Mark Rectified
-                                        </button>
+                                        <>
+                                            <button
+                                                onClick={() => updateStatus(defect.id, "rectified")}
+                                                className="px-3 py-1.5 bg-purple-100 text-purple-700 rounded text-sm"
+                                            >
+                                                Mark Rectified
+                                            </button>
+                                            <button
+                                                onClick={() => sendReminder(defect.id)}
+                                                className="px-3 py-1.5 bg-amber-100 text-amber-700 rounded text-sm"
+                                            >
+                                                📧 Send Reminder
+                                            </button>
+                                            <button
+                                                onClick={() => updateStatus(defect.id, "disputed")}
+                                                className="px-3 py-1.5 bg-red-100 text-red-700 rounded text-sm"
+                                            >
+                                                Dispute
+                                            </button>
+                                        </>
                                     )}
                                     {defect.status === "rectified" && (
                                         <>
@@ -606,13 +714,41 @@ export default function ProjectDefects({ projectId }: ProjectDefectsProps) {
                                                 onClick={() => updateStatus(defect.id, "verified")}
                                                 className="px-3 py-1.5 bg-green-100 text-green-700 rounded text-sm"
                                             >
-                                                Verify Fixed
+                                                ✓ Verify Fixed
                                             </button>
                                             <button
                                                 onClick={() => updateStatus(defect.id, "disputed")}
                                                 className="px-3 py-1.5 bg-red-100 text-red-700 rounded text-sm"
                                             >
                                                 Not Fixed
+                                            </button>
+                                            <button
+                                                onClick={() => updateStatus(defect.id, "open")}
+                                                className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded text-sm"
+                                            >
+                                                ↩ Reopen
+                                            </button>
+                                        </>
+                                    )}
+                                    {defect.status === "disputed" && (
+                                        <>
+                                            <button
+                                                onClick={() => updateStatus(defect.id, "open")}
+                                                className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded text-sm"
+                                            >
+                                                ↩ Reopen
+                                            </button>
+                                            <button
+                                                onClick={() => updateStatus(defect.id, "reported")}
+                                                className="px-3 py-1.5 bg-orange-100 text-orange-700 rounded text-sm"
+                                            >
+                                                Re-report
+                                            </button>
+                                            <button
+                                                onClick={() => sendReminder(defect.id)}
+                                                className="px-3 py-1.5 bg-amber-100 text-amber-700 rounded text-sm"
+                                            >
+                                                📧 Send Reminder
                                             </button>
                                         </>
                                     )}
@@ -625,12 +761,14 @@ export default function ProjectDefects({ projectId }: ProjectDefectsProps) {
                                             {uploadingPhotoId === defect.id ? "Uploading..." : defect.image_url ? "Update Photo" : "Add Photo"}
                                         </button>
                                     )}
-                                    <button
-                                        onClick={() => deleteDefect(defect.id)}
-                                        className="px-3 py-1.5 text-red-400 hover:text-red-600 rounded text-sm ml-auto"
-                                    >
-                                        Delete
-                                    </button>
+                                    {defect.status !== "verified" && (
+                                        <button
+                                            onClick={() => deleteDefect(defect.id)}
+                                            className="px-3 py-1.5 text-red-400 hover:text-red-600 rounded text-sm ml-auto"
+                                        >
+                                            Delete
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         );

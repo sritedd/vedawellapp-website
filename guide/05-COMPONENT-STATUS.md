@@ -1,9 +1,10 @@
 # HomeOwner Guardian — Component Status Matrix
 
+> **Last Updated**: 2026-03-16
+
 ## Status Legend
 - WORKING: Fully functional with DB integration
-- PARTIAL: Some features work, others broken
-- BROKEN: Uses sample data or non-functional
+- PARTIAL: Some features work, others need improvement
 - UI-ONLY: Renders but no backend logic
 
 ---
@@ -12,9 +13,9 @@
 
 | Component | Status | DB Integrated | File Upload | Notes |
 |-----------|--------|---------------|-------------|-------|
-| ProgressPhotos | BROKEN | No | No | Hardcoded SAMPLE_PHOTOS, file input not wired |
-| ProjectDefects | BROKEN | No | No | Hardcoded INITIAL_DEFECTS, photo button no-op |
-| ProjectVariations | PARTIAL | Yes (read) | Yes (signatures) | Signatures upload works, but create/update may be in-memory |
+| ProgressPhotos | WORKING | Yes | Yes | Supabase Storage + progress_photos table, dynamic stages |
+| ProjectDefects | WORKING | Yes | Yes | Full CRUD, status validation, free tier limits, mailto reminders |
+| ProjectVariations | WORKING | Yes | Yes | Full CRUD, signature upload, free tier limits |
 | DocumentVault | WORKING | Yes | Yes | Full CRUD + Supabase Storage upload |
 | CertificationGate | WORKING | Yes | Yes | Certificate upload + stage blocking |
 | ChecklistItemCard | WORKING | Yes | Yes | Photo evidence upload to `evidence` bucket |
@@ -22,10 +23,10 @@
 | WarrantyCalculator | WORKING | Reads handover_date | No | Calculates warranty expiry, shows reminders |
 | PaymentSchedule | UI-ONLY | No | No | Static payment milestone display |
 | BudgetDashboard | PARTIAL | Reads variations | No | Shows contract vs actual, needs real payment data |
-| InspectionTimeline | PARTIAL | Yes | No | Hardcoded currentStage |
-| NotificationCenter | BROKEN | No | No | Hardcoded sample notifications |
-| StageGate | PARTIAL | Yes | No | Hardcoded currentStage/nextStage |
-| StageChecklist | PARTIAL | Yes | No | Hardcoded currentStage |
+| InspectionTimeline | WORKING | Yes | No | Dynamic stage from project data |
+| NotificationCenter | WORKING | Yes | No | Computes alerts from real data, localStorage persistence |
+| StageGate | WORKING | Yes | No | Dynamic stage computation from DB |
+| StageChecklist | WORKING | Yes | No | Dynamic stage computation from DB |
 | WeeklyCheckIn | WORKING | Yes | No | Full CRUD for weekly check-ins |
 | MaterialRegistry | UI-ONLY | No | No | Static material tracking |
 | SiteVisitLog | UI-ONLY | No | No | Static visit logging |
@@ -33,8 +34,8 @@
 | MessageTemplates | UI-ONLY | No | No | Pre-written templates (no send) |
 | ContractReviewChecklist | UI-ONLY | No | No | Static pre-contract review |
 | ConstructionGlossary | WORKING | No | No | Static content (intentionally) |
-| ReportGenerator | PARTIAL | Reads data | No | PDF generation via lib/export |
-| ExportCenter | PARTIAL | Reads data | No | Export hub |
+| ReportGenerator | WORKING | Reads data | No | PDF generation via lib/export |
+| ExportCenter | WORKING | Reads data | No | Export hub |
 
 ---
 
@@ -53,10 +54,10 @@
 
 | Component | Status | Notes |
 |-----------|--------|-------|
-| Login page | WORKING | Email/password, Google OAuth, rate limiting |
+| Login page | WORKING | Email/password, Google OAuth, rate limiting, localhost-only dev bypass |
 | Profile page | WORKING | Edit name, phone, role, password |
 | SupportChat | WORKING | Pro-only, real-time-ish messaging |
-| ReferralCard | WORKING | Copy link, share stats |
+| ReferralCard | WORKING | Copy link, share stats, unique random referral codes |
 
 ---
 
@@ -66,15 +67,15 @@
 |------|--------|-------|
 | /guardian | WORKING | Landing page with JSON-LD |
 | /guardian/login | WORKING | Full auth flow |
-| /guardian/dashboard | PARTIAL | Stats not clickable, announcement works |
-| /guardian/projects | WORKING | Lists all user projects |
-| /guardian/projects/new | WORKING | Multi-step creation with workflow seeding |
-| /guardian/projects/[id] | PARTIAL | 40+ tabs, many use hardcoded stages |
+| /guardian/dashboard | WORKING | Clickable stats, state-aware license, announcement |
+| /guardian/projects | WORKING | Lists user projects (limit 50) |
+| /guardian/projects/new | WORKING | Multi-step creation, state saved, workflow seeding |
+| /guardian/projects/[id] | WORKING | 40+ tabs, dynamic stages, stale data callbacks |
 | /guardian/profile | WORKING | Profile CRUD |
-| /guardian/pricing | PARTIAL | Monthly works, yearly price missing |
+| /guardian/pricing | PARTIAL | Monthly works, yearly price not configured |
 | /guardian/admin | WORKING | Comprehensive analytics |
 | /guardian/support | WORKING | Pro-only gate + chat |
-| /guardian/refer | WORKING | Referral system |
+| /guardian/refer | WORKING | Referral system with unique codes |
 | /guardian/journey | WORKING | Learning center |
 | /guardian/faq | WORKING | FAQ content |
 | /guardian/resources | WORKING | Resource links |
@@ -83,10 +84,6 @@
 
 ## Summary
 
-- **WORKING**: 15 components, 10 pages
-- **PARTIAL**: 7 components, 3 pages
-- **BROKEN**: 3 components (ProgressPhotos, ProjectDefects, NotificationCenter)
-- **UI-ONLY**: 5 components (need DB integration)
-
-The 3 BROKEN components are the most user-facing features (photos, defects, notifications).
-The 5 UI-ONLY components are lower priority but should be wired up for production.
+- **WORKING**: 22 components, 12 pages
+- **PARTIAL**: 1 component (BudgetDashboard), 1 page (Pricing)
+- **UI-ONLY**: 5 components (need DB integration for production)

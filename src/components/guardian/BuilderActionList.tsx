@@ -1,20 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 interface PendingAction {
     id: string;
-    type: "defect" | "variation" | "inspection" | "certificate" | "checklist" | "custom";
+    type: "defect" | "variation" | "inspection" | "certificate" | "custom";
     priority: "critical" | "high" | "medium" | "low";
     title: string;
     description: string;
     stage: string;
     dueDate: string | null;
     status: "pending" | "in_progress" | "awaiting_response" | "completed";
-    assignedTo: string;
     createdAt: string;
-    lastReminder: string | null;
-    reminderCount: number;
+    sourceTable: string;
 }
 
 interface BuilderActionListProps {
@@ -31,89 +30,180 @@ const PRIORITY_CONFIG = {
     low: { label: "Low", color: "bg-blue-500", bgLight: "bg-blue-50", border: "border-blue-300" },
 };
 
-const TYPE_ICONS = {
+const TYPE_ICONS: Record<string, string> = {
     defect: "🛠️",
     variation: "💰",
     inspection: "🔍",
     certificate: "📜",
-    checklist: "📋",
     custom: "📝",
 };
 
-// Sample data
-const INITIAL_ACTIONS: PendingAction[] = [
-    {
-        id: "1",
-        type: "defect",
-        priority: "critical",
-        title: "Fix water stain on ceiling - Bedroom 2",
-        description: "Water stain appeared after rain. Needs investigation for roof leak.",
-        stage: "Lockup",
-        dueDate: "2025-08-15",
-        status: "pending",
-        assignedTo: "Builder",
-        createdAt: "2025-08-01",
-        lastReminder: null,
-        reminderCount: 0,
-    },
-    {
-        id: "2",
-        type: "certificate",
-        priority: "critical",
-        title: "Provide Waterproofing Certificate",
-        description: "Waterproofing certificate required before tiling can proceed.",
-        stage: "Lockup",
-        dueDate: "2025-08-10",
-        status: "awaiting_response",
-        assignedTo: "Builder",
-        createdAt: "2025-07-28",
-        lastReminder: "2025-08-05",
-        reminderCount: 2,
-    },
-    {
-        id: "3",
-        type: "variation",
-        priority: "high",
-        title: "Sign variation for downlights upgrade",
-        description: "Waiting for builder to provide itemized quote for LED downlights.",
-        stage: "Fixing",
-        dueDate: "2025-08-20",
-        status: "in_progress",
-        assignedTo: "Builder",
-        createdAt: "2025-08-03",
-        lastReminder: null,
-        reminderCount: 0,
-    },
-    {
-        id: "4",
-        type: "inspection",
-        priority: "high",
-        title: "Schedule Frame Inspection",
-        description: "Council frame inspection needs to be booked before plasterboard.",
-        stage: "Frame",
-        dueDate: null,
-        status: "pending",
-        assignedTo: "Builder",
-        createdAt: "2025-08-02",
-        lastReminder: "2025-08-05",
-        reminderCount: 1,
-    },
-];
+function mapDefectPriority(severity: string): PendingAction["priority"] {
+    if (severity === "critical") return "critical";
+    if (severity === "major") return "high";
+    return "medium";
+}
+
+function mapDefectStatus(status: string): PendingAction["status"] {
+    if (status === "open" || status === "reported") return "pending";
+    if (status === "in_progress") return "in_progress";
+    if (status === "fixed" || status === "rectified" || status === "verified" || status === "disputed") return "completed";
+    return "pending";
+}
+
+function mapVariationStatus(status: string): PendingAction["status"] {
+    if (status === "draft") return "pending";
+    if (status === "sent") return "awaiting_response";
+    if (status === "approved" || status === "rejected") return "completed";
+    return "pending";
+}
+
+function mapInspectionStatus(result: string): PendingAction["status"] {
+    if (result === "not_booked") return "pending";
+    if (result === "booked") return "in_progress";
+    if (result === "passed") return "completed";
+    if (result === "failed") return "pending"; // needs re-scheduling
+    return "pending";
+}
+
+function mapCertStatus(status: string): PendingAction["status"] {
+    if (status === "pending") return "pending";
+    if (status === "uploaded" || status === "verified") return "completed";
+    if (status === "expired") return "pending";
+    return "pending";
+}
 
 export default function BuilderActionList({ projectId, projectName, builderName, builderEmail }: BuilderActionListProps) {
-    const [actions, setActions] = useState<PendingAction[]>(INITIAL_ACTIONS);
-    const [showAddForm, setShowAddForm] = useState(false);
+    const [actions, setActions] = useState<PendingAction[]>([]);
+    const [loading, setLoading] = useState(true);
     const [filterStatus, setFilterStatus] = useState<string>("all");
     const [copied, setCopied] = useState(false);
     const [emailSent, setEmailSent] = useState(false);
 
-    const [newAction, setNewAction] = useState({
-        type: "custom" as PendingAction["type"],
-        priority: "medium" as PendingAction["priority"],
-        title: "",
-        description: "",
-        dueDate: "",
-    });
+    useEffect(() => {
+        const fetchActions = async () => {
+            const supabase = createClient();
+            const allActions: PendingAction[] = [];
+
+            // 1. Fetch open defects
+            const { data: defects } = await supabase
+                .from("defects")
+                .select("id, title, description, severity, status, stage, due_date, created_at")
+                .eq("project_id", projectId);
+
+            if (defects) {
+                for (const d of defects) {
+                    allActions.push({
+                        id: d.id,
+                        type: "defect",
+                        priority: mapDefectPriority(d.severity || "minor"),
+                        title: d.title,
+                        description: d.description || "",
+                        stage: d.stage || "—",
+                        dueDate: d.due_date || null,
+                        status: mapDefectStatus(d.status),
+                        createdAt: d.created_at,
+                        sourceTable: "defects",
+                    });
+                }
+            }
+
+            // 2. Fetch pending variations
+            const { data: variations } = await supabase
+                .from("variations")
+                .select("id, title, description, status, additional_cost, created_at")
+                .eq("project_id", projectId);
+
+            if (variations) {
+                for (const v of variations) {
+                    allActions.push({
+                        id: v.id,
+                        type: "variation",
+                        priority: (v.additional_cost || 0) > 5000 ? "high" : "medium",
+                        title: v.title,
+                        description: v.description || `Cost: $${(v.additional_cost || 0).toLocaleString()}`,
+                        stage: "—",
+                        dueDate: null,
+                        status: mapVariationStatus(v.status),
+                        createdAt: v.created_at,
+                        sourceTable: "variations",
+                    });
+                }
+            }
+
+            // 3. Fetch inspections
+            const { data: inspections } = await supabase
+                .from("inspections")
+                .select("id, stage, scheduled_date, result, inspector_name, notes, created_at")
+                .eq("project_id", projectId);
+
+            if (inspections) {
+                for (const i of inspections) {
+                    const stageLabel = (i.stage || "").replace(/_/g, " ").replace(/\b\w/g, (l: string) => l.toUpperCase());
+                    allActions.push({
+                        id: i.id,
+                        type: "inspection",
+                        priority: i.result === "failed" ? "critical" : "high",
+                        title: `${stageLabel} Inspection`,
+                        description: i.result === "failed"
+                            ? `Failed — needs re-inspection. ${i.notes || ""}`
+                            : i.result === "not_booked"
+                                ? "Needs to be booked"
+                                : i.result === "booked"
+                                    ? `Booked${i.scheduled_date ? ` for ${new Date(i.scheduled_date).toLocaleDateString("en-AU")}` : ""}`
+                                    : "Passed",
+                        stage: stageLabel,
+                        dueDate: i.scheduled_date || null,
+                        status: mapInspectionStatus(i.result),
+                        createdAt: i.created_at,
+                        sourceTable: "inspections",
+                    });
+                }
+            }
+
+            // 4. Fetch certifications
+            const { data: certs } = await supabase
+                .from("certifications")
+                .select("id, type, status, required_for_stage, expiry_date, created_at")
+                .eq("project_id", projectId);
+
+            if (certs) {
+                for (const c of certs) {
+                    const stageLabel = (c.required_for_stage || "").replace(/_/g, " ").replace(/\b\w/g, (l: string) => l.toUpperCase());
+                    allActions.push({
+                        id: c.id,
+                        type: "certificate",
+                        priority: c.status === "expired" ? "critical" : "high",
+                        title: `${c.type} Certificate`,
+                        description: c.status === "expired"
+                            ? "Certificate has expired — needs renewal"
+                            : c.status === "pending"
+                                ? `Required for ${stageLabel || "next stage"}`
+                                : `Uploaded for ${stageLabel || "stage"}`,
+                        stage: stageLabel || "—",
+                        dueDate: c.expiry_date || null,
+                        status: mapCertStatus(c.status),
+                        createdAt: c.created_at,
+                        sourceTable: "certifications",
+                    });
+                }
+            }
+
+            // Sort: pending first, then by priority, then by date
+            const priorityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+            const statusOrder = { pending: 0, in_progress: 1, awaiting_response: 2, completed: 3 };
+            allActions.sort((a, b) => {
+                const sd = statusOrder[a.status] - statusOrder[b.status];
+                if (sd !== 0) return sd;
+                return priorityOrder[a.priority] - priorityOrder[b.priority];
+            });
+
+            setActions(allActions);
+            setLoading(false);
+        };
+
+        fetchActions();
+    }, [projectId]);
 
     const filteredActions = actions.filter(a => {
         if (filterStatus === "all") return a.status !== "completed";
@@ -124,96 +214,60 @@ export default function BuilderActionList({ projectId, projectName, builderName,
     const criticalCount = actions.filter(a => a.priority === "critical" && a.status !== "completed").length;
     const pendingCount = actions.filter(a => a.status !== "completed").length;
 
-    const addAction = (e: React.FormEvent) => {
-        e.preventDefault();
-        const action: PendingAction = {
-            id: Date.now().toString(),
-            ...newAction,
-            stage: "Current",
-            status: "pending",
-            assignedTo: "Builder",
-            createdAt: new Date().toISOString().split("T")[0],
-            lastReminder: null,
-            reminderCount: 0,
-        };
-        setActions([action, ...actions]);
-        setShowAddForm(false);
-        setNewAction({ type: "custom", priority: "medium", title: "", description: "", dueDate: "" });
-    };
-
-    const markComplete = (id: string) => {
-        setActions(actions.map(a => a.id === id ? { ...a, status: "completed" as const } : a));
-    };
-
-    const sendReminder = (id: string) => {
-        setActions(actions.map(a =>
-            a.id === id ? {
-                ...a,
-                lastReminder: new Date().toISOString().split("T")[0],
-                reminderCount: a.reminderCount + 1
-            } : a
-        ));
-    };
-
     const generateShareableList = () => {
         const pendingActions = actions.filter(a => a.status !== "completed");
         const date = new Date().toLocaleDateString("en-AU", {
             weekday: "long", day: "numeric", month: "long", year: "numeric"
         });
 
-        let text = `🏠 BUILDER ACTION LIST\n`;
+        let text = `BUILDER ACTION LIST\n`;
         text += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
         text += `Project: ${projectName}\n`;
         text += `To: ${builderName}\n`;
         text += `Date: ${date}\n\n`;
         text += `Dear ${builderName},\n\n`;
-        text += `Please find below the outstanding items requiring your attention before we can proceed to the next stage.\n\n`;
+        text += `Please find below the outstanding items requiring your attention.\n\n`;
 
-        // Group by priority
         const critical = pendingActions.filter(a => a.priority === "critical");
         const high = pendingActions.filter(a => a.priority === "high");
         const other = pendingActions.filter(a => a.priority !== "critical" && a.priority !== "high");
 
         if (critical.length > 0) {
-            text += `🚨 CRITICAL - Must be resolved immediately:\n`;
+            text += `CRITICAL - Must be resolved immediately:\n`;
             text += `─────────────────────────────────────────\n`;
             critical.forEach((a, i) => {
                 text += `${i + 1}. ${a.title}\n`;
-                text += `   ${TYPE_ICONS[a.type]} ${a.description}\n`;
-                if (a.dueDate) text += `   📅 Due: ${new Date(a.dueDate).toLocaleDateString("en-AU")}\n`;
+                text += `   ${a.description}\n`;
+                if (a.dueDate) text += `   Due: ${new Date(a.dueDate).toLocaleDateString("en-AU")}\n`;
                 text += `\n`;
             });
         }
 
         if (high.length > 0) {
-            text += `⚠️ HIGH PRIORITY:\n`;
+            text += `HIGH PRIORITY:\n`;
             text += `─────────────────────────────────────────\n`;
             high.forEach((a, i) => {
                 text += `${i + 1}. ${a.title}\n`;
-                text += `   ${TYPE_ICONS[a.type]} ${a.description}\n`;
-                if (a.dueDate) text += `   📅 Due: ${new Date(a.dueDate).toLocaleDateString("en-AU")}\n`;
+                text += `   ${a.description}\n`;
+                if (a.dueDate) text += `   Due: ${new Date(a.dueDate).toLocaleDateString("en-AU")}\n`;
                 text += `\n`;
             });
         }
 
         if (other.length > 0) {
-            text += `📋 OTHER ITEMS:\n`;
+            text += `OTHER ITEMS:\n`;
             text += `─────────────────────────────────────────\n`;
             other.forEach((a, i) => {
                 text += `${i + 1}. ${a.title}\n`;
-                text += `   ${TYPE_ICONS[a.type]} ${a.description}\n`;
-                if (a.dueDate) text += `   📅 Due: ${new Date(a.dueDate).toLocaleDateString("en-AU")}\n`;
+                text += `   ${a.description}\n`;
+                if (a.dueDate) text += `   Due: ${new Date(a.dueDate).toLocaleDateString("en-AU")}\n`;
                 text += `\n`;
             });
         }
 
         text += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
-        text += `⚠️ IMPORTANT NOTICE:\n`;
-        text += `Please address the CRITICAL items before proceeding with any further work.\n`;
-        text += `Payment for the next stage will not be released until all critical items are resolved.\n\n`;
         text += `Please respond confirming receipt and expected completion dates.\n\n`;
-        text += `Kind regards,\n`;
-        text += `Homeowner\n`;
+        text += `Kind regards,\nHomeowner\n`;
         text += `\n─────────────────────────────────────────\n`;
         text += `Generated via HomeOwner Guardian | ${new Date().toLocaleString("en-AU")}\n`;
 
@@ -241,28 +295,38 @@ export default function BuilderActionList({ projectId, projectName, builderName,
         window.open(`https://wa.me/?text=${text}`, "_blank");
     };
 
-    const canProceedToNextStage = criticalCount === 0;
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex justify-between items-start">
-                <div>
-                    <h2 className="text-2xl font-bold">📋 Builder Action List</h2>
-                    <p className="text-muted-foreground">
-                        Track pending items and share with your builder
-                    </p>
-                </div>
-                <button
-                    onClick={() => setShowAddForm(!showAddForm)}
-                    className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
-                >
-                    {showAddForm ? "Cancel" : "+ Add Action Item"}
-                </button>
+            <div>
+                <h2 className="text-2xl font-bold">Pending Actions</h2>
+                <p className="text-muted-foreground">
+                    All outstanding defects, variations, inspections, and certificates for this project
+                </p>
             </div>
 
-            {/* Stage Progress Blocker */}
-            {!canProceedToNextStage && (
+            {/* Summary banner */}
+            {pendingCount === 0 ? (
+                <div className="p-4 bg-green-50 border border-green-300 rounded-xl">
+                    <div className="flex items-center gap-3">
+                        <span className="text-3xl">✅</span>
+                        <div>
+                            <h3 className="font-bold text-green-800">All Clear</h3>
+                            <p className="text-green-700 text-sm">
+                                No pending actions. You can proceed to the next stage.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            ) : criticalCount > 0 ? (
                 <div className="p-4 bg-red-50 border-2 border-red-300 rounded-xl">
                     <div className="flex items-center gap-3">
                         <span className="text-3xl">🚫</span>
@@ -275,16 +339,14 @@ export default function BuilderActionList({ projectId, projectName, builderName,
                         </div>
                     </div>
                 </div>
-            )}
-
-            {canProceedToNextStage && pendingCount === 0 && (
-                <div className="p-4 bg-green-50 border border-green-300 rounded-xl">
+            ) : (
+                <div className="p-4 bg-amber-50 border border-amber-300 rounded-xl">
                     <div className="flex items-center gap-3">
-                        <span className="text-3xl">✅</span>
+                        <span className="text-3xl">⚠️</span>
                         <div>
-                            <h3 className="font-bold text-green-800">All Clear!</h3>
-                            <p className="text-green-700 text-sm">
-                                No pending actions. You can proceed to the next stage.
+                            <h3 className="font-bold text-amber-800">{pendingCount} Item{pendingCount !== 1 && "s"} Pending</h3>
+                            <p className="text-amber-700 text-sm">
+                                No critical blockers, but items still need attention.
                             </p>
                         </div>
                     </div>
@@ -315,120 +377,53 @@ export default function BuilderActionList({ projectId, projectName, builderName,
                 </div>
             </div>
 
-            {/* Share Actions */}
-            <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
-                <h3 className="font-bold mb-3">📤 Share Action List with Builder</h3>
-                <div className="flex flex-wrap gap-3">
-                    <button
-                        onClick={copyToClipboard}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${copied ? "bg-green-500 text-white" : "bg-white border border-gray-300 hover:bg-gray-50"
-                            }`}
-                    >
-                        {copied ? "✓ Copied!" : "📋 Copy to Clipboard"}
-                    </button>
-                    <button
-                        onClick={shareViaEmail}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${emailSent ? "bg-green-500 text-white" : "bg-blue-500 text-white hover:bg-blue-600"
-                            }`}
-                    >
-                        {emailSent ? "✓ Email Opened!" : "📧 Send via Email"}
-                    </button>
-                    <button
-                        onClick={shareViaWhatsApp}
-                        className="px-4 py-2 bg-green-500 text-white rounded-lg text-sm font-medium hover:bg-green-600"
-                    >
-                        💬 Share via WhatsApp
-                    </button>
-                </div>
-                <p className="text-xs text-gray-500 mt-2">
-                    Creates a formatted list of all pending items with priorities and due dates.
-                </p>
-            </div>
-
-            {/* Add Form */}
-            {showAddForm && (
-                <form onSubmit={addAction} className="p-6 bg-card border border-border rounded-xl space-y-4">
-                    <h3 className="font-bold">Add New Action Item</h3>
-                    <div className="grid md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Type</label>
-                            <select
-                                value={newAction.type}
-                                onChange={(e) => setNewAction({ ...newAction, type: e.target.value as any })}
-                                className="w-full p-3 border border-border rounded-lg"
-                            >
-                                <option value="defect">🛠️ Defect</option>
-                                <option value="variation">💰 Variation</option>
-                                <option value="inspection">🔍 Inspection</option>
-                                <option value="certificate">📜 Certificate</option>
-                                <option value="checklist">📋 Checklist Item</option>
-                                <option value="custom">📝 Custom</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Priority</label>
-                            <select
-                                value={newAction.priority}
-                                onChange={(e) => setNewAction({ ...newAction, priority: e.target.value as any })}
-                                className="w-full p-3 border border-border rounded-lg"
-                            >
-                                <option value="critical">🚨 Critical (Blocks Progress)</option>
-                                <option value="high">⚠️ High</option>
-                                <option value="medium">📋 Medium</option>
-                                <option value="low">📝 Low</option>
-                            </select>
-                        </div>
-                        <div className="md:col-span-2">
-                            <label className="block text-sm font-medium mb-1">Title</label>
-                            <input
-                                type="text"
-                                value={newAction.title}
-                                onChange={(e) => setNewAction({ ...newAction, title: e.target.value })}
-                                className="w-full p-3 border border-border rounded-lg"
-                                placeholder="e.g., Fix cracked tile in bathroom"
-                                required
-                            />
-                        </div>
-                        <div className="md:col-span-2">
-                            <label className="block text-sm font-medium mb-1">Description</label>
-                            <textarea
-                                value={newAction.description}
-                                onChange={(e) => setNewAction({ ...newAction, description: e.target.value })}
-                                className="w-full p-3 border border-border rounded-lg resize-none h-20"
-                                placeholder="Detailed description..."
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Due Date (optional)</label>
-                            <input
-                                type="date"
-                                value={newAction.dueDate}
-                                onChange={(e) => setNewAction({ ...newAction, dueDate: e.target.value })}
-                                className="w-full p-3 border border-border rounded-lg"
-                            />
-                        </div>
+            {/* Share Actions — only show if there are pending items */}
+            {pendingCount > 0 && (
+                <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+                    <h3 className="font-bold mb-3">Share Action List with Builder</h3>
+                    <div className="flex flex-wrap gap-3">
+                        <button
+                            onClick={copyToClipboard}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${copied ? "bg-green-500 text-white" : "bg-white border border-gray-300 hover:bg-gray-50"}`}
+                        >
+                            {copied ? "Copied!" : "Copy to Clipboard"}
+                        </button>
+                        <button
+                            onClick={shareViaEmail}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${emailSent ? "bg-green-500 text-white" : "bg-blue-500 text-white hover:bg-blue-600"}`}
+                        >
+                            {emailSent ? "Email Opened!" : "Send via Email"}
+                        </button>
+                        <button
+                            onClick={shareViaWhatsApp}
+                            className="px-4 py-2 bg-green-500 text-white rounded-lg text-sm font-medium hover:bg-green-600"
+                        >
+                            Share via WhatsApp
+                        </button>
                     </div>
-                    <button
-                        type="submit"
-                        className="w-full py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90"
-                    >
-                        Add Action Item
-                    </button>
-                </form>
+                    <p className="text-xs text-gray-500 mt-2">
+                        Creates a formatted list of all pending items with priorities and due dates.
+                    </p>
+                </div>
             )}
 
             {/* Filter */}
-            <div className="flex gap-2">
-                {["all", "pending", "in_progress", "awaiting_response", "completed"].map((status) => (
+            <div className="flex gap-2 flex-wrap">
+                {[
+                    { key: "all", label: "Pending" },
+                    { key: "in_progress", label: "In Progress" },
+                    { key: "awaiting_response", label: "Awaiting Response" },
+                    { key: "completed", label: "Completed" },
+                ].map(({ key, label }) => (
                     <button
-                        key={status}
-                        onClick={() => setFilterStatus(status)}
-                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${filterStatus === status
-                                ? "bg-primary text-white"
-                                : "bg-muted hover:bg-muted/80"
+                        key={key}
+                        onClick={() => setFilterStatus(key)}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${filterStatus === key
+                            ? "bg-primary text-white"
+                            : "bg-muted hover:bg-muted/80"
                             }`}
                     >
-                        {status === "all" ? "Pending" : status.replace("_", " ").replace(/\b\w/g, l => l.toUpperCase())}
+                        {label}
                     </button>
                 ))}
             </div>
@@ -437,7 +432,11 @@ export default function BuilderActionList({ projectId, projectName, builderName,
             <div className="space-y-3">
                 {filteredActions.length === 0 ? (
                     <div className="text-center text-muted-foreground py-8">
-                        {filterStatus === "completed" ? "No completed items yet." : "No pending actions! 🎉"}
+                        {filterStatus === "completed"
+                            ? "No completed items yet."
+                            : filterStatus === "all"
+                                ? "No pending actions — everything is on track."
+                                : "No items with this status."}
                     </div>
                 ) : (
                     filteredActions.map((action) => {
@@ -446,14 +445,13 @@ export default function BuilderActionList({ projectId, projectName, builderName,
 
                         return (
                             <div
-                                key={action.id}
-                                className={`p-4 rounded-xl border-2 ${priority.bgLight} ${priority.border} ${isOverdue ? "ring-2 ring-red-500" : ""
-                                    }`}
+                                key={`${action.sourceTable}-${action.id}`}
+                                className={`p-4 rounded-xl border-2 ${priority.bgLight} ${priority.border} ${isOverdue ? "ring-2 ring-red-500" : ""}`}
                             >
                                 <div className="flex justify-between items-start">
                                     <div className="flex-1">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <span>{TYPE_ICONS[action.type]}</span>
+                                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                            <span>{TYPE_ICONS[action.type] || "📝"}</span>
                                             <span className="font-medium">{action.title}</span>
                                             <span className={`px-2 py-0.5 rounded text-xs text-white ${priority.color}`}>
                                                 {priority.label}
@@ -467,35 +465,14 @@ export default function BuilderActionList({ projectId, projectName, builderName,
                                         <p className="text-sm text-gray-600 mb-2">{action.description}</p>
                                         <div className="flex flex-wrap gap-3 text-xs text-gray-500">
                                             {action.dueDate && (
-                                                <span>📅 Due: {new Date(action.dueDate).toLocaleDateString("en-AU")}</span>
+                                                <span>Due: {new Date(action.dueDate).toLocaleDateString("en-AU")}</span>
                                             )}
-                                            <span>📍 Stage: {action.stage}</span>
-                                            {action.reminderCount > 0 && (
-                                                <span className="text-orange-600">
-                                                    🔔 {action.reminderCount} reminder{action.reminderCount !== 1 && "s"} sent
-                                                </span>
+                                            {action.stage !== "—" && (
+                                                <span>Stage: {action.stage}</span>
                                             )}
+                                            <span className="capitalize text-gray-400">{action.type}</span>
                                         </div>
                                     </div>
-
-                                    {action.status !== "completed" && (
-                                        <div className="flex gap-2 ml-4">
-                                            <button
-                                                onClick={() => sendReminder(action.id)}
-                                                className="px-3 py-1 bg-orange-100 text-orange-700 rounded text-sm hover:bg-orange-200"
-                                                title="Send reminder"
-                                            >
-                                                🔔
-                                            </button>
-                                            <button
-                                                onClick={() => markComplete(action.id)}
-                                                className="px-3 py-1 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200"
-                                                title="Mark complete"
-                                            >
-                                                ✓
-                                            </button>
-                                        </div>
-                                    )}
                                 </div>
                             </div>
                         );
@@ -505,10 +482,10 @@ export default function BuilderActionList({ projectId, projectName, builderName,
 
             {/* Help Text */}
             <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800">
-                <p className="font-medium mb-1">💡 Pro Tip: Keep a Paper Trail</p>
+                <p className="font-medium mb-1">Pro Tip: Keep a Paper Trail</p>
                 <p>
                     Always share the action list via email to create a written record. If disputes arise,
-                    this documentation proves you communicated issues in writing. Save copies of all sent emails.
+                    this documentation proves you communicated issues in writing.
                 </p>
             </div>
         </div>

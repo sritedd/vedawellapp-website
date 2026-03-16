@@ -58,56 +58,54 @@ export default function WeeklyCheckIn({ projectId }: WeeklyCheckInProps) {
     }, [projectId]);
 
     const fetchCheckIns = async () => {
-        // Mock data for demo
-        const mockCheckIns: CheckIn[] = [
-            {
-                id: "1",
-                date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-                status: "on_track",
-                notes: "Good progress on frame. All inspections passed.",
-                weather: "sunny",
-                workers_on_site: 6,
-                work_completed: "Frame complete, roof trusses installed",
-                next_week_plan: "Begin roofing and external wall wrap",
-                issues: [],
-                photos_count: 12,
-            },
-            {
-                id: "2",
-                date: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-                status: "minor_delay",
-                notes: "Rain caused 2-day delay. Catching up now.",
-                weather: "rainy",
-                workers_on_site: 4,
-                work_completed: "Slab curing complete, frame started",
-                next_week_plan: "Complete wall frames",
-                issues: ["Weather delays"],
-                photos_count: 8,
-            },
-        ];
-        setCheckIns(mockCheckIns);
+        const supabase = createClient();
+        const { data } = await supabase
+            .from("weekly_checkins")
+            .select("*")
+            .eq("project_id", projectId)
+            .order("week_start", { ascending: false });
+
+        if (data) {
+            setCheckIns(data.map((c: Record<string, unknown>) => ({
+                id: c.id as string,
+                date: (c.week_start as string) || (c.created_at as string),
+                status: (c.status as CheckIn["status"]) || "on_track",
+                notes: (c.notes as string) || "",
+                weather: (c.weather as string) || "",
+                workers_on_site: (c.workers_on_site as number) || 0,
+                work_completed: (c.work_completed as string) || "",
+                next_week_plan: (c.next_week_plan as string) || "",
+                issues: (c.issues as string[]) || [],
+                photos_count: (c.photos_count as number) || 0,
+            })));
+        }
         setLoading(false);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const newCheckIn: CheckIn = {
-            id: Date.now().toString(),
-            date: new Date().toISOString(),
-            ...formData,
+        const supabase = createClient();
+        const { error } = await supabase.from("weekly_checkins").insert({
+            project_id: projectId,
+            week_start: new Date().toISOString().split("T")[0],
+            status: formData.status,
+            notes: formData.notes,
+            weather: formData.weather,
+            workers_on_site: formData.workers_on_site,
+            work_completed: formData.work_completed,
+            next_week_plan: formData.next_week_plan,
+            issues: formData.issues,
             photos_count: 0,
-        };
-        setCheckIns([newCheckIn, ...checkIns]);
-        setShowForm(false);
-        setFormData({
-            status: "on_track",
-            notes: "",
-            weather: "sunny",
-            workers_on_site: 0,
-            work_completed: "",
-            next_week_plan: "",
-            issues: [],
         });
+
+        if (!error) {
+            setShowForm(false);
+            setFormData({
+                status: "on_track", notes: "", weather: "sunny",
+                workers_on_site: 0, work_completed: "", next_week_plan: "", issues: [],
+            });
+            fetchCheckIns();
+        }
     };
 
     const toggleIssue = (issue: string) => {

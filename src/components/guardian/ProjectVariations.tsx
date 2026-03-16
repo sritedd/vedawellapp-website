@@ -1,7 +1,7 @@
 "use client";
-
 import { useEffect, useState, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
+import Link from "next/link";
 import { formatMoney } from "@/utils/format";
 import SignatureCanvas from "react-signature-canvas";
 import {
@@ -13,17 +13,23 @@ import {
 } from "@/lib/guardian/calculations";
 import type { Variation } from "@/types/guardian";
 
+const FREE_VARIATION_LIMIT = 2;
+
 export default function ProjectVariations({
     projectId,
     contractValue = 0,
+    onDataChanged,
 }: {
     projectId: string;
     contractValue?: number;
+    onDataChanged?: () => void;
 }) {
     const [variations, setVariations] = useState<Variation[]>([]);
     const [loading, setLoading] = useState(true);
     const [showAddForm, setShowAddForm] = useState(false);
     const [selectedVariation, setSelectedVariation] = useState<Variation | null>(null);
+    const [tierLimited, setTierLimited] = useState(false);
+    const [tierError, setTierError] = useState("");
     const signatureRef = useRef<SignatureCanvas>(null);
 
     const fetchVariations = async () => {
@@ -45,6 +51,31 @@ export default function ProjectVariations({
     useEffect(() => {
         fetchVariations();
     }, [projectId]);
+
+    // Check free tier limits
+    useEffect(() => {
+        const checkTier = async () => {
+            const supabase = createClient();
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+
+            const { data: profile } = await supabase
+                .from("profiles")
+                .select("subscription_tier, is_admin, trial_ends_at")
+                .eq("id", user.id)
+                .single();
+
+            const tier = profile?.subscription_tier || "free";
+            const isAdmin = profile?.is_admin === true;
+            const trialActive = tier === "trial" && profile?.trial_ends_at && new Date(profile.trial_ends_at) > new Date();
+            const hasPro = tier === "guardian_pro" || isAdmin || trialActive;
+
+            if (!hasPro) {
+                setTierLimited(true);
+            }
+        };
+        checkTier();
+    }, []);
 
     // Calculate totals using tested utility functions
     const calcVariations: CalcVariation[] = variations.map(v => ({
@@ -176,6 +207,14 @@ export default function ProjectVariations({
                 <form
                     onSubmit={async (e) => {
                         e.preventDefault();
+
+                        // Enforce free tier limit
+                        if (tierLimited && variations.length >= FREE_VARIATION_LIMIT) {
+                            setTierError(`Free plan allows ${FREE_VARIATION_LIMIT} variations. Upgrade to Guardian Pro for unlimited.`);
+                            return;
+                        }
+                        setTierError("");
+
                         const form = e.target as HTMLFormElement;
                         const formData = new FormData(form);
                         const supabase = createClient();
@@ -194,6 +233,7 @@ export default function ProjectVariations({
                         if (!error) {
                             setShowAddForm(false);
                             fetchVariations();
+                            onDataChanged?.();
                         } else {
                             alert("Failed to add variation. Please try again.");
                         }
@@ -201,6 +241,12 @@ export default function ProjectVariations({
                     className="p-6 bg-card border border-border rounded-xl space-y-4"
                 >
                     <h3 className="font-bold">Log New Variation</h3>
+                    {tierError && (
+                        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-600 text-sm">
+                            {tierError}{" "}
+                            <Link href="/guardian/pricing" className="font-semibold underline">Upgrade →</Link>
+                        </div>
+                    )}
                     <div className="grid md:grid-cols-2 gap-4">
                         <div className="md:col-span-2">
                             <label className="block text-sm font-medium mb-1">Title *</label>

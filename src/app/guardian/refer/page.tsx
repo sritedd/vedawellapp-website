@@ -31,7 +31,29 @@ export default async function ReferPage() {
     // Generate referral code if user doesn't have one
     let referralCode = profile?.referral_code;
     if (!referralCode) {
-        referralCode = user.id.slice(0, 8);
+        // Generate a unique random referral code
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // No I/O/0/1 for readability
+        const generateCode = () => {
+            let code = '';
+            for (let i = 0; i < 8; i++) {
+                code += chars[Math.floor(Math.random() * chars.length)];
+            }
+            return code;
+        };
+
+        // Ensure uniqueness
+        let attempts = 0;
+        do {
+            referralCode = generateCode();
+            const { data: existing } = await supabase
+                .from("profiles")
+                .select("id")
+                .eq("referral_code", referralCode)
+                .maybeSingle();
+            if (!existing) break;
+            attempts++;
+        } while (attempts < 5);
+
         await supabase
             .from("profiles")
             .update({ referral_code: referralCode })

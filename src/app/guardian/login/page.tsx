@@ -350,8 +350,8 @@ export default function LoginPage() {
                                                 type="button"
                                                 onClick={() => setRole(r.value)}
                                                 className={`p-3 rounded-lg border text-center transition-all ${role === r.value
-                                                        ? "border-primary bg-primary/10 ring-2 ring-primary"
-                                                        : "border-border hover:border-primary/50"
+                                                    ? "border-primary bg-primary/10 ring-2 ring-primary"
+                                                    : "border-border hover:border-primary/50"
                                                     }`}
                                             >
                                                 <div className="text-lg">{r.label.split(" ")[0]}</div>
@@ -461,16 +461,16 @@ export default function LoginPage() {
                                 </button>
                             )}
 
-                            {process.env.NODE_ENV === 'development' && (
+                            {process.env.NODE_ENV === 'development' && typeof window !== 'undefined' && window.location.hostname === 'localhost' && (
                                 <button
                                     onClick={async () => {
                                         setLoading(true);
                                         const { loginAsDevUser } = await import("./actions");
                                         await loginAsDevUser();
                                     }}
-                                    className="text-xs text-muted hover:text-foreground border border-dashed border-border px-3 py-2 rounded"
+                                    className="text-xs text-muted hover:text-foreground border border-dashed border-red-500/30 px-3 py-2 rounded bg-red-500/5"
                                 >
-                                    🛠️ Dev Mode: Bypass Login
+                                    ⚠️ DEV ONLY: Bypass Login (localhost)
                                 </button>
                             )}
                         </div>

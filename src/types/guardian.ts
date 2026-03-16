@@ -23,6 +23,11 @@ export interface Project {
     address: string;
     start_date: string;
     status: ProjectStatus;
+    state?: string;
+    build_category?: string;
+    contract_signed_date?: string;
+    handover_date?: string;
+    expected_end_date?: string;
     created_at: string;
 }
 
@@ -90,6 +95,9 @@ export interface Stage {
     name: string;
     status: StageStatus;
     completion_date?: string;
+    payment_percentage?: number;
+    expected_start_date?: string;
+    expected_end_date?: string;
     checklist_items?: ChecklistItem[];
     created_at: string;
 }
@@ -170,6 +178,27 @@ export interface WeeklyCheckInRecord {
     week_start: string;
     builder_responsive?: boolean;
     received_update?: boolean;
+    notes?: string;
+    created_at: string;
+}
+
+// ===========================================
+// PAYMENT
+// ===========================================
+
+export type PaymentStatus = 'pending' | 'due' | 'paid' | 'blocked';
+
+export interface Payment {
+    id: string;
+    project_id: string;
+    stage_name: string;
+    percentage: number;
+    amount: number;
+    status: PaymentStatus;
+    due_date?: string;
+    paid_date?: string;
+    paid_amount?: number;
+    certificates_required: string[];
     notes?: string;
     created_at: string;
 }

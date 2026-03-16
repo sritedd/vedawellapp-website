@@ -66,12 +66,12 @@ export default async function DashboardPage() {
             totalVariationsCount = allVariations.length;
         }
 
-        // Fetch all open defects across all projects
+        // Fetch all open defects across all projects (includes open, reported, in_progress, disputed)
         const { data: allDefects } = await supabase
             .from('defects')
             .select('id')
             .in('project_id', projectIds)
-            .eq('status', 'open');
+            .not('status', 'in', '(verified,rectified)');
         totalOpenDefects = allDefects?.length || 0;
     }
 
@@ -158,13 +158,12 @@ export default async function DashboardPage() {
 
                     {/* Admin announcement banner */}
                     {announcement && (
-                        <div className={`mb-6 p-4 rounded-lg text-sm font-medium border ${
-                            announcement.type === "warning"
+                        <div className={`mb-6 p-4 rounded-lg text-sm font-medium border ${announcement.type === "warning"
                                 ? "bg-yellow-500/10 text-yellow-700 border-yellow-500/20"
                                 : announcement.type === "success"
-                                ? "bg-green-500/10 text-green-700 border-green-500/20"
-                                : "bg-blue-500/10 text-blue-700 border-blue-500/20"
-                        }`}>
+                                    ? "bg-green-500/10 text-green-700 border-green-500/20"
+                                    : "bg-blue-500/10 text-blue-700 border-blue-500/20"
+                            }`}>
                             {announcement.message}
                         </div>
                     )}
@@ -305,10 +304,10 @@ export default async function DashboardPage() {
                                         <div className="flex justify-between items-start mb-3">
                                             <h3 className="font-bold">{project.name}</h3>
                                             <span className={`px-2 py-0.5 rounded-full text-xs font-medium uppercase ${project.status === 'active'
-                                                    ? 'bg-green-500/10 text-green-600'
-                                                    : project.status === 'completed'
-                                                        ? 'bg-blue-500/10 text-blue-600'
-                                                        : 'bg-gray-500/10 text-gray-600'
+                                                ? 'bg-green-500/10 text-green-600'
+                                                : project.status === 'completed'
+                                                    ? 'bg-blue-500/10 text-blue-600'
+                                                    : 'bg-gray-500/10 text-gray-600'
                                                 }`}>
                                                 {project.status}
                                             </span>

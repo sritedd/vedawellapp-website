@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -9,6 +9,7 @@ import type { Project, Variation, Defect } from "@/types/guardian";
 // Components
 import ProjectSettings from "@/components/guardian/ProjectSettings";
 import ProjectOverview from "@/components/guardian/ProjectOverview";
+import SmartDashboard from "@/components/guardian/SmartDashboard";
 import ProjectChecklists from "@/components/guardian/ProjectChecklists";
 import ProjectVariations from "@/components/guardian/ProjectVariations";
 import ProjectDefects from "@/components/guardian/ProjectDefects";
@@ -28,6 +29,16 @@ import SiteVisitLog from "@/components/guardian/SiteVisitLog";
 import NotificationCenter from "@/components/guardian/NotificationCenter";
 import ExportCenter from "@/components/guardian/ExportCenter";
 import StageChecklist from "@/components/guardian/StageChecklist";
+import DisputeResolution from "@/components/guardian/DisputeResolution";
+import DodgyBuilderAlerts from "@/components/guardian/DodgyBuilderAlerts";
+import PreHandoverChecklist from "@/components/guardian/PreHandoverChecklist";
+import AccountabilityScore from "@/components/guardian/AccountabilityScore";
+import NCC2025Compliance from "@/components/guardian/NCC2025Compliance";
+import GuidedOnboarding, { shouldShowOnboarding } from "@/components/guardian/GuidedOnboarding";
+import MobilePhotoCapture, { PhotoFAB } from "@/components/guardian/MobilePhotoCapture";
+import PushNotificationSetup from "@/components/guardian/PushNotificationSetup";
+import CostBenchmarking from "@/components/guardian/CostBenchmarking";
+import BuilderRatings from "@/components/guardian/BuilderRatings";
 
 export default function ProjectDetailPage() {
     const params = useParams();
@@ -43,90 +54,93 @@ export default function ProjectDetailPage() {
     const [blockReason, setBlockReason] = useState("");
     const [currentStage, setCurrentStage] = useState("frame");
     const [nextStage, setNextStage] = useState("Lockup");
-    const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-    const dropdownRef = useRef<HTMLDivElement>(null);
+    const [stageNames, setStageNames] = useState<string[]>([]);
+    const [showOnboarding, setShowOnboarding] = useState(false);
+    const [showPhotoCapture, setShowPhotoCapture] = useState(false);
 
-    // Close dropdown when clicking outside
-    const handleClickOutside = useCallback((e: MouseEvent) => {
-        if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-            setOpenDropdown(null);
+    // State-aware license verification URLs
+    const getLicenseVerificationUrl = (state?: string) => {
+        switch (state) {
+            case "VIC": return "https://www.vba.vic.gov.au/tools/register";
+            case "QLD": return "https://www.qbcc.qld.gov.au/check-licence-status";
+            case "WA": return "https://www.commerce.wa.gov.au/building-commission/register-builders";
+            default: return "https://www.fairtrading.nsw.gov.au/trades-and-businesses/licensing-and-registrations/public-register";
         }
-    }, []);
+    };
 
-    useEffect(() => {
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, [handleClickOutside]);
+    const fetchProject = useCallback(async () => {
+        const supabase = createClient();
 
-    useEffect(() => {
-        const fetchProject = async () => {
-            const supabase = createClient();
+        // SECURITY: Verify user is authenticated before querying
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            router.push("/guardian/login");
+            return;
+        }
 
-            // SECURITY: Verify user is authenticated before querying
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) {
-                router.push("/guardian/login");
-                return;
-            }
+        // Fetch project with user ownership check (defense-in-depth alongside RLS)
+        const { data, error } = await supabase
+            .from("projects")
+            .select("*")
+            .eq("id", params.id)
+            .eq("user_id", user.id)
+            .single();
 
-            // Fetch project with user ownership check (defense-in-depth alongside RLS)
-            const { data, error } = await supabase
-                .from("projects")
-                .select("*")
-                .eq("id", params.id)
-                .eq("user_id", user.id)
-                .single();
+        if (data) {
+            setProject(data);
 
-            if (data) {
-                setProject(data);
+            // Compute current stage from stages table
+            const { data: stages } = await supabase
+                .from("stages")
+                .select("name, status")
+                .eq("project_id", params.id)
+                .order("created_at", { ascending: true });
 
-                // Compute current stage from stages table
-                const STAGE_ORDER = ["site_prep", "base_slab", "frame", "lockup", "fixing", "practical_completion", "handover"];
-                const { data: stages } = await supabase
-                    .from("stages")
-                    .select("name, status")
-                    .eq("project_id", params.id)
-                    .order("created_at", { ascending: true });
+            if (stages && stages.length > 0) {
+                // Store stage names for child components
+                setStageNames(stages.map((s: { name: string }) => s.name));
 
-                if (stages && stages.length > 0) {
-                    // Find the first non-completed stage
-                    const activeStage = stages.find((s: { status: string }) => s.status !== "completed");
-                    if (activeStage) {
-                        setCurrentStage(activeStage.name.toLowerCase().replace(/[\s/]+/g, "_"));
-                        const idx = stages.indexOf(activeStage);
-                        if (idx < stages.length - 1) {
-                            setNextStage(stages[idx + 1].name);
-                        }
-                    } else {
-                        // All completed — set to last stage
-                        const lastStage = stages[stages.length - 1];
-                        setCurrentStage(lastStage.name.toLowerCase().replace(/[\s/]+/g, "_"));
+                // Find the first non-completed stage
+                const activeStage = stages.find((s: { status: string }) => s.status !== "completed");
+                if (activeStage) {
+                    setCurrentStage(activeStage.name.toLowerCase().replace(/[\s/]+/g, "_"));
+                    const idx = stages.indexOf(activeStage);
+                    if (idx < stages.length - 1) {
+                        setNextStage(stages[idx + 1].name);
                     }
+                } else {
+                    // All completed — set to last stage
+                    const lastStage = stages[stages.length - 1];
+                    setCurrentStage(lastStage.name.toLowerCase().replace(/[\s/]+/g, "_"));
+                    setNextStage("Handover Complete");
                 }
-
-                // Fetch variations for reports
-                const { data: varsData } = await supabase
-                    .from("variations")
-                    .select("*")
-                    .eq("project_id", params.id);
-                if (varsData) setVariations(varsData);
-
-                // Fetch defects for reports
-                const { data: defectsData } = await supabase
-                    .from("defects")
-                    .select("*")
-                    .eq("project_id", params.id);
-                if (defectsData) setDefects(defectsData);
-            } else {
-                console.error("Error fetching project:", error);
             }
-            setLoading(false);
-        };
 
+            // Fetch variations for reports
+            const { data: varsData } = await supabase
+                .from("variations")
+                .select("*")
+                .eq("project_id", params.id);
+            if (varsData) setVariations(varsData);
+
+            // Fetch defects for reports
+            const { data: defectsData } = await supabase
+                .from("defects")
+                .select("*")
+                .eq("project_id", params.id);
+            if (defectsData) setDefects(defectsData);
+        } else {
+            console.error("Error fetching project:", error);
+        }
+        setLoading(false);
+    }, [params.id, router]);
+
+    useEffect(() => {
         if (params.id) {
             fetchProject();
+            setShowOnboarding(shouldShowOnboarding(params.id as string));
         }
-    }, [params.id, router]);
+    }, [params.id, fetchProject]);
 
     const handlePaymentBlocked = (blocked: boolean, reason: string) => {
         setPaymentBlocked(blocked);
@@ -152,77 +166,87 @@ export default function ProjectDetailPage() {
         );
     }
 
-    // Tab groups for cleaner navigation
-    const tabGroups = [
+    // Stage-relevant tab indicators — highlight what matters now
+    const STAGE_RELEVANT_TABS: Record<string, string[]> = {
+        site_start: ["inspections", "certificates", "photos", "payments"],
+        slab: ["inspections", "certificates", "photos", "defects"],
+        frame: ["inspections", "certificates", "defects", "photos", "payments"],
+        lockup: ["inspections", "certificates", "payments", "defects"],
+        pre_plasterboard: ["inspections", "photos", "certificates", "defects", "checklists"],
+        fixing: ["inspections", "certificates", "defects", "payments", "variations"],
+        practical_completion: ["inspections", "certificates", "defects", "payments", "documents"],
+    };
+    const normalizedStage = currentStage.toLowerCase().replace(/[\s/]+/g, "_");
+    const relevantTabs = new Set(STAGE_RELEVANT_TABS[normalizedStage] || []);
+
+    // Flat navigation tabs — grouped visually with separators, no dropdowns
+    const navSections = [
         {
-            id: "overview",
             label: "Overview",
-            icon: "📊",
             tabs: [
-                { id: "overview", label: "Dashboard", icon: "📊" },
-                { id: "actions", label: "Pending Actions", icon: "🚨" },
-                { id: "stagegate", label: "Stage Gate", icon: "🚧" },
+                { id: "overview", label: "Dashboard" },
+                { id: "actions", label: "Pending Actions" },
+                { id: "stagegate", label: "Stage Gate" },
             ],
         },
         {
-            id: "construction",
-            label: "Construction",
-            icon: "🏗️",
+            label: "Build",
             tabs: [
-                { id: "stages", label: "Build Stages", icon: "🏠" },
-                { id: "checklists", label: "Custom Checklists", icon: "📋" },
-                { id: "defects", label: "Defects & Snags", icon: "🛠️" },
-                { id: "inspections", label: "Inspections", icon: "🔍" },
-                { id: "materials", label: "Materials", icon: "🧱" },
-                { id: "variations", label: "Variations", icon: "💰" },
+                { id: "stages", label: "Stages" },
+                { id: "defects", label: "Defects" },
+                { id: "inspections", label: "Inspections" },
+                { id: "variations", label: "Variations" },
+                { id: "redflags", label: "Red Flags" },
+                { id: "ncc2025", label: "NCC 2025" },
             ],
         },
         {
-            id: "progress",
-            label: "Progress",
-            icon: "📸",
+            label: "Money",
             tabs: [
-                { id: "photos", label: "Photos", icon: "📸" },
-                { id: "visits", label: "Site Visits", icon: "🏗️" },
-                { id: "checkins", label: "Weekly Check-ins", icon: "📅" },
+                { id: "payments", label: "Payments" },
+                { id: "budget", label: "Budget" },
+                { id: "certificates", label: "Certificates" },
+                { id: "benchmarking", label: "Cost Check" },
             ],
         },
         {
-            id: "financial",
-            label: "Financial",
-            icon: "💳",
+            label: "Records",
             tabs: [
-                { id: "payments", label: "Payments", icon: "💳" },
-                { id: "budget", label: "Budget", icon: "📈" },
-                { id: "certificates", label: "Certificates", icon: "📄" },
+                { id: "photos", label: "Photos" },
+                { id: "documents", label: "Documents" },
+                { id: "communication", label: "Comms Log" },
             ],
         },
         {
-            id: "documents",
-            label: "Docs & Comms",
-            icon: "📁",
+            label: "Protect",
             tabs: [
-                { id: "documents", label: "Document Vault", icon: "📁" },
-                { id: "communication", label: "Communication Log", icon: "📝" },
-                { id: "notifications", label: "Alerts", icon: "🔔" },
+                { id: "disputes", label: "Disputes" },
+                { id: "accountability", label: "Builder Score" },
+                { id: "ratings", label: "Rate Builder" },
+                { id: "prehandover", label: "Pre-Handover" },
             ],
         },
         {
-            id: "tools",
-            label: "Tools",
-            icon: "🔧",
+            label: "More",
             tabs: [
-                { id: "export", label: "Export Reports", icon: "📤" },
-                { id: "reports", label: "Generate Report", icon: "📑" },
-                { id: "settings", label: "Project Settings", icon: "⚙️" },
+                { id: "checklists", label: "Checklists" },
+                { id: "materials", label: "Materials" },
+                { id: "visits", label: "Site Visits" },
+                { id: "checkins", label: "Weekly Check-ins" },
+                { id: "pushnotifs", label: "Notifications" },
+                { id: "notifications", label: "Alerts" },
+                { id: "export", label: "Export" },
+                { id: "reports", label: "Reports" },
+                { id: "settings", label: "Settings" },
             ],
         },
     ];
 
-    // Find active group
-    const activeGroup = tabGroups.find((g) =>
-        g.tabs.some((t) => t.id === activeTab)
-    ) || tabGroups[0];
+    // For breadcrumb display
+    const activeSection = navSections.find((s) =>
+        s.tabs.some((t) => t.id === activeTab)
+    ) || navSections[0];
+    const activeTabLabel = activeSection.tabs.find((t) => t.id === activeTab)?.label || "Dashboard";
 
     return (
         <div className="min-h-screen flex flex-col bg-background">
@@ -249,7 +273,7 @@ export default function ProjectDetailPage() {
                                 <span>👷 {project.builder_name}</span>
                                 {project.builder_license_number && (
                                     <a
-                                        href={`https://www.fairtrading.nsw.gov.au/trades-and-businesses/licensing-and-registrations/public-register`}
+                                        href={getLicenseVerificationUrl(project.state)}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="text-primary hover:underline"
@@ -292,71 +316,69 @@ export default function ProjectDetailPage() {
                         </div>
                     )}
 
-                    {/* Grouped Navigation */}
+                    {/* Navigation — horizontal scrollable, grouped with labels */}
                     <div className="mb-6">
-                        {/* Main Category Tabs */}
-                        <div ref={dropdownRef} className="flex flex-wrap gap-2 border-b border-border pb-3 mb-3">
-                            {tabGroups.map((group) => {
-                                const isActive = group.tabs.some((t) => t.id === activeTab);
-                                return (
-                                    <div key={group.id} className="relative">
-                                        <button
-                                            onClick={() => {
-                                                if (openDropdown === group.id) {
-                                                    setOpenDropdown(null);
-                                                } else {
-                                                    setOpenDropdown(group.id);
-                                                }
-                                            }}
-                                            className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors ${isActive
-                                                ? "bg-primary text-white"
-                                                : "bg-muted hover:bg-muted/80"
-                                                }`}
-                                        >
-                                            <span>{group.icon}</span>
-                                            <span>{group.label}</span>
-                                            <span className="text-xs opacity-70">▼</span>
-                                        </button>
-
-                                        {/* Dropdown */}
-                                        {openDropdown === group.id && (
-                                            <div className="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-50 min-w-48 py-1">
-                                                {group.tabs.map((tab) => (
-                                                    <button
-                                                        key={tab.id}
-                                                        onClick={() => {
-                                                            setActiveTab(tab.id);
-                                                            setOpenDropdown(null);
-                                                        }}
-                                                        className={`w-full px-4 py-2 text-left text-sm flex items-center gap-2 hover:bg-muted/50 text-foreground ${activeTab === tab.id
-                                                            ? "bg-primary/10 text-primary font-medium"
-                                                            : ""
-                                                            }`}
-                                                    >
-                                                        <span>{tab.icon}</span>
-                                                        <span>{tab.label}</span>
-                                                    </button>
-                                                ))}
-                                            </div>
+                        <div className="overflow-x-auto -mx-6 px-6">
+                            <div className="flex items-center gap-1 min-w-max pb-3 border-b border-border">
+                                {navSections.map((section, sectionIdx) => (
+                                    <div key={section.label} className="flex items-center gap-1">
+                                        {sectionIdx > 0 && (
+                                            <div className="w-px h-6 bg-border mx-2" />
                                         )}
+                                        <span className="text-[10px] uppercase tracking-wider text-muted-foreground mr-1 hidden sm:inline">
+                                            {section.label}
+                                        </span>
+                                        {section.tabs.map((tab) => (
+                                            <button
+                                                key={tab.id}
+                                                onClick={() => setActiveTab(tab.id)}
+                                                className={`relative px-3 py-1.5 rounded-lg text-sm whitespace-nowrap transition-colors ${activeTab === tab.id
+                                                    ? "bg-primary text-white font-medium"
+                                                    : relevantTabs.has(tab.id)
+                                                        ? "text-foreground font-medium hover:bg-primary/10"
+                                                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                                    }`}
+                                            >
+                                                {tab.label}
+                                                {relevantTabs.has(tab.id) && activeTab !== tab.id && (
+                                                    <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-primary rounded-full" />
+                                                )}
+                                            </button>
+                                        ))}
                                     </div>
-                                );
-                            })}
+                                ))}
+                            </div>
                         </div>
 
-                        {/* Current Section Breadcrumb */}
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <span>{activeGroup.icon} {activeGroup.label}</span>
-                            <span>→</span>
-                            <span className="text-foreground font-medium">
-                                {activeGroup.tabs.find((t) => t.id === activeTab)?.label || "Dashboard"}
-                            </span>
+                        {/* Breadcrumb */}
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
+                            <span>{activeSection.label}</span>
+                            <span>/</span>
+                            <span className="text-foreground font-medium">{activeTabLabel}</span>
                         </div>
                     </div>
 
+                    {/* Guided Onboarding */}
+                    {showOnboarding && (
+                        <GuidedOnboarding
+                            projectId={project.id}
+                            projectName={project.name}
+                            builderName={project.builder_name || "Builder"}
+                            onDismiss={() => setShowOnboarding(false)}
+                            onNavigateTab={setActiveTab}
+                        />
+                    )}
+
                     {/* Tab Content */}
                     <div className="min-h-[500px]">
-                        {activeTab === "overview" && <ProjectOverview project={project} />}
+                        {activeTab === "overview" && (
+                            <SmartDashboard
+                                project={project}
+                                currentStage={currentStage}
+                                stageNames={stageNames}
+                                onNavigateTab={setActiveTab}
+                            />
+                        )}
                         {activeTab === "actions" && (
                             <BuilderActionList
                                 projectId={project.id}
@@ -370,15 +392,20 @@ export default function ProjectDetailPage() {
                                 projectId={project.id}
                                 currentStage={currentStage}
                                 nextStage={nextStage}
+                                onProceed={() => {
+                                    // Re-fetch project data to advance the stage
+                                    fetchProject();
+                                    setActiveTab("overview");
+                                }}
                             />
                         )}
                         {activeTab === "stages" && (
                             <StageChecklist projectId={project.id} currentStage={currentStage} />
                         )}
                         {activeTab === "checklists" && <ProjectChecklists projectId={project.id} />}
-                        {activeTab === "variations" && <ProjectVariations projectId={project.id} />}
-                        {activeTab === "defects" && <ProjectDefects projectId={project.id} />}
-                        {activeTab === "photos" && <ProgressPhotos projectId={project.id} />}
+                        {activeTab === "variations" && <ProjectVariations projectId={project.id} contractValue={project.contract_value || 0} onDataChanged={fetchProject} />}
+                        {activeTab === "defects" && <ProjectDefects projectId={project.id} stages={stageNames} builderEmail={project.builder_email || ""} onDataChanged={fetchProject} />}
+                        {activeTab === "photos" && <ProgressPhotos projectId={project.id} stages={stageNames} />}
                         {activeTab === "visits" && <SiteVisitLog projectId={project.id} />}
                         {activeTab === "certificates" && (
                             <CertificationGate
@@ -390,6 +417,66 @@ export default function ProjectDetailPage() {
                         {activeTab === "checkins" && <WeeklyCheckIn projectId={project.id} />}
                         {activeTab === "inspections" && (
                             <InspectionTimeline projectId={project.id} currentStage={currentStage} />
+                        )}
+                        {activeTab === "ncc2025" && (
+                            <NCC2025Compliance
+                                projectId={project.id}
+                                stateCode={project.state}
+                                buildCategory={project.build_category}
+                            />
+                        )}
+                        {activeTab === "redflags" && (
+                            <DodgyBuilderAlerts
+                                projectId={project.id}
+                                currentStage={currentStage}
+                                stateCode={project.state}
+                                buildCategory={project.build_category}
+                            />
+                        )}
+                        {activeTab === "disputes" && (
+                            <DisputeResolution
+                                projectId={project.id}
+                                stateCode={project.state}
+                                builderName={project.builder_name}
+                                projectName={project.name}
+                                projectAddress={project.address}
+                            />
+                        )}
+                        {activeTab === "accountability" && (
+                            <AccountabilityScore
+                                projectId={project.id}
+                                builderName={project.builder_name}
+                            />
+                        )}
+                        {activeTab === "prehandover" && (
+                            <PreHandoverChecklist
+                                projectId={project.id}
+                                onDefectsCreated={() => {
+                                    fetchProject();
+                                    setActiveTab("defects");
+                                }}
+                            />
+                        )}
+                        {activeTab === "ratings" && (
+                            <BuilderRatings
+                                projectId={project.id}
+                                builderName={project.builder_name}
+                                builderLicense={project.builder_license_number}
+                                stateCode={project.state}
+                            />
+                        )}
+                        {activeTab === "benchmarking" && (
+                            <CostBenchmarking
+                                projectId={project.id}
+                                contractValue={project.contract_value}
+                                stateCode={project.state}
+                            />
+                        )}
+                        {activeTab === "pushnotifs" && (
+                            <PushNotificationSetup
+                                projectId={project.id}
+                                projectName={project.name}
+                            />
                         )}
                         {activeTab === "materials" && <MaterialRegistry projectId={project.id} />}
                         {activeTab === "communication" && <CommunicationLog projectId={project.id} />}
@@ -431,6 +518,21 @@ export default function ProjectDetailPage() {
                     </div>
                 </div>
             </main>
+
+            {/* Mobile Photo FAB */}
+            <PhotoFAB onClick={() => setShowPhotoCapture(true)} />
+
+            {/* Mobile Photo Capture Overlay */}
+            {showPhotoCapture && (
+                <MobilePhotoCapture
+                    projectId={project.id}
+                    stage={currentStage}
+                    onPhotoSaved={() => {
+                        fetchProject();
+                    }}
+                    onClose={() => setShowPhotoCapture(false)}
+                />
+            )}
         </div>
     );
 }
