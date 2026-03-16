@@ -55,12 +55,13 @@ export default function StageGate({ projectId, currentStage, nextStage, onProcee
             const reqs: StageRequirement[] = [];
             const stageNameLower = currentStage.toLowerCase();
 
-            // Get actual stage name from DB
+            // Get actual stage name from DB (replace underscores back to spaces for matching)
+            const searchName = currentStage.replace(/_/g, " ");
             const { data: stageData } = await supabase
                 .from("stages")
                 .select("name")
                 .eq("project_id", projectId)
-                .ilike("name", `%${currentStage}%`)
+                .ilike("name", `%${searchName}%`)
                 .limit(1)
                 .single();
 
@@ -301,13 +302,22 @@ export default function StageGate({ projectId, currentStage, nextStage, onProcee
     };
 
     const confirmProceed = async () => {
-        // Update stage status in DB
+        // Update stage status in DB using the actual stage name from DB (not the normalized version)
         const supabase = createClient();
-        await supabase
+        const { error: updateError } = await supabase
             .from("stages")
             .update({ status: "completed", completion_date: new Date().toISOString().split("T")[0] })
             .eq("project_id", projectId)
-            .ilike("name", `%${currentStage}%`);
+            .eq("name", stageName);
+
+        // Fallback: try ilike match if exact name didn't work
+        if (updateError || stageName === currentStage) {
+            await supabase
+                .from("stages")
+                .update({ status: "completed", completion_date: new Date().toISOString().split("T")[0] })
+                .eq("project_id", projectId)
+                .ilike("name", `%${currentStage.replace(/_/g, " ")}%`);
+        }
 
         setShowConfirmation(false);
         onProceed?.();

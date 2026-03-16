@@ -208,7 +208,28 @@ export default function DodgyBuilderAlerts({
       }
 
       const allStages = workflow.stages;
-      const currentIndex = allStages.findIndex((s) => s.id === currentStage);
+
+      // Try exact match first, then fuzzy match on normalized names
+      let currentIndex = allStages.findIndex((s) => s.id === currentStage);
+      if (currentIndex < 0) {
+        // Normalize: strip parentheses, lowercase, replace spaces/special chars with _
+        const normalize = (str: string) =>
+          str.toLowerCase().replace(/\(.*?\)/g, "").replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+        const normalizedInput = normalize(currentStage);
+        currentIndex = allStages.findIndex((s) => {
+          const normalizedId = normalize(s.id);
+          const normalizedName = normalize(s.name);
+          return (
+            normalizedId === normalizedInput ||
+            normalizedName === normalizedInput ||
+            normalizedInput.includes(normalizedId) ||
+            normalizedId.includes(normalizedInput) ||
+            normalizedInput.includes(normalizedName) ||
+            normalizedName.includes(normalizedInput)
+          );
+        });
+      }
+
       const current = currentIndex >= 0 ? allStages[currentIndex] : null;
       const next =
         currentIndex >= 0 && currentIndex < allStages.length - 1
@@ -219,7 +240,7 @@ export default function DodgyBuilderAlerts({
         stages: allStages,
         currentStageData: current,
         nextStageData: next,
-        error: currentIndex < 0 ? `Stage "${currentStage}" not found in workflow` : null,
+        error: null,
       };
     } catch {
       return {
@@ -239,6 +260,51 @@ export default function DodgyBuilderAlerts({
     return (
       <div className="rounded-xl border border-border bg-card p-6">
         <p className="text-sm text-muted-foreground">{error}</p>
+      </div>
+    );
+  }
+
+  // If no stage matched in workflow, show general guidance instead of nothing
+  if (!currentStageData && !error) {
+    return (
+      <div className="space-y-6" data-project-id={projectId}>
+        <div className="rounded-xl border border-border bg-card p-6">
+          <div className="flex items-center gap-3 mb-2">
+            <span className="text-2xl">{"\u{1F6E1}"}</span>
+            <h2 className="text-xl font-bold">Builder Red Flag Monitor</h2>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            No specific warnings for this stage. Expand below to browse all stage warnings.
+          </p>
+        </div>
+        <div className="rounded-xl border border-border bg-card p-6">
+          <button
+            type="button"
+            onClick={() => setShowAllStages(!showAllStages)}
+            className="w-full flex items-center justify-between mb-2"
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-lg">{"\u{1F4CB}"}</span>
+              <h3 className="text-lg font-semibold">All Stage Warnings</h3>
+            </div>
+            <span className={`text-muted-foreground transition-transform duration-200 text-sm ${showAllStages ? "rotate-180" : ""}`}>
+              {"\u25BC"}
+            </span>
+          </button>
+          {showAllStages && (
+            <div className="space-y-2">
+              {stages.map((stage) => (
+                <AccordionItem
+                  key={stage.id}
+                  stage={stage}
+                  isOpen={!!openSections[stage.id]}
+                  onToggle={() => toggleSection(stage.id)}
+                  isCurrent={false}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     );
   }

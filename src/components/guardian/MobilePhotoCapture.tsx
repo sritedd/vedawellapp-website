@@ -329,7 +329,7 @@ export default function MobilePhotoCapture({
 
       // Save record to progress_photos
       const resolvedLocation = location === "Other" ? otherLocation.trim() || "Other" : location;
-      const caption = [resolvedLocation, notes.trim()].filter(Boolean).join(" - ");
+      const combinedDescription = [resolvedLocation, notes.trim()].filter(Boolean).join(" - ");
 
       const { error: insertError } = await supabase
         .from("progress_photos")
@@ -337,9 +337,8 @@ export default function MobilePhotoCapture({
           project_id: projectId,
           stage: selectedStage,
           photo_url: photoUrl,
-          caption,
           area: resolvedLocation,
-          description: notes.trim(),
+          description: combinedDescription,
         });
 
       if (insertError) {
