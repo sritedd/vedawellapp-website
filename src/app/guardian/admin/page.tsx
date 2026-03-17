@@ -27,6 +27,41 @@ function MiniBar({ value, max, color = "bg-primary" }: { value: number; max: num
     );
 }
 
+/** Safe query wrapper — returns null/0 on error instead of crashing */
+async function safeCount(supabase: any, table: string, filters?: Record<string, any>): Promise<number> {
+    try {
+        let q = supabase.from(table).select("*", { count: "exact", head: true });
+        if (filters) {
+            for (const [col, val] of Object.entries(filters)) {
+                if (col.startsWith("gte:")) q = q.gte(col.slice(4), val);
+                else q = q.eq(col, val);
+            }
+        }
+        const { count } = await q;
+        return count ?? 0;
+    } catch {
+        return 0;
+    }
+}
+
+async function safeSelect(supabase: any, table: string, columns: string, opts?: { filters?: Record<string, any>; order?: string; limit?: number }): Promise<any[]> {
+    try {
+        let q = supabase.from(table).select(columns);
+        if (opts?.filters) {
+            for (const [col, val] of Object.entries(opts.filters)) {
+                if (col.startsWith("gte:")) q = q.gte(col.slice(4), val);
+                else q = q.eq(col, val);
+            }
+        }
+        if (opts?.order) q = q.order(opts.order, { ascending: opts.order === "created_at" });
+        if (opts?.limit) q = q.limit(opts.limit);
+        const { data } = await q;
+        return data ?? [];
+    } catch {
+        return [];
+    }
+}
+
 export default async function AdminPage() {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -35,136 +70,68 @@ export default async function AdminPage() {
         redirect("/guardian/dashboard");
     }
 
-    // ── Profiles stats ──────────────────────────────────────────────
-    const { count: totalUsers } = await supabase
-        .from("profiles")
-        .select("*", { count: "exact", head: true });
+    // ── All queries wrapped in safe helpers ────────────────────────
+    const totalUsers = await safeCount(supabase, "profiles");
+    const proUsers = await safeCount(supabase, "profiles", { subscription_tier: "guardian_pro" });
+    const trialUsers = await safeCount(supabase, "profiles", { subscription_tier: "trial" });
+    const activeUsers7d = await safeCount(supabase, "profiles", { "gte:last_seen_at": new Date(Date.now() - 7 * 864e5).toISOString() });
+    const activeUsers30d = await safeCount(supabase, "profiles", { "gte:last_seen_at": new Date(Date.now() - 30 * 864e5).toISOString() });
+    const emailSubs = await safeCount(supabase, "email_subscribers", { status: "active" });
 
-    const { count: proUsers } = await supabase
-        .from("profiles")
-        .select("*", { count: "exact", head: true })
-        .eq("subscription_tier", "guardian_pro");
-
-    const { count: trialUsers } = await supabase
-        .from("profiles")
-        .select("*", { count: "exact", head: true })
-        .eq("subscription_tier", "trial");
-
-    const { count: activeUsers7d } = await supabase
-        .from("profiles")
-        .select("*", { count: "exact", head: true })
-        .gte("last_seen_at", new Date(Date.now() - 7 * 864e5).toISOString());
-
-    const { count: activeUsers30d } = await supabase
-        .from("profiles")
-        .select("*", { count: "exact", head: true })
-        .gte("last_seen_at", new Date(Date.now() - 30 * 864e5).toISOString());
-
-    // ── Email subscribers ────────────────────────────────────────────
-    const { count: emailSubs } = await supabase
-        .from("email_subscribers")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "active");
-
-    // ── Signup trend (last 30 days) ──────────────────────────────────
+    // Signup trend
     const thirtyDaysAgo = new Date(Date.now() - 30 * 864e5).toISOString();
-    const { data: recentSignups } = await supabase
-        .from("profiles")
-        .select("created_at")
-        .gte("created_at", thirtyDaysAgo)
-        .order("created_at", { ascending: true });
+    const recentSignups = await safeSelect(supabase, "profiles", "created_at", { filters: { "gte:created_at": thirtyDaysAgo }, order: "created_at" });
 
-    // Group signups by date
     const signupsByDate: Record<string, number> = {};
     for (let i = 29; i >= 0; i--) {
         const d = new Date(Date.now() - i * 864e5);
         signupsByDate[d.toISOString().slice(0, 10)] = 0;
     }
-    for (const s of recentSignups ?? []) {
+    for (const s of recentSignups) {
         const dateKey = new Date(s.created_at).toISOString().slice(0, 10);
         if (dateKey in signupsByDate) signupsByDate[dateKey]++;
     }
     const signupDays = Object.entries(signupsByDate);
     const maxSignups = Math.max(...signupDays.map(([, v]) => v), 1);
 
-    // ── Guardian feature stats ───────────────────────────────────────
-    const { count: totalProjects } = await supabase
-        .from("projects")
-        .select("*", { count: "exact", head: true });
-
-    const { data: projectsByStatus } = await supabase
-        .from("projects")
-        .select("status");
-
+    // Guardian feature stats
+    const totalProjects = await safeCount(supabase, "projects");
+    const projectsByStatus = await safeSelect(supabase, "projects", "status");
     const statusCounts: Record<string, number> = {};
-    for (const p of projectsByStatus ?? []) {
+    for (const p of projectsByStatus) {
         statusCounts[p.status] = (statusCounts[p.status] ?? 0) + 1;
     }
 
-    const { data: projectValues } = await supabase
-        .from("projects")
-        .select("contract_value");
-    const totalContractValue = (projectValues ?? []).reduce((sum: number, p: { contract_value: number | null }) => sum + (p.contract_value || 0), 0);
+    const projectValues = await safeSelect(supabase, "projects", "contract_value");
+    const totalContractValue = projectValues.reduce((sum: number, p: any) => sum + (p.contract_value || 0), 0);
 
-    const { count: totalDefects } = await supabase
-        .from("defects")
-        .select("*", { count: "exact", head: true });
-
-    const { count: openDefects } = await supabase
-        .from("defects")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "open");
-
-    const { data: defectsBySeverity } = await supabase
-        .from("defects")
-        .select("severity")
-        .eq("status", "open");
-
+    const totalDefects = await safeCount(supabase, "defects");
+    const openDefects = await safeCount(supabase, "defects", { status: "open" });
+    const defectsBySeverity = await safeSelect(supabase, "defects", "severity", { filters: { status: "open" } });
     const sevCounts: Record<string, number> = {};
-    for (const d of defectsBySeverity ?? []) {
+    for (const d of defectsBySeverity) {
         sevCounts[d.severity] = (sevCounts[d.severity] ?? 0) + 1;
     }
 
-    const { count: totalVariations } = await supabase
-        .from("variations")
-        .select("*", { count: "exact", head: true });
+    const totalVariations = await safeCount(supabase, "variations");
+    const approvedVariations = await safeCount(supabase, "variations", { status: "approved" });
+    const totalCertifications = await safeCount(supabase, "certifications");
+    const totalInspections = await safeCount(supabase, "inspections");
+    const totalDocuments = await safeCount(supabase, "documents");
 
-    const { count: approvedVariations } = await supabase
-        .from("variations")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "approved");
-
-    const { count: totalCertifications } = await supabase
-        .from("certifications")
-        .select("*", { count: "exact", head: true });
-
-    const { count: totalInspections } = await supabase
-        .from("inspections")
-        .select("*", { count: "exact", head: true });
-
-    const { count: totalDocuments } = await supabase
-        .from("documents")
-        .select("*", { count: "exact", head: true });
-
-    // ── Conversion funnel ────────────────────────────────────────────
-    const { count: usersWithProjects } = await supabase
-        .from("projects")
-        .select("user_id", { count: "exact", head: true });
-    // Approximate unique users with projects
-    const { data: uniqueProjectUsers } = await supabase
-        .from("projects")
-        .select("user_id");
-    const uniqueProjectUserCount = new Set((uniqueProjectUsers ?? []).map((p: { user_id: string }) => p.user_id)).size;
+    // Conversion funnel
+    const uniqueProjectUsers = await safeSelect(supabase, "projects", "user_id");
+    const uniqueProjectUserCount = new Set(uniqueProjectUsers.map((p: any) => p.user_id)).size;
 
     const funnelSteps = [
-        { label: "Email Subscribers", value: emailSubs ?? 0, color: "bg-blue-500" },
-        { label: "Registered Users", value: totalUsers ?? 0, color: "bg-indigo-500" },
+        { label: "Email Subscribers", value: emailSubs, color: "bg-blue-500" },
+        { label: "Registered Users", value: totalUsers, color: "bg-indigo-500" },
         { label: "Created Project", value: uniqueProjectUserCount, color: "bg-purple-500" },
-        { label: "Guardian Pro", value: (proUsers ?? 0) + (trialUsers ?? 0), color: "bg-green-500" },
+        { label: "Guardian Pro", value: proUsers + trialUsers, color: "bg-green-500" },
     ];
     const funnelMax = Math.max(...funnelSteps.map(s => s.value), 1);
 
-    // ── Active announcement ──────────────────────────────────────────
+    // Active announcement
     let activeAnnouncement: { id: string; message: string; type: string; created_at: string } | null = null;
     try {
         const { data: annData } = await supabase
@@ -177,8 +144,7 @@ export default async function AdminPage() {
         activeAnnouncement = annData;
     } catch { /* table may not exist */ }
 
-    // ── All users (for management) ──────────────────────────────────
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // All users (for management)
     let allUsersWithProjects: any[] = [];
     try {
         const { data: allUsers } = await supabase
@@ -187,56 +153,45 @@ export default async function AdminPage() {
             .order("created_at", { ascending: false })
             .limit(100);
 
-        const { data: projectCounts } = await supabase
-            .from("projects")
-            .select("user_id");
-
+        const projectCounts = await safeSelect(supabase, "projects", "user_id");
         const projectCountMap: Record<string, number> = {};
-        for (const p of projectCounts ?? []) {
+        for (const p of projectCounts) {
             projectCountMap[p.user_id] = (projectCountMap[p.user_id] ?? 0) + 1;
         }
 
-        allUsersWithProjects = (allUsers ?? []).map((u: { id: string; email: string | null; full_name: string | null; subscription_tier: string | null; is_admin: boolean; trial_ends_at: string | null; last_seen_at: string | null; created_at: string }) => ({
+        allUsersWithProjects = (allUsers ?? []).map((u: any) => ({
             ...u,
             project_count: projectCountMap[u.id] ?? 0,
         }));
     } catch { /* column may not exist if migration not run */ }
 
-    // ── Support conversations ──────────────────────────────────────
+    // Support conversations
     let supportConversations: Awaited<ReturnType<typeof getAdminConversations>>["conversations"] = [];
     try {
         const result = await getAdminConversations();
         supportConversations = result.conversations;
     } catch { /* table may not exist */ }
 
-    // ── Top email subscriber sources ─────────────────────────────────
+    // Top email subscriber sources
     let topSources: [string, number][] = [];
     try {
-        const { data: subSources } = await supabase
-            .from("email_subscribers")
-            .select("source")
-            .eq("status", "active")
-            .order("source");
-
+        const subSources = await safeSelect(supabase, "email_subscribers", "source", { filters: { status: "active" } });
         const sourceCounts: Record<string, number> = {};
-        for (const { source } of subSources ?? []) {
+        for (const { source } of subSources) {
             sourceCounts[source] = (sourceCounts[source] ?? 0) + 1;
         }
-        topSources = Object.entries(sourceCounts)
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 8);
+        topSources = Object.entries(sourceCounts).sort((a, b) => b[1] - a[1]).slice(0, 8);
     } catch { /* table may not exist */ }
 
-    // ── Tool usage leaderboard ───────────────────────────────────────
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let topTools: any[] | null = null;
+    // Tool usage leaderboard
+    let topTools: any[] = [];
     try {
         const { data: toolData } = await supabase
             .from("tool_usage")
             .select("tool_slug, use_count, last_used_at")
             .order("use_count", { ascending: false })
             .limit(15);
-        topTools = toolData;
+        topTools = toolData ?? [];
     } catch { /* table may not exist */ }
 
     const fmt = (d: string | null) =>
@@ -244,7 +199,7 @@ export default async function AdminPage() {
 
     const fmtMoney = (v: number) => v >= 1e6 ? `$${(v / 1e6).toFixed(1)}M` : v >= 1e3 ? `$${(v / 1e3).toFixed(0)}K` : `$${v.toFixed(0)}`;
 
-    const mrr = (proUsers ?? 0) * 14.99;
+    const mrr = proUsers * 14.99;
 
     return (
         <div className="py-10 px-6">
@@ -274,33 +229,33 @@ export default async function AdminPage() {
                     </div>
                 </div>
 
-                {/* ═══ Revenue ═══ */}
+                {/* Revenue */}
                 <section>
                     <h2 className="text-lg font-bold mb-4">Revenue</h2>
                     <div className="grid sm:grid-cols-2 md:grid-cols-5 gap-4">
-                        <StatCard label="Guardian Pro" value={proUsers ?? 0} sub="paying subscribers" color="text-green-600" />
-                        <StatCard label="On Trial" value={trialUsers ?? 0} sub="free trial active" color="text-blue-600" />
-                        <StatCard label="Est. MRR (AUD)" value={`$${mrr.toFixed(2)}`} sub={`${proUsers ?? 0} x $14.99`} color="text-primary" />
+                        <StatCard label="Guardian Pro" value={proUsers} sub="paying subscribers" color="text-green-600" />
+                        <StatCard label="On Trial" value={trialUsers} sub="free trial active" color="text-blue-600" />
+                        <StatCard label="Est. MRR (AUD)" value={`$${mrr.toFixed(2)}`} sub={`${proUsers} x $14.99`} color="text-primary" />
                         <StatCard label="Est. ARR (AUD)" value={`$${(mrr * 12).toFixed(0)}`} sub="annualised" />
-                        <StatCard label="Free Users" value={(totalUsers ?? 0) - (proUsers ?? 0) - (trialUsers ?? 0)} sub="on free tier" />
+                        <StatCard label="Free Users" value={totalUsers - proUsers - trialUsers} sub="on free tier" />
                     </div>
                 </section>
 
-                {/* ═══ Users ═══ */}
+                {/* Users */}
                 <section>
                     <h2 className="text-lg font-bold mb-4">Users</h2>
                     <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
-                        <StatCard label="Total Registered" value={totalUsers ?? 0} sub="all time" />
-                        <StatCard label="Active (7 days)" value={activeUsers7d ?? 0} sub="visited dashboard" />
-                        <StatCard label="Active (30 days)" value={activeUsers30d ?? 0} sub="visited dashboard" />
-                        <StatCard label="Email Subscribers" value={emailSubs ?? 0} sub="active newsletter" />
+                        <StatCard label="Total Registered" value={totalUsers} sub="all time" />
+                        <StatCard label="Active (7 days)" value={activeUsers7d} sub="visited dashboard" />
+                        <StatCard label="Active (30 days)" value={activeUsers30d} sub="visited dashboard" />
+                        <StatCard label="Email Subscribers" value={emailSubs} sub="active newsletter" />
                     </div>
                 </section>
 
-                {/* ═══ Signup Trend (30 days) ═══ */}
+                {/* Signup Trend */}
                 <section>
                     <h2 className="text-lg font-bold mb-2">Signup Trend</h2>
-                    <p className="text-muted text-xs mb-3">Last 30 days — {(recentSignups ?? []).length} total signups</p>
+                    <p className="text-muted text-xs mb-3">Last 30 days — {recentSignups.length} total signups</p>
                     <div className="bg-card border border-border rounded-xl p-4">
                         <div className="flex items-end gap-[2px] h-24">
                             {signupDays.map(([date, count]) => (
@@ -323,7 +278,7 @@ export default async function AdminPage() {
                     </div>
                 </section>
 
-                {/* ═══ Conversion Funnel ═══ */}
+                {/* Conversion Funnel */}
                 <section>
                     <h2 className="text-lg font-bold mb-4">Conversion Funnel</h2>
                     <div className="bg-card border border-border rounded-xl p-6 space-y-4">
@@ -348,17 +303,17 @@ export default async function AdminPage() {
                     </div>
                 </section>
 
-                {/* ═══ Guardian Feature Analytics ═══ */}
+                {/* Guardian Feature Analytics */}
                 <section>
                     <h2 className="text-lg font-bold mb-4">Guardian Feature Usage</h2>
                     <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                        <StatCard label="Total Projects" value={totalProjects ?? 0} sub={`${fmtMoney(totalContractValue)} contract value`} color="text-primary" />
-                        <StatCard label="Defects Logged" value={totalDefects ?? 0} sub={`${openDefects ?? 0} open`} color={openDefects ? "text-red-600" : ""} />
-                        <StatCard label="Variations" value={totalVariations ?? 0} sub={`${approvedVariations ?? 0} approved`} />
-                        <StatCard label="Documents" value={totalDocuments ?? 0} sub={`${totalCertifications ?? 0} certs, ${totalInspections ?? 0} inspections`} />
+                        <StatCard label="Total Projects" value={totalProjects} sub={`${fmtMoney(totalContractValue)} contract value`} color="text-primary" />
+                        <StatCard label="Defects Logged" value={totalDefects} sub={`${openDefects} open`} color={openDefects ? "text-red-600" : ""} />
+                        <StatCard label="Variations" value={totalVariations} sub={`${approvedVariations} approved`} />
+                        <StatCard label="Documents" value={totalDocuments} sub={`${totalCertifications} certs, ${totalInspections} inspections`} />
                     </div>
 
-                    {/* Project status breakdown */}
+                    {/* Project status + defect severity breakdown */}
                     <div className="grid sm:grid-cols-2 gap-4">
                         <div className="bg-card border border-border rounded-xl p-5">
                             <h3 className="text-sm font-bold mb-3">Projects by Status</h3>
@@ -372,7 +327,7 @@ export default async function AdminPage() {
                                             <div className="flex items-center gap-2">
                                                 <span className="text-sm font-bold">{count}</span>
                                                 <div className="w-20">
-                                                    <MiniBar value={count} max={totalProjects ?? 1} color={
+                                                    <MiniBar value={count} max={totalProjects || 1} color={
                                                         status === "active" ? "bg-green-500" :
                                                         status === "completed" ? "bg-blue-500" :
                                                         status === "paused" ? "bg-yellow-500" :
@@ -402,7 +357,7 @@ export default async function AdminPage() {
                                             <div className="flex items-center gap-2">
                                                 <span className="text-sm font-bold">{sevCounts[severity]}</span>
                                                 <div className="w-20">
-                                                    <MiniBar value={sevCounts[severity]} max={openDefects ?? 1} color={
+                                                    <MiniBar value={sevCounts[severity]} max={openDefects || 1} color={
                                                         severity === "critical" ? "bg-red-500" :
                                                         severity === "major" ? "bg-orange-500" :
                                                         "bg-yellow-500"
@@ -417,7 +372,7 @@ export default async function AdminPage() {
                     </div>
                 </section>
 
-                {/* ═══ Announcements ═══ */}
+                {/* Announcements */}
                 <section>
                     <h2 className="text-lg font-bold mb-2">Announcements & Maintenance</h2>
                     <p className="text-muted text-sm mb-4">Set a banner visible to all Guardian users, or run maintenance tasks.</p>
@@ -438,7 +393,7 @@ export default async function AdminPage() {
                     </div>
                 </section>
 
-                {/* ═══ User Management ═══ */}
+                {/* User Management */}
                 <section>
                     <h2 className="text-lg font-bold mb-2">User Management</h2>
                     <p className="text-muted text-sm mb-4">Grant free trials, upgrade users, or revoke access by email.</p>
@@ -447,7 +402,7 @@ export default async function AdminPage() {
                     </div>
                 </section>
 
-                {/* ═══ All Users Table (searchable) ═══ */}
+                {/* All Users Table */}
                 <section>
                     <h2 className="text-lg font-bold mb-4">All Users ({allUsersWithProjects.length})</h2>
                     <div className="bg-card border border-border rounded-xl p-4">
@@ -455,7 +410,7 @@ export default async function AdminPage() {
                     </div>
                 </section>
 
-                {/* ═══ Support Inbox ═══ */}
+                {/* Support Inbox */}
                 <section>
                     <h2 className="text-lg font-bold mb-2">
                         Support Inbox
@@ -474,10 +429,10 @@ export default async function AdminPage() {
                     <AdminSupportInbox initial={supportConversations} />
                 </section>
 
-                {/* ═══ Tool Usage Leaderboard ═══ */}
+                {/* Tool Usage Leaderboard */}
                 <section>
                     <h2 className="text-lg font-bold mb-2">Tool Usage Leaderboard</h2>
-                    <p className="text-muted text-sm mb-4">Populated once <code className="bg-muted/20 px-1 rounded">trackToolUse</code> events fire. Run schema_v4_analytics.sql migration first.</p>
+                    <p className="text-muted text-sm mb-4">Populated once <code className="bg-muted/20 px-1 rounded">trackToolUse</code> events fire.</p>
                     <div className="bg-card border border-border rounded-xl overflow-hidden">
                         <table className="w-full text-sm">
                             <thead className="bg-muted/10 text-muted text-left">
@@ -489,19 +444,18 @@ export default async function AdminPage() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border">
-                                {(topTools ?? []).length === 0 ? (
+                                {topTools.length === 0 ? (
                                     <tr>
                                         <td colSpan={4} className="px-4 py-6 text-center text-muted">
                                             No tool usage data yet
                                         </td>
                                     </tr>
                                 ) : (
-                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                    (topTools ?? []).map((t: any, i: number) => (
+                                    topTools.map((t: any, i: number) => (
                                         <tr key={t.tool_slug} className="hover:bg-muted/5">
                                             <td className="px-4 py-3 text-muted">{i + 1}</td>
                                             <td className="px-4 py-3 font-medium">{t.tool_slug}</td>
-                                            <td className="px-4 py-3 font-bold">{t.use_count.toLocaleString()}</td>
+                                            <td className="px-4 py-3 font-bold">{t.use_count?.toLocaleString?.() ?? t.use_count}</td>
                                             <td className="px-4 py-3 text-muted">{fmt(t.last_used_at)}</td>
                                         </tr>
                                     ))
@@ -511,7 +465,7 @@ export default async function AdminPage() {
                     </div>
                 </section>
 
-                {/* ═══ Email Subscriber Sources ═══ */}
+                {/* Email Subscriber Sources */}
                 <section>
                     <h2 className="text-lg font-bold mb-4">Email Subscriber Sources</h2>
                     {topSources.length === 0 ? (
