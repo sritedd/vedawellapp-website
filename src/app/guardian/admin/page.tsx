@@ -103,23 +103,50 @@ export default async function AdminPage() {
         redirect("/guardian/dashboard");
     }
 
-    // Step 2: Load all data (each query is individually safe)
+    // Step 2: Load ALL data in parallel (prevents connection timeout)
     try {
-        // ── Profile stats ─────────────────────────────────────────
-        const totalUsers = await safeCount(supabase, "profiles");
-        const proUsers = await safeCount(supabase, "profiles", { subscription_tier: "guardian_pro" });
-        const trialUsers = await safeCount(supabase, "profiles", { subscription_tier: "trial" });
-        const activeUsers7d = await safeCount(supabase, "profiles", { "gte:last_seen_at": new Date(Date.now() - 7 * 864e5).toISOString() });
-        const activeUsers30d = await safeCount(supabase, "profiles", { "gte:last_seen_at": new Date(Date.now() - 30 * 864e5).toISOString() });
-        const emailSubs = await safeCount(supabase, "email_subscribers", { status: "active" });
-
-        // ── Signup trend ──────────────────────────────────────────
         const thirtyDaysAgo = new Date(Date.now() - 30 * 864e5).toISOString();
-        const recentSignups = await safeSelect(supabase, "profiles", "created_at", {
-            filters: { "gte:created_at": thirtyDaysAgo },
-            order: { col: "created_at", ascending: true },
-        });
+        const sevenDaysAgo = new Date(Date.now() - 7 * 864e5).toISOString();
 
+        // ── Fire ALL queries simultaneously ───────────────────────
+        const [
+            totalUsers, proUsers, trialUsers, activeUsers7d, activeUsers30d, emailSubs,
+            recentSignups, totalProjects, projectsByStatus, projectValues,
+            totalDefects, openDefects, defectsBySeverity,
+            totalVariations, approvedVariations, totalCertifications, totalInspections, totalDocuments,
+            uniqueProjectUsers,
+        ] = await Promise.all([
+            safeCount(supabase, "profiles"),
+            safeCount(supabase, "profiles", { subscription_tier: "guardian_pro" }),
+            safeCount(supabase, "profiles", { subscription_tier: "trial" }),
+            safeCount(supabase, "profiles", { "gte:last_seen_at": sevenDaysAgo }),
+            safeCount(supabase, "profiles", { "gte:last_seen_at": thirtyDaysAgo }),
+            safeCount(supabase, "email_subscribers", { status: "active" }),
+            safeSelect(supabase, "profiles", "created_at", { filters: { "gte:created_at": thirtyDaysAgo }, order: { col: "created_at", ascending: true } }),
+            safeCount(supabase, "projects"),
+            safeSelect(supabase, "projects", "status"),
+            safeSelect(supabase, "projects", "contract_value"),
+            safeCount(supabase, "defects"),
+            safeCount(supabase, "defects", { status: "open" }),
+            safeSelect(supabase, "defects", "severity", { filters: { status: "open" } }),
+            safeCount(supabase, "variations"),
+            safeCount(supabase, "variations", { status: "approved" }),
+            safeCount(supabase, "certifications"),
+            safeCount(supabase, "inspections"),
+            safeCount(supabase, "documents"),
+            safeSelect(supabase, "projects", "user_id"),
+        ]);
+
+        // ── Second batch (depends on nothing, also parallel) ──────
+        const [announcementResult, allUsersResult, supportResult, subSourcesResult, toolResult] = await Promise.all([
+            supabase.from("announcements").select("id, message, type, created_at").eq("active", true).order("created_at", { ascending: false }).limit(1).single().catch(() => ({ data: null })),
+            supabase.from("profiles").select("id, email, full_name, subscription_tier, is_admin, trial_ends_at, last_seen_at, created_at").order("created_at", { ascending: false }).limit(100).catch(() => ({ data: [] })),
+            getAdminConversations().catch(() => ({ conversations: [] })),
+            safeSelect(supabase, "email_subscribers", "source", { filters: { status: "active" } }),
+            supabase.from("tool_usage").select("tool_slug, use_count, last_used_at").order("use_count", { ascending: false }).limit(15).catch(() => ({ data: [] })),
+        ]);
+
+        // ── Process results ───────────────────────────────────────
         const signupsByDate: Record<string, number> = {};
         for (let i = 29; i >= 0; i--) {
             signupsByDate[new Date(Date.now() - i * 864e5).toISOString().slice(0, 10)] = 0;
@@ -133,33 +160,18 @@ export default async function AdminPage() {
         const signupDays = Object.entries(signupsByDate);
         const maxSignups = Math.max(...signupDays.map(([, v]) => v), 1);
 
-        // ── Guardian feature stats ────────────────────────────────
-        const totalProjects = await safeCount(supabase, "projects");
-        const projectsByStatus = await safeSelect(supabase, "projects", "status");
         const statusCounts: Record<string, number> = {};
         for (const p of projectsByStatus) {
             if (p?.status) statusCounts[p.status] = (statusCounts[p.status] ?? 0) + 1;
         }
 
-        const projectValues = await safeSelect(supabase, "projects", "contract_value");
         const totalContractValue = projectValues.reduce((sum: number, p: any) => sum + (Number(p?.contract_value) || 0), 0);
 
-        const totalDefects = await safeCount(supabase, "defects");
-        const openDefects = await safeCount(supabase, "defects", { status: "open" });
-        const defectsBySeverity = await safeSelect(supabase, "defects", "severity", { filters: { status: "open" } });
         const sevCounts: Record<string, number> = {};
         for (const d of defectsBySeverity) {
             if (d?.severity) sevCounts[d.severity] = (sevCounts[d.severity] ?? 0) + 1;
         }
 
-        const totalVariations = await safeCount(supabase, "variations");
-        const approvedVariations = await safeCount(supabase, "variations", { status: "approved" });
-        const totalCertifications = await safeCount(supabase, "certifications");
-        const totalInspections = await safeCount(supabase, "inspections");
-        const totalDocuments = await safeCount(supabase, "documents");
-
-        // ── Conversion funnel ─────────────────────────────────────
-        const uniqueProjectUsers = await safeSelect(supabase, "projects", "user_id");
         const uniqueProjectUserCount = new Set(uniqueProjectUsers.map((p: any) => p?.user_id).filter(Boolean)).size;
 
         const funnelSteps = [
@@ -170,70 +182,28 @@ export default async function AdminPage() {
         ];
         const funnelMax = Math.max(...funnelSteps.map(s => s.value), 1);
 
-        // ── Announcements ─────────────────────────────────────────
-        let activeAnnouncement: any = null;
-        try {
-            const { data } = await supabase
-                .from("announcements")
-                .select("id, message, type, created_at")
-                .eq("active", true)
-                .order("created_at", { ascending: false })
-                .limit(1)
-                .single();
-            activeAnnouncement = data;
-        } catch { }
+        const activeAnnouncement = announcementResult?.data ?? null;
 
-        // ── All users ─────────────────────────────────────────────
-        let allUsersWithProjects: any[] = [];
-        try {
-            const allUsersResult = await supabase
-                .from("profiles")
-                .select("id, email, full_name, subscription_tier, is_admin, trial_ends_at, last_seen_at, created_at")
-                .order("created_at", { ascending: false })
-                .limit(100);
+        const allUsers = allUsersResult?.data ?? [];
+        const projectCountMap: Record<string, number> = {};
+        for (const p of uniqueProjectUsers) {
+            if (p?.user_id) projectCountMap[p.user_id] = (projectCountMap[p.user_id] ?? 0) + 1;
+        }
+        const allUsersWithProjects = allUsers.map((u: any) => ({
+            ...u,
+            project_count: projectCountMap[u?.id] ?? 0,
+        }));
 
-            const allUsers = allUsersResult?.data ?? [];
-            const projectCounts = await safeSelect(supabase, "projects", "user_id");
-            const projectCountMap: Record<string, number> = {};
-            for (const p of projectCounts) {
-                if (p?.user_id) projectCountMap[p.user_id] = (projectCountMap[p.user_id] ?? 0) + 1;
-            }
-            allUsersWithProjects = allUsers.map((u: any) => ({
-                ...u,
-                project_count: projectCountMap[u?.id] ?? 0,
-            }));
-        } catch { }
+        const supportConversations = supportResult?.conversations ?? [];
 
-        // ── Support conversations ─────────────────────────────────
-        let supportConversations: any[] = [];
-        try {
-            const result = await getAdminConversations();
-            supportConversations = result?.conversations ?? [];
-        } catch { }
+        const sourceCounts: Record<string, number> = {};
+        for (const item of subSourcesResult) {
+            if (item?.source) sourceCounts[item.source] = (sourceCounts[item.source] ?? 0) + 1;
+        }
+        const topSources = Object.entries(sourceCounts).sort((a, b) => b[1] - a[1]).slice(0, 8);
 
-        // ── Email subscriber sources ──────────────────────────────
-        let topSources: [string, number][] = [];
-        try {
-            const subSources = await safeSelect(supabase, "email_subscribers", "source", { filters: { status: "active" } });
-            const sourceCounts: Record<string, number> = {};
-            for (const item of subSources) {
-                if (item?.source) sourceCounts[item.source] = (sourceCounts[item.source] ?? 0) + 1;
-            }
-            topSources = Object.entries(sourceCounts).sort((a, b) => b[1] - a[1]).slice(0, 8);
-        } catch { }
+        const topTools = toolResult?.data ?? [];
 
-        // ── Tool usage leaderboard ────────────────────────────────
-        let topTools: any[] = [];
-        try {
-            const toolResult = await supabase
-                .from("tool_usage")
-                .select("tool_slug, use_count, last_used_at")
-                .order("use_count", { ascending: false })
-                .limit(15);
-            topTools = toolResult?.data ?? [];
-        } catch { }
-
-        // ── Helpers ───────────────────────────────────────────────
         const fmt = (d: string | null) =>
             d ? new Date(d).toLocaleDateString("en-AU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "—";
         const fmtMoney = (v: number) => v >= 1e6 ? `$${(v / 1e6).toFixed(1)}M` : v >= 1e3 ? `$${(v / 1e3).toFixed(0)}K` : `$${v.toFixed(0)}`;
