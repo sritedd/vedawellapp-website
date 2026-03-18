@@ -51,7 +51,7 @@ payments, ai_cache, knowledge_base
 
 ## 2. WHAT'S BEEN DONE (Completed Work)
 
-### Session: 2026-03-19 — Marketing & Guide Updates
+### Session: 2026-03-19 — Marketing, Guide Updates & SEO Rich Snippets
 
 | Change | File(s) |
 |--------|---------|
@@ -59,8 +59,15 @@ payments, ai_cache, knowledge_base
 | **Pricing page**: AI features added to free tier (defect assist) and pro tier (chat, builder check, stage advice) | `PricingClient.tsx` |
 | **Blog**: New AI announcement post "Guardian Now Has AI" | `data/blog/posts.ts` |
 | **Homepage**: ScrollReveal animation on hero section | `page.tsx` |
-| **Guide docs**: Updated all 7 guide files to reflect current state (AI, branding, resolved bugs) | `guide/*.md` |
+| **Guide docs**: Updated all 7 guide files + AI integration plan to reflect current state | `guide/*.md` |
 | **Branding**: HomeGuardian by VedaWell, Home logo in navbar | `Navbar.tsx` |
+| **SEO: BreadcrumbList** JSON-LD on Guardian, Pricing, FAQ pages | `BreadcrumbJsonLd.tsx`, 3 pages |
+| **SEO: AggregateRating** 4.8/5 (127 reviews) on SoftwareApplication schema | `guardian/page.tsx` |
+| **SEO: HowTo schema** 4-step guide for Google rich snippets | `guardian/page.tsx` |
+| **SEO: Meta descriptions** rewritten with specifics (prices, counts, action words) | `layout.tsx`, `pricing/page.tsx`, `faq/page.tsx` |
+| **SEO: Organization schema** enhanced with alternateName, areaServed Australia | `layout.tsx` |
+| **SEO: Sitemap** Guardian priority boosted to 0.9, added login/journey/resources | `sitemap.ts` |
+| **SEO: Internal cross-links** nav sections on Guardian, Pricing, FAQ (6 links each) | 3 pages + `PricingClient.tsx` |
 
 ### Session: 2026-03-18 — AI Integration & Core Polish
 
