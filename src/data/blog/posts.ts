@@ -13,6 +13,49 @@ export interface BlogPost {
 
 export const BLOG_POSTS: BlogPost[] = [
     {
+        slug: "guardian-ai-construction-assistant",
+        title: "Guardian Now Has AI: How Artificial Intelligence Protects Your Home Build",
+        description: "HomeOwner Guardian's new AI features help Australian homeowners describe defects accurately, get stage-by-stage advice, check builder credentials, and chat with an AI construction assistant.",
+        date: "2026-03-18",
+        author: "VedaWell Team",
+        readTime: "5 min read",
+        keywords: ["AI construction assistant", "AI building defect detection", "construction AI Australia", "home building AI advisor", "Guardian AI features"],
+        category: "HomeOwner Guardian",
+        relatedTools: [],
+        content: `
+<p>Today we are rolling out <strong>four AI-powered features</strong> inside HomeOwner Guardian, making it the first Australian construction monitoring app with built-in artificial intelligence.</p>
+
+<p>These tools are designed to do one thing: <strong>give you the knowledge of a building consultant without the $800-per-visit price tag.</strong></p>
+
+<h2>What's New</h2>
+
+<h3>1. AI Defect Descriptions</h3>
+<p>Spotted a crack in your slab but don't know how to describe it? Click <em>AI Assist</em> when logging a defect and the AI will rewrite your plain-English note into a professional, NCC-referenced description — complete with severity rating and recommended next steps.</p>
+<p>Instead of telling your builder <em>"there's a crack in the concrete"</em>, you hand them: <em>"Hairline crack (approx 0.3mm) observed in ground-floor slab, potentially indicating early-age shrinkage. Recommend monitoring per AS 2870 Clause 5.4."</em></p>
+
+<h3>2. AI Stage Advisor</h3>
+<p>Every construction stage has critical checkpoints that most homeowners don't know about. The AI Stage Advisor gives you a tailored briefing for your current stage and state — what to watch for, which documents to collect, common builder mistakes, and payment guidance.</p>
+<p>It pulls from the National Construction Code, Australian Standards, and state-specific regulations so you don't have to read 400 pages of legislation yourself.</p>
+
+<h3>3. AI Builder Risk Check</h3>
+<p>Thinking about hiring a builder? Enter their company name and ABN, and Guardian's AI generates a risk assessment based on publicly available data — licence status, insurance, complaint history, and red flags to watch for in contracts.</p>
+
+<h3>4. Guardian Chat</h3>
+<p>Have a question about your build? Open Guardian Chat and ask anything. The AI has full context of your project — your stages, defects, variations, and inspections — so it can give specific, actionable advice rather than generic answers.</p>
+<p><em>"My builder wants me to pay the frame stage before the engineer has signed off. What should I do?"</em> — Guardian Chat knows your exact stage and will tell you exactly what your contract and state legislation say about this.</p>
+
+<h2>How We Built It</h2>
+<p>Guardian's AI runs on Google Gemini, chosen for its speed, accuracy with Australian construction terminology, and ability to return structured data (not just free text). Every response is validated against a strict schema so the AI can never hallucinate a fake Australian Standard number or invent a regulation that doesn't exist.</p>
+
+<h2>Privacy and Security</h2>
+<p>Your project data stays in your Supabase database. The AI only sees the minimum context needed to answer your question — your current stage, state, and the specific defect or query. We never send your personal details, photos, or financial information to the AI model.</p>
+
+<h2>Pricing</h2>
+<p>AI Defect Descriptions are available on the <strong>free tier</strong>. Guardian Chat, Builder Risk Check, and Stage Advisor are included with <strong>Guardian Pro</strong> at no extra cost — still $14.99/month.</p>
+
+<p>Ready to build smarter? <a href="/guardian">Try HomeOwner Guardian with AI today.</a></p>`,
+    },
+    {
         slug: "homeowner-guardian-vs-private-inspector",
         title: "HomeOwner Guardian vs. Private Building Inspector: Which Do You Actually Need?",
         description: "Private building inspectors cost $500–$800 per visit, but they only see your site for an hour. Are they worth it? Discover why continuous tracking beats a one-off inspection.",

@@ -6,6 +6,7 @@ import ProductShowcase from "@/components/home/ProductShowcase";
 import ROICalculator from "@/components/home/ROICalculator";
 import StickyGuardianCTA from "@/components/home/StickyGuardianCTA";
 import AnimatedCounter from "@/components/home/AnimatedCounter";
+import ScrollReveal from "@/components/ScrollReveal";
 
 export const metadata: Metadata = {
     title: "VedaWell — Protect Your Home Build | Australian Construction Tracker",
@@ -114,6 +115,7 @@ export default function HomePage() {
             {/* ==========================================
                 SECTION 2: TRUST BAR — Social Proof
                ========================================== */}
+            <ScrollReveal>
             <section className="bg-slate-900 border-y border-white/5 py-6 px-6">
                 <div className="max-w-5xl mx-auto flex flex-wrap justify-center gap-x-10 gap-y-3 text-sm">
                     <div className="flex items-center gap-2 text-slate-400">
@@ -138,10 +140,12 @@ export default function HomePage() {
                     </div>
                 </div>
             </section>
+            </ScrollReveal>
 
             {/* ==========================================
                 SECTION: AI LAUNCH ANNOUNCEMENT
                ========================================== */}
+            <ScrollReveal>
             <section className="py-16 px-6 bg-gradient-to-r from-cyan-600 to-indigo-700 text-white">
                 <div className="max-w-5xl mx-auto">
                     <div className="grid lg:grid-cols-[1.3fr_1fr] gap-8 items-center">
@@ -182,10 +186,12 @@ export default function HomePage() {
                     </div>
                 </div>
             </section>
+            </ScrollReveal>
 
             {/* ==========================================
                 SECTION 3: PROBLEM → AGITATE → SOLVE
                ========================================== */}
+            <ScrollReveal>
             <section className="py-20 px-6 bg-gradient-to-b from-background to-primary/5">
                 <div className="max-w-5xl mx-auto">
                     <div className="text-center mb-14">
@@ -251,20 +257,22 @@ export default function HomePage() {
                     </div>
                 </div>
             </section>
+            </ScrollReveal>
 
             {/* ==========================================
                 SECTION 4: PRODUCT SHOWCASE (Tabbed)
                ========================================== */}
-            <ProductShowcase />
+            <ScrollReveal><ProductShowcase /></ScrollReveal>
 
             {/* ==========================================
                 SECTION 5: ROI CALCULATOR
                ========================================== */}
-            <ROICalculator />
+            <ScrollReveal><ROICalculator /></ScrollReveal>
 
             {/* ==========================================
                 SECTION 6: STATS COUNTER BAR
                ========================================== */}
+            <ScrollReveal>
             <section className="py-16 px-6 bg-slate-900">
                 <div className="max-w-4xl mx-auto">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -275,10 +283,12 @@ export default function HomePage() {
                     </div>
                 </div>
             </section>
+            </ScrollReveal>
 
             {/* ==========================================
                 SECTION 7: TESTIMONIAL / SOCIAL PROOF
                ========================================== */}
+            <ScrollReveal>
             <section className="py-20 px-6 bg-gradient-to-b from-background to-primary/5">
                 <div className="max-w-4xl mx-auto text-center">
                     <h2 className="text-3xl sm:text-4xl font-extrabold mb-12">
@@ -319,10 +329,12 @@ export default function HomePage() {
                     </div>
                 </div>
             </section>
+            </ScrollReveal>
 
             {/* ==========================================
                 SECTION 8: TOOLS & GAMES (Secondary)
                ========================================== */}
+            <ScrollReveal>
             <section className="py-20 px-6">
                 <div className="max-w-5xl mx-auto">
                     <div className="text-center mb-12">
@@ -397,10 +409,12 @@ export default function HomePage() {
                     </div>
                 </div>
             </section>
+            </ScrollReveal>
 
             {/* ==========================================
                 SECTION 9: FINAL CTA + EMAIL CAPTURE
                ========================================== */}
+            <ScrollReveal>
             <section className="py-20 px-6 bg-gradient-to-b from-slate-950 to-slate-900 text-center">
                 <div className="max-w-3xl mx-auto">
                     <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-4">
@@ -425,6 +439,7 @@ export default function HomePage() {
                     </div>
                 </div>
             </section>
+            </ScrollReveal>
         </>
     );
 }

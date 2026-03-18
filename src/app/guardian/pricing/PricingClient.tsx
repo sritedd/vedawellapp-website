@@ -15,6 +15,7 @@ const PLANS = {
             "3 defect reports",
             "2 variation records",
             "Basic stage tracking",
+            "AI defect descriptions",
             "Community resources",
         ],
         limits: [
@@ -35,6 +36,9 @@ const PLANS = {
             "PDF export & evidence packs",
             "Certification gates & payment milestones",
             "Document vault (1GB)",
+            "AI Guardian Chat assistant",
+            "AI builder risk reports",
+            "AI stage-by-stage advice",
             "Fair Trading compliance reports",
             "Priority support",
         ],
