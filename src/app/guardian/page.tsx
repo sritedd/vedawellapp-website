@@ -113,6 +113,42 @@ export default async function GuardianPage() {
             </section>
 
             {/* ==========================================
+                AI FEATURE ANNOUNCEMENT
+               ========================================== */}
+            <section className="py-16 px-6 bg-gradient-to-r from-cyan-600 to-indigo-700 text-white">
+                <div className="max-w-5xl mx-auto">
+                    <div className="grid lg:grid-cols-[1.3fr_1fr] gap-8 items-center">
+                        <div>
+                            <p className="text-cyan-100 font-semibold uppercase tracking-wider text-xs mb-3">
+                                Major Product Update
+                            </p>
+                            <h2 className="text-3xl sm:text-4xl font-extrabold mb-4">
+                                Guardian AI is now built into your project pages
+                            </h2>
+                            <p className="text-cyan-100 text-lg leading-relaxed">
+                                Every stage of your build now includes AI support: smarter defect writing, personalized stage advice, builder risk checks, and construction chat on demand.
+                            </p>
+                            <Link
+                                href="/guardian/login?view=sign-up"
+                                className="inline-flex items-center justify-center mt-6 px-6 py-3 rounded-xl bg-white text-indigo-700 font-bold hover:bg-cyan-50 transition-colors"
+                            >
+                                Launch Guardian AI Free
+                            </Link>
+                        </div>
+                        <div className="rounded-2xl border border-white/30 bg-white/10 backdrop-blur-sm p-6">
+                            <h3 className="font-bold text-lg mb-4">What AI does for you</h3>
+                            <ul className="space-y-3 text-sm text-cyan-50">
+                                <li>Describe Defect AI: transform rough notes into clear, professional defect records.</li>
+                                <li>Stage Advisor AI: get proactive checklists for each build stage.</li>
+                                <li>Builder Check AI: assess builder risk before costly decisions.</li>
+                                <li>Guardian Chat: ask complex construction questions anytime.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* ==========================================
                 FEATURES — Premium cards
                ========================================== */}
             <section className="py-20 px-6">
@@ -198,6 +234,7 @@ export default async function GuardianPage() {
                                 <li className="flex items-center gap-2"><span className="text-success">✓</span> Unlimited projects</li>
                                 <li className="flex items-center gap-2"><span className="text-success">✓</span> Unlimited defects &amp; variations</li>
                                 <li className="flex items-center gap-2"><span className="text-success">✓</span> PDF export &amp; legal reports</li>
+                                <li className="flex items-center gap-2"><span className="text-success">✓</span> AI defect assist, stage advice, and chat</li>
                                 <li className="flex items-center gap-2"><span className="text-success">✓</span> Certification gates</li>
                                 <li className="flex items-center gap-2"><span className="text-success">✓</span> Red flag alerts</li>
                                 <li className="flex items-center gap-2"><span className="text-success">✓</span> Priority support</li>

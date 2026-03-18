@@ -1,6 +1,6 @@
 /**
  * Unit Tests for PreHandoverChecklist Component
- * NOTE: Only has optional onComplete prop
+ * NOTE: Only has optional onDefectsCreated prop
  */
 
 import { render } from '@testing-library/react';
@@ -12,9 +12,9 @@ describe('PreHandoverChecklist', () => {
         expect(container.firstChild).toBeTruthy();
     });
 
-    it('handles onComplete callback', () => {
-        const onComplete = jest.fn();
-        const { container } = render(<PreHandoverChecklist onComplete={onComplete} />);
+    it('handles onDefectsCreated callback', () => {
+        const onDefectsCreated = jest.fn();
+        const { container } = render(<PreHandoverChecklist onDefectsCreated={onDefectsCreated} />);
         expect(container.firstChild).toBeTruthy();
     });
 });

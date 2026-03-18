@@ -3,6 +3,7 @@ import Script from "next/script";
 import { Inter } from "next/font/google";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import AILaunchBanner from "@/components/AILaunchBanner";
 import InstallPrompt from "@/components/pwa/InstallPrompt";
 import GlobalAdSlot from "@/components/GlobalAdSlots";
 import ThemeProvider from "@/components/ThemeProvider";
@@ -158,6 +159,7 @@ export default function RootLayout({
         <ThemeProvider>
           <div className="min-h-screen flex flex-col">
             <Navbar />
+            <AILaunchBanner />
             <GlobalAdSlot position="top" />
             <main id="main-content" role="main" className="flex-1">{children}</main>
             <GlobalAdSlot position="bottom" />

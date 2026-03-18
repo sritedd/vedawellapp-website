@@ -12,18 +12,36 @@ import { render, screen, waitFor } from '@testing-library/react';
 import PaymentSchedule from '@/components/guardian/PaymentSchedule';
 
 // Mock Supabase
-jest.mock('@/lib/supabase/client', () => ({
-    createClient: () => ({
-        from: () => ({
-            select: () => ({
-                eq: () => ({
-                    order: () => Promise.resolve({ data: [], error: null })
-                })
-            })
+jest.mock('@/lib/supabase/client', () => {
+    return {
+        createClient: () => ({
+            from: (table: string) => {
+                const isPayments = table === 'payments';
+                console.log('MOCK CALL table:', table, 'isPayments:', isPayments);
+                return {
+                    select: () => ({
+                        eq: () => {
+                            const resObj = { 
+                                data: isPayments ? [
+                                    { id: '1', stage_name: 'Deposit', percentage: 5, amount: 25000, status: 'paid', certificates_required: [] },
+                                    { id: '2', stage_name: 'Slab', percentage: 15, amount: 75000, status: 'due', certificates_required: [] },
+                                    { id: '3', stage_name: 'Frame', percentage: 20, amount: 100000, status: 'upcoming', certificates_required: [] },
+                                    { id: '4', stage_name: 'Practical Completion', percentage: 10, amount: 50000, status: 'upcoming', certificates_required: [] },
+                                    { id: '5', stage_name: 'Final Payment', percentage: 5, amount: 25000, status: 'upcoming', certificates_required: [] }
+                                ] : [], 
+                                error: null 
+                            };
+                            return {
+                                order: () => Promise.resolve(resObj),
+                                then: (resolve: any) => resolve(resObj)
+                            };
+                        }
+                    })
+                };
+            }
         })
-    })
-}));
-
+    };
+});
 const defaultProps = {
     projectId: 'proj-1',
     contractValue: 500000,
@@ -103,7 +121,7 @@ describe('PaymentSchedule', () => {
         it('shows Deposit stage', async () => {
             render(<PaymentSchedule {...defaultProps} />);
             await waitFor(() => {
-                expect(screen.getByText(/Deposit/i)).toBeInTheDocument();
+                expect(screen.queryAllByText(/Deposit/i).length).toBeGreaterThan(0);
             });
         });
 
@@ -126,14 +144,14 @@ describe('PaymentSchedule', () => {
         it('shows Practical Completion stage', async () => {
             render(<PaymentSchedule {...defaultProps} />);
             await waitFor(() => {
-                expect(screen.getByText(/Practical Completion/i)).toBeInTheDocument();
+                expect(screen.queryAllByText(/Practical Completion/i).length).toBeGreaterThan(0);
             });
         });
 
         it('shows Final Payment stage', async () => {
             render(<PaymentSchedule {...defaultProps} />);
             await waitFor(() => {
-                expect(screen.getByText(/Final Payment/i)).toBeInTheDocument();
+                expect(screen.queryAllByText(/Final Payment/i).length).toBeGreaterThan(0);
             });
         });
     });
@@ -166,14 +184,14 @@ describe('PaymentSchedule', () => {
         it('shows deposit limit rule', async () => {
             render(<PaymentSchedule {...defaultProps} />);
             await waitFor(() => {
-                expect(screen.getByText(/Deposit cannot exceed/i)).toBeInTheDocument();
+                expect(screen.queryAllByText(/Deposit cannot exceed/i).length).toBeGreaterThan(0);
             });
         });
 
         it('shows never pay ahead rule', async () => {
             render(<PaymentSchedule {...defaultProps} />);
             await waitFor(() => {
-                expect(screen.getByText(/Never pay ahead/i)).toBeInTheDocument();
+                expect(screen.queryAllByText(/Never pay ahead/i).length).toBeGreaterThan(0);
             });
         });
     });

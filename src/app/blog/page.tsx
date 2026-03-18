@@ -63,6 +63,30 @@ export default function BlogPage() {
                 </div>
             </header>
 
+            <section className="border-y border-cyan-100 dark:border-cyan-900/40 bg-gradient-to-r from-cyan-50 to-indigo-50 dark:from-slate-900 dark:to-indigo-950/40">
+                <div className="max-w-5xl mx-auto px-6 py-8">
+                    <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                        <div>
+                            <p className="text-xs font-bold uppercase tracking-wider text-cyan-700 dark:text-cyan-300 mb-2">AI Launch</p>
+                            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mb-2">
+                                New AI features are now live in HomeOwner Guardian
+                            </h2>
+                            <p className="text-slate-600 dark:text-slate-300 max-w-2xl">
+                                Read how AI Defect Assist, AI Stage Advice, Builder Check AI, and Guardian Chat help homeowners catch issues earlier.
+                            </p>
+                        </div>
+                        <div className="flex flex-col sm:flex-row gap-2 shrink-0">
+                            <Link href="/guardian" className="px-5 py-2.5 rounded-lg bg-cyan-600 text-white font-bold text-center hover:bg-cyan-500 transition-colors">
+                                Try Guardian AI
+                            </Link>
+                            <Link href="/guardian/login?view=sign-up" className="px-5 py-2.5 rounded-lg border border-cyan-300 dark:border-cyan-700 text-cyan-700 dark:text-cyan-300 font-semibold text-center hover:bg-cyan-100/70 dark:hover:bg-cyan-900/30 transition-colors">
+                                Start Free
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <main className="max-w-5xl mx-auto px-6 py-12">
                 {/* Featured Post */}
                 <section className="mb-16">

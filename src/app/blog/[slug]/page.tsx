@@ -83,6 +83,24 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                     {post.description}
                 </p>
 
+                <div className="mb-8 rounded-2xl border border-cyan-200 dark:border-cyan-900/40 bg-gradient-to-r from-cyan-50 to-indigo-50 dark:from-slate-800 dark:to-indigo-950/40 p-5">
+                    <p className="text-xs font-bold uppercase tracking-wider text-cyan-700 dark:text-cyan-300 mb-2">AI Enabled</p>
+                    <h2 className="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white mb-2">
+                        Guardian AI now supports every build stage
+                    </h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                        Use AI Defect Assist, AI Stage Advice, Builder Check AI, and Guardian Chat to turn construction uncertainty into clear next actions.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                        <Link href="/guardian" className="px-4 py-2 bg-cyan-600 text-white rounded-lg text-sm font-bold hover:bg-cyan-500 transition-colors">
+                            Open Guardian AI
+                        </Link>
+                        <Link href="/guardian/login?view=sign-up" className="px-4 py-2 border border-cyan-300 dark:border-cyan-700 text-cyan-700 dark:text-cyan-300 rounded-lg text-sm font-semibold hover:bg-cyan-100/70 dark:hover:bg-cyan-900/30 transition-colors">
+                            Start Free
+                        </Link>
+                    </div>
+                </div>
+
                 {/* Divider */}
                 <div className="h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-slate-700 to-transparent mb-10" />
 

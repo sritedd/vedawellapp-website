@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import EmailCapture from "@/components/EmailCapture";
-import JsonLd from "@/components/seo/JsonLd";
 import StageSelector from "@/components/home/StageSelector";
 import ProductShowcase from "@/components/home/ProductShowcase";
 import ROICalculator from "@/components/home/ROICalculator";
@@ -135,6 +134,50 @@ export default function HomePage() {
                     <div className="flex items-center gap-2 text-slate-400">
                         <span className="text-primary-light">🏗️</span>
                         <span>NCC 2025 compliant</span>
+                    </div>
+                </div>
+            </section>
+
+            {/* ==========================================
+                SECTION: AI LAUNCH ANNOUNCEMENT
+               ========================================== */}
+            <section className="py-16 px-6 bg-gradient-to-r from-cyan-600 to-indigo-700 text-white">
+                <div className="max-w-5xl mx-auto">
+                    <div className="grid lg:grid-cols-[1.3fr_1fr] gap-8 items-center">
+                        <div>
+                            <p className="text-cyan-100 font-semibold uppercase tracking-wider text-xs mb-3">
+                                Just Launched
+                            </p>
+                            <h2 className="text-3xl sm:text-4xl font-extrabold mb-4 leading-tight">
+                                HomeOwner Guardian AI is now inside your build workflow
+                            </h2>
+                            <p className="text-cyan-100 text-lg leading-relaxed">
+                                Your new AI copilot helps write defect reports, gives stage-by-stage advice, checks builder risk signals, and answers construction questions in plain English.
+                            </p>
+                            <div className="flex flex-col sm:flex-row gap-3 mt-6">
+                                <Link
+                                    href="/guardian/login?view=sign-up"
+                                    className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-white text-indigo-700 font-bold hover:bg-cyan-50 transition-colors"
+                                >
+                                    Start Using Guardian AI
+                                </Link>
+                                <Link
+                                    href="/blog"
+                                    className="inline-flex items-center justify-center px-6 py-3 rounded-xl border border-white/40 text-white font-semibold hover:bg-white/10 transition-colors"
+                                >
+                                    Explore AI Guides
+                                </Link>
+                            </div>
+                        </div>
+                        <div className="rounded-2xl border border-white/30 bg-white/10 backdrop-blur-sm p-6">
+                            <h3 className="font-bold text-lg mb-4">AI-enabled features</h3>
+                            <ul className="space-y-3 text-cyan-50 text-sm">
+                                <li>AI Defect Assist: turn rough notes into clear, evidence-ready defect logs.</li>
+                                <li>AI Stage Advice: get stage-specific checks and key documents to demand.</li>
+                                <li>Builder Check AI: spot red flags from licensing and public reputation signals.</li>
+                                <li>Guardian Chat: ask build questions and get context-aware answers fast.</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </section>

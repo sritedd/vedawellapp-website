@@ -7,6 +7,7 @@ import '@testing-library/jest-dom';
 // learn more: https://github.com/testing-library/jest-dom
 
 // Mock browser APIs not available in JSDOM
+global.fetch = jest.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve({}) }));
 global.URL.createObjectURL = jest.fn(() => 'blob:mock-url');
 global.URL.revokeObjectURL = jest.fn();
 
