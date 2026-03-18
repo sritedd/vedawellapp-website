@@ -8,6 +8,8 @@ import {
     isValidStatusTransition,
     Defect as UtilDefect,
 } from "@/lib/guardian/calculations";
+import AIDefectAssist from "@/components/guardian/AIDefectAssist";
+import type { DefectAnalysis } from "@/lib/ai/prompts";
 
 interface Defect {
     id: string;
@@ -486,6 +488,20 @@ export default function ProjectDefects({ projectId, stages, builderEmail, onData
                                 placeholder="Describe the defect in detail..."
                                 required
                             />
+                            <div className="mt-2">
+                                <AIDefectAssist
+                                    currentDescription={newDefect.description}
+                                    stage={newDefect.stage}
+                                    onApply={(analysis: DefectAnalysis) => {
+                                        setNewDefect(prev => ({
+                                            ...prev,
+                                            description: analysis.improvedDescription || prev.description,
+                                            severity: analysis.severity || prev.severity,
+                                            location: analysis.location ? (LOCATIONS.includes(analysis.location) ? analysis.location : prev.location) : prev.location,
+                                        }));
+                                    }}
+                                />
+                            </div>
                         </div>
                         <div>
                             <label className="block text-sm font-medium mb-1">Location</label>

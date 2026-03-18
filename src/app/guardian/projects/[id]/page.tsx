@@ -38,6 +38,8 @@ import MobilePhotoCapture, { PhotoFAB } from "@/components/guardian/MobilePhotoC
 import PushNotificationSetup from "@/components/guardian/PushNotificationSetup";
 import CostBenchmarking from "@/components/guardian/CostBenchmarking";
 import BuilderRatings from "@/components/guardian/BuilderRatings";
+import GuardianChat from "@/components/guardian/GuardianChat";
+import AIStageAdvice from "@/components/guardian/AIStageAdvice";
 
 /* ------------------------------------------------------------------ */
 /*  Navigation Structure — 5 main sections                            */
@@ -57,6 +59,7 @@ const SECTION_SUBTABS: Record<SectionId, { id: string; label: string }[]> = {
     home: [
         { id: "overview", label: "Dashboard" },
         { id: "actions", label: "Pending Actions" },
+        { id: "aichat", label: "AI Chat" },
     ],
     build: [
         { id: "stagegate", label: "Stage Gate" },
@@ -483,18 +486,32 @@ export default function ProjectDetailPage() {
                                 builderEmail={project.builder_email}
                             />
                         )}
+                        {activeTab === "aichat" && (
+                            <GuardianChat
+                                projectId={project.id}
+                                projectName={project.name}
+                            />
+                        )}
 
                         {/* ── Build Section ── */}
                         {activeTab === "stagegate" && (
-                            <StageGate
-                                projectId={project.id}
-                                currentStage={currentStage}
-                                nextStage={nextStage}
-                                onProceed={() => {
-                                    fetchProject();
-                                    setActiveTab("overview");
-                                }}
-                            />
+                            <>
+                                <StageGate
+                                    projectId={project.id}
+                                    currentStage={currentStage}
+                                    nextStage={nextStage}
+                                    onProceed={() => {
+                                        fetchProject();
+                                        setActiveTab("overview");
+                                    }}
+                                />
+                                <div className="mt-4">
+                                    <AIStageAdvice
+                                        stage={currentStage}
+                                        state={project.state || "NSW"}
+                                    />
+                                </div>
+                            </>
                         )}
                         {activeTab === "stages" && (
                             <StageChecklist projectId={project.id} currentStage={currentStage} />
