@@ -65,9 +65,14 @@ export default function Navbar() {
                     <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
                         <Shield className="w-5 h-5 text-white" />
                     </div>
-                    <span className="text-xl font-bold tracking-tight">
-                        Veda<span className="text-primary">Well</span>
-                    </span>
+                    <div className="flex flex-col justify-center ml-1">
+                        <span className="text-xl font-bold tracking-tight leading-none text-foreground">
+                            Home<span className="text-primary">Guardian</span>
+                        </span>
+                        <span className="text-[9px] font-semibold text-muted-foreground tracking-[0.1em] uppercase mt-0.5">
+                            By VedaWell
+                        </span>
+                    </div>
                 </Link>
 
                 {/* Desktop Nav */}
