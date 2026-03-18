@@ -79,10 +79,23 @@ export async function POST(request: NextRequest) {
 
     // Validate and sanitize each message
     const sanitizedMessages = messages.map(
-      (msg: { role: string; content: string }) => {
-        const content = stripHtml(String(msg.content || "")).slice(0, 4000);
+      (msg: any) => {
+        let rawText = "";
+        if (msg.content && typeof msg.content === "string") {
+            rawText = msg.content;
+        } else if (Array.isArray(msg.parts)) {
+            rawText = msg.parts.map((p: any) => p.text || "").join(" ");
+        } else if (msg.text) {
+            rawText = msg.text;
+        }
+        
+        const content = stripHtml(String(rawText || "")).slice(0, 4000);
+        
+        // Block empty content which will crash Gemini
+        const safeContent = content.trim() ? content : "[empty message]";
+        
         const role = msg.role === "assistant" ? "assistant" : "user";
-        return { role: role as "user" | "assistant", content };
+        return { role: role as "user" | "assistant", content: safeContent };
       }
     );
 
