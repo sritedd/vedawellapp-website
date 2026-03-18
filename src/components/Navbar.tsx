@@ -109,7 +109,7 @@ export default function Navbar() {
                             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-primary to-teal-500 text-white font-semibold text-sm shadow-md hover:shadow-lg hover:scale-[1.02] transition-all"
                         >
                             <Shield className="w-4 h-4" />
-                            My Dashboard
+                            Guardian Dashboard
                         </Link>
                     ) : (
                         <Link
@@ -117,7 +117,7 @@ export default function Navbar() {
                             className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-primary to-teal-500 text-white font-semibold text-sm shadow-md hover:shadow-lg hover:scale-[1.02] transition-all animate-subtle-glow"
                         >
                             <Shield className="w-4 h-4" />
-                            Protect Your Build
+                            Get Guardian
                         </Link>
                     )}
                 </div>
@@ -170,7 +170,7 @@ export default function Navbar() {
                                 className="flex items-center justify-center gap-2 py-3 px-4 rounded-lg bg-gradient-to-r from-primary to-teal-500 text-white font-semibold shadow-md"
                             >
                                 <Shield className="w-5 h-5" />
-                                My Dashboard
+                                Guardian Dashboard
                             </Link>
                         ) : (
                             <Link
@@ -179,7 +179,7 @@ export default function Navbar() {
                                 className="flex items-center justify-center gap-2 py-3 px-4 rounded-lg bg-gradient-to-r from-primary to-teal-500 text-white font-semibold shadow-md"
                             >
                                 <Shield className="w-5 h-5" />
-                                Protect Your Build — Free
+                                Get HomeOwner Guardian
                             </Link>
                         )}
                     </div>

@@ -73,6 +73,7 @@ export default function HomePage() {
                         </div>
 
                         <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white mb-6 leading-[1.1] tracking-tight">
+                            <span className="text-2xl sm:text-3xl md:text-4xl block mb-2 text-slate-300 font-medium tracking-normal">HomeOwner Guardian</span>
                             Your builder won&apos;t tell you
                             <br />
                             <span className="bg-gradient-to-r from-primary-light to-teal-300 bg-clip-text text-transparent">
@@ -97,7 +98,7 @@ export default function HomePage() {
                                 href="/guardian"
                                 className="flex-1 flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-white/10 border border-white/20 text-white font-semibold hover:bg-white/20 transition-all"
                             >
-                                See How It Works
+                                Explore HomeOwner Guardian
                             </Link>
                         </div>
                         <p className="text-slate-500 text-sm mb-16">

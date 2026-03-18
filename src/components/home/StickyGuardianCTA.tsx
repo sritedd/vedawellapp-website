@@ -55,7 +55,7 @@ export default function StickyGuardianCTA() {
                     className="flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl bg-gradient-to-r from-primary to-teal-500 text-white font-bold shadow-2xl shadow-primary/40 hover:scale-[1.02] transition-all"
                 >
                     <Shield className="w-5 h-5" />
-                    Protect Your Build — Free
+                    Get HomeOwner Guardian — Free
                 </Link>
             </div>
         </>
