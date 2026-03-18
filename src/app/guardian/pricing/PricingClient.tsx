@@ -218,6 +218,25 @@ export default function PricingClient() {
                         </div>
                     </div>
                 </div>
+
+                {/* Internal cross-links for SEO */}
+                <nav className="mt-16 pt-8 border-t border-border max-w-2xl mx-auto" aria-label="Related Guardian pages">
+                    <h3 className="text-lg font-semibold mb-4 text-center">Learn More About Guardian</h3>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                        <Link href="/guardian" className="flex items-center gap-2 p-3 rounded-lg hover:bg-primary/5 transition-colors text-sm">
+                            <span className="text-primary">&#8594;</span> Guardian Overview &amp; Features
+                        </Link>
+                        <Link href="/guardian/faq" className="flex items-center gap-2 p-3 rounded-lg hover:bg-primary/5 transition-colors text-sm">
+                            <span className="text-primary">&#8594;</span> Frequently Asked Questions
+                        </Link>
+                        <Link href="/blog/guardian-ai-construction-assistant" className="flex items-center gap-2 p-3 rounded-lg hover:bg-primary/5 transition-colors text-sm">
+                            <span className="text-primary">&#8594;</span> Guardian AI Features Explained
+                        </Link>
+                        <Link href="/blog/homeowner-guardian-app-launch" className="flex items-center gap-2 p-3 rounded-lg hover:bg-primary/5 transition-colors text-sm">
+                            <span className="text-primary">&#8594;</span> Why We Built Guardian
+                        </Link>
+                    </div>
+                </nav>
             </div>
         </div>
     );

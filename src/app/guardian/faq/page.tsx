@@ -1,12 +1,13 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import BreadcrumbJsonLd from "@/components/seo/BreadcrumbJsonLd";
 
 export const metadata: Metadata = {
-    title: "FAQ — HomeOwner Guardian | Australian Home Construction Tracker",
+    title: "FAQ — HomeOwner Guardian | 26 Common Questions Answered",
     description:
-        "Frequently asked questions about HomeOwner Guardian. Learn about features, pricing, legal documentation, and how to protect your Australian home build.",
+        "Is Guardian free? How does AI defect analysis work? Is my evidence legal-ready for NCAT? Get answers to 26 common questions about HomeOwner Guardian for Australian home builders.",
     keywords:
-        "HomeOwner Guardian FAQ, home construction tracker questions, building defect documentation, NCAT evidence, NSW Fair Trading complaints",
+        "HomeOwner Guardian FAQ, home construction tracker questions, building defect documentation, NCAT evidence, NSW Fair Trading complaints, AI construction app",
     alternates: {
         canonical: "https://vedawellapp.com/guardian/faq",
     },
@@ -135,6 +136,11 @@ export default function GuardianFaqPage() {
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
             />
+            <BreadcrumbJsonLd items={[
+                { name: "Home", href: "/" },
+                { name: "HomeOwner Guardian", href: "/guardian" },
+                { name: "FAQ", href: "/guardian/faq" },
+            ]} />
 
             <div className="bg-gradient-to-b from-primary/5 to-background">
                 <section className="py-16 px-6">
@@ -196,6 +202,25 @@ export default function GuardianFaqPage() {
                                 </a>
                             </div>
                         </div>
+
+                        {/* Internal cross-links for SEO */}
+                        <nav className="mt-12 pt-8 border-t border-border" aria-label="Related Guardian pages">
+                            <h3 className="text-lg font-semibold mb-4">Explore HomeOwner Guardian</h3>
+                            <div className="grid sm:grid-cols-2 gap-3">
+                                <Link href="/guardian" className="flex items-center gap-2 p-3 rounded-lg hover:bg-primary/5 transition-colors text-sm">
+                                    <span className="text-primary">&#8594;</span> Guardian Overview &amp; Features
+                                </Link>
+                                <Link href="/guardian/pricing" className="flex items-center gap-2 p-3 rounded-lg hover:bg-primary/5 transition-colors text-sm">
+                                    <span className="text-primary">&#8594;</span> Pricing &amp; Plans
+                                </Link>
+                                <Link href="/blog/guardian-ai-construction-assistant" className="flex items-center gap-2 p-3 rounded-lg hover:bg-primary/5 transition-colors text-sm">
+                                    <span className="text-primary">&#8594;</span> Guardian AI Features Explained
+                                </Link>
+                                <Link href="/blog/homeowner-guardian-vs-private-inspector" className="flex items-center gap-2 p-3 rounded-lg hover:bg-primary/5 transition-colors text-sm">
+                                    <span className="text-primary">&#8594;</span> Guardian vs Private Inspector
+                                </Link>
+                            </div>
+                        </nav>
                     </div>
                 </section>
             </div>

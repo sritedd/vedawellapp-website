@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     template: "%s | VedaWell Tools",
   },
   description:
-    "VedaWell offers 90+ free online tools, 19 browser games, daily Hindu Panchang, and HomeOwner Guardian for Australian home construction tracking. No downloads, no sign-ups.",
+    "90+ free online tools (PDF, image, calculator, developer), 19 browser games, daily Panchang, and HomeOwner Guardian — the AI-powered construction tracker protecting Australian home builds. No sign-up required.",
   keywords:
     "free online tools, productivity tools, games, BMI calculator, panchang, home construction tracker, Australian building, defect tracking",
   metadataBase: new URL("https://vedawellapp.com"),
@@ -96,8 +96,12 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "Organization",
               name: "VedaWell",
+              alternateName: "HomeOwner Guardian",
               url: "https://vedawellapp.com",
               logo: "https://vedawellapp.com/icon-512.png",
+              description: "VedaWell builds free online productivity tools and HomeOwner Guardian, the AI-powered construction tracker for Australian homeowners.",
+              foundingDate: "2026",
+              areaServed: { "@type": "Country", name: "Australia" },
               contactPoint: { "@type": "ContactPoint", email: "support@vedawellapp.com", contactType: "customer support" },
               sameAs: ["https://ko-fi.com/vedawell", "https://buymeacoffee.com/vedawell"],
             }),

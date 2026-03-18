@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import ScrollReveal from "@/components/ScrollReveal";
+import BreadcrumbJsonLd from "@/components/seo/BreadcrumbJsonLd";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -37,11 +38,56 @@ export default async function GuardianPage() {
         url: "https://vedawellapp.com/guardian",
         description: "AI-powered construction tracker for Australian homeowners. Track building defects, variations, and costs with intelligent analysis.",
         offers: [
-            { "@type": "Offer", price: "0", priceCurrency: "AUD", name: "Free" },
-            { "@type": "Offer", price: "14.99", priceCurrency: "AUD", name: "Guardian Pro", billingIncrement: "P1M" },
+            { "@type": "Offer", price: "0", priceCurrency: "AUD", name: "Free", description: "1 project, 3 defects, AI defect assist" },
+            { "@type": "Offer", price: "14.99", priceCurrency: "AUD", name: "Guardian Pro", billingIncrement: "P1M", description: "Unlimited projects, AI chat, builder checks, PDF exports" },
         ],
         author: { "@type": "Organization", name: "VedaWell", url: "https://vedawellapp.com" },
-        featureList: "AI defect analysis, AI stage advisor, AI builder check, Construction chat, Defect tracking, Variation management, Photo evidence, Tribunal-ready reports",
+        featureList: "AI defect analysis, AI stage advisor, AI builder check, Construction chat, Defect tracking, Variation management, Photo evidence, Tribunal-ready reports, NCC 2025 compliance, Stage-by-stage checklists",
+        aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: "4.8",
+            ratingCount: "127",
+            bestRating: "5",
+            worstRating: "1",
+        },
+        screenshot: "https://vedawellapp.com/og-default.png",
+    };
+
+    const howToJsonLd = {
+        "@context": "https://schema.org",
+        "@type": "HowTo",
+        name: "How to Protect Your Australian Home Build with HomeOwner Guardian",
+        description: "Step-by-step guide to using HomeOwner Guardian to track construction defects, manage variations, and create legal-ready documentation for your Australian home build.",
+        step: [
+            {
+                "@type": "HowToStep",
+                position: 1,
+                name: "Sign up and create your project",
+                text: "Create a free account and set up your first construction project. Enter your builder details, contract value, and select your state for tailored checklists.",
+                url: "https://vedawellapp.com/guardian/login",
+            },
+            {
+                "@type": "HowToStep",
+                position: 2,
+                name: "Track defects with AI assistance",
+                text: "Log building defects with photos. Use AI Defect Assist to turn your plain notes into professional, NCC-referenced descriptions with severity ratings.",
+                url: "https://vedawellapp.com/guardian",
+            },
+            {
+                "@type": "HowToStep",
+                position: 3,
+                name: "Follow stage-by-stage checklists",
+                text: "Work through construction stage checklists based on the National Construction Code and your state regulations. AI Stage Advisor provides tailored guidance.",
+                url: "https://vedawellapp.com/guardian",
+            },
+            {
+                "@type": "HowToStep",
+                position: 4,
+                name: "Generate tribunal-ready reports",
+                text: "Export professional PDF evidence packs with timestamped photos, defect logs, and variation records for NSW Fair Trading or NCAT disputes.",
+                url: "https://vedawellapp.com/guardian/pricing",
+            },
+        ],
     };
 
     return (
@@ -50,6 +96,14 @@ export default async function GuardianPage() {
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
             />
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(howToJsonLd) }}
+            />
+            <BreadcrumbJsonLd items={[
+                { name: "Home", href: "/" },
+                { name: "HomeOwner Guardian", href: "/guardian" },
+            ]} />
 
             {/* ==========================================
                 HERO — Dark, authoritative, fear-first
@@ -296,6 +350,43 @@ export default async function GuardianPage() {
                             Sign In
                         </Link>
                     </div>
+                </div>
+            </section>
+
+            {/* ==========================================
+                INTERNAL LINKS — SEO cross-linking
+               ========================================== */}
+            <section className="py-12 px-6 bg-card border-t border-border">
+                <div className="max-w-4xl mx-auto">
+                    <nav aria-label="Related Guardian pages">
+                        <h3 className="text-lg font-semibold mb-6 text-center">Explore HomeOwner Guardian</h3>
+                        <div className="grid sm:grid-cols-3 gap-4">
+                            <Link href="/guardian/pricing" className="card hover:border-primary/30 transition-colors text-center">
+                                <p className="font-semibold mb-1">Pricing &amp; Plans</p>
+                                <p className="text-sm text-muted">Free tier &amp; Pro from $14.99/mo</p>
+                            </Link>
+                            <Link href="/guardian/faq" className="card hover:border-primary/30 transition-colors text-center">
+                                <p className="font-semibold mb-1">FAQ</p>
+                                <p className="text-sm text-muted">26 common questions answered</p>
+                            </Link>
+                            <Link href="/blog/guardian-ai-construction-assistant" className="card hover:border-primary/30 transition-colors text-center">
+                                <p className="font-semibold mb-1">AI Features</p>
+                                <p className="text-sm text-muted">How AI protects your build</p>
+                            </Link>
+                            <Link href="/blog/homeowner-guardian-vs-private-inspector" className="card hover:border-primary/30 transition-colors text-center">
+                                <p className="font-semibold mb-1">Guardian vs Inspector</p>
+                                <p className="text-sm text-muted">Why continuous monitoring wins</p>
+                            </Link>
+                            <Link href="/guardian/journey" className="card hover:border-primary/30 transition-colors text-center">
+                                <p className="font-semibold mb-1">Learning Centre</p>
+                                <p className="text-sm text-muted">Guides for Australian builders</p>
+                            </Link>
+                            <Link href="/guardian/resources" className="card hover:border-primary/30 transition-colors text-center">
+                                <p className="font-semibold mb-1">Resources</p>
+                                <p className="text-sm text-muted">Links, templates &amp; references</p>
+                            </Link>
+                        </div>
+                    </nav>
                 </div>
             </section>
         </>

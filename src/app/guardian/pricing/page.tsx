@@ -1,17 +1,18 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import PricingClient from "./PricingClient";
+import BreadcrumbJsonLd from "@/components/seo/BreadcrumbJsonLd";
 
 export const metadata: Metadata = {
-    title: "HomeOwner Guardian Pricing — Free & Pro Plans for Australian Home Builders",
+    title: "HomeOwner Guardian Pricing — Free & Pro Plans | $14.99/mo",
     description:
-        "Protect your Australian home construction with Guardian Pro. Track defects, variations, certifications and payment milestones. Free tier available. Pro from $14.99/mo.",
+        "Guardian Free: 1 project, 3 defects, AI defect assist. Guardian Pro $14.99/mo: unlimited projects, AI chat, builder risk checks, PDF evidence packs. Cancel anytime.",
     keywords:
-        "home construction tracker, Australian building defect tracker, construction defect documentation, home builder protection, variation tracking, building certification, new home build, owner builder tools",
+        "home construction tracker pricing, Australian building defect tracker, construction app cost, home builder protection, Guardian Pro price, owner builder tools Australia",
     openGraph: {
-        title: "HomeOwner Guardian Pricing — Protect Your Home Build",
+        title: "HomeOwner Guardian Pricing — Free & Pro Plans | $14.99/mo",
         description:
-            "Track construction defects, variations, and certifications. Free tier available. Pro from $14.99 AUD/mo.",
+            "Free tier available. Pro from $14.99/mo — unlimited projects, AI tools, PDF exports. Cancel anytime.",
         url: "https://vedawellapp.com/guardian/pricing",
     },
     alternates: {
@@ -21,8 +22,15 @@ export const metadata: Metadata = {
 
 export default function PricingPage() {
     return (
-        <Suspense fallback={<div className="min-h-[60vh] flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div></div>}>
-            <PricingClient />
-        </Suspense>
+        <>
+            <BreadcrumbJsonLd items={[
+                { name: "Home", href: "/" },
+                { name: "HomeOwner Guardian", href: "/guardian" },
+                { name: "Pricing", href: "/guardian/pricing" },
+            ]} />
+            <Suspense fallback={<div className="min-h-[60vh] flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div></div>}>
+                <PricingClient />
+            </Suspense>
+        </>
     );
 }
