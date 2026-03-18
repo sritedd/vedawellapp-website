@@ -1,28 +1,49 @@
 # Guardian AI Integration Plan
 
 > Created: 2026-03-18
-> Status: READY TO BUILD
-> Stack: Vercel AI SDK + Claude Haiku + Supabase pgvector + Google APIs
+> Status: **IMPLEMENTED** (2026-03-18/19)
+> Stack: Vercel AI SDK v6 + Google Gemini 2.5 Flash-Lite (free) + Supabase pgvector
+
+---
+
+## Implementation Status
+
+| Feature | Status | Route / Component |
+|---------|--------|-------------------|
+| AI Provider (Gemini/Claude) | DONE | `src/lib/ai/provider.ts` |
+| Prompt system + Zod schemas | DONE | `src/lib/ai/prompts.ts` |
+| Response caching + TTL | DONE | `src/lib/ai/cache.ts` |
+| Rate limiting | DONE | `src/lib/ai/rate-limit.ts` |
+| Defect description assistant | DONE | `/api/guardian/ai/describe-defect` + `AIDefectAssist.tsx` |
+| Stage-specific advice | DONE | `/api/guardian/ai/stage-advice` + `AIStageAdvice.tsx` |
+| Builder risk check | DONE | `/api/guardian/ai/builder-check` |
+| Guardian Chat (streaming) | DONE | `/api/guardian/ai/chat` + `GuardianChat.tsx` |
+| Schema v20 (ai_cache + knowledge_base) | DONE | `schema_v20_ai.sql` |
+| Marketing pages updated | DONE | Landing, pricing, blog |
+| Knowledge base seeding (RAG) | NOT STARTED | knowledge_base table empty |
+| E2E tests for AI | NOT STARTED | Planned: `e2e/guardian-ai.spec.ts` |
+| Pro-tier gating enforcement | PARTIAL | Free tier gets defect assist only |
+| External API integrations | STUBS | ABN Lookup, Google Places, QBCC — return null |
 
 ---
 
 ## Architecture Overview
 
 ```
-User → Guardian UI → Next.js API Route → Vercel AI SDK → LLM Provider
+User → Guardian UI → Next.js API Route → Vercel AI SDK v6 → LLM Provider
                                               ↕
-                                    Supabase pgvector (RAG context)
+                                    Supabase ai_cache (response caching)
                                               ↕
-                                    External APIs (Google Places, ABN, NSW Trades)
+                                    Rate Limiter (in-memory, per-user)
 ```
 
-**Key decisions**:
-- Use **Vercel AI SDK** (`ai` npm package) for all LLM interactions — provider-agnostic, streaming, structured output
-- Use **Claude Haiku 4.5** as primary LLM ($1/$5 per 1M tokens) — best quality/cost
-- Use **Supabase pgvector** for RAG — zero new infrastructure
-- Use **Google Places API** for builder reviews — built-in AI summaries
-- Use **Transformers.js** for browser-based features (future) — zero API cost
-- All AI features are **Pro-only** — drives subscription revenue
+**Actual implementation decisions** (differs from original plan):
+- Use **Vercel AI SDK v6** (`ai` + `@ai-sdk/react` + `@ai-sdk/google`) — breaking changes from v5
+- Use **Google Gemini 2.5 Flash-Lite** as primary (FREE, 1000 req/day) — $0 cost vs original Claude Haiku plan
+- Use **Claude Sonnet 4.5** as optional smart model (if ANTHROPIC_API_KEY set)
+- Use **Supabase pgvector** for knowledge_base (schema created, not yet seeded)
+- External APIs (ABN, Google Places, QBCC) are **stubbed** — return null, AI works without them
+- **AI Defect Assist is FREE tier** — drives engagement. Chat/Stage/Builder are Pro-only
 
 ---
 

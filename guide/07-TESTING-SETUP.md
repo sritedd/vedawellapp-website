@@ -1,5 +1,7 @@
 # HomeOwner Guardian — E2E Testing Setup
 
+> **Last Updated**: 2026-03-19
+
 ## Overview
 
 End-to-end tests using **Playwright** that test the full homeowner workflow against the real Supabase backend. No mock data in application code — all test fixtures are seeded via dedicated setup scripts.
@@ -23,15 +25,15 @@ e2e/
 
 | Step | Test | NSW | VIC | QLD | WA |
 |------|------|-----|-----|-----|-----|
-| 1 | Login | ✓ | ✓ | ✓ | ✓ |
-| 2 | Project visible | ✓ | ✓ | ✓ | ✓ |
-| 3 | Stages seeded (8/2/0/0) | ✓ | ✓ | ✓ | ✓ |
-| 4 | Stage transitions | ✓ | ✓ | skip | skip |
-| 5 | Defect/variation/comms | ✓ | ✓ | ✓ | ✓ |
-| 6 | Stage Gate renders | ✓ | ✓ | ✓ | ✓ |
-| 7 | Materials/visits/checkins | ✓ | ✓ | ✓ | ✓ |
-| 8 | Complete & close project | ✓ | ✓ | ✓ | ✓ |
-| 9 | No console errors | ✓ | ✓ | ✓ | ✓ |
+| 1 | Login | Y | Y | Y | Y |
+| 2 | Project visible | Y | Y | Y | Y |
+| 3 | Stages seeded (8/2/0/0) | Y | Y | Y | Y |
+| 4 | Stage transitions | Y | Y | skip | skip |
+| 5 | Defect/variation/comms | Y | Y | Y | Y |
+| 6 | Stage Gate renders | Y | Y | Y | Y |
+| 7 | Materials/visits/checkins | Y | Y | Y | Y |
+| 8 | Complete & close project | Y | Y | Y | Y |
+| 9 | No console errors | Y | Y | Y | Y |
 
 ## Prerequisites
 
@@ -103,7 +105,22 @@ supabase-seed.ts                    Supabase client
 
 ## Known Limitations
 
-1. **Schema v13-v16 not yet run on Supabase** — some tables (materials, site_visits, progress_photos) may return 403. Tests filter these from console error checks.
-2. **QLD/WA have no workflow stages** — `australian-build-workflows.json` doesn't define stages for these states. Tests verify graceful empty state.
-3. **No storage tests** — photo upload, document upload not tested (requires Supabase Storage buckets from schema v13).
+1. **QLD/WA have no workflow stages** — `australian-build-workflows.json` doesn't define stages for these states. Tests verify graceful empty state.
+2. **No storage tests** — photo upload, document upload not tested end-to-end (requires Supabase Storage buckets).
+3. **No AI tests** — AI features (defect assist, chat, builder check, stage advice) not yet covered in E2E tests. Planned for `e2e/guardian-ai.spec.ts`.
 4. **Sequential only** — tests share DB state per state, must run single worker.
+
+## Schema Migrations Required
+
+All migrations v1–v20 should be applied on production Supabase before running full E2E tests:
+
+| Migration | Tables/Changes |
+|-----------|---------------|
+| v1–v12 | Core tables (profiles, projects, stages, defects, etc.) |
+| v13 | Storage buckets (evidence, documents, certificates) + progress_photos |
+| v14–v15 | Bug fixes (order_index, status constraints, override_reason) |
+| v16 | materials, site_visits tables; weekly_checkins extensions |
+| v17 | project state + build_category columns |
+| v18 | payments table, project/stage date columns |
+| v19 | Policy fixes (DROP IF EXISTS before CREATE) |
+| v20 | pgvector, ai_cache, knowledge_base tables + RLS |

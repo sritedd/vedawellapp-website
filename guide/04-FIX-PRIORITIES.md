@@ -1,114 +1,56 @@
 # HomeOwner Guardian — Fix Priority List
 
-## Priority 1: Make Core Features Work (CRITICAL)
-
-### P1.1 — Fix ProgressPhotos (photo capture & storage)
-**File**: `src/components/guardian/ProgressPhotos.tsx`
-**What**: Replace sample data with real Supabase integration
-- Remove `SAMPLE_PHOTOS` hardcoded array
-- Fetch photos from `defects` or new `progress_photos` table
-- Wire file input `onChange` to upload to Supabase Storage `evidence` bucket
-- Save photo metadata to database
-- Add camera capture support (`capture="environment"` for mobile)
-- Compress images client-side before upload (< 2MB)
-**Est**: 2-3 hours
-
-### P1.2 — Fix ProjectDefects (defect tracking + photos)
-**File**: `src/components/guardian/ProjectDefects.tsx`
-**What**: Replace sample data with real Supabase CRUD
-- Remove `INITIAL_DEFECTS` hardcoded array
-- Accept `projectId` prop, fetch defects from database
-- Wire "Add Photo" button to file upload
-- Persist create/update/delete operations to Supabase
-- Display photos in defect detail view
-**Est**: 3-4 hours
-
-### P1.3 — Create Storage Bucket Setup
-**File**: `supabase/schema_v13_storage_buckets.sql`
-**What**: SQL to create and secure storage buckets
-- Create `evidence`, `documents`, `certificates` buckets
-- Add RLS policies for authenticated uploads
-- Add public read policies (or signed URLs)
-**Est**: 30 minutes
-
-### P1.4 — Fix Project Deletion (cascade + storage cleanup)
-**File**: `src/app/guardian/actions.ts` → `deleteProject()`
-**What**: Complete cascade + file cleanup
-- Add deletion for: documents, inspections, weekly_checkins, communication_log
-- List and delete all storage files under `{projectId}/` prefix
-- Better: rely on DB CASCADE and just clean storage
-**Est**: 1 hour
+> **Last Updated**: 2026-03-19
+> **Status**: All original P1/P2 priorities completed. Updated with current priorities.
 
 ---
 
-## Priority 2: Fix UX Issues (HIGH)
+## COMPLETED (All Original Priorities — Done)
 
-### P2.1 — Dynamic Stage Values
-**File**: `src/app/guardian/projects/[id]/page.tsx`
-**What**: Read current stage from project data instead of hardcoding
-- Compute `currentStage` from stages table (first non-completed stage)
-- Compute `nextStage` from the stage after current
-- Pass dynamic values to StageGate, StageChecklist, CertificationGate, InspectionTimeline
-**Est**: 1-2 hours
+All items from the original priority list (P1.1–P1.4, P2.1–P2.4, P3.1–P3.4) have been resolved:
 
-### P2.2 — Clickable Dashboard
-**File**: `src/app/guardian/dashboard/page.tsx`
-**What**: Make stats interactive
-- Wrap stats cards in `Link` to project detail with appropriate tab
-- Handle null `projectId` (show "Create your first project" CTA)
-- Add hover states to stat cards
-**Est**: 1 hour
-
-### P2.3 — Fix NotificationCenter
-**File**: `src/components/guardian/NotificationCenter.tsx`
-**What**: Replace sample data with computed alerts
-- Query upcoming warranty deadlines, follow-up dates, insurance expiry
-- Show real notifications from project data
-- No need for a notifications table — compute on the fly
-**Est**: 1-2 hours
-
-### P2.4 — Data Freshness
-**File**: `src/app/guardian/projects/[id]/page.tsx`
-**What**: Refetch data when relevant
-- Use `useRouter().refresh()` after mutations
-- Or lift state and pass refetch callbacks to child components
-- Add error states for failed fetches
-**Est**: 1-2 hours
+- P1.1 ProgressPhotos → WORKING (Supabase Storage + DB)
+- P1.2 ProjectDefects → WORKING (Full CRUD + AI assist)
+- P1.3 Storage buckets → Created (schema_v13)
+- P1.4 deleteProject → Cascade cleanup implemented
+- P2.1 Dynamic stages → Computed from DB
+- P2.2 Clickable dashboard → Stats link to project tabs
+- P2.3 NotificationCenter → Computes from real data
+- P2.4 Data freshness → onDataChanged refetch pattern
+- P3.1 Projects pagination → `.limit(50)`
+- P3.3 Image compression → Client-side before upload
+- P3.4 Referral code uniqueness → Random 8-char codes
 
 ---
 
-## Priority 3: Scale & Polish (MEDIUM)
+## CURRENT PRIORITIES (as of 2026-03-19)
 
-### P3.1 — Projects Pagination
-- Add `limit(20)` + offset pagination or cursor-based
-- Add "Load more" button or infinite scroll
+### P1 — Revenue & Conversion
+| # | Task | File(s) | Est |
+|---|------|---------|-----|
+| 1.1 | Create yearly Stripe price ($149/yr) and wire to PricingClient | `PricingClient.tsx` | 30m |
+| 1.2 | Add Stripe customer portal for subscription management | `/api/stripe/portal/route.ts` | 1h |
 
-### P3.2 — Yearly Stripe Price
-- Create yearly price in Stripe Dashboard ($149/yr)
-- Add price ID to `PricingClient.tsx`
+### P2 — AI Feature Hardening
+| # | Task | File(s) | Est |
+|---|------|---------|-----|
+| 2.1 | Pro-tier gating for AI chat, builder check, stage advice | All AI API routes | 1h |
+| 2.2 | Seed knowledge_base with NCC/AS references for RAG | `knowledge_base` table | 2h |
+| 2.3 | AI E2E tests (defect assist, chat, builder check) | `e2e/guardian-ai.spec.ts` | 2h |
+| 2.4 | Monitor Gemini API usage and add fallback for rate limits | `src/lib/ai/provider.ts` | 1h |
 
-### P3.3 — Image Compression
-- Add client-side image compression before upload
-- Target: < 2MB per photo (from max 10MB)
-- Use browser Canvas API or `browser-image-compression` library
+### P3 — Data Integrity
+| # | Task | File(s) | Est |
+|---|------|---------|-----|
+| 3.1 | Wire MaterialRegistry to `materials` table (schema v16) | `MaterialRegistry.tsx` | 1h |
+| 3.2 | Wire SiteVisitLog to `site_visits` table (schema v16) | `SiteVisitLog.tsx` | 1h |
+| 3.3 | Wire PreHandoverChecklist to DB (currently localStorage) | `PreHandoverChecklist.tsx` | 1h |
+| 3.4 | Confirm all schema migrations v13–v20 are applied | Supabase SQL Editor | 30m |
 
-### P3.4 — Referral Code Uniqueness
-- Use `nanoid(8)` instead of `user.id.slice(0,8)`
-- Add unique constraint check on generation
-
----
-
-## Implementation Order
-
-| Step | Task | Time | Blocked By |
-|------|------|------|------------|
-| 1 | P1.3 Storage buckets SQL | 30m | Nothing |
-| 2 | P1.1 Fix ProgressPhotos | 2-3h | Step 1 |
-| 3 | P1.2 Fix ProjectDefects | 3-4h | Step 1 |
-| 4 | P1.4 Fix deleteProject | 1h | Nothing |
-| 5 | P2.1 Dynamic stages | 1-2h | Nothing |
-| 6 | P2.2 Clickable dashboard | 1h | Nothing |
-| 7 | P2.3 Fix NotificationCenter | 1-2h | Nothing |
-| 8 | P2.4 Data freshness | 1-2h | Nothing |
-
-**Total estimated**: ~12-16 hours
+### P4 — Scale & Polish
+| # | Task | File(s) | Est |
+|---|------|---------|-----|
+| 4.1 | Builder license auto-verification via ABN/QBCC APIs | New component | 3h |
+| 4.2 | Offline mode with service worker for site visits | `sw.js` | 3h |
+| 4.3 | Builder portal (read/write access for builders) | New pages | 5h |
+| 4.4 | Real-time sync via Supabase Realtime subscriptions | Multiple components | 3h |

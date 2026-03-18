@@ -2,7 +2,7 @@
 
 > **PURPOSE**: This is the persistent memory for the Guardian app. Every new conversation should read this file FIRST to understand current state, what's been done, and what to work on next.
 >
-> **LAST UPDATED**: 2026-03-16T20:00:00+11:00
+> **LAST UPDATED**: 2026-03-19
 
 ---
 
@@ -16,12 +16,18 @@
 - **Testing**: Playwright (E2E), Jest (unit)
 - **Root**: `vedawell-next/` within `c:/Users/sridh/Documents/Github/Ayurveda/`
 
-### Database Tables (17+ tables, migrations up to v17)
+### Branding
+- **Product name**: HomeGuardian by VedaWell
+- **Logo**: Home icon (lucide `Home`) in gradient square
+- **Navbar**: Tools, Games, Blog, Panchang + "Get Guardian" CTA
+
+### Database Tables (20+ tables, migrations v1–v20)
 ```
 profiles, projects, stages, checklist_items, variations, defects,
 certifications, inspections, documents, weekly_checkins,
 communication_log, announcements, support_messages,
-email_subscribers, progress_photos, materials, site_visits
+email_subscribers, progress_photos, materials, site_visits,
+payments, ai_cache, knowledge_base
 ```
 
 ### Storage Buckets (3, require manual creation + RLS)
@@ -44,6 +50,36 @@ email_subscribers, progress_photos, materials, site_visits
 ---
 
 ## 2. WHAT'S BEEN DONE (Completed Work)
+
+### Session: 2026-03-19 — Marketing & Guide Updates
+
+| Change | File(s) |
+|--------|---------|
+| **Guardian landing page**: ScrollReveal animations, 4-card AI features section, updated hero/trust bar/pricing/SEO | `guardian/page.tsx` |
+| **Pricing page**: AI features added to free tier (defect assist) and pro tier (chat, builder check, stage advice) | `PricingClient.tsx` |
+| **Blog**: New AI announcement post "Guardian Now Has AI" | `data/blog/posts.ts` |
+| **Homepage**: ScrollReveal animation on hero section | `page.tsx` |
+| **Guide docs**: Updated all 7 guide files to reflect current state (AI, branding, resolved bugs) | `guide/*.md` |
+| **Branding**: HomeGuardian by VedaWell, Home logo in navbar | `Navbar.tsx` |
+
+### Session: 2026-03-18 — AI Integration & Core Polish
+
+**Major Features added: AI integration, Dark Mode, PWA, PDF Export, Notifications**
+
+| Change | File(s) |
+|--------|---------|
+| **AI Architecture**: Gemini/Claude AI provider, rate limiting, and prompt injection defenses | `src/lib/ai/*` |
+| **AI DB/Cache**: Added pgvector `knowledge_base` and `ai_cache` | `schema_v20_ai.sql` |
+| **Defect Assist AI**: Turns rough notes into clear, evidence-ready defect logs | `AIDefectAssist.tsx`, `/api/guardian/ai/describe-defect` |
+| **Stage Advice AI**: Stage-specific checks and documents to demand | `AIStageAdvice.tsx`, `/api/guardian/ai/stage-advice` |
+| **Builder Check AI**: Spot red flags from licensing/reputation signals | `/api/guardian/ai/builder-check` |
+| **Guardian Chat**: Context-aware streaming chat UI for homeowner questions | `GuardianChat.tsx`, `/api/guardian/ai/chat` |
+| **Dark Mode**: Next themes, light/dark/system toggle, flash prevention | `ThemeProvider.tsx`, `layout.tsx`, `globals.css` |
+| **Onboarding Wizard**: 3-step modal for first-time Guardian users | `OnboardingWizard.tsx` |
+| **PDF Export**: Real PDF generation with `pdf-lib` via API route | `ExportCenter.tsx`, `/api/guardian/export-pdf` |
+| **Email Notifications**: Resend integration + cron endpoint for stale defects | `/api/notifications/route.ts` |
+| **PWA & OG Images**: Service worker caching and dynamic OpenGraph images | `sw.js`, `InstallPrompt.tsx`, `opengraph-image.tsx` |
+| **Validation/Testing**: Fixed rigid test assertions, mocked `fetch` globally, fixed typed props | `PaymentSchedule.test.tsx`, `jest.setup.js` |
 
 ### Session: 2026-03-16 — UX Psychology Fixes (Session F)
 
@@ -210,9 +246,14 @@ email_subscribers, progress_photos, materials, site_visits
 - **M1: Yearly Stripe price** — User requested hold, `pro_yearly.priceId` is empty string in `PricingClient.tsx`
 
 ### SQL Migrations Run
-- ✅ `schema_v17_project_state.sql` — Adds `state` + `build_category` columns to `projects`
-- ⚠️ `schema_v13_storage_buckets.sql` — Status unknown, user should confirm
-- ⏳ `schema_v18_gap_fixes.sql` — **Needs to be run on Supabase** (payments table + project/stage columns)
+- ✅ `schema_v1–v12` — Core tables
+- ✅ `schema_v13_storage_buckets.sql` — Storage buckets + progress_photos
+- ✅ `schema_v14–v15` — Bug fixes (order_index, status constraints, override_reason)
+- ✅ `schema_v16_materials_visits.sql` — materials, site_visits tables
+- ✅ `schema_v17_project_state.sql` — state + build_category columns
+- ✅ `schema_v18_gap_fixes.sql` — payments table + project/stage columns
+- ✅ `schema_v19` — Policy fixes (DROP IF EXISTS)
+- ✅ `schema_v20_ai.sql` — pgvector, ai_cache, knowledge_base + RLS
 
 ---
 
@@ -292,7 +333,7 @@ email_subscribers, progress_photos, materials, site_visits
 | `guide/00-APP-MEMORY.md` | **THIS FILE** — Start here |
 | `guide/01-GUARDIAN-ARCHITECTURE.md` | Tech stack, directory structure, DB schema |
 | `guide/05-COMPONENT-STATUS.md` | Current component status matrix |
-| `guide/06-USER-WORKFLOW.md` | User journey map (needs update) |
+| `guide/06-USER-WORKFLOW.md` | User journey map + AI workflows |
 | `guide/07-TESTING-SETUP.md` | E2E test setup and known limitations |
 | `src/types/guardian.ts` | All TypeScript interfaces |
 | `src/data/australian-build-workflows.json` | State workflows, stages, warnings |
@@ -300,8 +341,12 @@ email_subscribers, progress_photos, materials, site_visits
 | `e2e/guardian-smoke.spec.ts` | Smoke tests |
 | `e2e/guardian-full-workflow.spec.ts` | Full E2E workflow tests |
 
-### All 49 Components (in `src/components/guardian/`)
+### All 50+ Components (in `src/components/guardian/`)
 ```
+AIDefectAssist.tsx          — Ask AI to formalize draft defect logs
+AIStageAdvice.tsx           — AI contextual advice per stage
+GuardianChat.tsx            — AI generic chat streaming interface
+OnboardingWizard.tsx        — 3-step onboarding guide modals
 ProjectDefects.tsx          — Defect CRUD with status validation + free tier
 ProjectVariations.tsx       — Variation CRUD with signatures + free tier
 ProgressPhotos.tsx          — Photo upload + timeline/grid view
@@ -317,8 +362,8 @@ InspectionTimeline.tsx      — Inspection booking (partial)
 StageGate.tsx               — Stage completion gates
 StageChecklist.tsx          — Per-stage checklists
 WeeklyCheckIn.tsx           — Builder accountability
-MaterialRegistry.tsx        — ⚠️ UI-ONLY
-SiteVisitLog.tsx            — ⚠️ UI-ONLY
+MaterialRegistry.tsx        — DB-backed via materials table
+SiteVisitLog.tsx            — DB-backed via site_visits table
 PreHandoverChecklist.tsx    — localStorage + "Create Defects" bridge to DB
 ContractReviewChecklist.tsx — ⚠️ UI-ONLY — needs persistence
 DisputeResolution.tsx       — State-specific dispute pathways + 3 template letters
