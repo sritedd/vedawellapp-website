@@ -11,6 +11,13 @@ export default function InstallPrompt() {
     const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
     const [showPrompt, setShowPrompt] = useState(false);
 
+    // Register service worker
+    useEffect(() => {
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("/sw.js").catch(() => { });
+        }
+    }, []);
+
     useEffect(() => {
         // Don't show if user already dismissed
         const dismissed = localStorage.getItem("pwa-install-dismissed");

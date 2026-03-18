@@ -3,11 +3,13 @@
 import { usePathname } from "next/navigation";
 import AdBanner from "@/components/AdBanner";
 
-/** Routes where ads should NOT appear (authenticated/SaaS pages) */
-const AD_FREE_PREFIXES = [
-    "/guardian/dashboard",
-    "/guardian/projects",
-    "/guardian/profile",
+/** Routes where ads SHOULD appear (content/free pages only) */
+const AD_ENABLED_PREFIXES = [
+    "/tools",
+    "/blog",
+    "/games",
+    "/panchang",
+    "/compare",
 ];
 
 /**
@@ -20,7 +22,8 @@ const AD_FREE_PREFIXES = [
 export default function GlobalAdSlot({ position }: { position: "top" | "bottom" }) {
     const pathname = usePathname();
 
-    if (AD_FREE_PREFIXES.some(prefix => pathname.startsWith(prefix))) {
+    // Only show ads on content pages (tools, blog, games, etc.)
+    if (!AD_ENABLED_PREFIXES.some(prefix => pathname.startsWith(prefix))) {
         return null;
     }
 

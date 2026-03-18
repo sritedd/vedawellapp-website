@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import InstallPrompt from "@/components/pwa/InstallPrompt";
 import GlobalAdSlot from "@/components/GlobalAdSlots";
+import ThemeProvider from "@/components/ThemeProvider";
 import CookieConsent from "@/components/CookieConsent";
 import "./globals.css";
 
@@ -117,6 +118,12 @@ export default function RootLayout({
             `,
           }}
         />
+        {/* Theme flash prevention — runs before paint */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('vedawell-theme');var d=t==='dark'||(t!=='light'&&window.matchMedia('(prefers-color-scheme:dark)').matches);if(d)document.documentElement.classList.add('dark')}catch(e){}})()`,
+          }}
+        />
         {/* RSS feed discovery */}
         <link rel="alternate" type="application/rss+xml" title="VedaWell Blog" href="/feed.xml" />
         {/* Google AdSense */}
@@ -148,15 +155,17 @@ export default function RootLayout({
         >
           Skip to main content
         </a>
-        <div className="min-h-screen flex flex-col">
-          <Navbar />
-          <GlobalAdSlot position="top" />
-          <main id="main-content" role="main" className="flex-1">{children}</main>
-          <GlobalAdSlot position="bottom" />
-          <Footer />
-          <InstallPrompt />
-          <CookieConsent />
-        </div>
+        <ThemeProvider>
+          <div className="min-h-screen flex flex-col">
+            <Navbar />
+            <GlobalAdSlot position="top" />
+            <main id="main-content" role="main" className="flex-1">{children}</main>
+            <GlobalAdSlot position="bottom" />
+            <Footer />
+            <InstallPrompt />
+            <CookieConsent />
+          </div>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -370,6 +370,46 @@ export default function ExportCenter({ projectId, projectName, builderName, cont
                 </div>
             )}
 
+            {/* Pro PDF Export */}
+            <div className="p-4 bg-primary/5 border border-primary/20 rounded-xl">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h3 className="font-bold text-sm">Download Professional PDF Report</h3>
+                        <p className="text-xs text-muted mt-1">
+                            Full defect &amp; variation report as a properly formatted PDF document.
+                        </p>
+                    </div>
+                    <button
+                        onClick={async () => {
+                            setLoading(true);
+                            try {
+                                const res = await fetch(`/api/guardian/export-pdf?projectId=${projectId}`);
+                                if (res.status === 403) {
+                                    alert("PDF export requires Guardian Pro. Upgrade at /guardian/pricing");
+                                    return;
+                                }
+                                if (!res.ok) throw new Error("Export failed");
+                                const blob = await res.blob();
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement("a");
+                                a.href = url;
+                                a.download = `guardian-report-${projectName.replace(/[^a-zA-Z0-9]/g, "-")}.pdf`;
+                                a.click();
+                                URL.revokeObjectURL(url);
+                            } catch {
+                                alert("Failed to generate PDF. Please try again.");
+                            } finally {
+                                setLoading(false);
+                            }
+                        }}
+                        disabled={loading}
+                        className="px-4 py-2 bg-primary text-white rounded-lg font-semibold text-sm hover:opacity-90 disabled:opacity-50 shrink-0"
+                    >
+                        {loading ? "Generating..." : "Download PDF"}
+                    </button>
+                </div>
+            </div>
+
             <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-800">
                 <p className="font-medium mb-1">Export Tips</p>
                 <ul className="list-disc list-inside space-y-1">

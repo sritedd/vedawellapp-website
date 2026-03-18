@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Shield, Menu, X, Wrench, Gamepad2, BookOpen, Sun } from "lucide-react";
+import { Shield, Menu, X, Wrench, Gamepad2, BookOpen, Sun, Moon, Monitor } from "lucide-react";
+import { useTheme } from "@/components/ThemeProvider";
 
 const navLinks = [
     { href: "/tools", label: "Tools", icon: Wrench },
@@ -18,6 +19,13 @@ export default function Navbar() {
     const [user, setUser] = useState<{ email?: string; full_name?: string } | null>(null);
     const [scrolled, setScrolled] = useState(false);
     const pathname = usePathname();
+    const { theme, setTheme } = useTheme();
+
+    const cycleTheme = () => {
+        const next = theme === "light" ? "dark" : theme === "dark" ? "system" : "light";
+        setTheme(next);
+    };
+    const ThemeIcon = theme === "dark" ? Moon : theme === "light" ? Sun : Monitor;
 
     useEffect(() => {
         const supabase = createClient();
@@ -81,6 +89,16 @@ export default function Navbar() {
                         );
                     })}
 
+                    {/* Theme Toggle */}
+                    <button
+                        onClick={cycleTheme}
+                        className="p-2 rounded-lg text-muted hover:text-foreground hover:bg-primary/5 transition-colors"
+                        aria-label={`Theme: ${theme}. Click to change.`}
+                        title={`Theme: ${theme}`}
+                    >
+                        <ThemeIcon className="w-4 h-4" />
+                    </button>
+
                     {/* Separator */}
                     <div className="w-px h-6 bg-border mx-2" />
 
@@ -134,6 +152,15 @@ export default function Navbar() {
                             </Link>
                         );
                     })}
+
+                    {/* Mobile Theme Toggle */}
+                    <button
+                        onClick={cycleTheme}
+                        className="flex items-center gap-3 py-3 px-3 rounded-lg text-muted hover:text-foreground hover:bg-primary/5 transition-colors w-full"
+                    >
+                        <ThemeIcon className="w-5 h-5" />
+                        {theme === "light" ? "Light Mode" : theme === "dark" ? "Dark Mode" : "System Theme"}
+                    </button>
 
                     <div className="pt-3 border-t border-border">
                         {user ? (

@@ -5,6 +5,7 @@ import { isAdminEmail } from "@/lib/admin";
 import { formatMoney } from "@/utils/format";
 import { logout, touchLastSeen } from "@/app/guardian/actions";
 import ManageBillingButton from "@/components/guardian/ManageBillingButton";
+import OnboardingWizard from "@/components/guardian/OnboardingWizard";
 
 export default async function DashboardPage() {
     const supabase = await createClient();
@@ -91,6 +92,9 @@ export default async function DashboardPage() {
 
     return (
         <>
+            {/* Onboarding wizard for first-time users */}
+            {(!projects || projects.length === 0) && <OnboardingWizard />}
+
             {/* Dashboard Sub-Navigation */}
             <div className="border-b border-border bg-muted/5">
                 <div className="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
