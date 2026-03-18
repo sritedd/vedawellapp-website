@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Shield, Menu, X, Wrench, Gamepad2, BookOpen, Sun, Moon, Monitor } from "lucide-react";
+import { Shield, Home, Menu, X, Wrench, Gamepad2, BookOpen, Sun, Moon, Monitor } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 
 const navLinks = [
@@ -63,7 +63,7 @@ export default function Navbar() {
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-2.5 group">
                     <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
-                        <Shield className="w-5 h-5 text-white" />
+                        <Home className="w-5 h-5 text-white" />
                     </div>
                     <div className="flex flex-col justify-center ml-1">
                         <span className="text-xl font-bold tracking-tight leading-none text-foreground">
