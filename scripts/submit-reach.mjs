@@ -13,7 +13,7 @@
 const HOST = "vedawellapp.com";
 const BASE = `https://${HOST}`;
 const SITEMAP_URL = `${BASE}/sitemap.xml`;
-const INDEXNOW_KEY = "vedawell2026indexnow";
+const INDEXNOW_KEY = "8864cefde0394cbca72cf32430d9c5d8";
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -93,29 +93,9 @@ async function submitIndexNow(urls) {
 }
 
 // ─── 2. SITEMAP PINGS ───────────────────────────────────────────────────────
-async function pingSitemaps() {
-  console.log("\n🔔 Pinging search engines with sitemap...");
-
-  const sitemapEnc = encodeURIComponent(SITEMAP_URL);
-  const pings = [
-    `https://www.google.com/ping?sitemap=${sitemapEnc}`,
-    `https://www.bing.com/ping?sitemap=${sitemapEnc}`,
-  ];
-
-  for (const url of pings) {
-    try {
-      const res = await fetch(url, {
-        method: "GET",
-        headers: { "User-Agent": "VedaWell-Reach/2.0" },
-        signal: AbortSignal.timeout(10000),
-      });
-      console.log(`  ✅ ${new URL(url).hostname} → HTTP ${res.status}`);
-    } catch (e) {
-      console.log(`  ⚠️  ${new URL(url).hostname} → ${e.message}`);
-    }
-    await sleep(300);
-  }
-}
+// Note: Google deprecated /ping?sitemap (returns 404) and Bing deprecated
+// theirs (returns 410) in favor of IndexNow. We keep only IndexNow above.
+// Sitemap discovery happens via robots.txt and Search Console / Bing Webmaster.
 
 // ─── 3. WAYBACK MACHINE ────────────────────────────────────────────────────
 async function submitWayback(urls) {
@@ -157,20 +137,6 @@ async function submitWayback(urls) {
   console.log(`\n  ✅ Archived: ${ok}  ❌ Failed: ${fail}`);
 }
 
-// ─── 4. GOOGLE SEARCH CONSOLE PING ─────────────────────────────────────────
-async function pingGoogleSearchConsole() {
-  console.log("\n🔎 Requesting Google re-crawl via Search Console ping...");
-  try {
-    const res = await fetch(
-      `https://www.google.com/ping?sitemap=${encodeURIComponent(SITEMAP_URL)}`,
-      { signal: AbortSignal.timeout(10000) }
-    );
-    console.log(`  ✅ Google ping → HTTP ${res.status}`);
-  } catch (e) {
-    console.log(`  ⚠️  Google ping → ${e.message}`);
-  }
-}
-
 // ─── MAIN ───────────────────────────────────────────────────────────────────
 const urls = await discoverUrls();
 
@@ -181,8 +147,6 @@ console.log(`   Host: ${HOST}`);
 console.log("=".repeat(60));
 
 await submitIndexNow(urls);
-await pingSitemaps();
-await pingGoogleSearchConsole();
 await submitWayback(urls);
 
 console.log("\n" + "=".repeat(60));

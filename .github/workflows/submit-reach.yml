@@ -42,7 +42,7 @@ jobs:
 
       - name: Verify IndexNow key file
         run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://vedawellapp.com/vedawell2026indexnow.txt || echo "000")
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://vedawellapp.com/8864cefde0394cbca72cf32430d9c5d8.txt || echo "000")
           echo "IndexNow key file: $STATUS"
 
       - name: Verify sitemap is accessible
