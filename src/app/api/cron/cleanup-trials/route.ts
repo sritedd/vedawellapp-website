@@ -32,11 +32,11 @@ export async function GET(req: NextRequest) {
     const now = new Date().toISOString();
 
     // 1. Downgrade expired trials
+    // Keep trial_ends_at so start-trial can detect prior usage and block re-claims
     const { data: expiredTrials, error: trialError } = await supabase
         .from("profiles")
         .update({
             subscription_tier: "free",
-            trial_ends_at: null,
             subscription_updated_at: now,
         })
         .eq("subscription_tier", "trial")

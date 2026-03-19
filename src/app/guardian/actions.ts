@@ -371,11 +371,11 @@ export async function cleanupExpiredTrials() {
     const { supabase, error } = await requireAdmin();
     if (error || !supabase) return { error };
 
+    // Keep trial_ends_at so start-trial can detect prior usage and block re-claims
     const { data, error: cleanupError } = await supabase
         .from("profiles")
         .update({
             subscription_tier: "free",
-            trial_ends_at: null,
             subscription_updated_at: new Date().toISOString(),
         })
         .eq("subscription_tier", "trial")

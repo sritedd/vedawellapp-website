@@ -51,6 +51,27 @@ payments, ai_cache, knowledge_base
 
 ## 2. WHAT'S BEEN DONE (Completed Work)
 
+### Session: 2026-03-19 (H) — Trust & Retention + Growth & Virality
+
+| Change | File(s) |
+|--------|---------|
+| Project Health Score — circular gauge, 4 sub-scores (build/defects/inspections/engagement) | `ProjectHealthScore.tsx` |
+| Milestone Celebrations — 8 achievements with animated toasts + badge grid | `MilestoneCelebrations.tsx` |
+| Referral Rewards API — +7 days trial per successful referral | `api/guardian/referral-reward/route.ts` |
+| Shareable Progress Card — branded card with WhatsApp/X/native share | `ShareProgressCard.tsx` |
+| Share Progress tab added to More section in project page | `projects/[id]/page.tsx` |
+
+### Session: 2026-03-19 (G) — Revenue Drivers: Trial, Timeline, Digest, PDF
+
+| Change | File(s) |
+|--------|---------|
+| Self-service 7-day free trial — API + pricing page CTA banner | `api/guardian/start-trial/route.ts`, `PricingClient.tsx` |
+| Gantt-style Progress Timeline — SVG bars, inspections, defects, today line | `ProgressTimeline.tsx`, `projects/[id]/page.tsx` |
+| Weekly Email Digest — branded HTML summaries via Resend for Pro/trial | `api/cron/weekly-digest/route.ts` |
+| Branded PDF Export — 6 report types via pdf-lib with VedaWell branding | `api/guardian/export-pdf/route.ts` |
+| ExportCenter uses real PDF downloads instead of print dialog | `ExportCenter.tsx` |
+| Submit-reach v2.0: Wayback reliability, Bing quota trim | `submit-reach.mjs`, `submit-bing.mjs` |
+
 ### Session: 2026-03-19 (F) — Email Verification, Vibrant Illustrations, Hide Panchang
 
 | Change | File(s) |

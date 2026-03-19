@@ -38,11 +38,13 @@ export async function checkProAccess(
 ): Promise<{ allowed: boolean; tier: string }> {
     const { data } = await supabase
         .from("profiles")
-        .select("subscription_tier")
+        .select("subscription_tier, trial_ends_at, is_admin")
         .eq("id", userId)
         .single();
 
     const tier = data?.subscription_tier || "free";
-    const allowed = tier === "guardian_pro" || tier === "guardian_trial" || tier === "admin";
+    const isAdmin = data?.is_admin === true;
+    const trialActive = tier === "trial" && data?.trial_ends_at && new Date(data.trial_ends_at) > new Date();
+    const allowed = tier === "guardian_pro" || isAdmin || trialActive === true;
     return { allowed, tier };
 }
