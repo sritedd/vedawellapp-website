@@ -1,12 +1,21 @@
 name: Submit URLs for Reach
 
 on:
+  # Auto-run after every push to main (after Netlify deploys)
+  push:
+    branches: [main]
+  # Manual trigger with optional Bing API key
   workflow_dispatch:
     inputs:
       bing_api_key:
-        description: "Bing Webmaster API key (optional — get from bing.com/webmasters)"
+        description: "Bing Webmaster API key (optional)"
         required: false
         default: ""
+
+# Prevent duplicate runs
+concurrency:
+  group: reach-submission
+  cancel-in-progress: true
 
 jobs:
   submit:
@@ -18,27 +27,44 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
 
-      - name: Wait for Netlify deploy (60s)
-        run: sleep 60
+      - name: Wait for Netlify deploy (90s)
+        run: sleep 90
 
-      - name: Verify IndexNow key is live
-        continue-on-error: true
+      - name: Verify site is live
         run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://vedawell.tools/8864cefde0394cbca72cf32430d9c5d8.txt || echo "000")
-          echo "IndexNow key file HTTP status: $STATUS"
-          if [ "$STATUS" = "200" ]; then
-            echo "✅ Key file is live"
-          else
-            echo "⚠️  Key file returned $STATUS — continuing anyway"
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 15 https://vedawellapp.com/ || echo "000")
+          echo "Site HTTP status: $STATUS"
+          if [ "$STATUS" != "200" ]; then
+            echo "⚠️  Site returned $STATUS — will continue but results may vary"
           fi
 
-      - name: Run IndexNow + Ping + Wayback Machine
-        run: node scripts/submit-reach.mjs
-        working-directory: .
+      - name: Verify IndexNow key file
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://vedawellapp.com/vedawell2026indexnow.txt || echo "000")
+          echo "IndexNow key file: $STATUS"
 
-      - name: Run Bing bulk submission (if API key provided)
-        if: ${{ github.event.inputs.bing_api_key != '' }}
-        run: node scripts/submit-bing.mjs "${{ github.event.inputs.bing_api_key }}"
-        working-directory: .
+      - name: Verify sitemap is accessible
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://vedawellapp.com/sitemap.xml || echo "000")
+          echo "Sitemap: $STATUS"
+          URLS=$(curl -s --max-time 10 https://vedawellapp.com/sitemap.xml | grep -c "<loc>" || echo "0")
+          echo "URLs in sitemap: $URLS"
+
+      - name: Run IndexNow + Sitemap Pings + Wayback Machine
+        run: node scripts/submit-reach.mjs
+
+      - name: Run Bing bulk submission
+        if: ${{ github.event.inputs.bing_api_key != '' || secrets.BING_API_KEY != '' }}
+        run: node scripts/submit-bing.mjs "${{ github.event.inputs.bing_api_key || secrets.BING_API_KEY }}"
+
+      - name: Summary
+        run: |
+          echo "## 🚀 Reach Submission Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **IndexNow**: Submitted to Bing, Yandex, Naver, Seznam" >> $GITHUB_STEP_SUMMARY
+          echo "- **Sitemap pings**: Google + Bing" >> $GITHUB_STEP_SUMMARY
+          echo "- **Wayback Machine**: Priority pages archived" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📊 [Bing Webmaster](https://www.bing.com/webmasters) | [Google Search Console](https://search.google.com/search-console)" >> $GITHUB_STEP_SUMMARY

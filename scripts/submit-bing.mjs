@@ -1,59 +1,45 @@
 /**
- * Bing Webmaster Tools — Bulk URL Submission API
- * Usage: node scripts/submit-bing.mjs YOUR_BING_API_KEY
+ * Bing Webmaster Tools — Bulk URL Submission API v2.0
  *
- * Get your key: https://www.bing.com/webmasters/api.aspx
- * (Bing Webmaster Tools → Settings → API Access → Generate Key)
+ * Dynamically fetches all URLs from sitemap instead of hardcoded list.
+ *
+ * Usage: node scripts/submit-bing.mjs YOUR_BING_API_KEY
+ * Get key: Bing Webmaster Tools → Settings → API Access → Generate Key
  */
 
 const API_KEY = process.argv[2];
 if (!API_KEY) {
   console.error("Usage: node scripts/submit-bing.mjs YOUR_API_KEY");
-  console.error("Get key at: https://www.bing.com/webmasters/api.aspx");
+  console.error("Get key: Bing Webmaster Tools → Settings → API Access → Generate Key");
   process.exit(1);
 }
 
-const HOST = "vedawell.tools";
-const TOOL_SLUGS = [
-  "age-calculator", "aspect-ratio-calculator", "background-remover",
-  "batch-image-compressor", "bmi-calculator", "border-radius-preview",
-  "box-shadow-generator", "breathing-exercise", "case-converter",
-  "character-counter", "coin-flip", "color-converter",
-  "color-palette-generator", "color-picker-from-image", "compound-interest-calculator",
-  "countdown-timer", "crontab", "css-grid-generator", "csv-to-json",
-  "date-calculator", "dice-roller", "drawing-canvas", "emoji-picker",
-  "exif-reader", "expense-splitter", "favicon-generator", "flashcard-app",
-  "flexbox-generator", "focus-timer", "gradient-generator", "habit-tracker",
-  "hash-generator", "html-cleaner", "image-compressor", "image-cropper",
-  "image-filters", "image-format-converter", "image-resizer", "image-to-pdf",
-  "image-watermarker", "invoice-generator", "json-formatter", "jwt-decoder",
-  "keycode-info", "keyword-density-checker", "loan-calculator",
-  "lorem-ipsum-generator", "markdown-editor", "meeting-cost-calculator",
-  "meme-generator", "meta-tag-generator", "metronome", "mortgage-calculator",
-  "notes-app", "number-base-converter", "open-graph-generator",
-  "paraphrasing-tool", "password-generator", "pdf-compress", "pdf-merge",
-  "pdf-split", "pdf-to-image", "pdf-to-word", "percentage-calculator",
-  "plain-text-paster", "pomodoro-timer", "qr-code-generator",
-  "random-generator", "readability-checker", "regex-tester",
-  "robots-txt-generator", "schema-markup-generator", "scientific-calculator",
-  "screen-recorder", "serp-preview", "social-media-image-resizer",
-  "speed-reader", "stopwatch-timer", "string-encoder", "tax-calculator",
-  "text-diff", "text-repeater", "text-summarizer", "text-to-speech",
-  "timezone-converter", "tip-calculator", "todo-list", "typing-speed-test",
-  "unit-converter", "unit-price-calculator", "unix-timestamp-converter",
-  "url-encoder", "uuid-generator", "white-noise-generator",
-  "whitespace-remover", "word-counter", "youtube-thumbnail-downloader",
-];
+const HOST = "vedawellapp.com";
+const BASE = `https://${HOST}`;
+const SITEMAP_URL = `${BASE}/sitemap.xml`;
 
-const ALL_URLS = [
-  `https://${HOST}/`,
-  `https://${HOST}/tools`,
-  `https://${HOST}/guardian`,
-  `https://${HOST}/guardian/pricing`,
-  ...TOOL_SLUGS.map(slug => `https://${HOST}/tools/${slug}`),
-];
+// Discover URLs from live sitemap
+async function discoverUrls() {
+  console.log(`\n🔍 Fetching sitemap from ${SITEMAP_URL}...`);
+  try {
+    const res = await fetch(SITEMAP_URL, {
+      headers: { "User-Agent": "VedaWell-BingSubmit/2.0" },
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const xml = await res.text();
+    const urls = [...xml.matchAll(/<loc>(.*?)<\/loc>/g)].map((m) => m[1]);
+    console.log(`   Found ${urls.length} URLs`);
+    return urls;
+  } catch (e) {
+    console.error(`   ❌ Failed: ${e.message}`);
+    process.exit(1);
+  }
+}
 
-// Bing allows max 500 URLs per request
+const ALL_URLS = await discoverUrls();
+
+// Bing allows max 500 URLs per request, 10,000 per day
 const CHUNK_SIZE = 500;
 const chunks = [];
 for (let i = 0; i < ALL_URLS.length; i += CHUNK_SIZE) {
@@ -62,6 +48,7 @@ for (let i = 0; i < ALL_URLS.length; i += CHUNK_SIZE) {
 
 console.log(`\n🔍 Bing Webmaster — submitting ${ALL_URLS.length} URLs in ${chunks.length} batch(es)...`);
 
+let totalSubmitted = 0;
 for (let i = 0; i < chunks.length; i++) {
   try {
     const res = await fetch(
@@ -69,11 +56,16 @@ for (let i = 0; i < chunks.length; i++) {
       {
         method: "POST",
         headers: { "Content-Type": "application/json; charset=utf-8" },
-        body: JSON.stringify({ siteUrl: `https://${HOST}`, urlList: chunks[i] }),
+        body: JSON.stringify({
+          siteUrl: `${BASE}`,
+          urlList: chunks[i],
+        }),
+        signal: AbortSignal.timeout(15000),
       }
     );
     const text = await res.text();
     if (res.status === 200) {
+      totalSubmitted += chunks[i].length;
       console.log(`  ✅ Batch ${i + 1}: ${chunks[i].length} URLs submitted`);
     } else {
       console.log(`  ❌ Batch ${i + 1}: HTTP ${res.status} — ${text}`);
@@ -83,4 +75,5 @@ for (let i = 0; i < chunks.length; i++) {
   }
 }
 
-console.log("\n✅ Bing submission complete!");
+console.log(`\n✅ Bing submission complete! ${totalSubmitted}/${ALL_URLS.length} URLs submitted.`);
+console.log(`📊 Check: https://www.bing.com/webmasters/urlsubmission?siteUrl=${BASE}/`);

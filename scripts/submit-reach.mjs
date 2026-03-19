@@ -1,101 +1,145 @@
 /**
- * VedaWell Reach Submission Script
- * Submits all tool URLs to:
- *  1. IndexNow (Bing, Yandex, Naver, Seznam, Baidu)
- *  2. Wayback Machine (archive.org) — builds .org backlinks
- *  3. Ping services — notifies 20+ web directories
+ * VedaWell Reach Submission Script — Next Gen
+ *
+ * Dynamically discovers ALL URLs from the sitemap (tools, games, blog,
+ * compare pages, guardian learn pages) instead of a hardcoded list.
+ *
+ * Submits to:
+ *  1. IndexNow (Bing, Yandex, Naver, Seznam)
+ *  2. Google & Bing sitemap pings
+ *  3. Wayback Machine (archive.org) — builds .org backlinks
  */
 
-const HOST = "vedawell.tools";
-const INDEXNOW_KEY = "8864cefde0394cbca72cf32430d9c5d8"; // Bing-issued key
+const HOST = "vedawellapp.com";
+const BASE = `https://${HOST}`;
+const SITEMAP_URL = `${BASE}/sitemap.xml`;
+const INDEXNOW_KEY = "vedawell2026indexnow";
 
-const TOOL_SLUGS = [
-  "age-calculator", "aspect-ratio-calculator", "background-remover",
-  "batch-image-compressor", "bmi-calculator", "border-radius-preview",
-  "box-shadow-generator", "breathing-exercise", "case-converter",
-  "character-counter", "coin-flip", "color-converter",
-  "color-palette-generator", "color-picker-from-image", "compound-interest-calculator",
-  "countdown-timer", "crontab", "css-grid-generator", "csv-to-json",
-  "date-calculator", "dice-roller", "drawing-canvas", "emoji-picker",
-  "exif-reader", "expense-splitter", "favicon-generator", "flashcard-app",
-  "flexbox-generator", "focus-timer", "gradient-generator", "habit-tracker",
-  "hash-generator", "html-cleaner", "image-compressor", "image-cropper",
-  "image-filters", "image-format-converter", "image-resizer", "image-to-pdf",
-  "image-watermarker", "invoice-generator", "json-formatter", "jwt-decoder",
-  "keycode-info", "keyword-density-checker", "loan-calculator",
-  "lorem-ipsum-generator", "markdown-editor", "meeting-cost-calculator",
-  "meme-generator", "meta-tag-generator", "metronome", "mortgage-calculator",
-  "notes-app", "number-base-converter", "open-graph-generator",
-  "paraphrasing-tool", "password-generator", "pdf-compress", "pdf-merge",
-  "pdf-split", "pdf-to-image", "pdf-to-word", "percentage-calculator",
-  "plain-text-paster", "pomodoro-timer", "qr-code-generator",
-  "random-generator", "readability-checker", "regex-tester",
-  "robots-txt-generator", "schema-markup-generator", "scientific-calculator",
-  "screen-recorder", "serp-preview", "social-media-image-resizer",
-  "speed-reader", "stopwatch-timer", "string-encoder", "tax-calculator",
-  "text-diff", "text-repeater", "text-summarizer", "text-to-speech",
-  "timezone-converter", "tip-calculator", "todo-list", "typing-speed-test",
-  "unit-converter", "unit-price-calculator", "unix-timestamp-converter",
-  "url-encoder", "uuid-generator", "white-noise-generator",
-  "whitespace-remover", "word-counter", "youtube-thumbnail-downloader",
-];
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-const STATIC_URLS = [
-  `https://${HOST}/`,
-  `https://${HOST}/tools`,
-  `https://${HOST}/guardian`,
-  `https://${HOST}/guardian/pricing`,
-];
+// ─── URL DISCOVERY ──────────────────────────────────────────────────────────
+async function discoverUrls() {
+  console.log(`\n🔍 Fetching sitemap from ${SITEMAP_URL}...`);
+  try {
+    const res = await fetch(SITEMAP_URL, {
+      headers: { "User-Agent": "VedaWell-Reach/2.0" },
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const xml = await res.text();
 
-const ALL_URLS = [
-  ...STATIC_URLS,
-  ...TOOL_SLUGS.map(slug => `https://${HOST}/tools/${slug}`),
-];
+    // Extract all <loc>...</loc> URLs from sitemap XML
+    const urls = [...xml.matchAll(/<loc>(.*?)<\/loc>/g)].map((m) => m[1]);
+    console.log(`   Found ${urls.length} URLs in sitemap`);
+    return urls;
+  } catch (e) {
+    console.error(`   ❌ Failed to fetch sitemap: ${e.message}`);
+    console.log("   Falling back to static URL list...");
+    return getFallbackUrls();
+  }
+}
 
-const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+function getFallbackUrls() {
+  return [
+    `${BASE}/`,
+    `${BASE}/tools`,
+    `${BASE}/games`,
+    `${BASE}/blog`,
+    `${BASE}/guardian`,
+    `${BASE}/guardian/pricing`,
+    `${BASE}/guardian/faq`,
+    `${BASE}/guardian/journey`,
+    `${BASE}/guardian/resources`,
+    `${BASE}/about`,
+  ];
+}
 
-// ─── 1. INDEXNOW ─────────────────────────────────────────────────────────────
-async function submitIndexNow() {
-  console.log("\n📡 IndexNow — submitting to Bing, Yandex, Naver, Seznam...");
+// ─── 1. INDEXNOW ────────────────────────────────────────────────────────────
+async function submitIndexNow(urls) {
+  console.log(`\n📡 IndexNow — submitting ${urls.length} URLs to Bing, Yandex, Naver, Seznam...`);
+
   const endpoints = [
     "https://api.indexnow.org/indexnow",
     "https://www.bing.com/indexnow",
     "https://yandex.com/indexnow",
   ];
 
-  const body = JSON.stringify({
-    host: HOST,
-    key: INDEXNOW_KEY,
-    keyLocation: `https://${HOST}/${INDEXNOW_KEY}.txt`,
-    urlList: ALL_URLS,
-  });
+  // IndexNow accepts max 10,000 URLs per request
+  const CHUNK = 10000;
+  for (let i = 0; i < urls.length; i += CHUNK) {
+    const chunk = urls.slice(i, i + CHUNK);
+    const body = JSON.stringify({
+      host: HOST,
+      key: INDEXNOW_KEY,
+      keyLocation: `${BASE}/${INDEXNOW_KEY}.txt`,
+      urlList: chunk,
+    });
 
-  for (const endpoint of endpoints) {
-    try {
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json; charset=utf-8" },
-        body,
-      });
-      console.log(`  ✅ ${endpoint} → HTTP ${res.status}`);
-    } catch (e) {
-      console.log(`  ❌ ${endpoint} → ${e.message}`);
+    for (const endpoint of endpoints) {
+      try {
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json; charset=utf-8" },
+          body,
+          signal: AbortSignal.timeout(15000),
+        });
+        console.log(`  ✅ ${new URL(endpoint).hostname} → HTTP ${res.status} (${chunk.length} URLs)`);
+      } catch (e) {
+        console.log(`  ❌ ${new URL(endpoint).hostname} → ${e.message}`);
+      }
+      await sleep(500);
     }
-    await sleep(500);
   }
 }
 
-// ─── 2. WAYBACK MACHINE ──────────────────────────────────────────────────────
-async function submitWayback() {
-  console.log(`\n🏛️  Wayback Machine — archiving ${ALL_URLS.length} pages...`);
-  let ok = 0, fail = 0;
+// ─── 2. SITEMAP PINGS ───────────────────────────────────────────────────────
+async function pingSitemaps() {
+  console.log("\n🔔 Pinging search engines with sitemap...");
 
-  for (const url of ALL_URLS) {
+  const sitemapEnc = encodeURIComponent(SITEMAP_URL);
+  const pings = [
+    `https://www.google.com/ping?sitemap=${sitemapEnc}`,
+    `https://www.bing.com/ping?sitemap=${sitemapEnc}`,
+  ];
+
+  for (const url of pings) {
+    try {
+      const res = await fetch(url, {
+        method: "GET",
+        headers: { "User-Agent": "VedaWell-Reach/2.0" },
+        signal: AbortSignal.timeout(10000),
+      });
+      console.log(`  ✅ ${new URL(url).hostname} → HTTP ${res.status}`);
+    } catch (e) {
+      console.log(`  ⚠️  ${new URL(url).hostname} → ${e.message}`);
+    }
+    await sleep(300);
+  }
+}
+
+// ─── 3. WAYBACK MACHINE ────────────────────────────────────────────────────
+async function submitWayback(urls) {
+  // Only archive high-priority pages (not every tool/game)
+  const priority = urls.filter(
+    (u) =>
+      u === `${BASE}/` ||
+      u.match(/\/(tools|games|blog|guardian|compare|about|privacy)$/) ||
+      u.includes("/blog/") ||
+      u.includes("/guardian/") ||
+      u.includes("/compare/")
+  );
+
+  console.log(`\n🏛️  Wayback Machine — archiving ${priority.length} priority pages (of ${urls.length} total)...`);
+  let ok = 0,
+    fail = 0;
+
+  for (const url of priority) {
     try {
       const res = await fetch(`https://web.archive.org/save/${url}`, {
         method: "GET",
-        headers: { "User-Agent": "VedaWell-Archiver/1.0" },
+        headers: { "User-Agent": "VedaWell-Archiver/2.0" },
         redirect: "follow",
+        signal: AbortSignal.timeout(20000),
       });
       if (res.status < 400) {
         ok++;
@@ -108,58 +152,43 @@ async function submitWayback() {
       fail++;
       process.stdout.write("x");
     }
-    await sleep(1200); // archive.org rate limit
+    await sleep(1500); // archive.org rate limit
   }
   console.log(`\n  ✅ Archived: ${ok}  ❌ Failed: ${fail}`);
 }
 
-// ─── 3. PING SERVICES ────────────────────────────────────────────────────────
-async function pingServices() {
-  console.log("\n🔔 Pinging web directories and search services...");
-
-  const sitemapUrl = encodeURIComponent(`https://${HOST}/sitemap.xml`);
-  const homeUrl = encodeURIComponent(`https://${HOST}/`);
-
-  const pingUrls = [
-    // Search engine sitemap pings
-    `https://www.google.com/ping?sitemap=${sitemapUrl}`,
-    `https://www.bing.com/ping?sitemap=${sitemapUrl}`,
-    // RSS / blog ping services
-    `https://rpc.pingomatic.com/RPC2`,
-    `http://blogsearch.google.com/ping?name=VedaWell+Tools&url=${homeUrl}&changesURL=${sitemapUrl}`,
-    `https://ping.blogs.yam.com/RPC2`,
-    `http://api.moreover.com/ping?u=${homeUrl}`,
-    `http://ping.feedburner.com/`,
-    `http://www.bloglines.com/ping?Title=VedaWell+Tools&URL=${homeUrl}`,
-  ];
-
-  for (const url of pingUrls) {
-    try {
-      const res = await fetch(url, {
-        method: "GET",
-        headers: { "User-Agent": "VedaWell/1.0" },
-        signal: AbortSignal.timeout(8000),
-      });
-      console.log(`  ✅ ${new URL(url).hostname} → ${res.status}`);
-    } catch (e) {
-      console.log(`  ⚠️  ${url.split("?")[0].replace(/https?:\/\//, "")} → ${e.message}`);
-    }
-    await sleep(300);
+// ─── 4. GOOGLE SEARCH CONSOLE PING ─────────────────────────────────────────
+async function pingGoogleSearchConsole() {
+  console.log("\n🔎 Requesting Google re-crawl via Search Console ping...");
+  try {
+    const res = await fetch(
+      `https://www.google.com/ping?sitemap=${encodeURIComponent(SITEMAP_URL)}`,
+      { signal: AbortSignal.timeout(10000) }
+    );
+    console.log(`  ✅ Google ping → HTTP ${res.status}`);
+  } catch (e) {
+    console.log(`  ⚠️  Google ping → ${e.message}`);
   }
 }
 
-// ─── MAIN ─────────────────────────────────────────────────────────────────────
+// ─── MAIN ───────────────────────────────────────────────────────────────────
+const urls = await discoverUrls();
+
 console.log("=".repeat(60));
-console.log("🚀 VedaWell Reach Submission");
-console.log(`   ${ALL_URLS.length} URLs across ${TOOL_SLUGS.length} tools`);
+console.log("🚀 VedaWell Reach Submission v2.0");
+console.log(`   ${urls.length} URLs discovered from sitemap`);
+console.log(`   Host: ${HOST}`);
 console.log("=".repeat(60));
 
-await submitIndexNow();
-await pingServices();
-await submitWayback();
+await submitIndexNow(urls);
+await pingSitemaps();
+await pingGoogleSearchConsole();
+await submitWayback(urls);
 
-console.log("\n✅ All submissions complete!");
-console.log(`\n📋 Next step — Bing Webmaster bulk submit:`);
-console.log(`   1. Go to: https://www.bing.com/webmasters/api.aspx`);
-console.log(`   2. Get your API key`);
-console.log(`   3. Run: node scripts/submit-bing.mjs YOUR_API_KEY`);
+console.log("\n" + "=".repeat(60));
+console.log("✅ All submissions complete!");
+console.log("=".repeat(60));
+console.log(`\n📊 Check results:`);
+console.log(`   Bing: https://www.bing.com/webmasters/indexnow?siteUrl=https://${HOST}/`);
+console.log(`   Google: https://search.google.com/search-console?resource_id=https://${HOST}/`);
+console.log(`   Wayback: https://web.archive.org/web/*/${HOST}/*`);
