@@ -4,7 +4,7 @@ import { createServerClient } from "@supabase/ssr";
 import { streamText } from "ai";
 import { getSmartModel, isAIAvailable } from "@/lib/ai/provider";
 import { buildChatSystemPrompt } from "@/lib/ai/prompts";
-import { checkRateLimit } from "@/lib/ai/rate-limit";
+import { checkRateLimit, checkProAccess } from "@/lib/ai/rate-limit";
 
 function stripHtml(str: string): string {
   return str.replace(/<[^>]*>/g, "");
@@ -42,6 +42,15 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Tier gating — chat is Pro-only
+    const { allowed } = await checkProAccess(supabase, user.id);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "AI Chat is available on the Pro plan. Upgrade to unlock." },
+        { status: 403 }
+      );
     }
 
     // Rate limiting (3-second window for chat)

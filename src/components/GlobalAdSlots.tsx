@@ -8,7 +8,7 @@ const AD_ENABLED_PREFIXES = [
     "/tools",
     "/blog",
     "/games",
-    "/panchang",
+    // "/panchang", // hidden for now
     "/compare",
 ];
 

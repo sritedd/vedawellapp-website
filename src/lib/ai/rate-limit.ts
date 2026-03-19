@@ -27,3 +27,22 @@ if (typeof setInterval !== "undefined") {
 
 export const VALID_STATES = ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "ACT", "NT"] as const;
 export type AustralianState = (typeof VALID_STATES)[number];
+
+/**
+ * Check if a user has a Pro subscription.
+ * Returns the subscription_tier string, or null if lookup fails.
+ */
+export async function checkProAccess(
+    supabase: { from: (table: string) => any },
+    userId: string
+): Promise<{ allowed: boolean; tier: string }> {
+    const { data } = await supabase
+        .from("profiles")
+        .select("subscription_tier")
+        .eq("id", userId)
+        .single();
+
+    const tier = data?.subscription_tier || "free";
+    const allowed = tier === "guardian_pro" || tier === "guardian_trial" || tier === "admin";
+    return { allowed, tier };
+}

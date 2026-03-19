@@ -1,23 +1,26 @@
 import type { Metadata } from "next";
-import PanchangClient from "./PanchangClient";
+import Link from "next/link";
 
 export const metadata: Metadata = {
-    title: "Hindu Panchang Today — Tithi, Nakshatra, Rahu Kaal & Auspicious Timings",
-    description:
-        "Free daily Hindu Panchang with accurate Tithi, Nakshatra, Yoga, Karana, Rahu Kaal, Yamaganda, and Gulika timings. Calculated in your browser for any date and location.",
-    keywords:
-        "hindu panchang, daily panchang, tithi today, nakshatra today, rahu kaal, yamaganda, gulika, auspicious time, vedic calendar, panchangam, hindu calendar",
-    openGraph: {
-        title: "Hindu Panchang Today — Tithi, Nakshatra & Auspicious Timings",
-        description:
-            "Free daily Panchang with Tithi, Nakshatra, Yoga, Karana, Rahu Kaal and auspicious timings.",
-        url: "https://vedawellapp.com/panchang",
-    },
-    alternates: {
-        canonical: "https://vedawellapp.com/panchang",
-    },
+    title: "Panchang — Coming Soon | VedaWell",
+    description: "We're rebuilding our Panchang with accurate astronomical calculations. Check back soon.",
+    robots: { index: false, follow: false },
 };
 
 export default function PanchangPage() {
-    return <PanchangClient />;
+    return (
+        <div className="py-20 px-6 text-center">
+            <div className="max-w-md mx-auto">
+                <p className="text-5xl mb-6">🔭</p>
+                <h1 className="text-2xl font-bold mb-3">Panchang — Coming Soon</h1>
+                <p className="text-muted mb-8">
+                    We&apos;re rebuilding our Panchang with accurate astronomical calculations.
+                    Check back soon for precise Tithi, Nakshatra, Rahu Kaal, and auspicious timings.
+                </p>
+                <Link href="/" className="btn-primary inline-block">
+                    Back to VedaWell
+                </Link>
+            </div>
+        </div>
+    );
 }

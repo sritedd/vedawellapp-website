@@ -141,7 +141,7 @@ export default async function AdminPage() {
         // Supabase query builders don't have .catch() — wrap in async IIFE
         const [announcementResult, allUsersResult, supportResult, subSourcesResult, toolResult] = await Promise.all([
             (async () => { try { return await supabase.from("announcements").select("id, message, type, created_at").eq("active", true).order("created_at", { ascending: false }).limit(1).single(); } catch { return { data: null }; } })(),
-            (async () => { try { return await supabase.from("profiles").select("id, email, full_name, subscription_tier, is_admin, trial_ends_at, last_seen_at, created_at").order("created_at", { ascending: false }).limit(100); } catch { return { data: [] }; } })(),
+            (async () => { try { return await supabase.from("profiles").select("id, email, full_name, subscription_tier, is_admin, trial_ends_at, last_seen_at, created_at, phone, phone_verified, email_verified_override").order("created_at", { ascending: false }).limit(100); } catch { return { data: [] }; } })(),
             (async () => { try { return await getAdminConversations(); } catch { return { conversations: [] }; } })(),
             safeSelect(supabase, "email_subscribers", "source", { filters: { status: "active" } }),
             (async () => { try { return await supabase.from("tool_usage").select("tool_slug, use_count, last_used_at").order("use_count", { ascending: false }).limit(15); } catch { return { data: [] }; } })(),

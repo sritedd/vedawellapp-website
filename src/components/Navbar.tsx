@@ -11,7 +11,7 @@ const navLinks = [
     { href: "/tools", label: "Tools", icon: Wrench },
     { href: "/games", label: "Games", icon: Gamepad2 },
     { href: "/blog", label: "Blog", icon: BookOpen },
-    { href: "/panchang", label: "Panchang", icon: Sun },
+    // { href: "/panchang", label: "Panchang", icon: Sun }, // hidden — keeping religious content out for now
 ];
 
 export default function Navbar() {

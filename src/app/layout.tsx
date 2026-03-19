@@ -21,9 +21,9 @@ export const metadata: Metadata = {
     template: "%s | VedaWell Tools",
   },
   description:
-    "90+ free online tools (PDF, image, calculator, developer), 19 browser games, daily Panchang, and HomeOwner Guardian — the AI-powered construction tracker protecting Australian home builds. No sign-up required.",
+    "90+ free online tools (PDF, image, calculator, developer), 19 browser games, and HomeOwner Guardian — the AI-powered construction tracker protecting Australian home builds. No sign-up required.",
   keywords:
-    "free online tools, productivity tools, games, BMI calculator, panchang, home construction tracker, Australian building, defect tracking",
+    "free online tools, productivity tools, games, BMI calculator, home construction tracker, Australian building, defect tracking",
   metadataBase: new URL("https://vedawellapp.com"),
   openGraph: {
     title: "VedaWell Tools - 90+ Free Online Tools & Games",
@@ -88,7 +88,7 @@ export default function RootLayout({
             }),
           }}
         />
-        {/* Organization Schema */}
+        {/* Organization Schema with hasPart for sitelinks */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -104,6 +104,30 @@ export default function RootLayout({
               areaServed: { "@type": "Country", name: "Australia" },
               contactPoint: { "@type": "ContactPoint", email: "support@vedawellapp.com", contactType: "customer support" },
               sameAs: ["https://ko-fi.com/vedawell", "https://buymeacoffee.com/vedawell"],
+              hasPart: [
+                { "@type": "WebApplication", name: "HomeOwner Guardian", url: "https://vedawellapp.com/guardian", description: "AI-powered construction tracker for Australian homeowners" },
+                { "@type": "CollectionPage", name: "Free Online Tools", url: "https://vedawellapp.com/tools", description: "90+ free browser-based productivity tools" },
+                { "@type": "CollectionPage", name: "Browser Games", url: "https://vedawellapp.com/games", description: "19 free browser games" },
+                { "@type": "Blog", name: "VedaWell Blog", url: "https://vedawellapp.com/blog", description: "Home building tips and tool guides" },
+                { "@type": "WebPage", name: "About VedaWell", url: "https://vedawellapp.com/about", description: "About VedaWell and HomeOwner Guardian" },
+              ],
+            }),
+          }}
+        />
+        {/* SiteNavigationElement — primary signal for Google sitelinks */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@graph": [
+                { "@type": "SiteNavigationElement", name: "HomeOwner Guardian", url: "https://vedawellapp.com/guardian", description: "AI-powered home construction tracker for Australian homeowners" },
+                { "@type": "SiteNavigationElement", name: "Free Tools", url: "https://vedawellapp.com/tools", description: "90+ free browser-based productivity, developer, and SEO tools" },
+                { "@type": "SiteNavigationElement", name: "Browser Games", url: "https://vedawellapp.com/games", description: "19 free browser games including chess, sudoku, and 2048" },
+                { "@type": "SiteNavigationElement", name: "Blog", url: "https://vedawellapp.com/blog", description: "Home building tips, tool guides, and Guardian updates" },
+                { "@type": "SiteNavigationElement", name: "Pricing", url: "https://vedawellapp.com/guardian/pricing", description: "Free and Pro plans for HomeOwner Guardian" },
+                { "@type": "SiteNavigationElement", name: "About", url: "https://vedawellapp.com/about", description: "About VedaWell — free tools and HomeOwner Guardian" },
+              ],
             }),
           }}
         />

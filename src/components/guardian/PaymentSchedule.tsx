@@ -57,10 +57,11 @@ export default function PaymentSchedule({ projectId, contractValue }: PaymentSch
 
         for (const cert of certsRequired) {
             const normalizedCert = cert.toLowerCase().replace(/[^a-z]/g, "_");
-            const found = certifications.find(c =>
-                c.type.toLowerCase().includes(normalizedCert.substring(0, 15)) &&
-                (c.status === "uploaded" || c.status === "verified")
-            );
+            const found = certifications.find(c => {
+                const normalizedType = c.type.toLowerCase().replace(/[^a-z]/g, "_");
+                return normalizedType === normalizedCert &&
+                    (c.status === "uploaded" || c.status === "verified");
+            });
             if (found) {
                 received.push(cert);
             } else {

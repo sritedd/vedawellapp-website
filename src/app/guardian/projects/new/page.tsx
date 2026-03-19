@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import BuildTypeSelector from "@/components/guardian/BuildTypeSelector";
+import PhoneVerificationGate from "@/components/guardian/PhoneVerificationGate";
 import australianData from "@/data/australian-build-workflows.json";
 
 type WorkflowsType = typeof australianData.workflows;
@@ -16,6 +17,69 @@ export default function NewProjectPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [step, setStep] = useState(1);
+    const [phoneVerified, setPhoneVerified] = useState(false);
+    const [emailVerified, setEmailVerified] = useState<boolean | null>(null); // null = loading
+    const [resendingEmail, setResendingEmail] = useState(false);
+    const [resendSuccess, setResendSuccess] = useState(false);
+
+    // Check email verification on mount (admins + Pro users skip)
+    useEffect(() => {
+        const checkEmail = async () => {
+            const supabase = createClient();
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                router.push("/guardian/login?returnTo=/guardian/projects/new");
+                return;
+            }
+
+            // Admins, Pro users, and users with admin override skip email verification
+            const { data: profile } = await supabase
+                .from("profiles")
+                .select("is_admin, subscription_tier, email_verified_override")
+                .eq("id", user.id)
+                .single();
+
+            if (profile?.is_admin || profile?.subscription_tier === "guardian_pro" || profile?.email_verified_override) {
+                setEmailVerified(true);
+                return;
+            }
+
+            setEmailVerified(!!user.email_confirmed_at);
+        };
+        checkEmail();
+    }, [router]);
+
+    const handleResendVerification = useCallback(async () => {
+        setResendingEmail(true);
+        setResendSuccess(false);
+        try {
+            const supabase = createClient();
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user?.email) return;
+            const { error: resendError } = await supabase.auth.resend({
+                type: "signup",
+                email: user.email,
+            });
+            if (resendError) throw resendError;
+            setResendSuccess(true);
+        } catch {
+            setError("Failed to resend verification email. Please try again.");
+        } finally {
+            setResendingEmail(false);
+        }
+    }, []);
+
+    const recheckEmail = useCallback(async () => {
+        const supabase = createClient();
+        // Refresh the session to get updated email_confirmed_at
+        await supabase.auth.refreshSession();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user?.email_confirmed_at) {
+            setEmailVerified(true);
+        } else {
+            setError("Email not yet verified. Please check your inbox and click the confirmation link.");
+        }
+    }, []);
 
     const [formData, setFormData] = useState({
         name: "",
@@ -236,10 +300,74 @@ export default function NewProjectPage() {
                 <div className="max-w-3xl mx-auto">
                     <header className="mb-8">
                         <h1 className="text-3xl font-bold mb-2">Create New Project</h1>
-                        <p className="text-muted">Step {step} of 2 — Start tracking your home construction journey.</p>
+                        <p className="text-muted">
+                            {emailVerified === false
+                                ? "Verify your email address to get started"
+                                : !phoneVerified
+                                ? "Verify your phone number to get started"
+                                : `Step ${step} of 2 — Start tracking your home construction journey.`}
+                        </p>
                     </header>
 
-                    {/* Progress */}
+                    {/* Email verification gate */}
+                    {emailVerified === null && (
+                        <div className="bg-card border border-border rounded-xl p-8 text-center">
+                            <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4" />
+                            <p className="text-muted">Checking verification status...</p>
+                        </div>
+                    )}
+
+                    {emailVerified === false && (
+                        <div className="bg-card border border-amber-500/30 rounded-xl p-8">
+                            <div className="text-center">
+                                <div className="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <svg className="w-8 h-8 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+                                <h2 className="text-xl font-bold mb-2">Verify Your Email</h2>
+                                <p className="text-muted mb-6 max-w-md mx-auto">
+                                    We sent a verification link to your email address. Please click the link to confirm your account before creating a project.
+                                </p>
+
+                                {resendSuccess && (
+                                    <div className="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-green-600 text-sm">
+                                        Verification email sent! Check your inbox (and spam folder).
+                                    </div>
+                                )}
+
+                                {error && (
+                                    <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-600 text-sm">
+                                        {error}
+                                    </div>
+                                )}
+
+                                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                                    <button
+                                        onClick={recheckEmail}
+                                        className="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors"
+                                    >
+                                        I&apos;ve Verified — Continue
+                                    </button>
+                                    <button
+                                        onClick={handleResendVerification}
+                                        disabled={resendingEmail}
+                                        className="px-6 py-3 border border-border rounded-lg font-medium hover:bg-muted/10 transition-colors disabled:opacity-50"
+                                    >
+                                        {resendingEmail ? "Sending..." : "Resend Verification Email"}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Phone verification gate — must verify before creating project */}
+                    {emailVerified === true && !phoneVerified && (
+                        <PhoneVerificationGate onVerified={() => setPhoneVerified(true)} />
+                    )}
+
+                    {/* Progress — only show after both email + phone verification */}
+                    {emailVerified === true && phoneVerified && <>
                     <div className="flex gap-2 mb-8">
                         <div className={`flex-1 h-2 rounded ${step >= 1 ? "bg-primary" : "bg-border"}`} />
                         <div className={`flex-1 h-2 rounded ${step >= 2 ? "bg-primary" : "bg-border"}`} />
@@ -455,6 +583,7 @@ export default function NewProjectPage() {
                             </ul>
                         </div>
                     )}
+                    </>}
                 </div>
             </main>
         </div>

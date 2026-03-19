@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 // ---------------------------------------------------------------------------
@@ -15,7 +15,8 @@ interface PreHandoverChecklistProps {
 type Severity = "critical" | "major" | "minor" | "cosmetic";
 
 interface SnagItem {
-  id: string;
+  id: string;         // DB UUID or temp id for unsaved
+  item_key: string;   // stable key like "int-walls-cracks" or "custom-xxx"
   category: string;
   text: string;
   found: boolean;
@@ -24,6 +25,19 @@ interface SnagItem {
   severity: Severity;
   photoNote: string;
   isCustom?: boolean;
+}
+
+interface DbRow {
+  id: string;
+  item_key: string;
+  category: string;
+  text: string;
+  found: boolean;
+  description: string;
+  location: string;
+  severity: string;
+  photo_note: string;
+  is_custom: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -149,44 +163,14 @@ const CHECKLIST_CATEGORIES: CategoryDef[] = [
 ];
 
 // ---------------------------------------------------------------------------
-// localStorage helpers
-// ---------------------------------------------------------------------------
-
-const STORAGE_KEY_PREFIX = "prehandover-checklist-";
-
-function loadState(projectId: string): SnagItem[] | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY_PREFIX + projectId);
-    if (!raw) return null;
-    return JSON.parse(raw) as SnagItem[];
-  } catch {
-    return null;
-  }
-}
-
-function saveState(projectId: string, items: SnagItem[]): void {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(STORAGE_KEY_PREFIX + projectId, JSON.stringify(items));
-  } catch {
-    // storage full — ignore
-  }
-}
-
-function clearState(projectId: string): void {
-  if (typeof window === "undefined") return;
-  localStorage.removeItem(STORAGE_KEY_PREFIX + projectId);
-}
-
-// ---------------------------------------------------------------------------
 // Build default snag items from category definitions
 // ---------------------------------------------------------------------------
 
 function buildDefaultItems(): SnagItem[] {
   return CHECKLIST_CATEGORIES.flatMap((cat) =>
     cat.items.map((item) => ({
-      id: item.id,
+      id: item.id,       // temporary — replaced by DB UUID after upsert
+      item_key: item.id,
       category: cat.category,
       text: item.text,
       found: false,
@@ -199,6 +183,21 @@ function buildDefaultItems(): SnagItem[] {
   );
 }
 
+function rowToSnag(row: DbRow): SnagItem {
+  return {
+    id: row.id,
+    item_key: row.item_key,
+    category: row.category,
+    text: row.text,
+    found: row.found,
+    description: row.description,
+    location: row.location,
+    severity: row.severity as Severity,
+    photoNote: row.photo_note,
+    isCustom: row.is_custom,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -208,6 +207,7 @@ export default function PreHandoverChecklist({
   onDefectsCreated,
 }: PreHandoverChecklistProps) {
   const [items, setItems] = useState<SnagItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
@@ -221,31 +221,165 @@ export default function PreHandoverChecklist({
     category: CHECKLIST_CATEGORIES[0].category,
   });
 
-  // Load from localStorage on mount (only if projectId is set)
+  // Debounce timer for DB writes
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // ---- Load from DB (seed defaults if first visit) ----
   useEffect(() => {
-    if (projectId) {
-      const saved = loadState(projectId);
-      if (saved && saved.length > 0) {
-        const defaults = buildDefaultItems();
-        const savedIds = new Set(saved.map((s) => s.id));
-        const merged = [
-          ...saved,
-          ...defaults.filter((d) => !savedIds.has(d.id)),
-        ];
-        setItems(merged);
-      } else {
-        setItems(buildDefaultItems());
-      }
-    } else {
+    if (!projectId) {
       setItems(buildDefaultItems());
+      setLoading(false);
+      return;
     }
+
+    async function load() {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from("pre_handover_items")
+        .select("*")
+        .eq("project_id", projectId)
+        .order("created_at", { ascending: true });
+
+      if (error) {
+        console.error("Failed to load pre-handover items:", error.message);
+        setItems(buildDefaultItems());
+        setLoading(false);
+        return;
+      }
+
+      if (data && data.length > 0) {
+        // Merge: DB rows + any new default items not yet in DB
+        const dbItems = (data as DbRow[]).map(rowToSnag);
+        const dbKeys = new Set(dbItems.map((d) => d.item_key));
+        const defaults = buildDefaultItems();
+        const newDefaults = defaults.filter((d) => !dbKeys.has(d.item_key));
+
+        // Seed new defaults to DB if any
+        if (newDefaults.length > 0) {
+          const rows = newDefaults.map((d) => ({
+            project_id: projectId,
+            item_key: d.item_key,
+            category: d.category,
+            text: d.text,
+            found: false,
+            description: "",
+            location: "",
+            severity: "minor",
+            photo_note: "",
+            is_custom: false,
+          }));
+          const { data: inserted } = await supabase
+            .from("pre_handover_items")
+            .insert(rows)
+            .select("*");
+          if (inserted) {
+            dbItems.push(...(inserted as DbRow[]).map(rowToSnag));
+          }
+        }
+
+        setItems(dbItems);
+      } else {
+        // First visit: seed all defaults to DB
+        const defaults = buildDefaultItems();
+        const rows = defaults.map((d) => ({
+          project_id: projectId,
+          item_key: d.item_key,
+          category: d.category,
+          text: d.text,
+          found: false,
+          description: "",
+          location: "",
+          severity: "minor",
+          photo_note: "",
+          is_custom: false,
+        }));
+        const { data: inserted, error: insertErr } = await supabase
+          .from("pre_handover_items")
+          .insert(rows)
+          .select("*");
+
+        if (insertErr) {
+          console.error("Failed to seed pre-handover items:", insertErr.message);
+          setItems(defaults);
+        } else {
+          setItems((inserted as DbRow[]).map(rowToSnag));
+        }
+      }
+
+      // Migrate localStorage data if it exists
+      try {
+        const lsKey = `prehandover-checklist-${projectId}`;
+        const raw = localStorage.getItem(lsKey);
+        if (raw) {
+          const lsItems = JSON.parse(raw) as Array<{
+            id: string; found: boolean; description: string;
+            location: string; severity: string; photoNote: string;
+            isCustom?: boolean; text: string; category: string;
+          }>;
+          // Apply any localStorage state that has actual data
+          const updates: Array<{ item_key: string; found: boolean; description: string; location: string; severity: string; photo_note: string }> = [];
+          for (const lsi of lsItems) {
+            if (lsi.found || lsi.description) {
+              updates.push({
+                item_key: lsi.id,
+                found: lsi.found,
+                description: lsi.description || "",
+                location: lsi.location || "",
+                severity: lsi.severity || "minor",
+                photo_note: lsi.photoNote || "",
+              });
+            }
+          }
+          if (updates.length > 0) {
+            for (const u of updates) {
+              await supabase
+                .from("pre_handover_items")
+                .update({ found: u.found, description: u.description, location: u.location, severity: u.severity, photo_note: u.photo_note })
+                .eq("project_id", projectId)
+                .eq("item_key", u.item_key);
+            }
+            // Reload after migration
+            const { data: refreshed } = await supabase
+              .from("pre_handover_items")
+              .select("*")
+              .eq("project_id", projectId)
+              .order("created_at", { ascending: true });
+            if (refreshed) {
+              setItems((refreshed as DbRow[]).map(rowToSnag));
+            }
+          }
+          // Clear localStorage after successful migration
+          localStorage.removeItem(lsKey);
+        }
+      } catch {
+        // localStorage migration is best-effort
+      }
+
+      setLoading(false);
+    }
+
+    load();
   }, [projectId]);
 
-  // Persist to localStorage on every change (only if projectId is set)
-  const persist = useCallback(
-    (updated: SnagItem[]) => {
-      setItems(updated);
-      if (projectId) saveState(projectId, updated);
+  // ---- Persist a single item to DB (debounced) ----
+  const persistItem = useCallback(
+    (item: SnagItem) => {
+      if (!projectId) return;
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = setTimeout(async () => {
+        const supabase = createClient();
+        await supabase
+          .from("pre_handover_items")
+          .update({
+            found: item.found,
+            description: item.description,
+            location: item.location,
+            severity: item.severity,
+            photo_note: item.photoNote,
+          })
+          .eq("project_id", projectId)
+          .eq("item_key", item.item_key);
+      }, 300);
     },
     [projectId]
   );
@@ -259,35 +393,80 @@ export default function PreHandoverChecklist({
 
   // ---- Handlers ----
 
-  const toggleFound = (id: string) => {
-    const updated = items.map((i) =>
-      i.id === id ? { ...i, found: !i.found } : i
-    );
-    persist(updated);
+  const toggleFound = (itemKey: string) => {
+    const updated = items.map((i) => {
+      if (i.item_key !== itemKey) return i;
+      const toggled = { ...i, found: !i.found };
+      persistItem(toggled);
+      return toggled;
+    });
+    setItems(updated);
   };
 
   const updateSnagDetails = (
-    id: string,
+    itemKey: string,
     field: "description" | "location" | "severity" | "photoNote",
     value: string
   ) => {
-    const updated = items.map((i) =>
-      i.id === id ? { ...i, [field]: value } : i
-    );
-    persist(updated);
+    const updated = items.map((i) => {
+      if (i.item_key !== itemKey) return i;
+      const changed = { ...i, [field]: value };
+      persistItem(changed);
+      return changed;
+    });
+    setItems(updated);
   };
 
-  const clearAll = () => {
-    if (projectId) clearState(projectId);
-    setItems(buildDefaultItems());
+  const clearAll = async () => {
+    if (!projectId) {
+      setItems(buildDefaultItems());
+      setEditingItemId(null);
+      setResultMsg(null);
+      return;
+    }
+
+    // Reset all items in DB
+    const supabase = createClient();
+
+    // Delete custom items
+    await supabase
+      .from("pre_handover_items")
+      .delete()
+      .eq("project_id", projectId)
+      .eq("is_custom", true);
+
+    // Reset default items
+    await supabase
+      .from("pre_handover_items")
+      .update({ found: false, description: "", location: "", severity: "minor", photo_note: "" })
+      .eq("project_id", projectId)
+      .eq("is_custom", false);
+
+    // Reload
+    const { data } = await supabase
+      .from("pre_handover_items")
+      .select("*")
+      .eq("project_id", projectId)
+      .order("created_at", { ascending: true });
+
+    if (data) {
+      setItems((data as DbRow[]).map(rowToSnag));
+    } else {
+      setItems(buildDefaultItems());
+    }
+
     setEditingItemId(null);
     setResultMsg(null);
   };
 
-  const addCustomItem = () => {
+  const addCustomItem = async () => {
     if (!customDraft.text.trim()) return;
+
+    const itemKey = `custom-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
     const newItem: SnagItem = {
-      id: `custom-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      id: itemKey,
+      item_key: itemKey,
       category: customDraft.category,
       text: customDraft.text.trim(),
       found: true,
@@ -297,7 +476,37 @@ export default function PreHandoverChecklist({
       photoNote: customDraft.photoNote.trim(),
       isCustom: true,
     };
-    persist([...items, newItem]);
+
+    // Optimistic UI
+    setItems((prev) => [...prev, newItem]);
+
+    if (projectId) {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from("pre_handover_items")
+        .insert({
+          project_id: projectId,
+          item_key: itemKey,
+          category: newItem.category,
+          text: newItem.text,
+          found: true,
+          description: newItem.description,
+          location: newItem.location,
+          severity: newItem.severity,
+          photo_note: newItem.photoNote,
+          is_custom: true,
+        })
+        .select("id")
+        .single();
+
+      if (!error && data) {
+        // Update with real DB id
+        setItems((prev) =>
+          prev.map((i) => (i.item_key === itemKey ? { ...i, id: data.id } : i))
+        );
+      }
+    }
+
     setCustomDraft({
       text: "",
       location: "",
@@ -308,8 +517,17 @@ export default function PreHandoverChecklist({
     setShowAddCustom(false);
   };
 
-  const removeCustomItem = (id: string) => {
-    persist(items.filter((i) => i.id !== id));
+  const removeCustomItem = async (itemKey: string) => {
+    setItems((prev) => prev.filter((i) => i.item_key !== itemKey));
+
+    if (projectId) {
+      const supabase = createClient();
+      await supabase
+        .from("pre_handover_items")
+        .delete()
+        .eq("project_id", projectId)
+        .eq("item_key", itemKey);
+    }
   };
 
   // ---- Bridge: Create Defects ----
@@ -419,6 +637,14 @@ export default function PreHandoverChecklist({
   };
 
   // ---- Render ----
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <span className="inline-block w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -634,11 +860,11 @@ export default function PreHandoverChecklist({
               {isExpanded && (
                 <div className="p-4 pt-2 space-y-2">
                   {catItems.map((item) => {
-                    const isEditing = editingItemId === item.id;
+                    const isEditing = editingItemId === item.item_key;
 
                     return (
                       <div
-                        key={item.id}
+                        key={item.item_key}
                         className={`p-3 rounded-lg transition-colors ${
                           item.found
                             ? "bg-red-50 dark:bg-red-950/20"
@@ -649,7 +875,7 @@ export default function PreHandoverChecklist({
                           <input
                             type="checkbox"
                             checked={item.found}
-                            onChange={() => toggleFound(item.id)}
+                            onChange={() => toggleFound(item.item_key)}
                             className="w-5 h-5 mt-0.5 accent-red-600"
                             title="Mark as snag found"
                           />
@@ -666,7 +892,7 @@ export default function PreHandoverChecklist({
                               </span>
                               {item.isCustom && (
                                 <button
-                                  onClick={() => removeCustomItem(item.id)}
+                                  onClick={() => removeCustomItem(item.item_key)}
                                   className="text-xs text-red-500 hover:underline shrink-0"
                                   title="Remove custom item"
                                 >
@@ -715,7 +941,7 @@ export default function PreHandoverChecklist({
                             {/* Edit / Add Details button */}
                             {item.found && !isEditing && (
                               <button
-                                onClick={() => setEditingItemId(item.id)}
+                                onClick={() => setEditingItemId(item.item_key)}
                                 className="mt-2 text-xs text-primary hover:underline"
                               >
                                 {item.description
@@ -732,7 +958,7 @@ export default function PreHandoverChecklist({
                                   value={item.description}
                                   onChange={(e) =>
                                     updateSnagDetails(
-                                      item.id,
+                                      item.item_key,
                                       "description",
                                       e.target.value
                                     )
@@ -746,7 +972,7 @@ export default function PreHandoverChecklist({
                                     value={item.location}
                                     onChange={(e) =>
                                       updateSnagDetails(
-                                        item.id,
+                                        item.item_key,
                                         "location",
                                         e.target.value
                                       )
@@ -758,7 +984,7 @@ export default function PreHandoverChecklist({
                                     value={item.severity}
                                     onChange={(e) =>
                                       updateSnagDetails(
-                                        item.id,
+                                        item.item_key,
                                         "severity",
                                         e.target.value
                                       )
@@ -775,7 +1001,7 @@ export default function PreHandoverChecklist({
                                     value={item.photoNote}
                                     onChange={(e) =>
                                       updateSnagDetails(
-                                        item.id,
+                                        item.item_key,
                                         "photoNote",
                                         e.target.value
                                       )

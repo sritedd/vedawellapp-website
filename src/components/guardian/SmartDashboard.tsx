@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { formatMoney } from "@/utils/format";
 import { useToast } from "@/components/guardian/Toast";
+import ShouldIPay from "@/components/guardian/ShouldIPay";
 import type { Project } from "@/types/guardian";
 import {
     getInsuranceAlerts,
@@ -580,6 +581,14 @@ export default function SmartDashboard({ project, currentStage, stageNames, onNa
                 insuranceAlerts={insuranceAlerts}
                 warrantyAlerts={warrantyAlerts}
                 insuranceConfig={insuranceConfig}
+            />
+
+            {/* Should I Pay? Mega-Button */}
+            <ShouldIPay
+                projectId={project.id}
+                contractValue={contractValue}
+                currentStage={currentStage}
+                onNavigateTab={onNavigateTab}
             />
 
             {/* Action Summary Cards */}

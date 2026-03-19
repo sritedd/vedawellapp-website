@@ -6,6 +6,39 @@ function getStripe() {
     return new Stripe(process.env.STRIPE_SECRET_KEY!);
 }
 
+/**
+ * Fire a GA4 Measurement Protocol event for server-side conversion tracking.
+ * Requires NEXT_PUBLIC_GA_MEASUREMENT_ID and GA_API_SECRET env vars.
+ */
+async function trackGA4Purchase(userId: string, amountCents: number, currency: string = "AUD") {
+    const measurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+    const apiSecret = process.env.GA_API_SECRET;
+    if (!measurementId || !apiSecret) return;
+
+    try {
+        await fetch(
+            `https://www.google-analytics.com/mp/collect?measurement_id=${measurementId}&api_secret=${apiSecret}`,
+            {
+                method: "POST",
+                body: JSON.stringify({
+                    client_id: userId,
+                    events: [{
+                        name: "purchase",
+                        params: {
+                            currency,
+                            value: amountCents / 100,
+                            transaction_id: `stripe_${Date.now()}`,
+                            items: [{ item_name: "Guardian Pro", price: amountCents / 100 }],
+                        },
+                    }],
+                }),
+            }
+        );
+    } catch (e) {
+        console.warn("[GA4] Failed to track purchase:", e instanceof Error ? e.message : e);
+    }
+}
+
 function getServiceSupabase() {
     return createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -16,11 +49,15 @@ function getServiceSupabase() {
 
 /** Find a profile by stripe_customer_id */
 async function findProfileByCustomer(supabase: ReturnType<typeof getServiceSupabase>, customerId: string) {
-    const { data } = await supabase
+    const { data, error } = await supabase
         .from("profiles")
         .select("id, email, subscription_tier")
         .eq("stripe_customer_id", customerId)
         .single();
+    if (error) {
+        console.warn(`[Stripe] Profile lookup failed for customer=${customerId}:`, error.message);
+        return null;
+    }
     return data;
 }
 
@@ -63,6 +100,10 @@ export async function POST(req: NextRequest) {
                     .eq("id", userId);
 
                 console.log(`[Stripe] checkout.session.completed: user=${userId} → guardian_pro`);
+
+                // Track conversion in GA4
+                const amount = session.amount_total || 990;
+                await trackGA4Purchase(userId, amount, session.currency?.toUpperCase() || "AUD");
             }
             break;
         }

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { useRealtimeProject } from "@/lib/supabase/useRealtimeProject";
 import type { Project, Variation, Defect } from "@/types/guardian";
 
 // Components
@@ -38,8 +39,11 @@ import MobilePhotoCapture, { PhotoFAB } from "@/components/guardian/MobilePhotoC
 import PushNotificationSetup from "@/components/guardian/PushNotificationSetup";
 import CostBenchmarking from "@/components/guardian/CostBenchmarking";
 import BuilderRatings from "@/components/guardian/BuilderRatings";
+import ContractReviewChecklist from "@/components/guardian/ContractReviewChecklist";
 import GuardianChat from "@/components/guardian/GuardianChat";
 import AIStageAdvice from "@/components/guardian/AIStageAdvice";
+import TimelineBenchmark from "@/components/guardian/TimelineBenchmark";
+import TribunalExport from "@/components/guardian/TribunalExport";
 
 /* ------------------------------------------------------------------ */
 /*  Navigation Structure — 5 main sections                            */
@@ -93,6 +97,9 @@ const MORE_ITEMS = [
     { id: "accountability", label: "Builder Score", desc: "Builder accountability rating", icon: "score" },
     { id: "ratings", label: "Rate Builder", desc: "Leave a builder rating", icon: "rate" },
     { id: "materials", label: "Materials", desc: "Track materials delivered", icon: "materials" },
+    { id: "timeline", label: "Builder Speed", desc: "Builder pace vs industry", icon: "cost" },
+    { id: "tribunal", label: "Tribunal Pack", desc: "Export evidence for dispute", icon: "export" },
+    { id: "contractreview", label: "Contract Review", desc: "Review contract before signing", icon: "checklists" },
     { id: "checklists", label: "Checklists", desc: "Custom checklists", icon: "checklists" },
     { id: "export", label: "Export", desc: "Export reports & evidence", icon: "export" },
     { id: "reports", label: "Reports", desc: "Generate formal reports", icon: "reports" },
@@ -282,6 +289,9 @@ export default function ProjectDetailPage() {
             setShowOnboarding(shouldShowOnboarding(params.id as string));
         }
     }, [params.id, fetchProject]);
+
+    // Real-time sync: refresh when data changes from another tab/device
+    useRealtimeProject(params.id as string, fetchProject);
 
     const handlePaymentBlocked = (blocked: boolean, reason: string) => {
         setPaymentBlocked(blocked);
@@ -523,6 +533,7 @@ export default function ProjectDetailPage() {
                             <CertificationGate
                                 projectId={project.id}
                                 currentStage={currentStage}
+                                stateCode={project.state}
                                 onPaymentBlocked={handlePaymentBlocked}
                             />
                         )}
@@ -603,6 +614,28 @@ export default function ProjectDetailPage() {
                                 <MaterialRegistry projectId={project.id} />
                             </MoreToolWrapper>
                         )}
+                        {activeTab === "timeline" && (
+                            <MoreToolWrapper title="Builder Speed" onBack={() => setActiveTab("more_grid")}>
+                                <TimelineBenchmark projectId={project.id} stateCode={project.state} buildCategory={project.build_category} />
+                            </MoreToolWrapper>
+                        )}
+                        {activeTab === "tribunal" && (
+                            <MoreToolWrapper title="Tribunal Pack" onBack={() => setActiveTab("more_grid")}>
+                                <TribunalExport
+                                    projectId={project.id}
+                                    projectName={project.name}
+                                    builderName={project.builder_name || "Builder"}
+                                    contractValue={project.contract_value || 0}
+                                    address={project.address || ""}
+                                    stateCode={project.state}
+                                />
+                            </MoreToolWrapper>
+                        )}
+                        {activeTab === "contractreview" && (
+                            <MoreToolWrapper title="Contract Review" onBack={() => setActiveTab("more_grid")}>
+                                <ContractReviewChecklist projectId={project.id} />
+                            </MoreToolWrapper>
+                        )}
                         {activeTab === "checklists" && (
                             <MoreToolWrapper title="Checklists" onBack={() => setActiveTab("more_grid")}>
                                 <ProjectChecklists projectId={project.id} />
@@ -659,10 +692,8 @@ export default function ProjectDetailPage() {
                 </div>
             </nav>
 
-            {/* Mobile Photo FAB — positioned above bottom nav */}
-            <div className="md:block" style={{ position: "fixed", bottom: "max(80px, calc(56px + env(safe-area-inset-bottom) + 16px))", right: "16px", zIndex: 40 }}>
-                <PhotoFAB onClick={() => setShowPhotoCapture(true)} />
-            </div>
+            {/* Photo/Defect Speed Dial FAB */}
+            <PhotoFAB onClick={() => setShowPhotoCapture(true)} />
 
             {/* Mobile Photo Capture Overlay */}
             {showPhotoCapture && (

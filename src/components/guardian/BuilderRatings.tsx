@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -62,10 +63,10 @@ const STATE_REGISTRIES: Record<string, string> = {
 };
 
 /* ------------------------------------------------------------------ */
-/*  Helper: localStorage key                                           */
+/*  Helper: old localStorage key (for migration)                       */
 /* ------------------------------------------------------------------ */
 
-function storageKey(projectId: string): string {
+function legacyStorageKey(projectId: string): string {
   return `builder-review-${projectId}`;
 }
 
@@ -142,28 +143,81 @@ export default function BuilderRatings({
   const [saved, setSaved] = useState<SavedReview | null>(null);
   const [showThankYou, setShowThankYou] = useState<boolean>(false);
   const [showGuidelines, setShowGuidelines] = useState<boolean>(false);
+  const [loading, setLoading] = useState(true);
 
-  /* ---- load from localStorage ---- */
+  /* ---- load from DB (with localStorage migration) ---- */
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(storageKey(projectId));
-      if (raw) {
-        const parsed: SavedReview = JSON.parse(raw);
-        setSaved(parsed);
-        setOverall(parsed.overall);
-        setCategories((prev) =>
-          prev.map((c) => ({
-            ...c,
-            value: parsed.categories[c.key] ?? 0,
-          }))
-        );
-        setReviewText(parsed.text);
-        setRecommend(parsed.recommend);
+    const loadReview = async () => {
+      const supabase = createClient();
+
+      // Try fetching from DB first
+      const { data } = await supabase
+        .from("builder_reviews")
+        .select("overall_rating, categories, review_text, recommend, submitted_at")
+        .eq("project_id", projectId)
+        .single();
+
+      if (data) {
+        const review: SavedReview = {
+          overall: data.overall_rating,
+          categories: (data.categories as Record<string, number>) || {},
+          text: data.review_text,
+          recommend: data.recommend,
+          submittedAt: data.submitted_at,
+        };
+        applyReview(review);
+        setLoading(false);
+        return;
       }
-    } catch {
-      /* corrupt data — ignore */
-    }
+
+      // No DB data — check localStorage for migration
+      try {
+        const raw = localStorage.getItem(legacyStorageKey(projectId));
+        if (raw) {
+          const parsed: SavedReview = JSON.parse(raw);
+          applyReview(parsed);
+
+          // Migrate to DB
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            await supabase.from("builder_reviews").upsert(
+              {
+                project_id: projectId,
+                user_id: user.id,
+                overall_rating: parsed.overall,
+                categories: parsed.categories,
+                review_text: parsed.text,
+                recommend: parsed.recommend ?? false,
+                submitted_at: parsed.submittedAt,
+              },
+              { onConflict: "project_id" }
+            );
+            // Clear localStorage after successful migration
+            localStorage.removeItem(legacyStorageKey(projectId));
+          }
+        }
+      } catch {
+        /* corrupt localStorage — ignore */
+      }
+
+      setLoading(false);
+    };
+
+    loadReview();
   }, [projectId]);
+
+  function applyReview(review: SavedReview) {
+    setSaved(review);
+    setOverall(review.overall);
+    setCategories((prev) =>
+      prev.map((c) => ({
+        ...c,
+        value: review.categories[c.key] ?? 0,
+      }))
+    );
+    setReviewText(review.text);
+    setRecommend(review.recommend);
+  }
 
   /* ---- handlers ---- */
   const setCategoryRating = useCallback((key: string, value: number) => {
@@ -178,23 +232,53 @@ export default function BuilderRatings({
     reviewText.trim().length >= 50 &&
     recommend !== null;
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!canSubmit) return;
+
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const categoryMap = Object.fromEntries(categories.map((c) => [c.key, c.value]));
+    const submittedAt = new Date().toISOString();
+
+    const { error } = await supabase.from("builder_reviews").upsert(
+      {
+        project_id: projectId,
+        user_id: user.id,
+        overall_rating: overall,
+        categories: categoryMap,
+        review_text: reviewText.trim(),
+        recommend: recommend!,
+        submitted_at: submittedAt,
+      },
+      { onConflict: "project_id" }
+    );
+
+    if (error) {
+      console.error("Failed to save review:", error);
+      return;
+    }
+
     const review: SavedReview = {
       overall,
-      categories: Object.fromEntries(categories.map((c) => [c.key, c.value])),
+      categories: categoryMap,
       text: reviewText.trim(),
       recommend,
-      submittedAt: new Date().toISOString(),
+      submittedAt,
     };
-    localStorage.setItem(storageKey(projectId), JSON.stringify(review));
     setSaved(review);
     setShowThankYou(true);
     setTimeout(() => setShowThankYou(false), 4000);
   };
 
-  const handleClear = () => {
-    localStorage.removeItem(storageKey(projectId));
+  const handleClear = async () => {
+    const supabase = createClient();
+    await supabase
+      .from("builder_reviews")
+      .delete()
+      .eq("project_id", projectId);
+
     setSaved(null);
     setOverall(0);
     setCategories(CATEGORY_DEFAULTS.map((c) => ({ ...c })));
@@ -207,6 +291,14 @@ export default function BuilderRatings({
   /* ---------------------------------------------------------------- */
   /*  Render                                                           */
   /* ---------------------------------------------------------------- */
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -274,7 +366,7 @@ export default function BuilderRatings({
 
         {showThankYou && (
           <div className="mb-4 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 p-3 text-sm text-green-700 dark:text-green-300">
-            Thank you for submitting your review. Your feedback has been saved locally.
+            Thank you for submitting your review. Your feedback has been saved.
           </div>
         )}
 
@@ -447,7 +539,7 @@ export default function BuilderRatings({
         <ul className="space-y-2 text-sm text-muted-foreground">
           <li className="flex items-start gap-2">
             <span className="text-green-500 mt-0.5 shrink-0">{FILLED_STAR}</span>
-            Your review is stored locally on your device for now.
+            Your review is securely stored in your account.
           </li>
           <li className="flex items-start gap-2">
             <span className="text-green-500 mt-0.5 shrink-0">{FILLED_STAR}</span>

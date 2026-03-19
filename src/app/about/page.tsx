@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import BreadcrumbJsonLd from "@/components/seo/BreadcrumbJsonLd";
 
 export const metadata: Metadata = {
     title: "About VedaWell — Free Browser-Based Productivity Tools & HomeOwner Guardian",
     description:
-        "VedaWell offers 90+ free browser-based productivity tools (PDF, image, developer, SEO), brain training games, Hindu Panchang, and HomeOwner Guardian for Australian home construction. 100% private — no uploads, no sign-ups.",
+        "VedaWell offers 90+ free browser-based productivity tools (PDF, image, developer, SEO), brain training games, and HomeOwner Guardian for Australian home construction. 100% private — no uploads, no sign-ups.",
     openGraph: {
         title: "About VedaWell — Free Browser-Based Tools & HomeOwner Guardian",
         description:
-            "90+ free tools, games, Panchang, and HomeOwner Guardian. Everything runs in your browser — 100% private.",
+            "90+ free tools, games, and HomeOwner Guardian. Everything runs in your browser — 100% private.",
         url: "https://vedawellapp.com/about",
     },
     alternates: {
@@ -18,6 +19,8 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
     return (
+        <>
+        <BreadcrumbJsonLd items={[{ name: "Home", href: "/" }, { name: "About", href: "/about" }]} />
         <div className="py-16 px-6">
             <div className="max-w-3xl mx-auto">
                 <h1 className="text-4xl font-extrabold mb-8">About VedaWell Tools</h1>
@@ -40,12 +43,6 @@ export default function AboutPage() {
                         Our flagship feature helps Australian homeowners protect their investment during construction.
                         Track variations, document defects, manage inspections, and ensure compliance — all with
                         legal-ready evidence.
-                    </p>
-
-                    <h2 className="text-2xl font-bold text-foreground mt-10 mb-4">🕉️ Vedic Heritage</h2>
-                    <p>
-                        VedaWell also celebrates Vedic wisdom through our daily Panchang calculator, offering accurate
-                        Tithi, Nakshatra, Yoga, Karana, and auspicious timings based on astronomical calculations.
                     </p>
 
                     <h2 className="text-2xl font-bold text-foreground mt-10 mb-4">💡 Our Philosophy</h2>
@@ -84,5 +81,6 @@ export default function AboutPage() {
                 </div>
             </div>
         </div>
+        </>
     );
 }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useOfflineSync } from "@/lib/offline/useOfflineSync";
 
 interface SiteVisit {
     id: string;
@@ -37,6 +38,7 @@ export default function SiteVisitLog({ projectId }: SiteVisitLogProps) {
     const [visits, setVisits] = useState<SiteVisit[]>([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
+    const { isOnline, pendingCount, syncing, syncNow, offlineInsert } = useOfflineSync();
 
     const [newVisit, setNewVisit] = useState({
         date: new Date().toISOString().split("T")[0],
@@ -85,8 +87,8 @@ export default function SiteVisitLog({ projectId }: SiteVisitLogProps) {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const supabase = createClient();
-        const { error } = await supabase.from("site_visits").insert({
+
+        const row = {
             project_id: projectId,
             date: newVisit.date,
             time: newVisit.time,
@@ -99,9 +101,31 @@ export default function SiteVisitLog({ projectId }: SiteVisitLogProps) {
             weather_conditions: newVisit.weatherConditions,
             workers_on_site: newVisit.workersOnSite,
             photos_taken: newVisit.photosTaken,
-        });
+        };
 
-        if (!error) {
+        const success = await offlineInsert("site_visits", row);
+
+        if (success) {
+            // Optimistic: add to local list if offline
+            if (!isOnline) {
+                setVisits((prev) => [{
+                    id: `offline-${Date.now()}`,
+                    date: row.date,
+                    time: row.time,
+                    duration: row.duration,
+                    purpose: row.purpose,
+                    attendees: row.attendees,
+                    observations: row.observations,
+                    concerns: row.concerns,
+                    follow_up_actions: row.follow_up_actions,
+                    weather_conditions: row.weather_conditions,
+                    workers_on_site: row.workers_on_site,
+                    photos_taken: row.photos_taken,
+                }, ...prev]);
+            } else {
+                fetchVisits();
+            }
+
             setShowForm(false);
             setNewVisit({
                 date: new Date().toISOString().split("T")[0],
@@ -109,7 +133,6 @@ export default function SiteVisitLog({ projectId }: SiteVisitLogProps) {
                 attendees: "", observations: "", concerns: "", followUpActions: "",
                 weatherConditions: "Sunny", workersOnSite: 0, photosTaken: 0,
             });
-            fetchVisits();
         }
     };
 
@@ -128,12 +151,41 @@ export default function SiteVisitLog({ projectId }: SiteVisitLogProps) {
 
     return (
         <div className="space-y-6">
+            {/* Offline banner */}
+            {!isOnline && (
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-3 dark:bg-amber-950/30 dark:border-amber-800">
+                    <span className="w-3 h-3 bg-amber-500 rounded-full animate-pulse shrink-0" />
+                    <div className="flex-1">
+                        <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
+                            You&apos;re offline — visits will be saved locally and synced when you reconnect.
+                        </p>
+                    </div>
+                </div>
+            )}
+
+            {/* Pending sync banner */}
+            {isOnline && pendingCount > 0 && (
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between dark:bg-blue-950/30 dark:border-blue-800">
+                    <p className="text-sm font-medium text-blue-800 dark:text-blue-300">
+                        {pendingCount} visit{pendingCount === 1 ? "" : "s"} saved offline — ready to sync.
+                    </p>
+                    <button
+                        onClick={async () => { await syncNow(); fetchVisits(); }}
+                        disabled={syncing}
+                        className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-500 disabled:opacity-50"
+                    >
+                        {syncing ? "Syncing..." : "Sync Now"}
+                    </button>
+                </div>
+            )}
+
             {/* Header */}
             <div className="flex justify-between items-center">
                 <div>
                     <h2 className="text-2xl font-bold">Site Visit Log</h2>
                     <p className="text-muted-foreground">
                         Document your site visits and observations
+                        {!isOnline && " (offline mode)"}
                     </p>
                 </div>
                 <button

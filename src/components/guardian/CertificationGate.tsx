@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import australianData from "@/data/australian-build-workflows.json";
 
@@ -18,12 +18,14 @@ interface Certification {
 interface CertificationGateProps {
     projectId: string;
     currentStage: string;
+    stateCode?: string;
     onPaymentBlocked?: (blocked: boolean, reason: string) => void;
 }
 
 export default function CertificationGate({
     projectId,
     currentStage,
+    stateCode = "NSW",
     onPaymentBlocked,
 }: CertificationGateProps) {
     const [certifications, setCertifications] = useState<Certification[]>([]);
@@ -31,22 +33,24 @@ export default function CertificationGate({
     const [uploading, setUploading] = useState<string | null>(null);
 
     // Get required certificates for current stage from workflow data
-    const nswWorkflow = australianData.workflows.new_build.NSW;
-    const stageData = nswWorkflow.stages.find((s) =>
+    // Use project's state, falling back to NSW
+    const state = stateCode && stateCode in australianData.workflows.new_build
+        ? stateCode
+        : "NSW";
+
+    const workflow = (australianData.workflows.new_build as unknown as Record<string, { stages: Array<{ id: string; name: string; certificates?: string[] }> }>)[state];
+    const stageData = workflow?.stages.find((s) =>
         s.id.toLowerCase() === currentStage.toLowerCase() ||
         s.id.toLowerCase().includes(currentStage.toLowerCase()) ||
         currentStage.toLowerCase().includes(s.id.toLowerCase())
     );
     const requiredCerts = stageData?.certificates || [];
 
-    // Get mandatory certificates from data
-    const mandatoryCerts = australianData.mandatoryCertificates.NSW;
+    // Get mandatory certificates for the project's state
+    const mandatoryCerts = (australianData.mandatoryCertificates as Record<string, Array<{ id: string; name: string; conditional?: string }>>)[state]
+        || australianData.mandatoryCertificates.NSW;
 
-    useEffect(() => {
-        fetchCertifications();
-    }, [projectId]);
-
-    const fetchCertifications = async () => {
+    const fetchCertifications = useCallback(async () => {
         const supabase = createClient();
         const { data, error } = await supabase
             .from("certifications")
@@ -71,7 +75,11 @@ export default function CertificationGate({
             }
         }
         setLoading(false);
-    };
+    }, [projectId, currentStage, state, requiredCerts.length, onPaymentBlocked]);
+
+    useEffect(() => {
+        fetchCertifications();
+    }, [fetchCertifications]);
 
     const handleUpload = async (certType: string, file: File) => {
         setUploading(certType);
@@ -152,13 +160,13 @@ export default function CertificationGate({
             {/* Gate Status Banner */}
             <div
                 className={`p-4 rounded-xl border-2 ${allRequiredUploaded
-                        ? "border-green-300 bg-green-50"
-                        : "border-red-300 bg-red-50"
+                        ? "border-green-300 bg-green-50 dark:border-green-800 dark:bg-green-950/30"
+                        : "border-red-300 bg-red-50 dark:border-red-800 dark:bg-red-950/30"
                     }`}
             >
                 <div className="flex items-start gap-3">
                     <span className="text-3xl">
-                        {allRequiredUploaded ? "✅" : "🚫"}
+                        {allRequiredUploaded ? "\u2705" : "\uD83D\uDEAB"}
                     </span>
                     <div>
                         <h3 className="font-bold text-lg">
@@ -190,8 +198,8 @@ export default function CertificationGate({
                                             )
                                     )
                                     .map((cert) => (
-                                        <li key={cert} className="text-sm text-red-700 flex items-center gap-2">
-                                            <span>•</span>
+                                        <li key={cert} className="text-sm text-red-700 dark:text-red-400 flex items-center gap-2">
+                                            <span>&bull;</span>
                                             {cert}
                                         </li>
                                     ))}
@@ -204,7 +212,7 @@ export default function CertificationGate({
             {/* Certificates for Current Stage */}
             <div>
                 <h3 className="font-bold mb-4">
-                    📄 Certificates for {stageData?.name || currentStage}
+                    Certificates for {stageData?.name || currentStage}
                 </h3>
                 <div className="grid md:grid-cols-2 gap-4">
                     {requiredCerts.map((certName) => {
@@ -215,8 +223,8 @@ export default function CertificationGate({
                             <div
                                 key={certName}
                                 className={`p-4 rounded-xl border ${cert && cert.status !== "pending"
-                                        ? "border-green-200 bg-green-50"
-                                        : "border-orange-200 bg-orange-50"
+                                        ? "border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/30"
+                                        : "border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950/30"
                                     }`}
                             >
                                 <div className="flex justify-between items-start">
@@ -238,7 +246,7 @@ export default function CertificationGate({
                                                         rel="noopener noreferrer"
                                                         className="ml-2 text-sm text-primary hover:underline"
                                                     >
-                                                        View →
+                                                        View &rarr;
                                                     </a>
                                                 )}
                                                 {cert.uploaded_at && (
@@ -248,8 +256,8 @@ export default function CertificationGate({
                                                 )}
                                             </div>
                                         ) : (
-                                            <p className="text-sm text-orange-600 mt-1">
-                                                ⚠️ Required before payment
+                                            <p className="text-sm text-orange-600 dark:text-orange-400 mt-1">
+                                                Required before payment
                                             </p>
                                         )}
                                     </div>
@@ -276,7 +284,7 @@ export default function CertificationGate({
 
             {/* All Mandatory Certificates Reference */}
             <div className="p-4 bg-card border border-border rounded-xl">
-                <h3 className="font-bold mb-3">📋 All Mandatory Certificates (NSW)</h3>
+                <h3 className="font-bold mb-3">All Mandatory Certificates ({state})</h3>
                 <div className="grid md:grid-cols-2 gap-2 text-sm">
                     {mandatoryCerts.map((cert) => {
                         const uploaded = certifications.some(
@@ -285,10 +293,10 @@ export default function CertificationGate({
                         return (
                             <div
                                 key={cert.id}
-                                className={`flex items-center gap-2 p-2 rounded ${uploaded ? "bg-green-50" : "bg-muted/20"
+                                className={`flex items-center gap-2 p-2 rounded ${uploaded ? "bg-green-50 dark:bg-green-950/30" : "bg-muted/20"
                                     }`}
                             >
-                                <span>{uploaded ? "✅" : "⬜"}</span>
+                                <span>{uploaded ? "\u2705" : "\u2B1C"}</span>
                                 <span>{cert.name}</span>
                                 {cert.conditional && (
                                     <span className="text-xs text-muted-foreground">

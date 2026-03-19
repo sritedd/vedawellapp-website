@@ -1,29 +1,81 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { createClient } from "@/lib/supabase/client";
 import checklistData from "@/data/homeowner-checklists.json";
 
 interface ContractReviewChecklistProps {
+    projectId?: string;
     onComplete?: (checkedItems: string[]) => void;
 }
 
 export default function ContractReviewChecklist({
+    projectId,
     onComplete,
 }: ContractReviewChecklistProps) {
     const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
     const [expandedCategory, setExpandedCategory] = useState<string | null>(
         "Builder Details"
     );
+    const [loading, setLoading] = useState(!!projectId);
+    const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    // Fetch checked items from DB on mount (only when projectId is provided)
+    useEffect(() => {
+        if (!projectId) return;
+
+        const fetchChecked = async () => {
+            const supabase = createClient();
+            const { data } = await supabase
+                .from("contract_review_items")
+                .select("item_id")
+                .eq("project_id", projectId)
+                .eq("checked", true);
+
+            if (data) {
+                setCheckedItems(new Set(data.map((r: { item_id: string }) => r.item_id)));
+            }
+            setLoading(false);
+        };
+
+        fetchChecked();
+    }, [projectId]);
+
+    // Persist a single item toggle to DB (debounced)
+    const persistToggle = useCallback(
+        (itemId: string, checked: boolean) => {
+            if (!projectId) return;
+
+            if (debounceRef.current) clearTimeout(debounceRef.current);
+            debounceRef.current = setTimeout(async () => {
+                const supabase = createClient();
+                await supabase
+                    .from("contract_review_items")
+                    .upsert(
+                        {
+                            project_id: projectId,
+                            item_id: itemId,
+                            checked,
+                            checked_at: checked ? new Date().toISOString() : null,
+                        },
+                        { onConflict: "project_id,item_id" }
+                    );
+            }, 300);
+        },
+        [projectId]
+    );
 
     const toggleItem = (id: string) => {
         const newChecked = new Set(checkedItems);
-        if (newChecked.has(id)) {
-            newChecked.delete(id);
-        } else {
+        const nowChecked = !newChecked.has(id);
+        if (nowChecked) {
             newChecked.add(id);
+        } else {
+            newChecked.delete(id);
         }
         setCheckedItems(newChecked);
         onComplete?.(Array.from(newChecked));
+        persistToggle(id, nowChecked);
     };
 
     const totalItems = checklistData.contractChecklist.reduce(
@@ -42,13 +94,22 @@ export default function ContractReviewChecklist({
 
     const completionPercent = Math.round((checkedItems.size / totalItems) * 100);
 
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold">📝 Contract Review Checklist</h2>
+                    <h2 className="text-2xl font-bold">Contract Review Checklist</h2>
                     <p className="text-muted-foreground">
                         Check these items before signing your building contract.
+                        {projectId && " Progress is saved automatically."}
                     </p>
                 </div>
                 <div className="text-right">
@@ -61,11 +122,11 @@ export default function ContractReviewChecklist({
 
             {/* Critical Items Warning */}
             {checkedCritical < criticalItems && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
-                    <h3 className="font-bold text-red-800 mb-1">
-                        ⚠️ {criticalItems - checkedCritical} Critical Items Unchecked
+                <div className="p-4 bg-red-50 border border-red-200 rounded-xl dark:bg-red-950/30 dark:border-red-800">
+                    <h3 className="font-bold text-red-800 dark:text-red-300 mb-1">
+                        {criticalItems - checkedCritical} Critical Items Unchecked
                     </h3>
-                    <p className="text-sm text-red-700">
+                    <p className="text-sm text-red-700 dark:text-red-400">
                         These items are essential before signing. Do not proceed until all
                         critical items are verified.
                     </p>
@@ -106,7 +167,7 @@ export default function ContractReviewChecklist({
                                         ({categoryChecked}/{category.items.length})
                                     </span>
                                 </div>
-                                <span>{isExpanded ? "▲" : "▼"}</span>
+                                <span>{isExpanded ? "\u25B2" : "\u25BC"}</span>
                             </button>
 
                             {isExpanded && (
@@ -115,9 +176,9 @@ export default function ContractReviewChecklist({
                                         <label
                                             key={item.id}
                                             className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors ${checkedItems.has(item.id)
-                                                    ? "bg-green-50"
+                                                    ? "bg-green-50 dark:bg-green-950/30"
                                                     : item.critical
-                                                        ? "bg-red-50"
+                                                        ? "bg-red-50 dark:bg-red-950/30"
                                                         : "bg-muted/10"
                                                 }`}
                                         >
@@ -138,7 +199,7 @@ export default function ContractReviewChecklist({
                                                     {item.text}
                                                 </span>
                                                 {item.critical && (
-                                                    <span className="ml-2 px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded font-bold">
+                                                    <span className="ml-2 px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded font-bold dark:bg-red-900/50 dark:text-red-300">
                                                         CRITICAL
                                                     </span>
                                                 )}
@@ -154,12 +215,12 @@ export default function ContractReviewChecklist({
 
             {/* Ready to Sign */}
             {completionPercent === 100 && (
-                <div className="p-4 bg-green-50 border border-green-200 rounded-xl">
-                    <h3 className="font-bold text-green-800 mb-1">
-                        ✅ All Items Checked!
+                <div className="p-4 bg-green-50 border border-green-200 rounded-xl dark:bg-green-950/30 dark:border-green-800">
+                    <h3 className="font-bold text-green-800 dark:text-green-300 mb-1">
+                        All Items Checked!
                     </h3>
-                    <p className="text-sm text-green-700">
-                        You've verified all items. Remember, you still have a 5-day cooling
+                    <p className="text-sm text-green-700 dark:text-green-400">
+                        You&apos;ve verified all items. Remember, you still have a 5-day cooling
                         off period after signing (NSW).
                     </p>
                 </div>

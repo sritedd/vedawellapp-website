@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import BreadcrumbJsonLd from "@/components/seo/BreadcrumbJsonLd";
 
 export const metadata: Metadata = {
     title: "19 Free Browser Games — Chess, 2048, Snake, Tetris, Sudoku & More",
@@ -175,6 +176,8 @@ const GAMES = [
 
 export default function GamesPage() {
     return (
+        <>
+        <BreadcrumbJsonLd items={[{ name: "Home", href: "/" }, { name: "Browser Games", href: "/games" }]} />
         <div className="bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
             <main className="py-12 px-6">
                 <div className="max-w-6xl mx-auto">
@@ -233,5 +236,6 @@ export default function GamesPage() {
                 </div>
             </main>
         </div>
+        </>
     );
 }

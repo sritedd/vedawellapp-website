@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BLOG_POSTS } from "@/data/blog/posts";
+import BreadcrumbJsonLd from "@/components/seo/BreadcrumbJsonLd";
 
 export const metadata: Metadata = {
     title: "VedaWell Blog — Free Tools, Home Building Tips & Guardian Guides",
@@ -37,6 +38,8 @@ export default function BlogPage() {
     const categories = Array.from(new Set(BLOG_POSTS.map((p) => p.category)));
 
     return (
+        <>
+        <BreadcrumbJsonLd items={[{ name: "Home", href: "/" }, { name: "Blog", href: "/blog" }]} />
         <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-950">
             {/* Hero */}
             <header className="relative overflow-hidden bg-gradient-to-br from-indigo-600 via-indigo-700 to-purple-800 text-white">
@@ -177,5 +180,6 @@ export default function BlogPage() {
                 </section>
             </main>
         </div>
+        </>
     );
 }

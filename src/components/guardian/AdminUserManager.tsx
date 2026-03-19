@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { grantTrial, revokeTrial, setUserTier } from "@/app/guardian/actions";
+import { grantTrial, revokeTrial, setUserTier, bypassPhoneVerification, resetPhoneVerification, clearUserPhone } from "@/app/guardian/actions";
 
 export default function AdminUserManager() {
     const [email, setEmail] = useState("");
@@ -99,6 +99,52 @@ export default function AdminUserManager() {
                 >
                     Set as Pro
                 </button>
+            </div>
+
+            {/* Phone verification management */}
+            <div className="pt-3 border-t border-border">
+                <p className="text-xs text-muted mb-2 font-medium">Phone Verification</p>
+                <div className="flex flex-wrap gap-2">
+                    <button
+                        onClick={async () => {
+                            if (!email.trim()) return;
+                            setLoading(true); setResult(null);
+                            const res = await bypassPhoneVerification(email.trim());
+                            setResult(res.error ? { type: "error", text: res.error } : { type: "success", text: `Phone verification bypassed for ${email}` });
+                            setLoading(false);
+                        }}
+                        disabled={loading || !email.trim()}
+                        className="px-3 py-1.5 text-xs font-medium rounded-lg bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50 transition-colors"
+                    >
+                        Bypass Phone OTP
+                    </button>
+                    <button
+                        onClick={async () => {
+                            if (!email.trim()) return;
+                            setLoading(true); setResult(null);
+                            const res = await resetPhoneVerification(email.trim());
+                            setResult(res.error ? { type: "error", text: res.error } : { type: "success", text: `Phone verification reset for ${email} — must re-verify` });
+                            setLoading(false);
+                        }}
+                        disabled={loading || !email.trim()}
+                        className="px-3 py-1.5 text-xs font-medium rounded-lg bg-yellow-600 text-white hover:bg-yellow-700 disabled:opacity-50 transition-colors"
+                    >
+                        Reset Phone Verify
+                    </button>
+                    <button
+                        onClick={async () => {
+                            if (!email.trim()) return;
+                            setLoading(true); setResult(null);
+                            const res = await clearUserPhone(email.trim());
+                            setResult(res.error ? { type: "error", text: res.error } : { type: "success", text: `Phone cleared for ${email} — can register new number` });
+                            setLoading(false);
+                        }}
+                        disabled={loading || !email.trim()}
+                        className="px-3 py-1.5 text-xs font-medium rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
+                    >
+                        Clear Phone Number
+                    </button>
+                </div>
             </div>
 
             {result && (

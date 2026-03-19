@@ -75,6 +75,9 @@ export async function deleteProject(projectId: string) {
 
     // Delete related data (best-effort — continue even if some fail)
     const tables = [
+        { name: "contract_review_items", method: "direct" as const },
+        { name: "builder_reviews", method: "direct" as const },
+        { name: "pre_handover_items", method: "direct" as const },
         { name: "checklist_items", method: "nested" as const },
         { name: "progress_photos", method: "direct" as const },
         { name: "communication_log", method: "direct" as const },
@@ -241,6 +244,92 @@ export async function setUserTier(userEmail: string, tier: "free" | "guardian_pr
     const { error: updateError } = await supabase
         .from("profiles")
         .update(updates)
+        .eq("email", userEmail);
+
+    if (updateError) return { error: updateError.message };
+    return { success: true };
+}
+
+/** Admin: Bypass phone verification for a user (mark as verified) */
+export async function bypassPhoneVerification(userEmail: string) {
+    const { supabase, error } = await requireAdmin();
+    if (error || !supabase) return { error };
+
+    const { error: updateError } = await supabase
+        .from("profiles")
+        .update({
+            phone_verified: true,
+            phone_verified_at: new Date().toISOString(),
+        })
+        .eq("email", userEmail);
+
+    if (updateError) return { error: updateError.message };
+    return { success: true };
+}
+
+/** Admin: Reset phone verification for a user (force re-verify) */
+export async function resetPhoneVerification(userEmail: string) {
+    const { supabase, error } = await requireAdmin();
+    if (error || !supabase) return { error };
+
+    const { error: updateError } = await supabase
+        .from("profiles")
+        .update({
+            phone_verified: false,
+            phone_verified_at: null,
+            phone_otp_hash: null,
+            phone_otp_expires_at: null,
+            phone_otp_attempts: 0,
+        })
+        .eq("email", userEmail);
+
+    if (updateError) return { error: updateError.message };
+    return { success: true };
+}
+
+/** Admin: Clear phone number from a user's profile (allows re-registration) */
+export async function clearUserPhone(userEmail: string) {
+    const { supabase, error } = await requireAdmin();
+    if (error || !supabase) return { error };
+
+    const { error: updateError } = await supabase
+        .from("profiles")
+        .update({
+            phone: null,
+            phone_verified: false,
+            phone_verified_at: null,
+            phone_otp_hash: null,
+            phone_otp_expires_at: null,
+            phone_otp_attempts: 0,
+        })
+        .eq("email", userEmail);
+
+    if (updateError) return { error: updateError.message };
+    return { success: true };
+}
+
+/** Admin: Bypass email verification for a user (sets override flag in profiles) */
+export async function bypassEmailVerification(userEmail: string) {
+    const { supabase, error } = await requireAdmin();
+    if (error || !supabase) return { error };
+
+    const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ email_verified_override: true })
+        .eq("email", userEmail);
+
+    if (updateError) return { error: updateError.message };
+    return { success: true };
+}
+
+/** Admin: Reset email verification override for a user */
+export async function resetEmailVerification(userEmail: string) {
+    const { supabase, error } = await requireAdmin();
+    if (error || !supabase) return { error };
+
+    const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ email_verified_override: false })
         .eq("email", userEmail);
 
     if (updateError) return { error: updateError.message };

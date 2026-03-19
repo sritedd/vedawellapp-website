@@ -390,23 +390,7 @@ export default function HomePage() {
                         </div>
                     </div>
 
-                    {/* Panchang mini-card */}
-                    <div className="card border-amber-500/20 bg-gradient-to-r from-amber-500/5 to-orange-500/5">
-                        <div className="flex flex-col sm:flex-row items-center gap-4">
-                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shrink-0">
-                                <span className="text-2xl">🕉️</span>
-                            </div>
-                            <div className="flex-1 text-center sm:text-left">
-                                <h3 className="text-lg font-bold">Hindu Panchang</h3>
-                                <p className="text-muted text-sm">
-                                    Accurate Tithi, Nakshatra, Yoga, Karana, Rahu Kaal &amp; auspicious timings — all calculated in your browser.
-                                </p>
-                            </div>
-                            <Link href="/panchang" className="btn-secondary text-sm shrink-0">
-                                View Panchang →
-                            </Link>
-                        </div>
-                    </div>
+                    {/* Panchang mini-card — hidden for now (keeping religious content out) */}
                 </div>
             </section>
             </ScrollReveal>

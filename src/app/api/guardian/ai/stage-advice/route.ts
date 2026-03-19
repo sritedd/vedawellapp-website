@@ -9,7 +9,7 @@ import {
   type StageAdvice,
 } from "@/lib/ai/prompts";
 import { cachedAI } from "@/lib/ai/cache";
-import { checkRateLimit, VALID_STATES } from "@/lib/ai/rate-limit";
+import { checkRateLimit, checkProAccess, VALID_STATES } from "@/lib/ai/rate-limit";
 
 /** Strip HTML tags from user input */
 function sanitize(input: string): string {
@@ -73,6 +73,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "AI features are not configured" },
         { status: 503 }
+      );
+    }
+
+    // Tier gating — stage advice is Pro-only
+    const { allowed } = await checkProAccess(supabase, user.id);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "AI Stage Advice is available on the Pro plan. Upgrade to unlock." },
+        { status: 403 }
       );
     }
 

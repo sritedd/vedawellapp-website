@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import ToolsClient from "./ToolsClient";
+import BreadcrumbJsonLd from "@/components/seo/BreadcrumbJsonLd";
 
 export const metadata: Metadata = {
     title: "90+ Free Online Tools — PDF, Image, Developer, SEO & More",
@@ -19,5 +20,10 @@ export const metadata: Metadata = {
 };
 
 export default function ToolsPage() {
-    return <ToolsClient />;
+    return (
+        <>
+            <BreadcrumbJsonLd items={[{ name: "Home", href: "/" }, { name: "Free Tools", href: "/tools" }]} />
+            <ToolsClient />
+        </>
+    );
 }

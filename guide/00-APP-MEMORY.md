@@ -51,6 +51,63 @@ payments, ai_cache, knowledge_base
 
 ## 2. WHAT'S BEEN DONE (Completed Work)
 
+### Session: 2026-03-19 (E) — Steve Jobs Features: Should I Pay, Builder Speed, Tribunal Export, Camera FAB
+
+| Change | File(s) |
+|--------|---------|
+| **"Should I Pay?" mega-button**: Green/red verdict on dashboard. Queries payments, certifications, inspections, and critical defects for a single answer. Blocker list with deep-links to fix issues | `ShouldIPay.tsx`, `SmartDashboard.tsx` |
+| **Camera-first defect FAB**: Enhanced PhotoFAB into speed-dial with "Report Defect" + "Progress Photo" options. Expands on tap, backdrop dismisses | `MobilePhotoCapture.tsx`, `projects/[id]/page.tsx` |
+| **Builder Speed Benchmarking**: Stage-by-stage dual bar charts comparing builder pace to industry averages. Overall verdict, current stage callout, color-coded delta | `TimelineBenchmark.tsx`, `projects/[id]/page.tsx` |
+| **Tribunal-Ready Evidence Export**: One-tap 10-section evidence package. Pulls all project data (defects, variations, inspections, certs, payments, comms, photos). State-specific tribunal contacts for all 8 states | `TribunalExport.tsx`, `projects/[id]/page.tsx` |
+| **Landing page updated**: Core features section replaced with new features (Should I Pay, Camera-First, Builder Speed, Tribunal Pack). JSON-LD featureList updated. Pro pricing bullets updated | `guardian/page.tsx` |
+| **Pricing page updated**: Pro monthly plan features list now includes 4 new features | `PricingClient.tsx` |
+| **Blog post added**: "New: Should I Pay Verdict, Builder Speed Benchmarks & Tribunal Evidence Export" announcement post | `data/blog/posts.ts` |
+
+### Session: 2026-03-19 (D) — ContractReview DB, BuilderRatings DB, Code Review, Bug Fixes
+
+| Change | File(s) |
+|--------|---------|
+| **ContractReviewChecklist → DB**: Migrated to `contract_review_items` table with optional projectId prop. Dual-mode: standalone or project-bound | `ContractReviewChecklist.tsx` |
+| **BuilderRatings → DB**: Migrated from localStorage to `builder_reviews` table. Auto-migration + cleanup | `BuilderRatings.tsx` |
+| **Schema v24**: `contract_review_items` + `builder_reviews` tables with RLS, triggers, indexes | `schema_v24_contract_builder_reviews.sql` |
+| **CertificationGate fix**: State-aware workflow lookup, fixed useCallback deps | `CertificationGate.tsx` |
+| **PaymentSchedule fix**: Exact cert matching instead of fuzzy substring | `PaymentSchedule.tsx` |
+| **Stripe webhook fix**: Error handling for findProfileByCustomer | `webhook/route.ts` |
+| **Realtime fix**: Added contract_review_items + builder_reviews to watched tables, fixed unhandled promise rejection | `useRealtimeProject.ts` |
+| **Defect type fix**: snake_case fields in guardian.ts to match DB | `types/guardian.ts` |
+
+### Session: 2026-03-19 (C) — PreHandover DB Migration, Realtime Sync, Offline Mode
+
+| Change | File(s) |
+|--------|---------|
+| **PreHandoverChecklist → DB**: Migrated from localStorage to `pre_handover_items` Supabase table. Seeds 65 defaults on first visit, debounced writes, auto-migrates existing localStorage data | `PreHandoverChecklist.tsx`, `schema_v22_prehandover.sql` |
+| **Schema v22**: `pre_handover_items` table with RLS, unique `(project_id, item_key)`, severity CHECK, `updated_at` trigger | `schema_v22_prehandover.sql` |
+| **deleteProject cleanup**: Added `pre_handover_items` to project deletion cascade | `actions.ts` |
+| **Supabase Realtime sync**: `useRealtimeProject` hook subscribes to 12 tables, debounced refresh on changes from other tabs/devices | `useRealtimeProject.ts`, `projects/[id]/page.tsx` |
+| **Schema v23**: Enabled `supabase_realtime` publication for 12 project tables | `schema_v23_realtime.sql` |
+| **Offline queue**: IndexedDB-based mutation queue (`offlineQueue.ts`) + `useOfflineSync` hook for offline-aware writes with auto-replay on reconnect | `offlineQueue.ts`, `useOfflineSync.ts` |
+| **SiteVisitLog offline mode**: Log site visits while offline, queued to IndexedDB, synced on reconnect. Offline/pending sync banners in UI | `SiteVisitLog.tsx` |
+| **Service worker v2**: Enhanced to cache Guardian project pages + Supabase REST responses for offline site visits | `public/sw.js` |
+| **SEO: BreadcrumbJsonLd**: Wired into blog and about pages (was import-only for blog) | `blog/page.tsx`, `about/page.tsx` |
+| **Guide cleanup**: Verified all P0/P1 bugs as fixed, updated roadmap, marked builder/certifier as deferred until June 2026 | `00-APP-MEMORY.md` |
+
+### Session: 2026-03-19 (B) — Signup Cleanup, AI Tier Gating, GA4, Knowledge Base, E2E Tests, Brand Analysis
+
+| Change | File(s) |
+|--------|---------|
+| **Removed builder/certifier from signup**: Role picker removed, all users default to "homeowner" — builder/certifier portal not implemented | `login/page.tsx` |
+| **AI tier gating**: Chat, Stage Advice, Builder Check routes now check `subscription_tier` — only `guardian_pro`, `guardian_trial`, `admin` allowed. Defect Assist stays free | `chat/route.ts`, `stage-advice/route.ts`, `builder-check/route.ts` |
+| **Shared `checkProAccess()` helper**: Reusable tier check function in rate-limit module | `rate-limit.ts` |
+| **GA4 Measurement Protocol**: Server-side purchase event fires on `checkout.session.completed` via GA4 Measurement Protocol (requires `GA_API_SECRET` env var) | `stripe/webhook/route.ts` |
+| **Knowledge base seed SQL**: 25 entries covering NCC 2025, Australian Standards (waterproofing, structural, electrical, plumbing, glazing), state regulations (all 8 states), stage guides, and common defects | `supabase/seed_knowledge_base.sql` |
+| **AI E2E tests**: 12 tests covering auth (401), tier gating (403), input validation (400), response shape, and prompt injection defense | `e2e/guardian-ai.spec.ts` |
+| **Brand differentiation analysis**: Full audit of 150+ brand name instances, 5 rename options analyzed, recommendation documented | `guide/08-BRAND-DIFFERENTIATION.md` |
+| **Phone mandatory at signup**: Phone field now required (was optional), validated before form submission | `login/page.tsx` |
+| **Phone OTP verification gate**: PhoneVerificationGate component blocks project creation until phone is verified via 6-digit code (email fallback for MVP, Twilio-ready) | `PhoneVerificationGate.tsx`, `projects/new/page.tsx` |
+| **Phone verify API route**: Send OTP (hashed, 10min expiry, 5 attempts max), verify code, normalize AU phone numbers, unique phone per account | `api/guardian/phone-verify/route.ts` |
+| **Schema v21**: `phone_verified`, `phone_verified_at`, `phone_otp_hash`, `phone_otp_expires_at`, `phone_otp_attempts` columns + unique phone index | `schema_v21_phone_verification.sql` |
+| **Admin phone management**: 3 new actions — Bypass Phone OTP, Reset Phone Verify, Clear Phone Number + phone column in user table | `AdminUserManager.tsx`, `AdminUserSearch.tsx`, `actions.ts` |
+
 ### Session: 2026-03-19 — Marketing, Guide Updates & SEO Rich Snippets
 
 | Change | File(s) |
@@ -249,8 +306,10 @@ payments, ai_cache, knowledge_base
 | WarrantyCalculator: state-specific statutory warranty info panels | `WarrantyCalculator.tsx` |
 | WarrantyCalculator: dynamic reminder milestones based on state warranty duration | `WarrantyCalculator.tsx` |
 
-### Not Fixed (Held)
+### Held / Deferred
 - **M1: Yearly Stripe price** — User requested hold, `pro_yearly.priceId` is empty string in `PricingClient.tsx`
+- ~~**GA_API_SECRET**~~ ✅ Created and added to Netlify
+- **Builder/Certifier portal** — Deferred until after June 2026. Signup roles removed; builder/certifier features not implemented
 
 ### SQL Migrations Run
 - ✅ `schema_v1–v12` — Core tables
@@ -261,6 +320,9 @@ payments, ai_cache, knowledge_base
 - ✅ `schema_v18_gap_fixes.sql` — payments table + project/stage columns
 - ✅ `schema_v19` — Policy fixes (DROP IF EXISTS)
 - ✅ `schema_v20_ai.sql` — pgvector, ai_cache, knowledge_base + RLS
+- ⬜ `schema_v21_phone_verification.sql` — phone_verified columns + unique phone index (NEEDS TO BE RUN)
+- ⬜ `schema_v22_prehandover.sql` — pre_handover_items table + RLS (NEEDS TO BE RUN)
+- ⬜ `schema_v23_realtime.sql` — Enable Supabase Realtime on 12 tables (NEEDS TO BE RUN)
 
 ---
 
@@ -268,31 +330,22 @@ payments, ai_cache, knowledge_base
 
 > Full analysis in `guide/08-GAP-ANALYSIS.md` (to be created from brain artifact)
 
-### Critical Gaps (Must fix for product-market fit)
-1. ~~**No Cooling-Off Period Tracker**~~ DONE — state-specific business day countdown with progress bar
-2. ~~**No Insurance Validation**~~ DONE — state thresholds, scheme names, expiry alerts
-3. ~~**Payment Protection is UI-Only**~~ DONE — DB-backed payments + Should I Pay? + cert cross-ref
+### All Critical/High/UX Gaps — RESOLVED
+- ~~Cooling-Off, Insurance, Payment Protection, Dispute Resolution, NCC 2025, Warranty Alerts~~ ALL DONE
+- ~~40-tab overwhelm, onboarding, mobile, alert fatigue, accessibility~~ ALL DONE
+- **Builder License Auto-Verification** — deferred (just a text field + link for now)
 
-### High Gaps
-4. ~~**No Dispute Resolution Pathway**~~ DONE — State-specific pathways (NCAT/DBDRV/QBCC/SAT/SACAT) + 3 template letters
-5. **No Builder License Auto-Verification** — Just a text field + link
-6. ~~**No NCC 2025 Compliance**~~ DONE — 25-item checklist (NatHERS 7-star, livable housing, condensation)
-7. ~~**No Proactive Warranty Alerts**~~ DONE — 30/14/7 day alerts, state-aware periods, DLP tracking
+### P0/P1 Bug Plan (verified 2026-03-19) — ALL FIXED
+All 12 bugs from the original plan (hardcoded fake data in ProjectOverview, StageChecklist, InspectionTimeline, StageGate, CommunicationLog + persistence issues) have been fixed in prior commits. Components now fetch from DB, toggles persist, free tier enforced server-side, planning status handled.
 
-### UX Gaps
-8. ~~**40-tab overwhelm**~~ DONE — 29 tabs collapsed to 5 main sections (Home/Build/Issues/Evidence/More) with sub-tabs
-9. ~~**No guided onboarding**~~ DONE — 5-step onboarding checklist, auto-shows for new projects
-10. ~~**No "What should I do now?"**~~ DONE — SmartDashboard shows stage-specific actions, tips, dodgy builder warnings
-11. ~~**Mobile not optimized**~~ DONE — Bottom nav bar, camera FAB, safe-area support, touch-friendly targets
-12. ~~**Pre-Handover checklist not persisted**~~ DONE — localStorage persistence + "Create Defects" bridge to DB
-13. ~~**Alert fatigue**~~ DONE — Consolidated alerts: single priority + expandable rest
-14. ~~**Upgrade pressure**~~ DONE — Reduced from 4+ CTAs to subtle "Free" badge
-15. ~~**Static dead-end content**~~ DONE — Red flags + NCC shortcuts now have binary "Verified OK / Found Issue" action buttons
-16. ~~**No positive reinforcement**~~ DONE — Celebration micro-moments (milestone banners, all-clear messages)
-17. ~~**Tips are passive**~~ DONE — Stage tips converted to dismissable micro-task cards with action buttons
-18. ~~**Activity feed not clickable**~~ DONE — Recent activity items navigate to relevant tab on click
-19. ~~**No save confirmation feedback**~~ DONE — Global toast notification system for all save/toggle actions
-20. ~~**Accessibility gaps**~~ DONE — ARIA landmarks, tablist/tab roles, aria-expanded on accordions, focus rings, 44px touch targets
+### Remaining Gaps
+1. ~~**PreHandoverChecklist → DB**~~ DONE — migrated to `pre_handover_items` table
+2. **ContractReviewChecklist → DB** — UI-only, needs persistence
+3. **BuilderRatings → DB** — currently localStorage MVP
+4. ~~**Offline mode**~~ DONE — IndexedDB queue + enhanced service worker for site visits
+5. ~~**Real-time sync**~~ DONE — `useRealtimeProject` hook on 12 tables
+6. **Stripe customer portal** — users can't self-cancel/update payment
+7. **Yearly Stripe price** — on hold per user request
 
 ### Feature Completeness: 9.5/10 | Usability: 9.8/10 | Accessibility: WCAG 2.1 AA (partial)
 
@@ -320,15 +373,22 @@ payments, ai_cache, knowledge_base
 - [x] **Guided Onboarding** — 5-step checklist after first project
 - [x] **Progressive Tab Disclosure** — Stage-relevant tabs highlighted with dots
 - [x] **Mobile-First Photo Flow** — Camera capture + annotation + FAB button
-- [ ] **Offline Mode** — Service worker for site visits
+- [x] **Offline Mode** — Service worker + IndexedDB queue for offline site visits
 - [x] **Push Notifications** — Permission management + preference toggles (MVP, app-check)
 
-#### Tier 4: Scale & Network Effects
-- [ ] **Builder Portal** — Builder read/write access
+#### Tier 3.5: Data Persistence & Sync
+- [x] **PreHandoverChecklist → DB** — Migrated to `pre_handover_items` table with auto-migration from localStorage
+- [ ] **ContractReviewChecklist → DB** — Migrate from UI-only to Supabase
+- [ ] **BuilderRatings → DB** — Migrate from localStorage to Supabase
+- [x] **Real-time sync** — Supabase Realtime via `useRealtimeProject` hook on 12 tables
+- [ ] **Stripe customer portal** — Self-service cancel/update payment
+
+#### Tier 4: Scale & Network Effects (DEFERRED — not before June 2026)
+- [ ] **Builder Portal** — Builder read/write access (deferred 2+ months)
 - [x] **Anonymous Builder Ratings** — 5-star reviews + 5 category ratings (localStorage MVP)
 - [x] **Cost Benchmarking** — Variation price analysis vs industry benchmarks
 - [x] **SA/TAS/ACT/NT Support** — All 8 states/territories now supported
-- [ ] **Certifier Integration** — Direct certificate uploads
+- [ ] **Certifier Integration** — Direct certificate uploads (deferred 2+ months)
 
 ---
 
@@ -342,6 +402,7 @@ payments, ai_cache, knowledge_base
 | `guide/05-COMPONENT-STATUS.md` | Current component status matrix |
 | `guide/06-USER-WORKFLOW.md` | User journey map + AI workflows |
 | `guide/07-TESTING-SETUP.md` | E2E test setup and known limitations |
+| `guide/08-BRAND-DIFFERENTIATION.md` | Brand rename analysis (HomeOwner Guardian vs homeguardian.ai) |
 | `src/types/guardian.ts` | All TypeScript interfaces |
 | `src/data/australian-build-workflows.json` | State workflows, stages, warnings |
 | `src/lib/guardian/calculations.ts` | Business logic utility functions |
@@ -370,8 +431,8 @@ StageGate.tsx               — Stage completion gates
 StageChecklist.tsx          — Per-stage checklists
 WeeklyCheckIn.tsx           — Builder accountability
 MaterialRegistry.tsx        — DB-backed via materials table
-SiteVisitLog.tsx            — DB-backed via site_visits table
-PreHandoverChecklist.tsx    — localStorage + "Create Defects" bridge to DB
+SiteVisitLog.tsx            — DB-backed via site_visits table + offline mode (IndexedDB queue)
+PreHandoverChecklist.tsx    — DB-backed (pre_handover_items table) + "Create Defects" bridge
 ContractReviewChecklist.tsx — ⚠️ UI-ONLY — needs persistence
 DisputeResolution.tsx       — State-specific dispute pathways + 3 template letters
 DodgyBuilderAlerts.tsx      — Contextual dodgy builder warnings from workflow JSON
@@ -418,3 +479,5 @@ AdminSupportInbox.tsx       — Admin support inbox
 4. **Keep the gap analysis current** — Update scores as features are built
 5. **Run `npx next build`** after every change session to verify
 6. **Do NOT fix M1 (Stripe yearly)** until user says to proceed
+7. **Do NOT build Builder Portal or Certifier Integration** — deferred until after June 2026
+8. **P0/P1 bug plan is STALE** — all 12 bugs verified fixed on 2026-03-19, ignore that plan file

@@ -13,6 +13,84 @@ export interface BlogPost {
 
 export const BLOG_POSTS: BlogPost[] = [
     {
+        slug: "guardian-should-i-pay-tribunal-export",
+        title: "New: \"Should I Pay?\" Verdict, Builder Speed Benchmarks & Tribunal Evidence Export",
+        description: "HomeOwner Guardian now answers the #1 question Australian homeowners ask during construction: Should I pay this invoice? Plus builder speed benchmarking and one-tap tribunal evidence packs.",
+        date: "2026-03-19",
+        author: "VedaWell Team",
+        readTime: "5 min read",
+        keywords: ["should I pay builder", "builder speed benchmark", "tribunal evidence pack", "construction payment protection", "Australian building dispute", "NCAT evidence", "Fair Trading dispute"],
+        category: "HomeOwner Guardian",
+        relatedTools: [],
+        content: `
+<p>We just shipped the four most-requested features in HomeOwner Guardian. They all share one design principle: <strong>give the homeowner a single, clear answer</strong> — not a dashboard of numbers they have to interpret.</p>
+
+<h2>1. "Should I Pay?" — One Button, One Answer</h2>
+
+<p>Every time your builder sends an invoice, the same question hits: <em>"Is it actually safe to pay this?"</em></p>
+
+<p>Until now, you had to cross-reference your payment schedule against uploaded certificates, check that inspections passed, and verify no critical defects were outstanding. That is a lot of tabs.</p>
+
+<p>The new <strong>"Should I Pay?"</strong> button sits at the top of your project dashboard. It queries your payment milestones, certificates, inspections, and defect register — and returns a single verdict:</p>
+
+<ul>
+<li><strong>Green = Safe to Pay.</strong> All required certificates uploaded, inspections passed, no critical defects outstanding. The button shows the exact amount and stage name.</li>
+<li><strong>Red = DO NOT PAY.</strong> A numbered list of blockers appears — missing certificates, failed inspections, or unresolved critical defects. Tap any blocker to jump straight to the relevant tab and fix it.</li>
+</ul>
+
+<p>Your right to withhold payment until certificates are provided is protected under Australian construction law. Guardian now enforces that right automatically.</p>
+
+<h2>2. Camera-First Defect Reporting</h2>
+
+<p>The floating camera button on every project page now opens a speed-dial with two options: <strong>"Report Defect"</strong> and <strong>"Progress Photo"</strong>.</p>
+
+<p>For defects, the flow is: tap the button, snap a photo, add a location and severity — done. The defect is logged with a timestamped photo, ready for your builder. No forms to fill out first, no navigating to the defects tab. See something wrong? Photograph it. That is the entire workflow.</p>
+
+<h2>3. Builder Speed vs. Industry Benchmarks</h2>
+
+<p>Is your builder slow, or is this just how long construction takes? Homeowners have no frame of reference — until now.</p>
+
+<p>The new <strong>Builder Speed</strong> tool (under More > Builder Speed) shows a stage-by-stage comparison of your builder's actual pace against Australian residential construction averages:</p>
+
+<ul>
+<li>Dual bar charts for each stage: actual weeks vs. industry average weeks</li>
+<li>Color-coded: green (on time), amber (slightly behind), red (significantly behind)</li>
+<li>An overall verdict: <em>"3 weeks ahead of schedule"</em> or <em>"2 weeks behind — within normal range"</em></li>
+<li>Current stage callout with actionable advice</li>
+</ul>
+
+<p>If your frame stage has been going 4 weeks longer than the 4-week average, you now have data to back up a timeline conversation with your builder — not just a feeling that things are slow.</p>
+
+<h2>4. Tribunal-Ready Evidence Export</h2>
+
+<p>If things go wrong and you need to escalate, Guardian now generates a <strong>complete tribunal evidence package</strong> in one tap.</p>
+
+<p>The export pulls together all 10 sections a tribunal expects:</p>
+
+<ol>
+<li>Project overview and financials</li>
+<li>Summary of issues (defect counts, failed inspections, missing certificates)</li>
+<li>Complete defect register with photos and builder responses</li>
+<li>Variation orders with signature status</li>
+<li>Inspection history and results</li>
+<li>Certificate compliance status</li>
+<li>Payment history and outstanding amounts</li>
+<li>Communication log timeline</li>
+<li>Photo evidence index</li>
+<li>State-specific tribunal and Fair Trading contact details</li>
+</ol>
+
+<p>The export is customised to your state — NSW gets NCAT and NSW Fair Trading contacts, VIC gets VCAT and Consumer Affairs Victoria, QLD gets QCAT, and so on across all 8 states and territories.</p>
+
+<p>You can download it as a file or print it directly. Most homeowners will never need it. But if you do, it is ready in 3 seconds instead of 3 days of gathering paperwork.</p>
+
+<h2>Available Now</h2>
+
+<p>All four features are live for <strong>Guardian Pro</strong> subscribers. The "Should I Pay?" button appears automatically on your project dashboard. Builder Speed and Tribunal Export are available under More > Tools.</p>
+
+<p>Not a Pro subscriber yet? <a href="/guardian/pricing">Upgrade for $14.99/month</a> — or <a href="/guardian">start free</a> and upgrade when you need these features.</p>`,
+    },
+    {
         slug: "guardian-ai-construction-assistant",
         title: "Guardian Now Has AI: How Artificial Intelligence Protects Your Home Build",
         description: "HomeOwner Guardian's new AI features help Australian homeowners describe defects accurately, get stage-by-stage advice, check builder credentials, and chat with an AI construction assistant.",

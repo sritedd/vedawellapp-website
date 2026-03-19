@@ -70,16 +70,14 @@ export interface Defect {
     stage: string;
     severity: DefectSeverity;
     status: DefectStatus;
-    reportedDate: string;
-    dueDate?: string;
-    rectifiedDate?: string;
-    verifiedDate?: string;
-    photos: string[];
-    rectificationPhotos: string[];
-    builderNotes?: string;
-    homeownerNotes?: string;
-    reminderCount: number;
-    image_url?: string;
+    reported_date: string;
+    due_date?: string | null;
+    rectified_date?: string | null;
+    verified_date?: string | null;
+    image_url?: string | null;
+    builder_notes?: string | null;
+    homeowner_notes?: string | null;
+    reminder_count: number;
     created_at?: string;
 }
 

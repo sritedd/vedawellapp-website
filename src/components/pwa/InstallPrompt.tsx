@@ -63,7 +63,7 @@ export default function InstallPrompt() {
                     <div className="flex-1">
                         <h3 className="font-semibold text-sm">Add VedaWell to Home Screen</h3>
                         <p className="text-xs text-muted mt-1">
-                            Quick access to 90+ tools, daily Panchang, and games — works offline!
+                            Quick access to 90+ tools, games, and Guardian — works offline!
                         </p>
                     </div>
                     <button

@@ -722,21 +722,48 @@ export default function MobilePhotoCapture({
 /* ------------------------------------------------------------------ */
 
 export function PhotoFAB({ onClick }: { onClick: () => void }) {
+  const [expanded, setExpanded] = useState(false);
+
   return (
-    <button
-      onClick={onClick}
-      className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-emerald-600 text-white
-                 shadow-lg shadow-emerald-900/40 flex items-center justify-center
-                 hover:bg-emerald-500 active:bg-emerald-700 active:scale-95
-                 transition-all duration-150"
-      style={{
-        bottom: "max(24px, env(safe-area-inset-bottom, 24px))",
-        width: "56px",
-        height: "56px",
-      }}
-      aria-label="Capture photo"
-    >
-      <CameraIcon className="w-7 h-7" />
-    </button>
+    <div className="fixed z-50" style={{ bottom: "max(24px, env(safe-area-inset-bottom, 24px))", right: "16px" }}>
+      {/* Speed-dial options — shown when expanded */}
+      {expanded && (
+        <div className="absolute bottom-16 right-0 flex flex-col items-end gap-2 mb-2 animate-in fade-in slide-in-from-bottom-2 duration-150">
+          <button
+            onClick={() => { setExpanded(false); onClick(); }}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-emerald-600 text-white shadow-lg text-sm font-medium whitespace-nowrap hover:bg-emerald-500 active:scale-95 transition-all"
+          >
+            <CameraIcon className="w-5 h-5" />
+            Report Defect
+          </button>
+          <button
+            onClick={() => { setExpanded(false); onClick(); }}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-blue-600 text-white shadow-lg text-sm font-medium whitespace-nowrap hover:bg-blue-500 active:scale-95 transition-all"
+          >
+            <CameraIcon className="w-5 h-5" />
+            Progress Photo
+          </button>
+        </div>
+      )}
+      {/* Main FAB */}
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className={`w-14 h-14 rounded-full text-white
+                   shadow-lg shadow-emerald-900/40 flex items-center justify-center
+                   hover:bg-emerald-500 active:scale-95
+                   transition-all duration-150 ${expanded ? "bg-gray-700 rotate-45" : "bg-emerald-600"}`}
+        aria-label={expanded ? "Close menu" : "Capture photo or report defect"}
+      >
+        {expanded ? (
+          <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+        ) : (
+          <CameraIcon className="w-7 h-7" />
+        )}
+      </button>
+      {/* Backdrop to close */}
+      {expanded && (
+        <div className="fixed inset-0 z-[-1]" onClick={() => setExpanded(false)} />
+      )}
+    </div>
   );
 }

@@ -16,7 +16,7 @@ export default function LoginPage() {
     const [password, setPassword] = useState("");
     const [fullName, setFullName] = useState("");
     const [phone, setPhone] = useState("");
-    const [role, setRole] = useState("homeowner");
+    const role = "homeowner"; // All users are homeowners — builder/certifier portal planned for future
     const [showPassword, setShowPassword] = useState(false);
     const [view, setView] = useState<View>(initialView);
     const [loading, setLoading] = useState(false);
@@ -100,6 +100,12 @@ export default function LoginPage() {
 
         if (!fullName.trim()) {
             setMessage({ type: "error", text: "Please enter your full name." });
+            setLoading(false);
+            return;
+        }
+
+        if (!phone.trim()) {
+            setMessage({ type: "error", text: "Phone number is required to prevent duplicate accounts." });
             setLoading(false);
             return;
         }
@@ -316,11 +322,12 @@ export default function LoginPage() {
                                 />
                             </div>
 
-                            {/* Phone — signup only */}
+                            {/* Phone — signup only (mandatory) */}
                             {view === "sign-up" && (
                                 <div>
                                     <label htmlFor="phone" className="block text-sm font-medium mb-2">
-                                        Phone <span className="text-muted text-xs">(optional)</span>
+                                        Phone <span className="text-danger">*</span>
+                                        <span className="text-muted text-xs ml-1">(verified before first project)</span>
                                     </label>
                                     <input
                                         id="phone"
@@ -328,39 +335,12 @@ export default function LoginPage() {
                                         value={phone}
                                         onChange={(e) => setPhone(e.target.value)}
                                         className="w-full px-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-                                        placeholder="+61 400 000 000"
+                                        placeholder="0400 000 000"
+                                        required
                                     />
                                 </div>
                             )}
 
-                            {/* Role — signup only */}
-                            {view === "sign-up" && (
-                                <div>
-                                    <label htmlFor="role" className="block text-sm font-medium mb-2">
-                                        I am a
-                                    </label>
-                                    <div className="grid grid-cols-3 gap-2">
-                                        {[
-                                            { value: "homeowner", label: "🏠 Homeowner", desc: "Building or renovating" },
-                                            { value: "builder", label: "🔨 Builder", desc: "Managing projects" },
-                                            { value: "certifier", label: "📋 Certifier", desc: "Inspecting & signing off" },
-                                        ].map((r) => (
-                                            <button
-                                                key={r.value}
-                                                type="button"
-                                                onClick={() => setRole(r.value)}
-                                                className={`p-3 rounded-lg border text-center transition-all ${role === r.value
-                                                    ? "border-primary bg-primary/10 ring-2 ring-primary"
-                                                    : "border-border hover:border-primary/50"
-                                                    }`}
-                                            >
-                                                <div className="text-lg">{r.label.split(" ")[0]}</div>
-                                                <div className="text-xs font-medium mt-1">{r.label.split(" ")[1]}</div>
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
 
                             {/* Password — hidden for forgot password */}
                             {view !== "forgot-password" && (
