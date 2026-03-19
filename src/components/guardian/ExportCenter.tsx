@@ -16,6 +16,15 @@ import {
     type PaymentMilestone,
 } from "@/lib/export/pdf-export";
 
+// Map export IDs to server-side PDF report types
+const PDF_TYPE_MAP: Record<string, string> = {
+    "project-summary": "summary",
+    "defect-list": "defects",
+    "variation-report": "variations",
+    "payment-schedule": "payments",
+    "dispute-package": "dispute",
+};
+
 interface ExportCenterProps {
     projectId: string;
     projectName: string;
@@ -206,16 +215,38 @@ export default function ExportCenter({ projectId, projectName, builderName, cont
         setShowPreview(true);
     };
 
-    const handleDownload = () => {
+    const handleDownload = async () => {
         if (!selectedExport || !previewContent) return;
         const baseName = `${projectName.replace(/\s+/g, "_")}_${selectedExport}_${new Date().toISOString().split("T")[0]}`;
         const option = EXPORT_OPTIONS.find(o => o.id === selectedExport);
         const title = option?.name || "Report";
 
         switch (selectedFormat) {
-            case "pdf":
-                printContent(previewContent, title);
+            case "pdf": {
+                // Use server-side branded PDF generation
+                const pdfType = PDF_TYPE_MAP[selectedExport] || "full";
+                setLoading(true);
+                try {
+                    const res = await fetch(`/api/guardian/export-pdf?projectId=${projectId}&type=${pdfType}`);
+                    if (res.status === 403) {
+                        alert("PDF export requires Guardian Pro. Upgrade at /guardian/pricing");
+                        return;
+                    }
+                    if (!res.ok) throw new Error("Export failed");
+                    const blob = await res.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `${baseName}.pdf`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                } catch {
+                    alert("Failed to generate PDF. Please try again.");
+                } finally {
+                    setLoading(false);
+                }
                 break;
+            }
             case "html":
                 downloadAsHTML(previewContent, `${baseName}.html`, title);
                 break;
@@ -383,7 +414,7 @@ export default function ExportCenter({ projectId, projectName, builderName, cont
                         onClick={async () => {
                             setLoading(true);
                             try {
-                                const res = await fetch(`/api/guardian/export-pdf?projectId=${projectId}`);
+                                const res = await fetch(`/api/guardian/export-pdf?projectId=${projectId}&type=full`);
                                 if (res.status === 403) {
                                     alert("PDF export requires Guardian Pro. Upgrade at /guardian/pricing");
                                     return;

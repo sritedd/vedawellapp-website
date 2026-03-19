@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 
 // Price IDs from Stripe Dashboard (Products > Price > copy the price_xxx ID)
 const PLANS = {
@@ -65,8 +65,42 @@ const PLANS = {
 
 export default function PricingClient() {
     const [loading, setLoading] = useState(false);
+    const [trialLoading, setTrialLoading] = useState(false);
+    const [trialMessage, setTrialMessage] = useState("");
     const searchParams = useSearchParams();
+    const router = useRouter();
     const cancelled = searchParams.get("payment") === "cancelled";
+
+    const handleStartTrial = async () => {
+        setTrialLoading(true);
+        setTrialMessage("");
+        try {
+            const res = await fetch("/api/guardian/start-trial", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+            });
+
+            const data = await res.json();
+
+            if (res.status === 401) {
+                window.location.href = "/guardian/login?returnTo=/guardian/pricing";
+                return;
+            }
+
+            if (data.success) {
+                setTrialMessage("Started! Redirecting to your dashboard...");
+                setTimeout(() => {
+                    router.push("/guardian/dashboard");
+                }, 2000);
+            } else {
+                setTrialMessage(data.error || "Something went wrong. Please try again.");
+            }
+        } catch {
+            setTrialMessage("Network error. Please check your connection and try again.");
+        } finally {
+            setTrialLoading(false);
+        }
+    };
 
     const handleCheckout = async (priceId: string) => {
         if (!priceId) {
@@ -120,6 +154,25 @@ export default function PricingClient() {
                         Payment was cancelled. You can try again whenever you are ready.
                     </div>
                 )}
+
+                {/* Trial Banner */}
+                <div className="max-w-lg mx-auto mb-10 p-6 bg-gradient-to-r from-teal-50 to-emerald-50 dark:from-teal-950/30 dark:to-emerald-950/30 border border-teal-200 dark:border-teal-800 rounded-2xl text-center">
+                    <p className="text-sm font-semibold text-teal-700 dark:text-teal-300 mb-1">Not ready to commit?</p>
+                    <h3 className="text-xl font-bold mb-2">Try Guardian Pro Free for 7 Days</h3>
+                    <p className="text-sm text-muted mb-4">Full access to all Pro features. No credit card required.</p>
+                    {trialMessage && (
+                        <p className={`text-sm mb-3 ${trialMessage.includes("success") || trialMessage.includes("Started") ? "text-green-600" : "text-red-600"}`}>
+                            {trialMessage}
+                        </p>
+                    )}
+                    <button
+                        onClick={handleStartTrial}
+                        disabled={trialLoading}
+                        className="px-6 py-3 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700 transition-colors disabled:opacity-50"
+                    >
+                        {trialLoading ? "Starting..." : "Start Free Trial"}
+                    </button>
+                </div>
 
                 {/* Pricing Cards */}
                 <div className="grid md:grid-cols-3 gap-6 mb-16">

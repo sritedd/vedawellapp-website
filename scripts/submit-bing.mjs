@@ -37,9 +37,19 @@ async function discoverUrls() {
   }
 }
 
-const ALL_URLS = await discoverUrls();
+const BING_DAILY_QUOTA = 100;
+let ALL_URLS = await discoverUrls();
 
-// Bing allows max 500 URLs per request, 10,000 per day
+if (ALL_URLS.length > BING_DAILY_QUOTA) {
+  console.log(`   Bing daily quota is ${BING_DAILY_QUOTA} — trimming to highest-priority URLs`);
+  // Prioritize: home, main sections, guardian, blog, then tools/games
+  const high = ALL_URLS.filter((u) => !u.match(/\/(tools|games|compare)\/[^/]+$/));
+  const low = ALL_URLS.filter((u) => u.match(/\/(tools|games|compare)\/[^/]+$/));
+  ALL_URLS = [...high, ...low].slice(0, BING_DAILY_QUOTA);
+  console.log(`   Submitting ${ALL_URLS.length} URLs (${high.length} priority + ${Math.max(0, BING_DAILY_QUOTA - high.length)} tools/games)`);
+}
+
+// Bing allows max 500 URLs per request
 const CHUNK_SIZE = 500;
 const chunks = [];
 for (let i = 0; i < ALL_URLS.length; i += CHUNK_SIZE) {

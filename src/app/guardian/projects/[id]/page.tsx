@@ -44,6 +44,7 @@ import GuardianChat from "@/components/guardian/GuardianChat";
 import AIStageAdvice from "@/components/guardian/AIStageAdvice";
 import TimelineBenchmark from "@/components/guardian/TimelineBenchmark";
 import TribunalExport from "@/components/guardian/TribunalExport";
+import ProgressTimeline from "@/components/guardian/ProgressTimeline";
 
 /* ------------------------------------------------------------------ */
 /*  Navigation Structure — 5 main sections                            */
@@ -67,6 +68,7 @@ const SECTION_SUBTABS: Record<SectionId, { id: string; label: string }[]> = {
     ],
     build: [
         { id: "stagegate", label: "Stage Gate" },
+        { id: "gantt", label: "Timeline" },
         { id: "stages", label: "Stages" },
         { id: "inspections", label: "Inspections" },
         { id: "certificates", label: "Certificates" },
@@ -522,6 +524,9 @@ export default function ProjectDetailPage() {
                                     />
                                 </div>
                             </>
+                        )}
+                        {activeTab === "gantt" && (
+                            <ProgressTimeline projectId={project.id} startDate={project.start_date} />
                         )}
                         {activeTab === "stages" && (
                             <StageChecklist projectId={project.id} currentStage={currentStage} />
