@@ -19,7 +19,7 @@
 ### Branding
 - **Product name**: HomeGuardian by VedaWell
 - **Logo**: Home icon (lucide `Home`) in gradient square
-- **Navbar**: Tools, Games, Blog, Panchang + "Get Guardian" CTA
+- **Navbar**: Tools, Games, Blog + "Get Guardian" CTA (Panchang hidden — inaccurate calculations)
 
 ### Database Tables (20+ tables, migrations v1–v20)
 ```
@@ -50,6 +50,19 @@ payments, ai_cache, knowledge_base
 ---
 
 ## 2. WHAT'S BEEN DONE (Completed Work)
+
+### Session: 2026-03-19 (F) — Email Verification, Vibrant Illustrations, Hide Panchang
+
+| Change | File(s) |
+|--------|---------|
+| Email verification gate on project creation (admins/Pro exempt) | `projects/new/page.tsx` |
+| Admin bypass/reset for email verification (`email_verified_override`) | `actions.ts`, `AdminUserSearch.tsx` |
+| Admin UI: action buttons for phone + email bypass/reset per user | `AdminUserSearch.tsx` |
+| Schema v25: `email_verified_override` column on profiles | `schema_v25_email_verification.sql` |
+| Guardian landing page: vibrant colorful construction illustrations | `guardian/page.tsx` |
+| Fixed light-mode text contrast on AI Features + Core Features | `guardian/page.tsx` |
+| Panchang hidden from navbar, landing, about, sitemap, metadata, ads | Multiple files |
+| Panchang page replaced with "Coming Soon" (calculations were fake) | `panchang/page.tsx` |
 
 ### Session: 2026-03-19 (E) — Steve Jobs Features: Should I Pay, Builder Speed, Tribunal Export, Camera FAB
 
