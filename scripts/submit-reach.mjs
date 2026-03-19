@@ -99,17 +99,15 @@ async function submitIndexNow(urls) {
 
 // ─── 3. WAYBACK MACHINE ────────────────────────────────────────────────────
 async function submitWayback(urls) {
-  // Only archive high-priority pages (not every tool/game)
+  // Only archive top-level pages (max ~15) — archive.org is very slow
   const priority = urls.filter(
     (u) =>
       u === `${BASE}/` ||
-      u.match(/\/(tools|games|blog|guardian|compare|about|privacy)$/) ||
-      u.includes("/blog/") ||
-      u.includes("/guardian/") ||
-      u.includes("/compare/")
+      u.match(/\/(tools|games|blog|guardian|about)$/) ||
+      u.match(/\/guardian\/(pricing|faq|journey|resources)$/)
   );
 
-  console.log(`\n🏛️  Wayback Machine — archiving ${priority.length} priority pages (of ${urls.length} total)...`);
+  console.log(`\n🏛️  Wayback Machine — archiving ${priority.length} key pages...`);
   let ok = 0,
     fail = 0;
 
@@ -119,7 +117,7 @@ async function submitWayback(urls) {
         method: "GET",
         headers: { "User-Agent": "VedaWell-Archiver/2.0" },
         redirect: "follow",
-        signal: AbortSignal.timeout(20000),
+        signal: AbortSignal.timeout(8000),
       });
       if (res.status < 400) {
         ok++;
@@ -132,7 +130,7 @@ async function submitWayback(urls) {
       fail++;
       process.stdout.write("x");
     }
-    await sleep(1500); // archive.org rate limit
+    await sleep(1000);
   }
   console.log(`\n  ✅ Archived: ${ok}  ❌ Failed: ${fail}`);
 }
