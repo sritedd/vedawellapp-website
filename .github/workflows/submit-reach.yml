@@ -56,8 +56,10 @@ jobs:
         run: node scripts/submit-reach.mjs
 
       - name: Run Bing bulk submission
-        if: ${{ github.event.inputs.bing_api_key != '' || secrets.BING_API_KEY != '' }}
-        run: node scripts/submit-bing.mjs "${{ github.event.inputs.bing_api_key || secrets.BING_API_KEY }}"
+        env:
+          BING_KEY: ${{ github.event.inputs.bing_api_key || secrets.BING_API_KEY }}
+        if: env.BING_KEY != ''
+        run: node scripts/submit-bing.mjs "$BING_KEY"
 
       - name: Summary
         run: |
