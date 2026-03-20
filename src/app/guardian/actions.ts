@@ -81,6 +81,7 @@ export async function deleteProject(projectId: string) {
 
     // Delete related data (best-effort — continue even if some fail)
     const tables = [
+        { name: "ai_conversations", method: "direct" as const },
         { name: "contract_review_items", method: "direct" as const },
         { name: "builder_reviews", method: "direct" as const },
         { name: "pre_handover_items", method: "direct" as const },
@@ -199,15 +200,16 @@ function getServiceSupabase() {
     );
 }
 
-/** Check if the current user is an admin, return service-role client for mutations */
+/** Check if the current user is an admin, return service-role client for mutations + admin user */
 async function requireAdmin() {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const authClient = await createClient();
+    const { data: { user } } = await authClient.auth.getUser();
     if (!user || !isAdminEmail(user.email)) {
-        return { supabase: null, error: "Unauthorized" };
+        return { supabase: null, user: null, error: "Unauthorized" };
     }
     // Return service-role client so admin mutations bypass RLS restrictions (schema_v26)
-    return { supabase: getServiceSupabase(), error: null };
+    // Also return user so callers don't need to call auth.getUser() on service-role (which returns null)
+    return { supabase: getServiceSupabase(), user, error: null };
 }
 
 /** Admin: Grant a free trial to a user by email */
@@ -270,7 +272,7 @@ export async function setUserTier(userEmail: string, tier: "free" | "guardian_pr
     return { success: true };
 }
 
-/** Admin: Bypass phone verification for a user (mark as verified) */
+/** Admin: Bypass verification for a user (mark identity as verified) */
 export async function bypassPhoneVerification(userEmail: string) {
     const { supabase, error } = await requireAdmin();
     if (error || !supabase) return { error };
@@ -278,8 +280,8 @@ export async function bypassPhoneVerification(userEmail: string) {
     const { error: updateError } = await supabase
         .from("profiles")
         .update({
-            phone_verified: true,
-            phone_verified_at: new Date().toISOString(),
+            identity_verified: true,
+            identity_verified_at: new Date().toISOString(),
         })
         .eq("email", userEmail);
 
@@ -287,7 +289,7 @@ export async function bypassPhoneVerification(userEmail: string) {
     return { success: true };
 }
 
-/** Admin: Reset phone verification for a user (force re-verify) */
+/** Admin: Reset verification for a user (force re-verify) */
 export async function resetPhoneVerification(userEmail: string) {
     const { supabase, error } = await requireAdmin();
     if (error || !supabase) return { error };
@@ -297,6 +299,8 @@ export async function resetPhoneVerification(userEmail: string) {
         .update({
             phone_verified: false,
             phone_verified_at: null,
+            identity_verified: false,
+            identity_verified_at: null,
             phone_otp_hash: null,
             phone_otp_expires_at: null,
             phone_otp_attempts: 0,
@@ -318,6 +322,8 @@ export async function clearUserPhone(userEmail: string) {
             phone: null,
             phone_verified: false,
             phone_verified_at: null,
+            identity_verified: false,
+            identity_verified_at: null,
             phone_otp_hash: null,
             phone_otp_expires_at: null,
             phone_otp_attempts: 0,
@@ -535,13 +541,11 @@ export async function getAdminConversations() {
 
 /** Admin: Reply to a user's support thread */
 export async function adminReply(userId: string, message: string) {
-    const { supabase, error } = await requireAdmin();
-    if (error || !supabase) return { error };
+    const { supabase, user: adminUser, error } = await requireAdmin();
+    if (error || !supabase || !adminUser) return { error };
 
     const trimmed = message.trim();
     if (!trimmed || trimmed.length > 2000) return { error: "Message must be 1-2000 characters" };
-
-    const { data: { user } } = await supabase.auth.getUser();
 
     const { error: insertError } = await supabase
         .from("support_messages")
@@ -549,7 +553,7 @@ export async function adminReply(userId: string, message: string) {
             user_id: userId,
             message: trimmed,
             is_admin_reply: true,
-            admin_id: user!.id,
+            admin_id: adminUser.id,
         });
 
     if (insertError) return { error: insertError.message };

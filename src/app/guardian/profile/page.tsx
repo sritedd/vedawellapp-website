@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
@@ -28,6 +28,14 @@ export default function ProfilePage() {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [passwordMessage, setPasswordMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
     const [changingPassword, setChangingPassword] = useState(false);
+
+    // Data export & account deletion
+    const [exporting, setExporting] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deleteConfirmEmail, setDeleteConfirmEmail] = useState("");
+    const [deleting, setDeleting] = useState(false);
+    const [deleteError, setDeleteError] = useState<string | null>(null);
+    const deleteInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         loadProfile();
@@ -148,6 +156,57 @@ export default function ProfilePage() {
         const supabase = createClient();
         await supabase.auth.signOut();
         window.location.href = "/guardian/login";
+    };
+
+    const handleExportData = async () => {
+        setExporting(true);
+        try {
+            const res = await fetch("/api/guardian/export-data");
+            if (!res.ok) {
+                throw new Error("Export failed");
+            }
+            const data = await res.json();
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `guardian-data-export-${new Date().toISOString().split("T")[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } catch {
+            alert("Failed to export data. Please try again.");
+        } finally {
+            setExporting(false);
+        }
+    };
+
+    const handleDeleteAccount = async () => {
+        if (deleteConfirmEmail !== profile?.email) {
+            setDeleteError("Email does not match your account email.");
+            return;
+        }
+        setDeleting(true);
+        setDeleteError(null);
+        try {
+            const res = await fetch("/api/guardian/delete-account", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ confirmEmail: deleteConfirmEmail }),
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                setDeleteError(data.error || "Deletion failed");
+                setDeleting(false);
+                return;
+            }
+            // Redirect to login with message
+            window.location.href = "/guardian/login?deleted=1";
+        } catch {
+            setDeleteError("Failed to delete account. Please try again.");
+            setDeleting(false);
+        }
     };
 
     if (loading) {
@@ -378,7 +437,87 @@ export default function ProfilePage() {
                     )}
                 </div>
 
-                {/* Danger Zone */}
+                {/* Your Data */}
+                <div className="card mb-6">
+                    <h3 className="font-semibold mb-2">Your Data</h3>
+                    <p className="text-sm text-muted mb-4">
+                        Download a copy of all your data or permanently delete your account.
+                    </p>
+                    <div className="flex flex-wrap gap-3">
+                        <button
+                            onClick={handleExportData}
+                            disabled={exporting}
+                            className="btn-primary disabled:opacity-50 flex items-center gap-2 text-sm"
+                        >
+                            {exporting && (
+                                <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            )}
+                            {exporting ? "Preparing..." : "Download My Data"}
+                        </button>
+                        <button
+                            onClick={() => {
+                                setShowDeleteModal(true);
+                                setDeleteConfirmEmail("");
+                                setDeleteError(null);
+                                setTimeout(() => deleteInputRef.current?.focus(), 100);
+                            }}
+                            className="px-4 py-2 rounded-lg border border-danger/30 text-danger text-sm hover:bg-danger/10 transition-colors"
+                        >
+                            Delete Account
+                        </button>
+                    </div>
+                </div>
+
+                {/* Delete Account Confirmation Modal */}
+                {showDeleteModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+                        <div className="bg-card border border-border rounded-xl shadow-xl max-w-md w-full p-6">
+                            <h3 className="text-lg font-bold text-danger mb-2">Delete Account</h3>
+                            <p className="text-sm text-muted mb-4">
+                                This action is <strong>permanent and irreversible</strong>. All your projects,
+                                defects, documents, photos, and account data will be permanently deleted.
+                            </p>
+                            <p className="text-sm mb-4">
+                                We recommend downloading your data first. To confirm, type your email address below:
+                            </p>
+                            <p className="text-xs text-muted mb-2 font-mono">{profile?.email}</p>
+                            <input
+                                ref={deleteInputRef}
+                                type="email"
+                                value={deleteConfirmEmail}
+                                onChange={(e) => setDeleteConfirmEmail(e.target.value)}
+                                className="w-full px-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-danger mb-4"
+                                placeholder="Type your email to confirm"
+                            />
+                            {deleteError && (
+                                <div className="p-3 rounded-lg text-sm bg-danger/10 text-danger border border-danger/20 mb-4">
+                                    {deleteError}
+                                </div>
+                            )}
+                            <div className="flex gap-3 justify-end">
+                                <button
+                                    onClick={() => setShowDeleteModal(false)}
+                                    disabled={deleting}
+                                    className="px-4 py-2 rounded-lg border border-border text-sm hover:bg-muted/10 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleDeleteAccount}
+                                    disabled={deleting || deleteConfirmEmail !== profile?.email}
+                                    className="px-4 py-2 rounded-lg bg-danger text-white text-sm hover:bg-danger/90 disabled:opacity-50 flex items-center gap-2 transition-colors"
+                                >
+                                    {deleting && (
+                                        <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    )}
+                                    {deleting ? "Deleting..." : "Permanently Delete"}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Sign Out */}
                 <div className="card border-danger/20">
                     <h3 className="font-semibold text-danger mb-2">Sign Out</h3>
                     <p className="text-sm text-muted mb-4">

@@ -83,6 +83,11 @@ export async function POST(req: NextRequest) {
 
     const supabase = getServiceSupabase();
 
+    // Guardian Pro price IDs — only these prices grant guardian_pro tier
+    const GUARDIAN_PRO_PRICE_IDS = new Set(
+        [process.env.STRIPE_MONTHLY_PRICE_ID, process.env.STRIPE_YEARLY_PRICE_ID].filter(Boolean)
+    );
+
     switch (event.type) {
         // ─── Payment completed: activate subscription ───────────────
         case "checkout.session.completed": {
@@ -106,6 +111,22 @@ export async function POST(req: NextRequest) {
                 if (session.customer_email && existingProfile.email &&
                     session.customer_email.toLowerCase() !== existingProfile.email.toLowerCase()) {
                     console.error(`[Stripe] checkout.session.completed: email mismatch — session=${session.customer_email}, profile=${existingProfile.email}, user_id=${userId}`);
+                    break;
+                }
+
+                // Verify the purchased price is actually a Guardian Pro price
+                // Retrieve the line items from the session to check the price ID
+                const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { limit: 5 });
+                const purchasedPriceIds = lineItems.data.map((li) => li.price?.id).filter(Boolean);
+                const isGuardianPro = purchasedPriceIds.some((pid) => pid && GUARDIAN_PRO_PRICE_IDS.has(pid));
+
+                if (!isGuardianPro) {
+                    console.error(`[Stripe] checkout.session.completed: purchased price(s) [${purchasedPriceIds.join(",")}] not in GUARDIAN_PRO_PRICE_IDS — skipping tier upgrade for user=${userId}`);
+                    // Still save stripe_customer_id for future lookups
+                    await supabase
+                        .from("profiles")
+                        .update({ stripe_customer_id: session.customer as string })
+                        .eq("id", userId);
                     break;
                 }
 

@@ -15,12 +15,13 @@ import { createServerClient } from "@supabase/ssr";
  *
  * SECURITY: Secret must be in Authorization header, NOT query string (prevents logging/caching exposure)
  */
-export async function GET(req: NextRequest) {
+export async function POST(req: NextRequest) {
     // Verify authorization via header (never query string — secrets in URLs get logged)
     const authHeader = req.headers.get("authorization");
     const cronSecret = process.env.CRON_SECRET;
 
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+    // Fail-closed: if CRON_SECRET is not configured, reject all requests
+    if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

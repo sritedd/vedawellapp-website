@@ -369,6 +369,10 @@ payments, ai_cache, knowledge_base
 - ⬜ `schema_v24_contract_builder_reviews.sql` — contract_review_items + builder_reviews tables (NEEDS TO BE RUN)
 - ⬜ `schema_v25_email_verification.sql` — email_verified_override column (NEEDS TO BE RUN)
 - ⬜ `schema_v26_security_hardening.sql` — RLS restricting sensitive profile columns (NEEDS TO BE RUN)
+- ⬜ `schema_v27_identity_verified.sql` — identity_verified columns + storage RLS path policies (NEEDS TO BE RUN)
+- ⬜ `schema_v28_defect_sla.sql` — Defect SLA tracking: reported_at, escalation_level, sla_days columns (NEEDS TO BE RUN)
+- ⬜ `schema_v29_account_deletion.sql` — account_deletion_log table (NEEDS TO BE RUN)
+- ⬜ `schema_v30_ai_conversations.sql` — ai_conversations table with RLS + trigger (NEEDS TO BE RUN)
 
 ---
 

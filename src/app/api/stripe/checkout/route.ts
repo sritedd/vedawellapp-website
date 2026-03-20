@@ -18,10 +18,16 @@ export async function POST(req: NextRequest) {
         const { priceId } = await req.json();
 
         // Allowlist of valid price IDs — prevents billing bypass via arbitrary priceId
+        // Fail-closed: if env vars not set, no price IDs are valid
         const ALLOWED_PRICE_IDS = [
-            process.env.STRIPE_MONTHLY_PRICE_ID || "price_1T4zHCGrwDXNt9f4x4O2MxlZ",
-            // Add yearly price ID here when created
+            process.env.STRIPE_MONTHLY_PRICE_ID,
+            process.env.STRIPE_YEARLY_PRICE_ID,
         ].filter(Boolean);
+
+        if (ALLOWED_PRICE_IDS.length === 0) {
+            console.error("[Stripe] No STRIPE_MONTHLY_PRICE_ID or STRIPE_YEARLY_PRICE_ID configured");
+            return NextResponse.json({ error: "Payment not configured" }, { status: 500 });
+        }
 
         if (!priceId || !ALLOWED_PRICE_IDS.includes(priceId)) {
             return NextResponse.json({ error: "Invalid price ID" }, { status: 400 });

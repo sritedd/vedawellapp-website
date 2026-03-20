@@ -24,18 +24,19 @@ export default function PhoneVerificationGate({ onVerified }: Props) {
 
             const { data: profile } = await supabase
                 .from("profiles")
-                .select("phone, phone_verified, is_admin, subscription_tier")
+                .select("phone, phone_verified, identity_verified, is_admin, subscription_tier")
                 .eq("id", user.id)
                 .single();
 
-            // Admins and Pro users skip phone verification
+            // Admins and Pro users skip verification
             if (profile?.is_admin || profile?.subscription_tier === "guardian_pro") {
                 setStep("verified");
                 onVerified();
                 return;
             }
 
-            if (profile?.phone_verified) {
+            // Accept either identity_verified (email OTP) or phone_verified (legacy/SMS)
+            if (profile?.identity_verified || profile?.phone_verified) {
                 setStep("verified");
                 onVerified();
             } else if (profile?.phone) {

@@ -109,7 +109,7 @@ export async function POST(req: NextRequest) {
             // Atomic increment: use current value as condition to prevent lost updates
             await supabase
                 .from("profiles")
-                .update({ referral_count: (profile.referral_count || 0) + 1 })
+                .update({ referral_count: (profile.referral_count || 0) + 1 }, { count: "exact" })
                 .eq("id", referrerUserId)
                 .eq("referral_count", profile.referral_count || 0);
 
@@ -133,11 +133,14 @@ export async function POST(req: NextRequest) {
         // Atomic update: condition on current referral_count to prevent race condition overwrites
         const { error: updateError, count: updatedCount } = await supabase
             .from("profiles")
-            .update({
-                subscription_tier: "trial",
-                trial_ends_at: newTrialEnd.toISOString(),
-                referral_count: (profile.referral_count || 0) + 1,
-            })
+            .update(
+                {
+                    subscription_tier: "trial",
+                    trial_ends_at: newTrialEnd.toISOString(),
+                    referral_count: (profile.referral_count || 0) + 1,
+                },
+                { count: "exact" }
+            )
             .eq("id", referrerUserId)
             .eq("referral_count", profile.referral_count || 0);
 

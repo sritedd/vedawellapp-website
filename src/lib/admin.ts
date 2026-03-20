@@ -1,16 +1,12 @@
-/** Admin email allowlist — reads from ADMIN_EMAILS env var, falls back to hardcoded defaults */
-
-const DEFAULT_ADMIN_EMAILS = [
-    "sridhar.kothandam@gmail.com",
-    "sridharkothandan@vedawellapp.com",
-];
+/** Admin email allowlist — reads from ADMIN_EMAILS env var (required) */
 
 function getAdminEmails(): string[] {
     const envEmails = process.env.ADMIN_EMAILS;
-    if (envEmails) {
-        return envEmails.split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
+    if (!envEmails) {
+        console.error("[Admin] ADMIN_EMAILS env var is not set — no admin access possible");
+        return [];
     }
-    return DEFAULT_ADMIN_EMAILS;
+    return envEmails.split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
 }
 
 export function isAdminEmail(email: string | undefined | null): boolean {

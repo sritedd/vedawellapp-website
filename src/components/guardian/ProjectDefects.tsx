@@ -9,6 +9,7 @@ import {
     Defect as UtilDefect,
 } from "@/lib/guardian/calculations";
 import AIDefectAssist from "@/components/guardian/AIDefectAssist";
+import DefectAgingBadge from "@/components/guardian/DefectAgingBadge";
 import type { DefectAnalysis } from "@/lib/ai/prompts";
 
 interface Defect {
@@ -29,6 +30,8 @@ interface Defect {
     homeowner_notes?: string | null;
     reminder_count: number;
     created_at: string;
+    reported_at?: string | null;
+    escalation_level?: string;
 }
 
 interface ProjectDefectsProps {
@@ -121,6 +124,8 @@ export default function ProjectDefects({ projectId, stages, builderEmail, onData
                     homeowner_notes: d.homeowner_notes as string | null,
                     reminder_count: (d.reminder_count as number) || 0,
                     created_at: d.created_at as string,
+                    reported_at: (d.reported_at as string) || (d.created_at as string) || null,
+                    escalation_level: (d.escalation_level as string) || "none",
                 }));
                 setDefects(mapped);
             }
@@ -625,6 +630,11 @@ export default function ProjectDefects({ projectId, stages, builderEmail, onData
                                         <span className={`px-2 py-0.5 rounded text-xs font-medium ${status.color}`}>
                                             {status.label}
                                         </span>
+                                        <DefectAgingBadge
+                                            reportedAt={defect.reported_at || defect.created_at}
+                                            status={defect.status}
+                                            escalationLevel={defect.escalation_level}
+                                        />
                                     </div>
                                 </div>
 

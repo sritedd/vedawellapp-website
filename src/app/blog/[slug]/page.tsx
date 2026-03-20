@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BLOG_POSTS } from "@/data/blog/posts";
+import FallbackImage from "@/components/ui/FallbackImage";
 
 export function generateStaticParams() {
     return BLOG_POSTS.map((post) => ({ slug: post.slug }));
@@ -48,80 +49,101 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-950">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 selection:bg-indigo-500/30 font-sans">
             <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-            {/* Header bar */}
-            <div className="border-b border-gray-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
-                <div className="max-w-3xl mx-auto px-6 py-4">
-                    <Link href="/blog" className="inline-flex items-center gap-1 text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium transition-colors">
-                        <span aria-hidden="true">←</span> All Articles
+            {/* Premium Header */}
+            <header className="relative pt-24 pb-16 lg:pt-32 lg:pb-24 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden">
+                {/* Background ambient light */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-64 bg-indigo-500/5 dark:bg-indigo-500/10 blur-[100px] rounded-full pointer-events-none" />
+                
+                <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
+                    <Link href="/blog" className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-sm font-semibold mb-10 group">
+                        <svg className="w-4 h-4 transform group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                        Back to articles
                     </Link>
-                </div>
-            </div>
 
-            <article className="max-w-3xl mx-auto px-6 py-10">
-                {/* Meta */}
-                <div className="flex flex-wrap items-center gap-3 text-sm mb-5">
-                    <span className="px-3 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full text-xs font-semibold">
-                        {post.category}
-                    </span>
-                    <time className="text-gray-500 dark:text-gray-400">
-                        {new Date(post.date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
-                    </time>
-                    <span className="text-gray-300 dark:text-gray-600">|</span>
-                    <span className="text-gray-500 dark:text-gray-400">{post.readTime}</span>
-                </div>
+                    <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-sm font-medium mb-8">
+                        <span className="px-3 py-1 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 rounded-lg uppercase tracking-wider text-xs font-bold border border-indigo-100 dark:border-indigo-500/20">
+                            {post.category}
+                        </span>
+                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                            <time dateTime={post.date}>
+                                {new Date(post.date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                            </time>
+                        </div>
+                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <span>{post.readTime}</span>
+                        </div>
+                    </div>
 
-                {/* Title */}
-                <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white mb-3 leading-tight">
-                    {post.title}
-                </h1>
+                    <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 dark:text-white leading-[1.1] mb-8 tracking-tight">
+                        {post.title}
+                    </h1>
 
-                {/* Description as subtitle */}
-                <p className="text-lg text-gray-500 dark:text-gray-400 mb-8 leading-relaxed">
-                    {post.description}
-                </p>
-
-                <div className="mb-8 rounded-2xl border border-cyan-200 dark:border-cyan-900/40 bg-gradient-to-r from-cyan-50 to-indigo-50 dark:from-slate-800 dark:to-indigo-950/40 p-5">
-                    <p className="text-xs font-bold uppercase tracking-wider text-cyan-700 dark:text-cyan-300 mb-2">AI Enabled</p>
-                    <h2 className="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white mb-2">
-                        Guardian AI now supports every build stage
-                    </h2>
-                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                        Use AI Defect Assist, AI Stage Advice, Builder Check AI, and Guardian Chat to turn construction uncertainty into clear next actions.
+                    <p className="text-xl sm:text-2xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto leading-relaxed font-light mb-12">
+                        {post.description}
                     </p>
-                    <div className="flex flex-wrap gap-2">
-                        <Link href="/guardian" className="px-4 py-2 bg-cyan-600 text-white rounded-lg text-sm font-bold hover:bg-cyan-500 transition-colors">
-                            Open Guardian AI
-                        </Link>
-                        <Link href="/guardian/login?view=sign-up" className="px-4 py-2 border border-cyan-300 dark:border-cyan-700 text-cyan-700 dark:text-cyan-300 rounded-lg text-sm font-semibold hover:bg-cyan-100/70 dark:hover:bg-cyan-900/30 transition-colors">
-                            Start Free
-                        </Link>
+                </div>
+                
+                {/* Hero Image / Thumbnail */}
+                <div className="relative max-w-5xl mx-auto px-6 mt-8 z-20">
+                    <div className="w-full h-64 sm:h-96 lg:h-[500px] rounded-3xl overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800">
+                        <FallbackImage src={post.image} alt={post.title} className="w-full h-full object-cover" />
+                    </div>
+                </div>
+            </header>
+
+            <main className="max-w-3xl mx-auto px-6 py-16 lg:py-24 mt-4 lg:mt-10">
+                {/* Promo Callout */}
+                <div className="mb-14 rounded-3xl border border-teal-200 dark:border-teal-900/50 bg-gradient-to-br from-teal-50 to-white dark:from-slate-800 dark:to-slate-900 p-8 sm:p-10 shadow-sm relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-teal-400/10 rounded-full blur-[80px]" />
+                    <div className="relative z-10">
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-teal-100 dark:bg-teal-900/50 text-teal-800 dark:text-teal-300 text-xs font-bold uppercase tracking-wider mb-5">
+                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                            AI Enabled
+                        </div>
+                        <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mb-4 tracking-tight">
+                            Guardian AI now supports every build stage
+                        </h2>
+                        <p className="text-lg text-slate-600 dark:text-slate-300 mb-8 leading-relaxed max-w-2xl">
+                            Use AI Defect Assist, Stage Advice, Builder Check AI, and Guardian Chat to turn construction uncertainty into clear next actions.
+                        </p>
+                        <div className="flex flex-wrap gap-4">
+                            <Link href="/guardian" className="px-6 py-3 bg-teal-600 hover:bg-teal-500 text-white rounded-xl font-bold transition-all shadow-sm hover:shadow-md flex items-center gap-2">
+                                Open Guardian AI
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                            </Link>
+                            <Link href="/guardian/login?view=sign-up" className="px-6 py-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
+                                Start Free Trial
+                            </Link>
+                        </div>
                     </div>
                 </div>
 
-                {/* Divider */}
-                <div className="h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-slate-700 to-transparent mb-10" />
-
-                {/* Content */}
-                <div
+                {/* Article Content */}
+                <article
                     className="blog-content max-w-none"
                     dangerouslySetInnerHTML={{ __html: post.content }}
                 />
 
+                <hr className="my-16 border-slate-200 dark:border-slate-800" />
+
                 {/* Related Tools */}
                 {post.relatedTools.length > 0 && (
-                    <div className="mt-12 p-6 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl border border-indigo-100 dark:border-indigo-800">
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Try These Free Tools</h3>
-                        <div className="flex flex-wrap gap-2">
+                    <div className="mb-16 p-8 bg-indigo-50/50 dark:bg-indigo-500/5 rounded-3xl border border-indigo-100 dark:border-indigo-500/10">
+                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Explore Free Tools</h3>
+                        <div className="flex flex-wrap gap-3">
                             {post.relatedTools.map((tool) => (
                                 <Link
                                     key={tool}
                                     href={`/tools/${tool}`}
-                                    className="px-4 py-2 bg-white dark:bg-slate-800 text-indigo-700 dark:text-indigo-300 rounded-lg shadow-sm hover:shadow-md transition-shadow font-medium text-sm border border-indigo-100 dark:border-slate-700"
+                                    className="px-5 py-3 bg-white dark:bg-slate-800 text-indigo-700 dark:text-indigo-400 rounded-xl shadow-sm hover:shadow-md transition-all font-semibold border border-slate-200 dark:border-slate-700 flex items-center gap-2 group"
                                 >
-                                    {tool.split("-").map(w => w[0].toUpperCase() + w.slice(1)).join(" ")} →
+                                    {tool.split("-").map(w => w[0].toUpperCase() + w.slice(1)).join(" ")}
+                                    <span className="transform group-hover:translate-x-1 transition-transform border border-indigo-200 dark:border-indigo-800 rounded-full w-6 h-6 flex items-center justify-center text-xs bg-indigo-50 dark:bg-indigo-900/50">&rarr;</span>
                                 </Link>
                             ))}
                         </div>
@@ -129,41 +151,53 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                 )}
 
                 {/* Prev/Next Navigation */}
-                <div className="mt-12 grid sm:grid-cols-2 gap-4">
+                <div className="grid sm:grid-cols-2 gap-6">
                     {prevPost ? (
-                        <Link href={`/blog/${prevPost.slug}`} className="group p-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-600 transition-colors">
-                            <span className="text-xs text-gray-400 dark:text-gray-500 uppercase font-medium">Previous</span>
-                            <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-2">
-                                ← {prevPost.title}
-                            </p>
+                        <Link href={`/blog/${prevPost.slug}`} className="group p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-500 transition-all hover:shadow-lg flex flex-col items-start text-left">
+                            <span className="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider mb-2 flex items-center gap-1 group-hover:text-indigo-500 transition-colors">
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                                Previous
+                            </span>
+                            <span className="text-lg font-bold text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-2 leading-snug">
+                                {prevPost.title}
+                            </span>
                         </Link>
                     ) : <div />}
                     {nextPost && (
-                        <Link href={`/blog/${nextPost.slug}`} className="group p-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-600 transition-colors text-right">
-                            <span className="text-xs text-gray-400 dark:text-gray-500 uppercase font-medium">Next</span>
-                            <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-2">
-                                {nextPost.title} →
-                            </p>
+                        <Link href={`/blog/${nextPost.slug}`} className="group p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-500 transition-all hover:shadow-lg flex flex-col items-end text-right">
+                            <span className="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider mb-2 flex items-center gap-1 group-hover:text-indigo-500 transition-colors">
+                                Next
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                            </span>
+                            <span className="text-lg font-bold text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-2 leading-snug">
+                                {nextPost.title}
+                            </span>
                         </Link>
                     )}
                 </div>
 
-                {/* CTA */}
-                <div className="mt-12 bg-gradient-to-br from-teal-600 to-teal-800 rounded-2xl p-8 text-center text-white">
-                    <h3 className="text-xl font-bold mb-2">Building a Home in Australia?</h3>
-                    <p className="text-teal-100 mb-5 max-w-lg mx-auto">
-                        HomeOwner Guardian helps you track construction, catch defects early, and protect your investment.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                        <Link href="/guardian" className="px-5 py-2.5 bg-white text-teal-700 rounded-lg font-bold hover:bg-teal-50 transition-colors text-sm">
-                            Start Free Trial →
-                        </Link>
-                        <Link href="/tools" className="px-5 py-2.5 bg-teal-700/50 text-white rounded-lg font-semibold border border-teal-500 hover:bg-teal-700 transition-colors text-sm">
-                            90+ Free Tools
-                        </Link>
+                {/* Bottom CTA */}
+                <div className="mt-20 relative overflow-hidden bg-slate-900 dark:bg-slate-950 rounded-[2.5rem] border border-slate-800 p-10 sm:p-14 text-center text-white">
+                    <div className="absolute inset-0 bg-[url('/noise.png')] opacity-10 mix-blend-overlay"></div>
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-teal-500/10 blur-[100px] pointer-events-none" />
+                    
+                    <div className="relative z-10">
+                        <h3 className="text-3xl sm:text-4xl font-extrabold mb-4 tracking-tight">Building a Home in Australia?</h3>
+                        <p className="text-slate-300 text-lg sm:text-xl mb-8 max-w-xl mx-auto font-light leading-relaxed">
+                            HomeOwner Guardian helps you track construction, catch defects early, and protect your investment with AI.
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                            <Link href="/guardian" className="px-8 py-4 bg-teal-500 hover:bg-teal-400 text-slate-900 rounded-xl font-bold transition-all hover:scale-105 shadow-[0_0_20px_rgba(20,184,166,0.3)] flex items-center justify-center gap-2">
+                                Start Free Trial
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                            </Link>
+                            <Link href="/guardian/login" className="px-8 py-4 bg-white/10 border border-white/20 hover:bg-white/20 text-white rounded-xl font-semibold transition-all backdrop-blur-sm">
+                                Log In to Guardian
+                            </Link>
+                        </div>
                     </div>
                 </div>
-            </article>
+            </main>
         </div>
     );
 }

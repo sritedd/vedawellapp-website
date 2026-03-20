@@ -19,11 +19,12 @@ function getServiceSupabase() {
  * Protected by CRON_SECRET. Call weekly via cron or Netlify scheduled function.
  * Requires RESEND_API_KEY env var.
  */
-export async function GET(req: NextRequest) {
+export async function POST(req: NextRequest) {
     // SECURITY: Secret in Authorization header, not query string
     const authHeader = req.headers.get("authorization");
     const cronSecret = process.env.CRON_SECRET;
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+    // Fail-closed: if CRON_SECRET is not configured, reject all requests
+    if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

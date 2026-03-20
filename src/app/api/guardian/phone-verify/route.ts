@@ -235,14 +235,14 @@ export async function POST(request: NextRequest) {
                 );
             }
 
-            // Success — mark as verified
-            // Note: Currently email-based OTP, so this verifies identity, not phone ownership.
-            // When Twilio SMS is integrated, this will verify actual phone ownership.
+            // Success — mark identity as verified via email OTP.
+            // phone_verified remains false until real SMS verification is integrated.
+            // identity_verified tracks that the user completed an OTP challenge (email-based).
             await serviceSupabase
                 .from("profiles")
                 .update({
-                    phone_verified: true,
-                    phone_verified_at: new Date().toISOString(),
+                    identity_verified: true,
+                    identity_verified_at: new Date().toISOString(),
                     phone_otp_hash: null,
                     phone_otp_expires_at: null,
                     phone_otp_attempts: 0,
@@ -251,7 +251,7 @@ export async function POST(request: NextRequest) {
 
             return NextResponse.json({
                 success: true,
-                message: "Phone verified successfully!",
+                message: "Identity verified successfully!",
             });
         }
 

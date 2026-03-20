@@ -18,9 +18,8 @@ function getSupabase() {
 function getSupabaseAdmin() {
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     if (!serviceKey) {
-        // AI cache is non-critical — fall back to anon client (reads may fail due to RLS, that's OK)
-        console.warn("[AI Cache] SUPABASE_SERVICE_ROLE_KEY not set, cache writes may fail");
-        return getSupabase();
+        // Fail-closed: cache writes require service-role key
+        return null;
     }
     return createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -60,6 +59,8 @@ export async function getCached<T>(key: string): Promise<T | null> {
 export async function setCache(key: string, response: unknown, ttlSeconds: number = 86400, model: string = "gemini-2.5-flash-lite"): Promise<void> {
     try {
         const supabase = getSupabaseAdmin();
+        if (!supabase) return; // Service key not configured — skip caching silently
+
         const expiresAt = new Date(Date.now() + ttlSeconds * 1000).toISOString();
 
         await supabase

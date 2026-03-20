@@ -122,6 +122,36 @@
             "planningPortal": "PlanSA",
             "planningPortalUrl": "https://plan.sa.gov.au",
             "notes": "7-star NatHERS mandatory from Oct 2024"
+        },
+        {
+            "code": "TAS",
+            "name": "Tasmania",
+            "regulator": "Consumer, Building and Occupational Services (CBOS)",
+            "regulatorUrl": "https://www.cbos.tas.gov.au",
+            "insuranceScheme": "Home Warranty Insurance (via private insurers)",
+            "insuranceThreshold": 20000,
+            "warrantyPeriods": { "structural": 6, "nonStructural": 2 },
+            "approvalAuthorities": ["Building Surveyor", "Local Council"]
+        },
+        {
+            "code": "ACT",
+            "name": "Australian Capital Territory",
+            "regulator": "Access Canberra (Building)",
+            "regulatorUrl": "https://www.accesscanberra.act.gov.au",
+            "insuranceScheme": "Fidelity Fund (mandatory for work >$12,000)",
+            "insuranceThreshold": 12000,
+            "warrantyPeriods": { "structural": 6, "nonStructural": 2 },
+            "approvalAuthorities": ["Private Certifier", "ACTPLA"]
+        },
+        {
+            "code": "NT",
+            "name": "Northern Territory",
+            "regulator": "NT Building Advisory Services",
+            "regulatorUrl": "https://nt.gov.au/property/building",
+            "insuranceScheme": "Home Building Certification Fund",
+            "insuranceThreshold": 12000,
+            "warrantyPeriods": { "structural": 6, "nonStructural": 1 },
+            "approvalAuthorities": ["Building Certifier", "Local Council"]
         }
     ],
     "workflows": {
@@ -760,6 +790,656 @@
                         ]
                     }
                 ]
+            },
+            "SA": {
+                "approvalPathways": [
+                    {
+                        "id": "planning_consent",
+                        "name": "Planning Consent (PlanSA)",
+                        "avgDays": "4-8 weeks",
+                        "suitableFor": "All new residential builds requiring planning approval",
+                        "documents": [
+                            "Site Plan and Architectural Drawings",
+                            "Certificate of Title",
+                            "Energy Efficiency Report (NatHERS 7-star)",
+                            "Soil Classification Report"
+                        ],
+                        "approvalBody": "PlanSA / Local Council",
+                        "postApproval": "Requires separate Building Rules Consent from building certifier"
+                    },
+                    {
+                        "id": "building_rules_consent",
+                        "name": "Building Rules Consent",
+                        "avgDays": "10-20 business days",
+                        "suitableFor": "Required after planning consent for all new builds",
+                        "documents": [
+                            "Approved Planning Consent",
+                            "Building Plans (to NCC/BCA)",
+                            "Structural Engineering",
+                            "Energy Efficiency Report (NatHERS 7-star)",
+                            "Builder's Indemnity Insurance Certificate"
+                        ],
+                        "approvalBody": "Private Certifier or Council"
+                    }
+                ],
+                "insurance": {
+                    "mandatory": true,
+                    "threshold": 12000,
+                    "structuralPeriod": "5 years",
+                    "nonStructuralPeriod": "1 year from completion"
+                },
+                "stages": [
+                    {
+                        "id": "site_start",
+                        "name": "Site Start",
+                        "description": "Site preparation, excavation, and foundation works begin",
+                        "paymentMilestone": "Deposit (max 5%)",
+                        "inspections": [
+                            "Site Set-out"
+                        ],
+                        "certificates": [],
+                        "dodgyBuilderWarnings": [
+                            "🚨 Builder starting without Builder's Indemnity Insurance (mandatory for work >$12,000 in SA)",
+                            "🚨 Deposit exceeds 5% — illegal under SA Building Work Contractors Act",
+                            "🚨 No Building Rules Consent obtained before starting work"
+                        ]
+                    },
+                    {
+                        "id": "slab",
+                        "name": "Base / Slab",
+                        "description": "Foundation slab or strip footings poured — mandatory inspections before pour",
+                        "paymentMilestone": "Base Stage (10%)",
+                        "inspections": [
+                            "Footings/Reinforcement Inspection (BEFORE pour)",
+                            "Plumbing Rough-in"
+                        ],
+                        "certificates": [
+                            "Plumbing Rough-in Certificate"
+                        ],
+                        "dodgyBuilderWarnings": [
+                            "🚨🚨 Concrete poured BEFORE inspection — MAJOR RED FLAG",
+                            "🚨 Weekend pour to avoid inspector",
+                            "🚨 No notification to building certifier before pour"
+                        ]
+                    },
+                    {
+                        "id": "frame",
+                        "name": "Frame Stage",
+                        "description": "Wall frames, roof trusses, and structural steel erected",
+                        "paymentMilestone": "Frame Stage (15%)",
+                        "inspections": [
+                            "Frame Inspection (mandatory)"
+                        ],
+                        "certificates": [
+                            "Frame Inspection Certificate",
+                            "Truss Engineering Certificate"
+                        ],
+                        "dodgyBuilderWarnings": [
+                            "🚨 Cladding started before frame inspection",
+                            "🚨 Window openings don't match approved plans",
+                            "🚨 Damaged or twisted timber in frames"
+                        ]
+                    },
+                    {
+                        "id": "lockup",
+                        "name": "Lockup Stage",
+                        "description": "Roof complete, external walls clad, windows and doors installed, building weatherproof",
+                        "paymentMilestone": "Lockup Stage (35%)",
+                        "inspections": [
+                            "Waterproofing (wet areas)",
+                            "Pre-Cladding (if applicable)"
+                        ],
+                        "certificates": [
+                            "EICC (Electrical Rough-in)"
+                        ],
+                        "dodgyBuilderWarnings": [
+                            "🚨 Demanding lockup payment without EICC certificate",
+                            "🚨 Windows not sealed properly — check for gaps",
+                            "🚨 No termite protection system installed"
+                        ]
+                    },
+                    {
+                        "id": "fixing",
+                        "name": "Fixing Stage",
+                        "description": "Internal fit-out: plasterboard, tiling, cabinetry, second fix electrical/plumbing",
+                        "paymentMilestone": "Fixing Stage (25%)",
+                        "inspections": [
+                            "Waterproofing (before tiling)"
+                        ],
+                        "certificates": [
+                            "Waterproofing Warranty Certificate"
+                        ],
+                        "dodgyBuilderWarnings": [
+                            "🚨 Tiles installed before waterproofing certified",
+                            "🚨 Cabinet quality lower than spec in contract",
+                            "🚨🚨 Missing ceiling insulation batts — common defect"
+                        ]
+                    },
+                    {
+                        "id": "practical_completion",
+                        "name": "Practical Completion",
+                        "description": "Build complete, ready for final inspection and Certificate of Occupancy",
+                        "paymentMilestone": "Final Stage (10%)",
+                        "inspections": [
+                            "Final Inspection (mandatory)"
+                        ],
+                        "certificates": [
+                            "Certificate of Occupancy",
+                            "EICC (Final)",
+                            "Plumbing Final Certificate",
+                            "Gas Compliance Certificate (if applicable)",
+                            "Smoke Alarm Certificate",
+                            "Termite Protection Certificate"
+                        ],
+                        "dodgyBuilderWarnings": [
+                            "🚨🚨 Demanding final payment without Certificate of Occupancy — do NOT pay",
+                            "🚨 'Sign here and we'll fix defects later' — NEVER DO THIS",
+                            "🚨 Missing any mandatory certificates at handover",
+                            "🚨 Lodge complaint with SACAT if builder refuses to rectify defects"
+                        ]
+                    },
+                    {
+                        "id": "warranty",
+                        "name": "Warranty Period",
+                        "description": "5 years structural, 1 year non-structural (SA Building Work Contractors Act)",
+                        "paymentMilestone": null,
+                        "inspections": [
+                            "6-month inspection (recommended)",
+                            "12-month inspection (recommended)"
+                        ],
+                        "yourRights": [
+                            "1-year warranty for non-structural defects",
+                            "5-year warranty for major structural defects",
+                            "Builder's Indemnity Insurance covers builder insolvency, death, or disappearance",
+                            "Mandatory for residential work >$12,000",
+                            "Lodge disputes with SACAT (South Australian Civil and Administrative Tribunal)"
+                        ]
+                    }
+                ]
+            },
+            "TAS": {
+                "approvalPathways": [
+                    {
+                        "id": "planning_permit",
+                        "name": "Planning Permit (Council)",
+                        "avgDays": "4-8 weeks",
+                        "suitableFor": "All new residential builds requiring planning approval",
+                        "documents": [
+                            "Site Plan and Architectural Drawings",
+                            "Certificate of Title",
+                            "Bushfire Assessment (if applicable)",
+                            "Heritage Assessment (if applicable)"
+                        ],
+                        "approvalBody": "Local Council",
+                        "postApproval": "Requires separate Building Permit from building surveyor"
+                    },
+                    {
+                        "id": "building_permit",
+                        "name": "Building Permit",
+                        "avgDays": "10-20 business days",
+                        "suitableFor": "Required after planning permit for all new builds",
+                        "documents": [
+                            "Approved Planning Permit",
+                            "Building Plans (to NCC/BCA)",
+                            "Structural Engineering",
+                            "Energy Efficiency Report (NatHERS 7-star)",
+                            "Home Warranty Insurance Certificate",
+                            "Soil Classification Report"
+                        ],
+                        "approvalBody": "Building Surveyor"
+                    }
+                ],
+                "insurance": {
+                    "mandatory": true,
+                    "threshold": 20000,
+                    "structuralPeriod": "6 years",
+                    "nonStructuralPeriod": "2 years from completion"
+                },
+                "stages": [
+                    {
+                        "id": "site_start",
+                        "name": "Site Start",
+                        "description": "Site preparation, excavation, and foundation works begin",
+                        "paymentMilestone": "Deposit (5-10%)",
+                        "inspections": [
+                            "Site Set-out"
+                        ],
+                        "certificates": [],
+                        "dodgyBuilderWarnings": [
+                            "🚨 Builder starting without Home Warranty Insurance (mandatory for work >$20,000 in TAS)",
+                            "🚨 No Building Permit obtained before starting work",
+                            "🚨 Site excavation without soil report — potential foundation issues"
+                        ]
+                    },
+                    {
+                        "id": "slab",
+                        "name": "Base / Slab",
+                        "description": "Foundation slab or strip footings poured — mandatory inspections before pour",
+                        "paymentMilestone": "Base Stage (10%)",
+                        "inspections": [
+                            "Footings/Reinforcement Inspection (BEFORE pour)",
+                            "Plumbing Rough-in"
+                        ],
+                        "certificates": [
+                            "Plumbing Rough-in Certificate"
+                        ],
+                        "dodgyBuilderWarnings": [
+                            "🚨🚨 Concrete poured BEFORE inspection — MAJOR RED FLAG",
+                            "🚨 Weekend pour to avoid inspector",
+                            "🚨 No notification to building surveyor before pour"
+                        ]
+                    },
+                    {
+                        "id": "frame",
+                        "name": "Frame Stage",
+                        "description": "Wall frames, roof trusses, and structural steel erected",
+                        "paymentMilestone": "Frame Stage (15-20%)",
+                        "inspections": [
+                            "Frame Inspection (mandatory)"
+                        ],
+                        "certificates": [
+                            "Frame Inspection Certificate",
+                            "Truss Engineering Certificate"
+                        ],
+                        "dodgyBuilderWarnings": [
+                            "🚨 Cladding started before frame inspection",
+                            "🚨 Window openings don't match approved plans",
+                            "🚨 Damaged or twisted timber in frames"
+                        ]
+                    },
+                    {
+                        "id": "lockup",
+                        "name": "Lockup Stage",
+                        "description": "Roof complete, external walls clad, windows and doors installed, building weatherproof",
+                        "paymentMilestone": "Lockup Stage (25-35%)",
+                        "inspections": [
+                            "Waterproofing (wet areas)"
+                        ],
+                        "certificates": [
+                            "EICC (Electrical Rough-in)"
+                        ],
+                        "dodgyBuilderWarnings": [
+                            "🚨 Demanding lockup payment without EICC certificate",
+                            "🚨 Windows not sealed properly — check for gaps",
+                            "🚨 No termite protection system installed"
+                        ]
+                    },
+                    {
+                        "id": "fixing",
+                        "name": "Fixing Stage",
+                        "description": "Internal fit-out: plasterboard, tiling, cabinetry, second fix electrical/plumbing",
+                        "paymentMilestone": "Fixing Stage (20-25%)",
+                        "inspections": [
+                            "Waterproofing (before tiling)"
+                        ],
+                        "certificates": [
+                            "Waterproofing Warranty Certificate"
+                        ],
+                        "dodgyBuilderWarnings": [
+                            "🚨 Tiles installed before waterproofing certified",
+                            "🚨 Cabinet quality lower than spec in contract",
+                            "🚨🚨 Missing ceiling insulation batts — common defect"
+                        ]
+                    },
+                    {
+                        "id": "practical_completion",
+                        "name": "Practical Completion",
+                        "description": "Build complete, ready for final inspection and Certificate of Completion",
+                        "paymentMilestone": "Final Stage (5-10%)",
+                        "inspections": [
+                            "Final Inspection (mandatory)"
+                        ],
+                        "certificates": [
+                            "Certificate of Completion",
+                            "EICC (Final)",
+                            "Plumbing Final Certificate",
+                            "Smoke Alarm Certificate",
+                            "Termite Protection Certificate"
+                        ],
+                        "dodgyBuilderWarnings": [
+                            "🚨🚨 Demanding final payment without Certificate of Completion — do NOT pay",
+                            "🚨 'Sign here and we'll fix defects later' — NEVER DO THIS",
+                            "🚨 Missing any mandatory certificates at handover",
+                            "🚨 Lodge complaint with CBOS if builder refuses to rectify defects"
+                        ]
+                    },
+                    {
+                        "id": "warranty",
+                        "name": "Warranty Period",
+                        "description": "6 years structural, 2 years non-structural",
+                        "paymentMilestone": null,
+                        "inspections": [
+                            "6-month inspection (recommended)",
+                            "12-month inspection (recommended)"
+                        ],
+                        "yourRights": [
+                            "2-year warranty for non-structural defects",
+                            "6-year warranty for major structural defects",
+                            "Home Warranty Insurance covers builder insolvency, death, or disappearance",
+                            "Mandatory for residential work >$20,000",
+                            "Lodge disputes with Building and Construction Industry Disputes Tribunal"
+                        ]
+                    }
+                ]
+            },
+            "ACT": {
+                "approvalPathways": [
+                    {
+                        "id": "da",
+                        "name": "Development Application (DA)",
+                        "avgDays": "6-12 weeks",
+                        "suitableFor": "All new residential builds in the ACT",
+                        "documents": [
+                            "Site Plan and Architectural Drawings",
+                            "Statement of Effect on Neighbours",
+                            "Energy Efficiency Report (NatHERS 7-star)",
+                            "Soil Classification Report"
+                        ],
+                        "approvalBody": "ACTPLA (ACT Planning and Land Authority)",
+                        "postApproval": "Requires separate Building Approval from private certifier"
+                    },
+                    {
+                        "id": "building_approval",
+                        "name": "Building Approval",
+                        "avgDays": "10-20 business days",
+                        "suitableFor": "Required after DA approval for all new builds",
+                        "documents": [
+                            "Approved DA",
+                            "Building Plans (to NCC/BCA)",
+                            "Structural Engineering",
+                            "Energy Efficiency Report (NatHERS 7-star)",
+                            "Fidelity Fund Certificate"
+                        ],
+                        "approvalBody": "Private Certifier"
+                    }
+                ],
+                "insurance": {
+                    "mandatory": true,
+                    "threshold": 12000,
+                    "structuralPeriod": "6 years",
+                    "nonStructuralPeriod": "2 years from completion"
+                },
+                "stages": [
+                    {
+                        "id": "site_start",
+                        "name": "Site Start",
+                        "description": "Site preparation, excavation, and foundation works begin",
+                        "paymentMilestone": "Deposit (5-10%)",
+                        "inspections": [
+                            "Site Set-out"
+                        ],
+                        "certificates": [],
+                        "dodgyBuilderWarnings": [
+                            "🚨 Builder starting without Fidelity Fund coverage (mandatory for work >$12,000 in ACT)",
+                            "🚨 No Building Approval obtained before starting work",
+                            "🚨 Excavation started without site classification"
+                        ]
+                    },
+                    {
+                        "id": "slab",
+                        "name": "Base / Slab",
+                        "description": "Foundation slab or strip footings poured — mandatory inspections before pour",
+                        "paymentMilestone": "Base Stage (10%)",
+                        "inspections": [
+                            "Footings/Reinforcement Inspection (BEFORE pour)",
+                            "Plumbing Rough-in"
+                        ],
+                        "certificates": [
+                            "Plumbing Rough-in Certificate"
+                        ],
+                        "dodgyBuilderWarnings": [
+                            "🚨🚨 Concrete poured BEFORE inspection — MAJOR RED FLAG",
+                            "🚨 Weekend pour to avoid inspector",
+                            "🚨 No notification to certifier before pour"
+                        ]
+                    },
+                    {
+                        "id": "frame",
+                        "name": "Frame Stage",
+                        "description": "Wall frames, roof trusses, and structural steel erected",
+                        "paymentMilestone": "Frame Stage (15-20%)",
+                        "inspections": [
+                            "Frame Inspection (mandatory)"
+                        ],
+                        "certificates": [
+                            "Frame Inspection Certificate",
+                            "Truss Engineering Certificate"
+                        ],
+                        "dodgyBuilderWarnings": [
+                            "🚨 Cladding started before frame inspection",
+                            "🚨 Window openings don't match approved plans",
+                            "🚨 Damaged or twisted timber in frames"
+                        ]
+                    },
+                    {
+                        "id": "lockup",
+                        "name": "Lockup Stage",
+                        "description": "Roof complete, external walls clad, windows and doors installed, building weatherproof",
+                        "paymentMilestone": "Lockup Stage (25-35%)",
+                        "inspections": [
+                            "Waterproofing (wet areas)"
+                        ],
+                        "certificates": [
+                            "EICC (Electrical Rough-in)"
+                        ],
+                        "dodgyBuilderWarnings": [
+                            "🚨 Demanding lockup payment without EICC certificate",
+                            "🚨 Windows not sealed properly — check for gaps",
+                            "🚨 No termite protection system installed"
+                        ]
+                    },
+                    {
+                        "id": "fixing",
+                        "name": "Fixing Stage",
+                        "description": "Internal fit-out: plasterboard, tiling, cabinetry, second fix electrical/plumbing",
+                        "paymentMilestone": "Fixing Stage (20-25%)",
+                        "inspections": [
+                            "Waterproofing (before tiling)"
+                        ],
+                        "certificates": [
+                            "Waterproofing Warranty Certificate"
+                        ],
+                        "dodgyBuilderWarnings": [
+                            "🚨 Tiles installed before waterproofing certified",
+                            "🚨 Cabinet quality lower than spec in contract",
+                            "🚨🚨 Missing ceiling insulation batts — common defect"
+                        ]
+                    },
+                    {
+                        "id": "practical_completion",
+                        "name": "Practical Completion",
+                        "description": "Build complete, ready for final inspection and Certificate of Occupancy and Use",
+                        "paymentMilestone": "Final Stage (5-10%)",
+                        "inspections": [
+                            "Final Inspection (mandatory)"
+                        ],
+                        "certificates": [
+                            "Certificate of Occupancy and Use",
+                            "EICC (Final)",
+                            "Plumbing Final Certificate",
+                            "Gas Compliance Certificate (if applicable)",
+                            "Smoke Alarm Certificate",
+                            "Termite Protection Certificate"
+                        ],
+                        "dodgyBuilderWarnings": [
+                            "🚨🚨 Demanding final payment without Certificate of Occupancy and Use — do NOT pay",
+                            "🚨 'Sign here and we'll fix defects later' — NEVER DO THIS",
+                            "🚨 Missing any mandatory certificates at handover",
+                            "🚨 Lodge complaint with ACAT if builder refuses to rectify defects"
+                        ]
+                    },
+                    {
+                        "id": "warranty",
+                        "name": "Warranty Period",
+                        "description": "6 years structural, 2 years non-structural (Building Act 2004)",
+                        "paymentMilestone": null,
+                        "inspections": [
+                            "6-month inspection (recommended)",
+                            "12-month inspection (recommended)"
+                        ],
+                        "yourRights": [
+                            "2-year warranty for non-structural defects",
+                            "6-year warranty for major structural defects",
+                            "Fidelity Fund covers builder insolvency, death, or disappearance",
+                            "Mandatory for residential work >$12,000",
+                            "Lodge disputes with ACT Civil and Administrative Tribunal (ACAT)"
+                        ]
+                    }
+                ]
+            },
+            "NT": {
+                "approvalPathways": [
+                    {
+                        "id": "building_permit",
+                        "name": "Building Permit",
+                        "avgDays": "10-20 business days",
+                        "suitableFor": "All new residential builds in the NT",
+                        "documents": [
+                            "Building Plans (to NCC/BCA)",
+                            "Structural Engineering",
+                            "Energy Efficiency Report",
+                            "Soil Classification Report",
+                            "Home Building Certification Fund Certificate",
+                            "Cyclone compliance documentation (if applicable)"
+                        ],
+                        "approvalBody": "Building Certifier"
+                    }
+                ],
+                "insurance": {
+                    "mandatory": true,
+                    "threshold": 12000,
+                    "structuralPeriod": "6 years",
+                    "nonStructuralPeriod": "1 year from completion"
+                },
+                "stages": [
+                    {
+                        "id": "site_start",
+                        "name": "Site Start",
+                        "description": "Site preparation, excavation, and foundation works begin",
+                        "paymentMilestone": "Deposit (5-10%)",
+                        "inspections": [
+                            "Site Set-out"
+                        ],
+                        "certificates": [],
+                        "dodgyBuilderWarnings": [
+                            "🚨 Builder starting without Home Building Certification Fund coverage (mandatory for work >$12,000 in NT)",
+                            "🚨 No Building Permit obtained before starting work",
+                            "🚨 Excavation started without soil report — critical in NT conditions"
+                        ]
+                    },
+                    {
+                        "id": "slab",
+                        "name": "Base / Slab",
+                        "description": "Foundation slab or strip footings poured — mandatory inspections before pour",
+                        "paymentMilestone": "Base Stage (10%)",
+                        "inspections": [
+                            "Footings/Reinforcement Inspection (BEFORE pour)",
+                            "Plumbing Rough-in"
+                        ],
+                        "certificates": [
+                            "Plumbing Rough-in Certificate"
+                        ],
+                        "dodgyBuilderWarnings": [
+                            "🚨🚨 Concrete poured BEFORE inspection — MAJOR RED FLAG",
+                            "🚨 Weekend pour to avoid inspector",
+                            "🚨 No notification to building certifier before pour"
+                        ]
+                    },
+                    {
+                        "id": "frame",
+                        "name": "Frame Stage",
+                        "description": "Wall frames, roof trusses, and structural steel erected — cyclone tie-downs critical in NT",
+                        "paymentMilestone": "Frame Stage (15-20%)",
+                        "inspections": [
+                            "Frame Inspection (mandatory)",
+                            "Cyclone Tie-down Inspection (if applicable)"
+                        ],
+                        "certificates": [
+                            "Frame Inspection Certificate",
+                            "Truss Engineering Certificate"
+                        ],
+                        "dodgyBuilderWarnings": [
+                            "🚨 Cladding started before frame inspection",
+                            "🚨 Missing or inadequate cyclone tie-downs — critical in NT",
+                            "🚨 Damaged or twisted timber in frames"
+                        ]
+                    },
+                    {
+                        "id": "lockup",
+                        "name": "Lockup Stage",
+                        "description": "Roof complete, external walls clad, windows and doors installed, building weatherproof",
+                        "paymentMilestone": "Lockup Stage (25-35%)",
+                        "inspections": [
+                            "Waterproofing (wet areas)"
+                        ],
+                        "certificates": [
+                            "EICC (Electrical Rough-in)"
+                        ],
+                        "dodgyBuilderWarnings": [
+                            "🚨 Demanding lockup payment without EICC certificate",
+                            "🚨 Windows not sealed properly — check for gaps",
+                            "🚨 No termite protection system installed — especially critical in NT climate"
+                        ]
+                    },
+                    {
+                        "id": "fixing",
+                        "name": "Fixing Stage",
+                        "description": "Internal fit-out: plasterboard, tiling, cabinetry, second fix electrical/plumbing",
+                        "paymentMilestone": "Fixing Stage (20-25%)",
+                        "inspections": [
+                            "Waterproofing (before tiling)"
+                        ],
+                        "certificates": [
+                            "Waterproofing Warranty Certificate"
+                        ],
+                        "dodgyBuilderWarnings": [
+                            "🚨 Tiles installed before waterproofing certified",
+                            "🚨 Cabinet quality lower than spec in contract",
+                            "🚨🚨 Missing ceiling insulation batts — common defect"
+                        ]
+                    },
+                    {
+                        "id": "practical_completion",
+                        "name": "Practical Completion",
+                        "description": "Build complete, ready for Certificate of Compliance and Occupancy Permit",
+                        "paymentMilestone": "Final Stage (5-10%)",
+                        "inspections": [
+                            "Final Inspection (mandatory)"
+                        ],
+                        "certificates": [
+                            "Certificate of Compliance",
+                            "Occupancy Permit",
+                            "EICC (Final)",
+                            "Plumbing Final Certificate",
+                            "Gas Compliance Certificate (if applicable)",
+                            "Smoke Alarm Certificate",
+                            "Termite Protection Certificate"
+                        ],
+                        "dodgyBuilderWarnings": [
+                            "🚨🚨 Demanding final payment without Certificate of Compliance — do NOT pay",
+                            "🚨 'Sign here and we'll fix defects later' — NEVER DO THIS",
+                            "🚨 Missing any mandatory certificates at handover",
+                            "🚨 Lodge complaint with NT Consumer Affairs if builder refuses to rectify defects"
+                        ]
+                    },
+                    {
+                        "id": "warranty",
+                        "name": "Warranty Period",
+                        "description": "6 years structural, 1 year non-structural",
+                        "paymentMilestone": null,
+                        "inspections": [
+                            "6-month inspection (recommended)",
+                            "12-month inspection (recommended)"
+                        ],
+                        "yourRights": [
+                            "1-year warranty for non-structural defects",
+                            "6-year warranty for major structural defects",
+                            "Home Building Certification Fund covers builder insolvency, death, or disappearance",
+                            "Mandatory for residential work >$12,000",
+                            "Lodge complaints with NT Consumer Affairs"
+                        ]
+                    }
+                ]
             }
         },
         "granny_flat": {
@@ -1152,6 +1832,206 @@
                 "stage": "completion",
                 "critical": true
             }
+        ],
+        "SA": [
+            {
+                "id": "bii",
+                "name": "Builder's Indemnity Insurance Certificate",
+                "stage": "pre-construction",
+                "critical": true
+            },
+            {
+                "id": "eicc",
+                "name": "Electrical Installation Compliance Certificate (EICC)",
+                "stage": "lockup",
+                "critical": true
+            },
+            {
+                "id": "plumbing",
+                "name": "Plumbing Certificate of Compliance",
+                "stage": "completion",
+                "critical": true
+            },
+            {
+                "id": "gas",
+                "name": "Gas Compliance Certificate",
+                "stage": "completion",
+                "conditional": "if gas connected"
+            },
+            {
+                "id": "waterproofing",
+                "name": "Waterproofing Warranty Certificate",
+                "stage": "fixing",
+                "critical": true
+            },
+            {
+                "id": "smoke",
+                "name": "Smoke Alarm Compliance Certificate",
+                "stage": "completion",
+                "critical": true
+            },
+            {
+                "id": "termite",
+                "name": "Termite Protection Certificate",
+                "stage": "completion",
+                "critical": true
+            },
+            {
+                "id": "oc",
+                "name": "Certificate of Occupancy",
+                "stage": "completion",
+                "critical": true
+            }
+        ],
+        "TAS": [
+            {
+                "id": "hwi",
+                "name": "Home Warranty Insurance Certificate",
+                "stage": "pre-construction",
+                "critical": true
+            },
+            {
+                "id": "eicc",
+                "name": "Electrical Installation Compliance Certificate (EICC)",
+                "stage": "lockup",
+                "critical": true
+            },
+            {
+                "id": "plumbing",
+                "name": "Plumbing Certificate of Compliance",
+                "stage": "completion",
+                "critical": true
+            },
+            {
+                "id": "waterproofing",
+                "name": "Waterproofing Warranty Certificate",
+                "stage": "fixing",
+                "critical": true
+            },
+            {
+                "id": "smoke",
+                "name": "Smoke Alarm Compliance Certificate",
+                "stage": "completion",
+                "critical": true
+            },
+            {
+                "id": "termite",
+                "name": "Termite Protection Certificate",
+                "stage": "completion",
+                "critical": true
+            },
+            {
+                "id": "coc",
+                "name": "Certificate of Completion",
+                "stage": "completion",
+                "critical": true
+            }
+        ],
+        "ACT": [
+            {
+                "id": "fidelity",
+                "name": "Fidelity Fund Certificate",
+                "stage": "pre-construction",
+                "critical": true
+            },
+            {
+                "id": "eicc",
+                "name": "Electrical Installation Compliance Certificate (EICC)",
+                "stage": "lockup",
+                "critical": true
+            },
+            {
+                "id": "plumbing",
+                "name": "Plumbing Certificate of Compliance",
+                "stage": "completion",
+                "critical": true
+            },
+            {
+                "id": "gas",
+                "name": "Gas Compliance Certificate",
+                "stage": "completion",
+                "conditional": "if gas connected"
+            },
+            {
+                "id": "waterproofing",
+                "name": "Waterproofing Warranty Certificate",
+                "stage": "fixing",
+                "critical": true
+            },
+            {
+                "id": "smoke",
+                "name": "Smoke Alarm Compliance Certificate",
+                "stage": "completion",
+                "critical": true
+            },
+            {
+                "id": "termite",
+                "name": "Termite Protection Certificate",
+                "stage": "completion",
+                "critical": true
+            },
+            {
+                "id": "ocu",
+                "name": "Certificate of Occupancy and Use",
+                "stage": "completion",
+                "critical": true
+            }
+        ],
+        "NT": [
+            {
+                "id": "hbcf",
+                "name": "Home Building Certification Fund Certificate",
+                "stage": "pre-construction",
+                "critical": true
+            },
+            {
+                "id": "eicc",
+                "name": "Electrical Installation Compliance Certificate (EICC)",
+                "stage": "lockup",
+                "critical": true
+            },
+            {
+                "id": "plumbing",
+                "name": "Plumbing Certificate of Compliance",
+                "stage": "completion",
+                "critical": true
+            },
+            {
+                "id": "gas",
+                "name": "Gas Compliance Certificate",
+                "stage": "completion",
+                "conditional": "if gas connected"
+            },
+            {
+                "id": "waterproofing",
+                "name": "Waterproofing Warranty Certificate",
+                "stage": "fixing",
+                "critical": true
+            },
+            {
+                "id": "smoke",
+                "name": "Smoke Alarm Compliance Certificate",
+                "stage": "completion",
+                "critical": true
+            },
+            {
+                "id": "termite",
+                "name": "Termite Protection Certificate",
+                "stage": "completion",
+                "critical": true
+            },
+            {
+                "id": "coc",
+                "name": "Certificate of Compliance",
+                "stage": "completion",
+                "critical": true
+            },
+            {
+                "id": "op",
+                "name": "Occupancy Permit",
+                "stage": "completion",
+                "critical": true
+            }
         ]
     },
     "redFlags": {
@@ -1240,6 +2120,34 @@
             "licenseSearch": "https://www.commerce.wa.gov.au/building-commission/search-registered-building-service-providers",
             "hii": "https://www.commerce.wa.gov.au/building-commission/home-indemnity-insurance",
             "complaints": "https://www.commerce.wa.gov.au/building-commission/building-complaints"
+        },
+        "SA": {
+            "planSA": "https://plan.sa.gov.au",
+            "otr": "https://www.sa.gov.au/topics/planning-and-property/building-development-and-renovations",
+            "sacat": "https://www.sacat.sa.gov.au",
+            "licenseCheck": "https://www.cbs.sa.gov.au/occupational-licensing",
+            "complaints": "https://www.sa.gov.au/topics/planning-and-property/building-development-and-renovations/building-disputes"
+        },
+        "TAS": {
+            "cbos": "https://www.cbos.tas.gov.au",
+            "buildingPermits": "https://www.cbos.tas.gov.au/topics/building-construction",
+            "licenseCheck": "https://www.cbos.tas.gov.au/topics/building-construction/building-practitioners",
+            "disputes": "https://www.cbos.tas.gov.au/topics/building-construction/disputes-and-complaints",
+            "planningPortal": "https://www.iplan.tas.gov.au"
+        },
+        "ACT": {
+            "accessCanberra": "https://www.accesscanberra.act.gov.au/s/topic/0TOt100000XpOaOGAV/building",
+            "actpla": "https://www.planning.act.gov.au",
+            "acat": "https://www.acat.act.gov.au",
+            "licenseCheck": "https://www.accesscanberra.act.gov.au/s/topic/0TOt100000LI4WOGA1/licensing-and-registrations",
+            "complaints": "https://www.accesscanberra.act.gov.au/s/article/building-complaints-tab-overview"
+        },
+        "NT": {
+            "buildingAdvisory": "https://nt.gov.au/property/building",
+            "consumerAffairs": "https://consumeraffairs.nt.gov.au",
+            "licenseCheck": "https://nt.gov.au/property/building/find-a-registered-building-practitioner",
+            "complaints": "https://consumeraffairs.nt.gov.au/for-consumers/how-to-make-a-complaint",
+            "buildingCertification": "https://nt.gov.au/property/building/building-certification"
         }
     }
 }

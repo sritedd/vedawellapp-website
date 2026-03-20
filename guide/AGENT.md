@@ -1,4 +1,4 @@
-# HomeOwner Guardian by VedaWell — Agent Context
+now # HomeOwner Guardian by VedaWell — Agent Context
 
 > This file provides context for AI coding assistants (Amp, Cody/Sourcegraph, Cursor, Claude Code, Copilot, etc.)
 

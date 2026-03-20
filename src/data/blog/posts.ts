@@ -8,6 +8,7 @@ export interface BlogPost {
     keywords: string[];
     category: string;
     relatedTools: string[];
+    image?: string;
     content: string; // HTML content
 }
 
@@ -22,6 +23,7 @@ export const BLOG_POSTS: BlogPost[] = [
         keywords: ["should I pay builder", "builder speed benchmark", "tribunal evidence pack", "construction payment protection", "Australian building dispute", "NCAT evidence", "Fair Trading dispute"],
         category: "HomeOwner Guardian",
         relatedTools: [],
+        image: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=800&q=80",
         content: `
 <p>We just shipped the four most-requested features in HomeOwner Guardian. They all share one design principle: <strong>give the homeowner a single, clear answer</strong> — not a dashboard of numbers they have to interpret.</p>
 
@@ -100,6 +102,7 @@ export const BLOG_POSTS: BlogPost[] = [
         keywords: ["AI construction assistant", "AI building defect detection", "construction AI Australia", "home building AI advisor", "Guardian AI features"],
         category: "HomeOwner Guardian",
         relatedTools: [],
+        image: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=800&q=80",
         content: `
 <p>Today we are rolling out <strong>four AI-powered features</strong> inside HomeOwner Guardian, making it the first Australian construction monitoring app with built-in artificial intelligence.</p>
 
@@ -143,6 +146,7 @@ export const BLOG_POSTS: BlogPost[] = [
         keywords: ["private building inspector", "independent building inspector", "building inspector cost Australia", "HomeOwner Guardian alternative", "building defect inspection"],
         category: "HomeOwner Guardian",
         relatedTools: [],
+        image: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=800&q=80",
         content: `
 <p>If you're building a new home, everyone from your mortgage broker to your father-in-law will tell you one thing: <em>"Get an independent private building inspector."</em></p>
 
@@ -206,6 +210,7 @@ export const BLOG_POSTS: BlogPost[] = [
         keywords: ["homeowner guardian app", "construction monitoring app", "building defect tracker", "Australian home building app", "new home construction tracking"],
         category: "HomeOwner Guardian",
         relatedTools: [],
+        image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80",
         content: `
 <p>Building a home in Australia is likely the biggest financial commitment you'll ever make. The average new build costs $350,000–$700,000, yet most homeowners have <strong>zero visibility</strong> into what's happening on site between their occasional visits.</p>
 
@@ -269,6 +274,7 @@ export const BLOG_POSTS: BlogPost[] = [
         keywords: ["construction defects Australia", "building defects new home", "common building defects", "new home defects checklist", "building inspection defects"],
         category: "HomeOwner Guardian",
         relatedTools: [],
+        image: "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=800&q=80",
         content: `
 <p>The NSW Building Commissioner's data is sobering: the majority of new homes in Australia have at least one significant defect. But most homeowners don't discover these problems until after handover — when fixing them is expensive, stressful, and legally complicated.</p>
 
@@ -347,6 +353,7 @@ export const BLOG_POSTS: BlogPost[] = [
         keywords: ["pre-slab inspection checklist", "concrete slab inspection", "before slab pour checklist", "foundation inspection Australia", "slab inspection homeowner"],
         category: "HomeOwner Guardian",
         relatedTools: [],
+        image: "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=800&q=80",
         content: `
 <p>Your concrete slab is quite literally the foundation of your entire home. Once it's poured, there's no going back — any problems underneath are locked in forever. That's why the pre-slab inspection is arguably the <strong>most important inspection</strong> of your entire build.</p>
 
@@ -439,6 +446,7 @@ export const BLOG_POSTS: BlogPost[] = [
         keywords: ["homeowner rights building dispute", "building dispute Australia", "builder warranty Australia", "defective building work rights", "NCAT building dispute"],
         category: "HomeOwner Guardian",
         relatedTools: [],
+        image: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=800&q=80",
         content: `
 <p>When you discover defects in your new home, it's easy to feel powerless. The builder has the expertise, the lawyers, and the industry connections. But Australian law provides strong protections for homeowners — you just need to know how to use them.</p>
 
@@ -546,6 +554,7 @@ export const BLOG_POSTS: BlogPost[] = [
         keywords: ["stages of building a house Australia", "new home construction stages", "home building process", "construction stages checklist", "what to expect building a house"],
         category: "HomeOwner Guardian",
         relatedTools: [],
+        image: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=800&q=80",
         content: `
 <p>Building a new home in Australia typically takes 6–12 months and follows a predictable sequence of stages. Understanding each stage helps you know what to inspect, when to raise concerns, and how to spot potential problems early.</p>
 
@@ -662,6 +671,7 @@ export const BLOG_POSTS: BlogPost[] = [
         keywords: ["dodgy builder tactics Australia", "builder cutting corners", "homeowner building rights", "builder disputes Australia", "protecting yourself from bad builders"],
         category: "HomeOwner Guardian",
         relatedTools: [],
+        image: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=800&q=80",
         content: `
 <p>Let's be honest: not every builder is out to get you. The majority are skilled professionals who take pride in their work. But the building industry also has its share of operators who profit from homeowner ignorance — and knowing their tactics is the best way to protect yourself.</p>
 
@@ -716,6 +726,7 @@ export const BLOG_POSTS: BlogPost[] = [
         keywords: ["first home buyer construction", "new home building mistakes", "first home construction tips", "building mistakes to avoid", "first home buyer guide Australia"],
         category: "HomeOwner Guardian",
         relatedTools: [],
+        image: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=800&q=80",
         content: `
 <p>Building your first home is exciting — and overwhelming. You've spent months choosing a builder, selecting finishes, and sorting finance. But once construction starts, many first-home buyers make critical mistakes that cost thousands to fix.</p>
 
@@ -788,6 +799,7 @@ export const BLOG_POSTS: BlogPost[] = [
         keywords: ["NCC 2025 changes", "National Construction Code 2025", "NCC energy efficiency", "building code changes Australia 2025", "NCC condensation management"],
         category: "HomeOwner Guardian",
         relatedTools: [],
+        image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80",
         content: `
 <p>The National Construction Code (NCC) 2025 update is the most significant change to Australian building standards in a decade. If you're building a new home, these changes directly affect your build quality, energy costs, and long-term comfort.</p>
 
@@ -865,6 +877,7 @@ export const BLOG_POSTS: BlogPost[] = [
         keywords: ["free online tools", "best browser tools 2026", "no download tools", "productivity tools free"],
         category: "Productivity",
         relatedTools: ["password-generator", "json-formatter", "image-compressor", "qr-code-generator", "pdf-merge"],
+        image: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80",
         content: `
 <p>Finding the right online tool shouldn't mean downloading sketchy software or paying monthly subscriptions. In 2026, browser-based tools have become incredibly powerful — running entirely in your browser with <strong>zero server uploads</strong> and <strong>complete privacy</strong>.</p>
 
@@ -970,6 +983,7 @@ export const BLOG_POSTS: BlogPost[] = [
         keywords: ["free pdf tools", "pdf merge online free", "pdf compress free", "pdf to word free", "best pdf tools 2026"],
         category: "Tools",
         relatedTools: ["pdf-merge", "pdf-split", "pdf-compress", "pdf-to-word", "pdf-to-image"],
+        image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&q=80",
         content: `
 <p>PDF tools shouldn't cost $20/month. Whether you need to merge documents for a presentation, compress a PDF for email, or convert to Word for editing — these tasks should be free and private.</p>
 
@@ -1021,6 +1035,7 @@ export const BLOG_POSTS: BlogPost[] = [
         keywords: ["strong password generator", "password security", "how to create strong password", "password best practices 2026"],
         category: "Security",
         relatedTools: ["password-generator", "string-encoder"],
+        image: "https://images.unsplash.com/photo-1550439062-609e1531270e?w=800&q=80",
         content: `
 <p>In 2026, the average person has 100+ online accounts. Reusing passwords across them is the #1 reason accounts get hacked. Here's everything you need to know about password security.</p>
 
@@ -1065,6 +1080,7 @@ export const BLOG_POSTS: BlogPost[] = [
         keywords: ["free browser games", "online games no download", "free chess online", "free sudoku online", "play tetris free"],
         category: "Games",
         relatedTools: [],
+        image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80",
         content: `
 <p>Looking for quick, fun games to play in your browser without downloading anything? We've built 19 classic games that work on any device — phone, tablet, or desktop.</p>
 
@@ -1132,6 +1148,7 @@ export const BLOG_POSTS: BlogPost[] = [
         keywords: ["json formatter", "json validator online", "json beautifier", "format json free", "json minify"],
         category: "Developer",
         relatedTools: ["json-formatter", "regex-tester", "string-encoder"],
+        image: "https://images.unsplash.com/photo-1484417894907-623942c8ee29?w=800&q=80",
         content: `
 <p>Working with JSON is a daily task for developers, and messy or invalid JSON can waste hours of debugging time. A good JSON formatter saves you from those headaches.</p>
 
@@ -1177,6 +1194,7 @@ export const BLOG_POSTS: BlogPost[] = [
         keywords: ["compress images online", "image compressor free", "reduce image size", "compress png", "compress jpeg", "optimize images for web"],
         category: "Design",
         relatedTools: ["image-compressor", "social-media-image-resizer"],
+        image: "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=800&q=80",
         content: `
 <p>Large images are the #1 cause of slow websites. A single unoptimized photo can add 5+ seconds to your page load time. Here's how to compress images properly.</p>
 
@@ -1217,6 +1235,7 @@ export const BLOG_POSTS: BlogPost[] = [
         keywords: ["qr code generator free", "qr code business uses", "create qr code", "qr code marketing"],
         category: "Marketing",
         relatedTools: ["qr-code-generator"],
+        image: "https://images.unsplash.com/photo-1432888622747-4eb9a8efeb07?w=800&q=80",
         content: `
 <p>QR codes had their comeback during COVID and never left. In 2026, they're embedded in everything from restaurant menus to business cards. Here are 10 creative ways to use them.</p>
 
@@ -1265,6 +1284,7 @@ export const BLOG_POSTS: BlogPost[] = [
         keywords: ["seo meta tags", "meta tag generator", "title tag seo", "meta description best practices", "open graph tags"],
         category: "SEO",
         relatedTools: ["meta-tag-generator", "open-graph-generator", "schema-markup-generator", "robots-txt-generator", "serp-preview"],
+        image: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80",
         content: `
 <p>Meta tags are the first thing Google reads when it crawls your page. Getting them right is one of the easiest SEO wins you can make.</p>
 
@@ -1317,6 +1337,7 @@ export const BLOG_POSTS: BlogPost[] = [
         keywords: ["pomodoro technique", "pomodoro timer online", "productivity method", "focus timer", "time management technique"],
         category: "Productivity",
         relatedTools: ["pomodoro-timer", "stopwatch-timer", "todo-list"],
+        image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&q=80",
         content: `
 <p>The Pomodoro Technique was invented by Francesco Cirillo in the 1980s using a tomato-shaped kitchen timer. Four decades later, it remains one of the most effective productivity methods ever created.</p>
 
@@ -1357,6 +1378,7 @@ export const BLOG_POSTS: BlogPost[] = [
         keywords: ["regex cheat sheet", "regular expressions guide", "regex tester online", "regex examples", "regex patterns"],
         category: "Developer",
         relatedTools: ["regex-tester", "json-formatter"],
+        image: "https://images.unsplash.com/photo-1550439062-609e1531270e?w=800&q=80",
         content: `
 <p>Regular expressions (regex) are one of the most powerful tools in a developer's toolkit — and also one of the most confusing. This cheat sheet covers everything you need.</p>
 
@@ -1414,6 +1436,7 @@ export const BLOG_POSTS: BlogPost[] = [
         keywords: ["pre-slab checklist", "slab inspection Australia", "building slab check", "home construction checklist"],
         category: "Construction",
         relatedTools: [],
+        image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80",
         content: `
 <p>The concrete slab is the foundation of your entire home. Once it's poured, mistakes are incredibly expensive \u2014 or impossible \u2014 to fix. Yet many Australian homeowners skip the pre-slab inspection, trusting their builder to get it right.</p>
 
@@ -1486,6 +1509,7 @@ export const BLOG_POSTS: BlogPost[] = [
         keywords: ["dodgy builders Australia", "builder red flags", "verify builder license NSW", "building contract warning signs"],
         category: "Construction",
         relatedTools: [],
+        image: "https://images.unsplash.com/photo-1484417894907-623942c8ee29?w=800&q=80",
         content: `
 <p>Every year, thousands of Australian homeowners fall victim to dodgy builders. From disappearing mid-project to cutting corners on insulation, the building industry has more than its share of bad actors. Here's how to spot them before you sign.</p>
 
@@ -1541,6 +1565,7 @@ export const BLOG_POSTS: BlogPost[] = [
         keywords: ["HBCF insurance NSW", "home building compensation fund", "NSW building insurance", "icare HBCF"],
         category: "Insurance",
         relatedTools: [],
+        image: "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=800&q=80",
         content: `
 <p>If you're building or renovating a home in New South Wales, understanding HBCF (Home Building Compensation Fund) insurance is essential. It's your safety net if things go wrong with your builder.</p>
 
@@ -1615,6 +1640,7 @@ export const BLOG_POSTS: BlogPost[] = [
         keywords: ["pre-plasterboard inspection", "pre-drywall check Australia", "insulation inspection new home", "building inspection checklist"],
         category: "Construction",
         relatedTools: [],
+        image: "https://images.unsplash.com/photo-1432888622747-4eb9a8efeb07?w=800&q=80",
         content: `
 <p>The pre-plasterboard inspection is arguably the single most important checkpoint in your entire build. Once the plasterboard goes up, everything behind it \u2014 insulation, wiring, plumbing, fire barriers \u2014 is sealed away forever. If something's wrong, you won't know until it's too late.</p>
 
@@ -1675,6 +1701,7 @@ export const BLOG_POSTS: BlogPost[] = [
         keywords: ["construction variations Australia", "building variation costs", "variation order home build", "manage builder variations"],
         category: "Construction",
         relatedTools: [],
+        image: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80",
         content: `
 <p>Construction variations are one of the biggest sources of conflict between homeowners and builders. A variation is any change to the original scope of work in your building contract \u2014 and they can add up fast.</p>
 
@@ -1729,6 +1756,7 @@ export const BLOG_POSTS: BlogPost[] = [
         keywords: ["building defect documentation", "defect evidence NCAT", "construction defect photos", "Fair Trading complaint evidence"],
         category: "Legal",
         relatedTools: [],
+        image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&q=80",
         content: `
 <p>If you ever need to take your builder to NCAT, file a Fair Trading complaint, or make an HBCF claim, the quality of your documentation will make or break your case. Tribunals don't care about your feelings \u2014 they want evidence.</p>
 
@@ -1793,6 +1821,7 @@ export const BLOG_POSTS: BlogPost[] = [
         keywords: ["NSW Fair Trading complaint", "NCAT building dispute", "building dispute resolution NSW", "NCAT vs Fair Trading"],
         category: "Legal",
         relatedTools: [],
+        image: "https://images.unsplash.com/photo-1550439062-609e1531270e?w=800&q=80",
         content: `
 <p>When you have a building dispute in NSW, you generally have two paths: NSW Fair Trading or NCAT (NSW Civil and Administrative Tribunal). Understanding which path to take \u2014 and when \u2014 can save you months of frustration.</p>
 
@@ -1887,6 +1916,7 @@ export const BLOG_POSTS: BlogPost[] = [
         keywords: ["owner builder Australia", "owner builder permit NSW", "owner builder insurance", "owner builder guide 2026"],
         category: "Construction",
         relatedTools: [],
+        image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80",
         content: `
 <p>Thinking about being your own builder? Owner building can save you significant money, but it comes with serious responsibilities. Here's everything Australian homeowners need to know about owner building in 2026.</p>
 
@@ -1944,5 +1974,171 @@ export const BLOG_POSTS: BlogPost[] = [
 
 <h2>Track Your Owner Build</h2>
 <p>As an owner builder, documentation is even more important because you don't have a builder's warranty to fall back on. <a href="/guardian"><strong>HomeOwner Guardian</strong></a> helps you track every stage, inspection, payment, and trade \u2014 keeping you organised and legally protected.</p>`,
+    },
+    {
+        slug: "guardian-defect-aging-sla-tracking",
+        title: "New: Defect Aging, SLA Tracking & Automatic Builder Reminders",
+        description: "HomeOwner Guardian now tracks how long each defect has been open, shows overdue badges, and automatically sends reminders when your builder hasn't responded.",
+        date: "2026-03-21",
+        author: "VedaWell Team",
+        readTime: "4 min read",
+        keywords: ["defect tracking", "builder response time", "construction SLA", "overdue defects", "builder reminders", "Australian building defects", "HomeOwner Guardian"],
+        category: "HomeOwner Guardian",
+        relatedTools: [],
+        image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80",
+        content: `
+<p>Recording a defect is only half the battle. The other half — the harder half — is getting your builder to actually <strong>fix it</strong>. That's why we built defect aging and SLA tracking into HomeOwner Guardian.</p>
+
+<h2>Every Defect Now Has a Clock</h2>
+
+<p>The moment you log a defect, a timer starts. Every defect in your register now shows a colour-coded age badge:</p>
+
+<ul>
+<li><strong>Green (< 7 days)</strong> — Recently reported, within normal response time</li>
+<li><strong>Yellow (7–14 days)</strong> — Getting old, builder should have responded by now</li>
+<li><strong>Orange (14–30 days)</strong> — Overdue. Time to follow up formally</li>
+<li><strong>Red (30+ days)</strong> — Significantly overdue. Consider escalation</li>
+</ul>
+
+<p>At a glance, you can see which defects are being ignored. No more scrolling through dates trying to remember when you first reported that cracked tile.</p>
+
+<h2>Automatic Builder Reminders</h2>
+
+<p>Guardian now sends automated reminders when defects pass their SLA deadline (14 days by default). You'll receive an email summary of overdue defects with a direct link back to each one.</p>
+
+<p>This gives you a documented timeline: "I reported this on March 1st. Guardian sent a reminder on March 15th. The builder still hasn't responded." That timeline is gold in a dispute.</p>
+
+<h2>Built for Accountability</h2>
+
+<p>The defect escalation system tracks four stages: <strong>Reminder Sent → Formal Notice → Fair Trading → Tribunal</strong>. Each step is logged with a timestamp, building an evidence trail that tribunals and Fair Trading offices take seriously.</p>
+
+<p>Available now for all Guardian users. <a href="/guardian">Start tracking your defects</a> — and make sure they actually get fixed.</p>`,
+    },
+    {
+        slug: "guardian-account-data-export-deletion",
+        title: "Your Data, Your Control: Data Export & Account Deletion",
+        description: "HomeOwner Guardian now lets you download all your project data as JSON and permanently delete your account — because you own your construction records.",
+        date: "2026-03-21",
+        author: "VedaWell Team",
+        readTime: "3 min read",
+        keywords: ["data export", "account deletion", "privacy", "data ownership", "construction records", "HomeOwner Guardian", "GDPR"],
+        category: "HomeOwner Guardian",
+        relatedTools: [],
+        image: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=800&q=80",
+        content: `
+<p>When you trust an app with data about a $500,000+ home build — defects, contracts, payment records, builder communications — you need to know that <strong>you own that data</strong>.</p>
+
+<h2>Download Everything</h2>
+
+<p>The new <strong>"Download My Data"</strong> button on your profile page exports your complete Guardian dataset as a JSON file. This includes:</p>
+
+<ul>
+<li>Your profile and account details</li>
+<li>All projects with their full history</li>
+<li>Every defect, variation, inspection, and certificate</li>
+<li>Payment records and budget tracking</li>
+<li>Communication logs and site visit records</li>
+<li>Builder reviews and checklist progress</li>
+</ul>
+
+<p>It's your data. You should always be able to take it with you.</p>
+
+<h2>Account Deletion</h2>
+
+<p>If you've finished your build and no longer need Guardian, you can now permanently delete your account from the profile page. This removes:</p>
+
+<ul>
+<li>Your profile and authentication credentials</li>
+<li>All project data across every table</li>
+<li>All uploaded files (photos, documents, certificates)</li>
+</ul>
+
+<p>Deletion requires email confirmation to prevent accidents. Once confirmed, it's immediate and irreversible.</p>
+
+<p>We recommend downloading your data first — especially if you're still within your warranty period. Those records could be valuable for years to come.</p>
+
+<p>Find both features under <a href="/guardian/profile">Profile</a> in your Guardian dashboard.</p>`,
+    },
+    {
+        slug: "guardian-ai-chat-history",
+        title: "AI Chat History: Your Construction Advisor Remembers",
+        description: "Guardian's AI construction advisor now saves your conversation history so you can reference past advice, continue previous discussions, and build on earlier insights.",
+        date: "2026-03-21",
+        author: "VedaWell Team",
+        readTime: "3 min read",
+        keywords: ["AI chat", "construction advisor", "chat history", "building advice", "HomeOwner Guardian", "AI assistant", "construction help"],
+        category: "HomeOwner Guardian",
+        relatedTools: [],
+        image: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=800&q=80",
+        content: `
+<p>Previously, every time you opened Guardian's AI chat, you started from scratch. Asked about waterproofing last week? Gone. Got advice on handling a variation dispute? Lost on page refresh. Not anymore.</p>
+
+<h2>Conversations That Persist</h2>
+
+<p>Guardian's AI construction advisor now <strong>saves every conversation</strong> to your project. When you return to the chat tab, you'll see a list of past conversations with titles and dates. Pick up right where you left off.</p>
+
+<h2>How It Works</h2>
+
+<ul>
+<li><strong>Auto-saved:</strong> Conversations are saved automatically after each AI response. No manual save button needed.</li>
+<li><strong>Auto-titled:</strong> Each conversation gets a title from your first message, so you can find it later.</li>
+<li><strong>Per-project:</strong> Conversations are tied to your project, so advice about your Smithfield build doesn't mix with your Penrith granny flat.</li>
+<li><strong>New Chat:</strong> Start a fresh conversation anytime with the "New Chat" button.</li>
+</ul>
+
+<h2>Why This Matters</h2>
+
+<p>Construction is a months-long process. The advice you got about frame inspections in month 2 is still relevant when your builder claims "that's normal" in month 5. Now you can pull up exactly what the AI advised and reference it in your defect report or builder communication.</p>
+
+<p>Chat history is available for <strong>Pro and Trial</strong> subscribers. <a href="/guardian/pricing">Upgrade to Pro</a> or <a href="/guardian">start your free trial</a> to unlock AI chat with persistent history.</p>`,
+    },
+    {
+        slug: "guardian-all-states-supported",
+        title: "Now Truly National: Full Construction Workflows for All 8 Australian States",
+        description: "HomeOwner Guardian now has complete construction stage workflows, inspections, certificates, and builder warnings for NSW, VIC, QLD, WA, SA, TAS, ACT, and NT.",
+        date: "2026-03-21",
+        author: "VedaWell Team",
+        readTime: "4 min read",
+        keywords: ["Australian building", "construction stages", "state building regulations", "QLD building", "SA building", "TAS building", "ACT building", "NT building", "construction inspections"],
+        category: "HomeOwner Guardian",
+        relatedTools: [],
+        image: "https://images.unsplash.com/photo-1523438885200-e635ba2c371e?w=800&q=80",
+        content: `
+<p>When we launched HomeOwner Guardian, we had detailed construction workflows for NSW and VIC. QLD and WA followed soon after. But if you were building in South Australia, Tasmania, the ACT, or the Northern Territory, you'd create a project and get... not much.</p>
+
+<p>That changes today. <strong>All 8 Australian states and territories now have complete construction stage workflows.</strong></p>
+
+<h2>What's Included for Every State</h2>
+
+<p>Each state now has:</p>
+
+<ul>
+<li><strong>6–8 construction stages</strong> from site start through to warranty, with state-specific names and requirements</li>
+<li><strong>Mandatory inspections</strong> at each stage (the ones your builder must book before proceeding)</li>
+<li><strong>Required certificates</strong> — EICC, plumbing, waterproofing, smoke alarm, termite protection, and your state's final occupancy certificate</li>
+<li><strong>Dodgy builder warnings</strong> — state-specific red flags at every stage, referencing your state's regulator and dispute resolution body</li>
+<li><strong>Payment milestones</strong> — typical payment percentages at each stage</li>
+<li><strong>Warranty periods</strong> — structural and non-structural warranty lengths specific to your state's legislation</li>
+</ul>
+
+<h2>State-Specific Details</h2>
+
+<table>
+<tr><th>State</th><th>Regulator</th><th>Structural Warranty</th><th>Dispute Body</th></tr>
+<tr><td>NSW</td><td>Fair Trading</td><td>6 years</td><td>NCAT</td></tr>
+<tr><td>VIC</td><td>VBA/VBPC</td><td>6 years</td><td>VCAT / DBDRV</td></tr>
+<tr><td>QLD</td><td>QBCC</td><td>6.5 years</td><td>QBCC Dispute Resolution</td></tr>
+<tr><td>WA</td><td>DMIRS Building Commission</td><td>6 years</td><td>SAT</td></tr>
+<tr><td>SA</td><td>OTR / PlanSA</td><td>5 years</td><td>SACAT</td></tr>
+<tr><td>TAS</td><td>CBOS</td><td>6 years</td><td>Building Disputes Tribunal</td></tr>
+<tr><td>ACT</td><td>Access Canberra</td><td>6 years</td><td>ACAT</td></tr>
+<tr><td>NT</td><td>NT Building Advisory</td><td>6 years</td><td>NT Consumer Affairs</td></tr>
+</table>
+
+<h2>Your State, Your Workflow</h2>
+
+<p>When you create a project in Guardian and select your state, you'll now get the correct stages, inspections, and certificates for your jurisdiction. No more generic checklists — everything is tailored to where you're building.</p>
+
+<p><a href="/guardian">Start your project</a> and see the full workflow for your state.</p>`,
     },
 ];
