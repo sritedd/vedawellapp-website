@@ -106,10 +106,12 @@ export async function POST(req: NextRequest) {
 
         // If referrer is already Pro, skip — they don't need a trial extension
         if (tier === "guardian_pro") {
+            // Atomic increment: use current value as condition to prevent lost updates
             await supabase
                 .from("profiles")
                 .update({ referral_count: (profile.referral_count || 0) + 1 })
-                .eq("id", referrerUserId);
+                .eq("id", referrerUserId)
+                .eq("referral_count", profile.referral_count || 0);
 
             return NextResponse.json({
                 success: true,
@@ -128,14 +130,24 @@ export async function POST(req: NextRequest) {
             newTrialEnd = new Date(Date.now() + REWARD_DAYS * 24 * 60 * 60 * 1000);
         }
 
-        const { error: updateError } = await supabase
+        // Atomic update: condition on current referral_count to prevent race condition overwrites
+        const { error: updateError, count: updatedCount } = await supabase
             .from("profiles")
             .update({
                 subscription_tier: "trial",
                 trial_ends_at: newTrialEnd.toISOString(),
                 referral_count: (profile.referral_count || 0) + 1,
             })
-            .eq("id", referrerUserId);
+            .eq("id", referrerUserId)
+            .eq("referral_count", profile.referral_count || 0);
+
+        // If no rows updated, another request already modified the count — retry would be needed
+        if (!updateError && updatedCount === 0) {
+            return NextResponse.json(
+                { error: "Concurrent update detected. Please retry." },
+                { status: 409 }
+            );
+        }
 
         if (updateError) {
             console.error("Error updating referrer profile:", updateError);

@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { getRateLimitSecondsRemaining, recordFailedAttempt, resetRateLimit } from "@/lib/security/rate-limit";
 
 type View = "sign-in" | "sign-up" | "forgot-password";
 
 export default function LoginPage() {
+    const router = useRouter();
     const searchParams = useSearchParams();
     const initialView = searchParams.get("view") === "sign-up" ? "sign-up" : "sign-in";
 
@@ -87,7 +88,8 @@ export default function LoginPage() {
             }
         } else {
             resetRateLimit();
-            window.location.href = "/guardian/dashboard";
+            const redirect = searchParams.get("redirect") || "/guardian/dashboard";
+            router.push(redirect);
         }
 
         setLoading(false);
@@ -363,7 +365,7 @@ export default function LoginPage() {
                                             type="button"
                                             onClick={() => setShowPassword(!showPassword)}
                                             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-foreground text-sm"
-                                            tabIndex={-1}
+                                            aria-label={showPassword ? "Hide password" : "Show password"}
                                         >
                                             {showPassword ? "🙈" : "👁️"}
                                         </button>
@@ -386,6 +388,8 @@ export default function LoginPage() {
 
                             {message && (
                                 <div
+                                    role="alert"
+                                    aria-live="assertive"
                                     className={`p-4 rounded-lg text-sm ${message.type === "error"
                                         ? "bg-danger/10 text-danger border border-danger/20"
                                         : "bg-success/10 text-success border border-success/20"

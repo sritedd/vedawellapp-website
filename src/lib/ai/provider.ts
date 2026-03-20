@@ -10,7 +10,8 @@ import { createOpenAI } from "@ai-sdk/openai";
  * - Smart model: Claude Sonnet (paid) → falls back to Gemini 2.5 Flash (free)
  * - Embeddings: OpenAI text-embedding-3-small (paid, for RAG)
  *
- * Minimum setup: just set GOOGLE_AI_API_KEY (free from ai.google.dev)
+ * Minimum setup: just set GOOGLE_GENERATIVE_AI_API_KEY (free from ai.google.dev)
+ * Also accepts GOOGLE_AI_API_KEY as fallback for backwards compatibility.
  */
 
 let _anthropic: ReturnType<typeof createAnthropic> | null = null;
@@ -27,8 +28,9 @@ function getAnthropic() {
 
 function getGoogle() {
     if (!_google) {
-        if (!process.env.GOOGLE_AI_API_KEY) throw new Error("GOOGLE_AI_API_KEY not configured — get a free key at ai.google.dev");
-        _google = createGoogleGenerativeAI({ apiKey: process.env.GOOGLE_AI_API_KEY });
+        const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GOOGLE_AI_API_KEY;
+        if (!apiKey) throw new Error("GOOGLE_GENERATIVE_AI_API_KEY not configured — get a free key at ai.google.dev");
+        _google = createGoogleGenerativeAI({ apiKey });
     }
     return _google;
 }
@@ -63,5 +65,5 @@ export function getEmbeddingModel() {
 
 /** Check if AI features are available — only needs a free Google AI key */
 export function isAIAvailable(): boolean {
-    return !!process.env.GOOGLE_AI_API_KEY || !!process.env.ANTHROPIC_API_KEY;
+    return !!process.env.GOOGLE_GENERATIVE_AI_API_KEY || !!process.env.GOOGLE_AI_API_KEY || !!process.env.ANTHROPIC_API_KEY;
 }

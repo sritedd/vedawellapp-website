@@ -35,7 +35,9 @@ export async function proxy(request: NextRequest) {
         pathname === '/guardian/reset-password' ||
         pathname === '/guardian/resources' ||
         pathname === '/guardian/faq' ||
-        pathname === '/guardian/pricing'
+        pathname === '/guardian/pricing' ||
+        pathname === '/guardian/journey' ||
+        pathname.startsWith('/guardian/learn/')
 
     if (isGuardianPublic) {
         return supabaseResponse

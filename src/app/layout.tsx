@@ -54,13 +54,9 @@ export const metadata: Metadata = {
   },
 };
 
-// ============================================================
-// TODO: Replace these IDs before deploying to production
-// AdSense publisher ID: https://adsense.google.com → Account → Publisher ID
-// GA4 Measurement ID:   https://analytics.google.com → Admin → Data Streams
-// ============================================================
-const ADSENSE_PUB_ID = "ca-pub-3026726001538425"; // Your AdSense publisher ID
-const GA4_ID = "G-HCMFZFC0D7";                    // Your GA4 Measurement ID
+// Analytics IDs from env vars (prevents staging/dev polluting production analytics)
+const ADSENSE_PUB_ID = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || "";
+const GA4_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || "";
 
 export default function RootLayout({
   children,

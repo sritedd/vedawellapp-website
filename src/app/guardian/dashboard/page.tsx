@@ -18,36 +18,26 @@ export default async function DashboardPage() {
     // Record activity (fire-and-forget — does not block render)
     void touchLastSeen(user.id);
 
-    // Fetch user profile for subscription tier
-    const { data: profile } = await supabase
-        .from('profiles')
-        .select('subscription_tier, is_admin, trial_ends_at')
-        .eq('id', user.id)
-        .single();
+    // Parallel fetch: profile, projects, and announcements all at once
+    const [profileResult, projectsResult, announcementResult] = await Promise.all([
+        supabase.from('profiles').select('subscription_tier, is_admin, trial_ends_at').eq('id', user.id).single(),
+        supabase.from('projects').select('id, name, contract_value, status, address, builder_name').eq('user_id', user.id).order('created_at', { ascending: false }),
+        supabase.from("announcements").select("message, type").eq("active", true).order("created_at", { ascending: false }).limit(1).single(),
+    ]);
+
+    const profile = profileResult.data;
+    const projects = projectsResult.data;
+    const announcement = announcementResult.data;
 
     const rawTier = profile?.subscription_tier || 'free';
-    // Check admin from DB column OR email allowlist (fallback if RLS blocks the column)
     const isAdmin = profile?.is_admin === true || isAdminEmail(user.email);
     const trialActive = rawTier === 'trial' && profile?.trial_ends_at && new Date(profile.trial_ends_at) > new Date();
-
-    // Admins and active trials get full pro access
     const hasPro = rawTier === 'guardian_pro' || isAdmin || trialActive;
     const tier = hasPro ? 'guardian_pro' : 'free';
     const isFree = !hasPro;
-
-    // Free tier limits
     const FREE_PROJECT_LIMIT = 1;
-    const FREE_DEFECT_LIMIT = 3;
-    const FREE_VARIATION_LIMIT = 2;
 
-    // Fetch all projects with their names and status
-    const { data: projects } = await supabase
-        .from('projects')
-        .select('id, name, contract_value, status, address, builder_name')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-    // Aggregate stats across all projects
+    // Aggregate stats across all projects (parallel fetch variations + defects)
     let totalContractValue = 0;
     let totalVariations = 0;
     let totalVariationsCount = 0;
@@ -56,34 +46,21 @@ export default async function DashboardPage() {
     if (projects && projects.length > 0) {
         totalContractValue = projects.reduce((sum: number, p: { contract_value: number | null }) => sum + (p.contract_value || 0), 0);
 
-        // Fetch all variations across all projects
         const projectIds = projects.map((p: { id: string }) => p.id);
-        const { data: allVariations } = await supabase
-            .from('variations')
-            .select('additional_cost, project_id')
-            .in('project_id', projectIds);
+
+        // Parallel fetch: variations + defects
+        const [variationsResult, defectsResult] = await Promise.all([
+            supabase.from('variations').select('additional_cost, project_id').in('project_id', projectIds),
+            supabase.from('defects').select('id').in('project_id', projectIds).not('status', 'in', '(verified,rectified)'),
+        ]);
+
+        const allVariations = variationsResult.data;
         if (allVariations) {
             totalVariations = allVariations.reduce((sum: number, v: { additional_cost: number | null }) => sum + (v.additional_cost || 0), 0);
             totalVariationsCount = allVariations.length;
         }
-
-        // Fetch all open defects across all projects (includes open, reported, in_progress, disputed)
-        const { data: allDefects } = await supabase
-            .from('defects')
-            .select('id')
-            .in('project_id', projectIds)
-            .not('status', 'in', '(verified,rectified)');
-        totalOpenDefects = allDefects?.length || 0;
+        totalOpenDefects = defectsResult.data?.length || 0;
     }
-
-    // ── Active announcement banner ──────────────────────────────────
-    const { data: announcement } = await supabase
-        .from("announcements")
-        .select("message, type")
-        .eq("active", true)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .single();
 
     // For quick actions, prefer active/planning project, fallback to most recent
     const activeProject = projects?.find((p: { status: string }) => p.status === "active" || p.status === "planning");

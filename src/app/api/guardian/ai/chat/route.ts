@@ -126,22 +126,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // Fetch current stage
+    // Fetch current stage (deterministic: earliest in_progress stage by order_index)
     const { data: stages } = await supabase
       .from("stages")
       .select("name, status")
       .eq("project_id", projectId)
       .eq("status", "in_progress")
+      .order("order_index", { ascending: true })
       .limit(1);
 
     const currentStage = stages?.[0]?.name || "Unknown";
 
-    // Fetch open defects for context
+    // Fetch open defects for context — matches dashboard logic: NOT in terminal states
     const { data: defects } = await supabase
       .from("defects")
       .select("title, severity, status")
       .eq("project_id", projectId)
-      .in("status", ["open", "in_progress"])
+      .not("status", "in", "(verified,rectified)")
       .limit(20);
 
     const openDefects = (defects || []).map((d) => ({

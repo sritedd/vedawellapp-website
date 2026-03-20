@@ -1,17 +1,23 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createServerClient } from "@supabase/ssr";
 import { isAdminEmail } from "@/lib/admin";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-/** Call at the top of every authenticated Guardian server component to record last activity */
+/** Call at the top of every authenticated Guardian server component to record last activity.
+ *  Throttled: only writes if last_seen_at is more than 15 minutes old to avoid write amplification. */
 export async function touchLastSeen(userId: string) {
     const supabase = await createClient();
+
+    // Only update if last_seen_at is older than 15 minutes
+    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
     await supabase
         .from("profiles")
         .update({ last_seen_at: new Date().toISOString() })
-        .eq("id", userId);
+        .eq("id", userId)
+        .or(`last_seen_at.is.null,last_seen_at.lt.${fifteenMinutesAgo}`);
 }
 
 export async function logout() {
@@ -180,14 +186,28 @@ export async function updateProject(projectId: string, updates: {
 
 // ── Admin helpers ──────────────────────────────────────────────────
 
-/** Check if the current user is an admin */
+/** Get service-role Supabase client for admin operations (bypasses RLS) */
+function getServiceSupabase() {
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!serviceKey) {
+        throw new Error("SUPABASE_SERVICE_ROLE_KEY is required for admin actions");
+    }
+    return createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        serviceKey,
+        { cookies: { getAll: () => [], setAll: () => { } } }
+    );
+}
+
+/** Check if the current user is an admin, return service-role client for mutations */
 async function requireAdmin() {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user || !isAdminEmail(user.email)) {
         return { supabase: null, error: "Unauthorized" };
     }
-    return { supabase, error: null };
+    // Return service-role client so admin mutations bypass RLS restrictions (schema_v26)
+    return { supabase: getServiceSupabase(), error: null };
 }
 
 /** Admin: Grant a free trial to a user by email */
@@ -388,7 +408,7 @@ export async function cleanupExpiredTrials() {
 
 // ── Support messaging ─────────────────────────────────────────────
 
-/** User: Send a support message */
+/** User: Send a support message (rate limited: max 5 per minute) */
 export async function sendSupportMessage(message: string) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -396,6 +416,19 @@ export async function sendSupportMessage(message: string) {
 
     const trimmed = message.trim();
     if (!trimmed || trimmed.length > 2000) return { error: "Message must be 1-2000 characters" };
+
+    // Rate limit: max 5 messages per minute per user
+    const oneMinuteAgo = new Date(Date.now() - 60 * 1000).toISOString();
+    const { count } = await supabase
+        .from("support_messages")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("is_admin_reply", false)
+        .gte("created_at", oneMinuteAgo);
+
+    if ((count ?? 0) >= 5) {
+        return { error: "Too many messages. Please wait a minute before sending another." };
+    }
 
     const { error } = await supabase
         .from("support_messages")
