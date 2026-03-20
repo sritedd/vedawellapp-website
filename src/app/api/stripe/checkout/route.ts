@@ -17,8 +17,14 @@ export async function POST(req: NextRequest) {
 
         const { priceId } = await req.json();
 
-        if (!priceId) {
-            return NextResponse.json({ error: "Price ID is required" }, { status: 400 });
+        // Allowlist of valid price IDs — prevents billing bypass via arbitrary priceId
+        const ALLOWED_PRICE_IDS = [
+            process.env.STRIPE_MONTHLY_PRICE_ID || "price_1T4zHCGrwDXNt9f4x4O2MxlZ",
+            // Add yearly price ID here when created
+        ].filter(Boolean);
+
+        if (!priceId || !ALLOWED_PRICE_IDS.includes(priceId)) {
+            return NextResponse.json({ error: "Invalid price ID" }, { status: 400 });
         }
 
         const origin = req.headers.get("origin") || "https://vedawellapp.com";

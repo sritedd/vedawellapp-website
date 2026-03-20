@@ -1,7 +1,7 @@
 # HomeOwner Guardian — Critical Issues Audit
 
 > **Original audit date**: 2026-03-10
-> **Last updated**: 2026-03-19
+> **Last updated**: 2026-03-20
 > **Status**: ALL CRITICAL AND HIGH ISSUES RESOLVED
 
 ---
@@ -41,18 +41,20 @@ All issues from the original audit have been fixed. This document is kept for hi
 | # | Issue | Resolution |
 |---|-------|------------|
 | 12 | Dev mode mock client | Restricted to localhost only |
-| 13 | No real-time sync | Not implemented (low priority, data freshness via refetch callbacks) |
+| 13 | No real-time sync | DONE — Supabase Realtime via `useRealtimeProject` hook (12 tables) |
 
 ---
 
-## CURRENT KNOWN ISSUES (as of 2026-03-19)
+## CURRENT KNOWN ISSUES (as of 2026-03-20)
 
-| # | Severity | Issue | File |
-|---|----------|-------|------|
-| 1 | MEDIUM | Yearly Stripe price not configured | `PricingClient.tsx` — priceId is empty string |
-| 2 | LOW | MaterialRegistry is UI-only (no DB persistence) | `MaterialRegistry.tsx` |
-| 3 | LOW | SiteVisitLog is UI-only (no DB persistence) | `SiteVisitLog.tsx` |
-| 4 | LOW | ContractReviewChecklist is UI-only | `ContractReviewChecklist.tsx` |
-| 5 | LOW | PreHandoverChecklist uses localStorage only | `PreHandoverChecklist.tsx` |
-| 6 | LOW | Builder license auto-verification not implemented | Manual text field + link only |
-| 7 | LOW | No offline mode / service worker for site visits | PWA shell exists but no offline data |
+| # | Severity | Issue | Status |
+|---|----------|-------|--------|
+| 1 | MEDIUM | Yearly Stripe price not configured | **ON HOLD** — user requested hold |
+| 2 | ~~LOW~~ | ~~MaterialRegistry is UI-only~~ | **FIXED** — DB-backed via `materials` table (schema v16) |
+| 3 | ~~LOW~~ | ~~SiteVisitLog is UI-only~~ | **FIXED** — DB-backed via `site_visits` table + offline mode |
+| 4 | ~~LOW~~ | ~~ContractReviewChecklist is UI-only~~ | **FIXED** — DB-backed via `contract_review_items` table (schema v24) |
+| 5 | ~~LOW~~ | ~~PreHandoverChecklist uses localStorage only~~ | **FIXED** — DB-backed via `pre_handover_items` table (schema v22) |
+| 6 | LOW | Builder license auto-verification not implemented | **DEFERRED** — manual text field + link only |
+| 7 | ~~LOW~~ | ~~No offline mode / service worker~~ | **FIXED** — IndexedDB queue + enhanced service worker |
+| 8 | LOW | Schemas v21–v26 not yet run on Supabase | **PENDING** — run on SQL Editor |
+| 9 | LOW | Push notifications MVP only (no server-side web push) | **DEFERRED** — UI exists, server not implemented |

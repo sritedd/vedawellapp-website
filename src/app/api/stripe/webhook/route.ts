@@ -90,6 +90,25 @@ export async function POST(req: NextRequest) {
             const userId = session.metadata?.supabase_user_id;
 
             if (userId) {
+                // Verify the user actually exists before granting entitlements
+                const { data: existingProfile } = await supabase
+                    .from("profiles")
+                    .select("id, email")
+                    .eq("id", userId)
+                    .single();
+
+                if (!existingProfile) {
+                    console.error(`[Stripe] checkout.session.completed: metadata user_id=${userId} does not exist — skipping`);
+                    break;
+                }
+
+                // Cross-check: session customer_email should match profile email
+                if (session.customer_email && existingProfile.email &&
+                    session.customer_email.toLowerCase() !== existingProfile.email.toLowerCase()) {
+                    console.error(`[Stripe] checkout.session.completed: email mismatch — session=${session.customer_email}, profile=${existingProfile.email}, user_id=${userId}`);
+                    break;
+                }
+
                 await supabase
                     .from("profiles")
                     .update({

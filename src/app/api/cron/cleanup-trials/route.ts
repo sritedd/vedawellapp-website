@@ -10,16 +10,17 @@ import { createServerClient } from "@supabase/ssr";
  *
  * Setup options:
  * 1. Netlify Scheduled Function: call this endpoint daily
- * 2. External cron (e.g., cron-job.org): GET /api/cron/cleanup-trials?secret=YOUR_SECRET
- * 3. Manual: admin can call from browser/curl
+ * 2. External cron: GET /api/cron/cleanup-trials with Authorization: Bearer CRON_SECRET header
+ * 3. Manual: admin can call from curl with auth header
+ *
+ * SECURITY: Secret must be in Authorization header, NOT query string (prevents logging/caching exposure)
  */
 export async function GET(req: NextRequest) {
-    // Verify authorization
-    const secret = req.nextUrl.searchParams.get("secret");
+    // Verify authorization via header (never query string — secrets in URLs get logged)
+    const authHeader = req.headers.get("authorization");
     const cronSecret = process.env.CRON_SECRET;
 
-    // Allow if: correct secret provided, OR no CRON_SECRET env var set (dev mode)
-    if (cronSecret && secret !== cronSecret) {
+    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

@@ -2,7 +2,7 @@
 
 > **PURPOSE**: This is the persistent memory for the Guardian app. Every new conversation should read this file FIRST to understand current state, what's been done, and what to work on next.
 >
-> **LAST UPDATED**: 2026-03-19
+> **LAST UPDATED**: 2026-03-20
 
 ---
 
@@ -39,7 +39,7 @@ payments, ai_cache, knowledge_base
 | Tier | Price | Projects | Defects | Variations |
 |------|-------|----------|---------|------------|
 | Free | $0 | 1 | 3 | 2 |
-| Trial | $0 (admin-granted) | ∞ | ∞ | ∞ |
+| Trial | $0 (self-service 7-day, one-time) | ∞ | ∞ | ∞ |
 | Guardian Pro | $14.99/mo | ∞ | ∞ | ∞ |
 
 ### Key Data: `src/data/australian-build-workflows.json`
@@ -50,6 +50,15 @@ payments, ai_cache, knowledge_base
 ---
 
 ## 2. WHAT'S BEEN DONE (Completed Work)
+
+### Session: 2026-03-19 (I) — Security Audit & Exploit Fixes
+
+| Change | File(s) |
+|--------|---------|
+| Fixed `checkProAccess()` — was checking non-existent `"guardian_trial"` tier, trial users denied Pro features | `rate-limit.ts` |
+| Fixed trial loop exploit — cleanup cron no longer nulls `trial_ends_at`, blocking re-claims | `cleanup-trials/route.ts`, `actions.ts` |
+| RLS hardening (schema_v26) — users cannot modify `subscription_tier`, `is_admin`, `trial_ends_at`, `referral_count` | `schema_v26_security_hardening.sql` |
+| Referral anti-abuse — self-referral guard, 10-reward cap, same-domain email block, 7-day account age check | `referral-reward/route.ts` |
 
 ### Session: 2026-03-19 (H) — Trust & Retention + Growth & Virality
 
@@ -357,6 +366,9 @@ payments, ai_cache, knowledge_base
 - ⬜ `schema_v21_phone_verification.sql` — phone_verified columns + unique phone index (NEEDS TO BE RUN)
 - ⬜ `schema_v22_prehandover.sql` — pre_handover_items table + RLS (NEEDS TO BE RUN)
 - ⬜ `schema_v23_realtime.sql` — Enable Supabase Realtime on 12 tables (NEEDS TO BE RUN)
+- ⬜ `schema_v24_contract_builder_reviews.sql` — contract_review_items + builder_reviews tables (NEEDS TO BE RUN)
+- ⬜ `schema_v25_email_verification.sql` — email_verified_override column (NEEDS TO BE RUN)
+- ⬜ `schema_v26_security_hardening.sql` — RLS restricting sensitive profile columns (NEEDS TO BE RUN)
 
 ---
 
@@ -373,12 +385,12 @@ payments, ai_cache, knowledge_base
 All 12 bugs from the original plan (hardcoded fake data in ProjectOverview, StageChecklist, InspectionTimeline, StageGate, CommunicationLog + persistence issues) have been fixed in prior commits. Components now fetch from DB, toggles persist, free tier enforced server-side, planning status handled.
 
 ### Remaining Gaps
-1. ~~**PreHandoverChecklist → DB**~~ DONE — migrated to `pre_handover_items` table
-2. **ContractReviewChecklist → DB** — UI-only, needs persistence
-3. **BuilderRatings → DB** — currently localStorage MVP
-4. ~~**Offline mode**~~ DONE — IndexedDB queue + enhanced service worker for site visits
-5. ~~**Real-time sync**~~ DONE — `useRealtimeProject` hook on 12 tables
-6. **Stripe customer portal** — users can't self-cancel/update payment
+1. ~~**PreHandoverChecklist → DB**~~ DONE
+2. ~~**ContractReviewChecklist → DB**~~ DONE — `contract_review_items` table (Session D)
+3. ~~**BuilderRatings → DB**~~ DONE — `builder_reviews` table with auto-migration (Session D)
+4. ~~**Offline mode**~~ DONE
+5. ~~**Real-time sync**~~ DONE
+6. ~~**Stripe customer portal**~~ DONE — ManageBillingButton + /api/stripe/portal
 7. **Yearly Stripe price** — on hold per user request
 
 ### Feature Completeness: 9.5/10 | Usability: 9.8/10 | Accessibility: WCAG 2.1 AA (partial)
@@ -412,10 +424,10 @@ All 12 bugs from the original plan (hardcoded fake data in ProjectOverview, Stag
 
 #### Tier 3.5: Data Persistence & Sync
 - [x] **PreHandoverChecklist → DB** — Migrated to `pre_handover_items` table with auto-migration from localStorage
-- [ ] **ContractReviewChecklist → DB** — Migrate from UI-only to Supabase
-- [ ] **BuilderRatings → DB** — Migrate from localStorage to Supabase
+- [x] **ContractReviewChecklist → DB** — Migrated to `contract_review_items` table (Session D)
+- [x] **BuilderRatings → DB** — Migrated to `builder_reviews` table with auto-migration (Session D)
 - [x] **Real-time sync** — Supabase Realtime via `useRealtimeProject` hook on 12 tables
-- [ ] **Stripe customer portal** — Self-service cancel/update payment
+- [x] **Stripe customer portal** — ManageBillingButton + /api/stripe/portal (already working)
 
 #### Tier 4: Scale & Network Effects (DEFERRED — not before June 2026)
 - [ ] **Builder Portal** — Builder read/write access (deferred 2+ months)
@@ -467,7 +479,7 @@ WeeklyCheckIn.tsx           — Builder accountability
 MaterialRegistry.tsx        — DB-backed via materials table
 SiteVisitLog.tsx            — DB-backed via site_visits table + offline mode (IndexedDB queue)
 PreHandoverChecklist.tsx    — DB-backed (pre_handover_items table) + "Create Defects" bridge
-ContractReviewChecklist.tsx — ⚠️ UI-ONLY — needs persistence
+ContractReviewChecklist.tsx — DB-backed (contract_review_items table), optional projectId prop
 DisputeResolution.tsx       — State-specific dispute pathways + 3 template letters
 DodgyBuilderAlerts.tsx      — Contextual dodgy builder warnings from workflow JSON
 AccountabilityScore.tsx     — Builder accountability score (0-100) from real data
@@ -476,7 +488,7 @@ GuidedOnboarding.tsx        — 5-step onboarding checklist, collapsible, auto-s
 MobilePhotoCapture.tsx      — Camera capture + annotation + upload + "Log as Defect" + FAB
 PushNotificationSetup.tsx   — Web push permission + 6 preference toggles (MVP)
 CostBenchmarking.tsx        — Variation price analysis vs industry benchmarks
-BuilderRatings.tsx          — 5-star builder reviews + 5 category ratings (localStorage MVP)
+BuilderRatings.tsx          — 5-star builder reviews + 5 category ratings (DB-backed, auto-migrated from localStorage)
 MessageTemplates.tsx        — Pre-written templates
 ConstructionGlossary.tsx    — Static reference
 ExportCenter.tsx            — Report export

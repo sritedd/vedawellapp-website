@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
-async function getSupabase() {
-    const cookieStore = await cookies();
+function getAuthSupabase(cookieStore: any) {
     return createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -16,16 +15,32 @@ async function getSupabase() {
     );
 }
 
-export async function POST() {
-    const supabase = await getSupabase();
+function getServiceSupabase() {
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!serviceKey) {
+        throw new Error("SUPABASE_SERVICE_ROLE_KEY is required for start-trial");
+    }
+    return createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        serviceKey,
+        { cookies: { getAll: () => [], setAll: () => { } } }
+    );
+}
 
-    // 1. Require authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+export async function POST() {
+    const cookieStore = await cookies();
+    const authSupabase = getAuthSupabase(cookieStore);
+
+    // 1. Require authentication (use anon client for auth only)
+    const { data: { user }, error: authError } = await authSupabase.auth.getUser();
     if (authError || !user) {
         return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    // 2. Look up profile
+    // 2. Use service role for all profile reads/writes (bypasses RLS restrictions on sensitive columns)
+    const supabase = getServiceSupabase();
+
+    // 3. Look up profile
     const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("subscription_tier, trial_ends_at")
@@ -39,7 +54,7 @@ export async function POST() {
         );
     }
 
-    // 3. Already a paying subscriber
+    // 4. Already a paying subscriber
     if (profile.subscription_tier === "guardian_pro") {
         return NextResponse.json(
             { error: "Already subscribed to Guardian Pro." },
@@ -47,7 +62,7 @@ export async function POST() {
         );
     }
 
-    // 4. Trial currently active
+    // 5. Trial currently active
     if (
         profile.subscription_tier === "trial" &&
         profile.trial_ends_at &&
@@ -59,7 +74,7 @@ export async function POST() {
         );
     }
 
-    // 5. Trial already used (trial_ends_at is in the past)
+    // 6. Trial already used (trial_ends_at is in the past)
     if (profile.trial_ends_at && new Date(profile.trial_ends_at) <= new Date()) {
         return NextResponse.json(
             { error: "Trial already used. Subscribe to Guardian Pro to continue with full access." },
@@ -67,7 +82,7 @@ export async function POST() {
         );
     }
 
-    // 6. Grant 7-day trial
+    // 7. Grant 7-day trial
     const now = new Date();
     const trialEnd = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 

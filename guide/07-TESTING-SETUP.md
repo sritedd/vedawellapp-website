@@ -1,6 +1,6 @@
 # HomeOwner Guardian — E2E Testing Setup
 
-> **Last Updated**: 2026-03-19
+> **Last Updated**: 2026-03-20
 
 ## Overview
 
@@ -103,24 +103,38 @@ supabase-seed.ts                    Supabase client
 - `cleanupE2EProjects()`: Finds all projects with name `E2E %` and deletes them
 - Global teardown cleans the local `guardian_test` database
 
+### AI E2E Tests (`e2e/guardian-ai.spec.ts`)
+
+12 tests covering:
+- Auth check (401 without session)
+- Tier gating (403 for free tier on Pro-only routes)
+- Input validation (400 for missing/invalid fields)
+- Response shape verification
+- Prompt injection defense
+
 ## Known Limitations
 
 1. **QLD/WA have no workflow stages** — `australian-build-workflows.json` doesn't define stages for these states. Tests verify graceful empty state.
 2. **No storage tests** — photo upload, document upload not tested end-to-end (requires Supabase Storage buckets).
-3. **No AI tests** — AI features (defect assist, chat, builder check, stage advice) not yet covered in E2E tests. Planned for `e2e/guardian-ai.spec.ts`.
-4. **Sequential only** — tests share DB state per state, must run single worker.
+3. **Sequential only** — tests share DB state per state, must run single worker.
 
 ## Schema Migrations Required
 
-All migrations v1–v20 should be applied on production Supabase before running full E2E tests:
+All migrations v1–v26 should be applied on production Supabase before running full E2E tests:
 
-| Migration | Tables/Changes |
-|-----------|---------------|
-| v1–v12 | Core tables (profiles, projects, stages, defects, etc.) |
-| v13 | Storage buckets (evidence, documents, certificates) + progress_photos |
-| v14–v15 | Bug fixes (order_index, status constraints, override_reason) |
-| v16 | materials, site_visits tables; weekly_checkins extensions |
-| v17 | project state + build_category columns |
-| v18 | payments table, project/stage date columns |
-| v19 | Policy fixes (DROP IF EXISTS before CREATE) |
-| v20 | pgvector, ai_cache, knowledge_base tables + RLS |
+| Migration | Tables/Changes | Status |
+|-----------|---------------|--------|
+| v1–v12 | Core tables (profiles, projects, stages, defects, etc.) | Applied |
+| v13 | Storage buckets (evidence, documents, certificates) + progress_photos | Applied |
+| v14–v15 | Bug fixes (order_index, status constraints, override_reason) | Applied |
+| v16 | materials, site_visits tables; weekly_checkins extensions | Applied |
+| v17 | project state + build_category columns | Applied |
+| v18 | payments table, project/stage date columns | Applied |
+| v19 | Policy fixes (DROP IF EXISTS before CREATE) | Applied |
+| v20 | pgvector, ai_cache, knowledge_base tables + RLS | Applied |
+| v21 | Phone verification columns + unique phone index | PENDING |
+| v22 | pre_handover_items table + RLS | PENDING |
+| v23 | Supabase Realtime on 12 tables | PENDING |
+| v24 | contract_review_items + builder_reviews tables | PENDING |
+| v25 | email_verified_override column | PENDING |
+| v26 | RLS hardening (restrict sensitive profile columns) | PENDING |

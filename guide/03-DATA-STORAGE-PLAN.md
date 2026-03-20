@@ -9,8 +9,8 @@ All user data stored in Supabase PostgreSQL with Row-Level Security (RLS).
 Nested tables (stages, checklist_items, etc.) verify ownership via JOIN to projects.
 
 ### File Storage (Supabase Storage)
-Three buckets required (may not be created yet):
-- `evidence` — Checklist photo evidence
+Three buckets (created via `schema_v13_storage_buckets.sql`):
+- `evidence` — Checklist photo evidence, defect photos, progress photos
 - `documents` — Documents, variation signatures
 - `certificates` — Certification uploads
 
@@ -123,19 +123,26 @@ CREATE POLICY "Users can delete own evidence"
 
 ## Data Cleanup on Project Deletion
 
-Current `deleteProject()` misses these tables/resources:
+`deleteProject()` in `actions.ts` handles all tables with try/catch per table (best-effort cascade):
 
-| Resource | Currently Deleted? | Fix |
-|----------|--------------------|-----|
-| checklist_items | Yes (manual) | Use CASCADE |
-| stages | Yes (manual) | Use CASCADE |
-| variations | Yes (manual) | Use CASCADE |
-| defects | Yes (manual) | Use CASCADE |
-| certifications | Yes (manual) | Use CASCADE |
-| documents | **NO** | Add to deletion |
-| inspections | **NO** | Add to deletion |
-| weekly_checkins | **NO** | Add to deletion |
-| communication_log | **NO** | Add to deletion |
-| Storage files | **NO** | List + delete from bucket |
+| Resource | Deleted? | Method |
+|----------|----------|--------|
+| checklist_items | Yes | Manual delete |
+| stages | Yes | Manual delete |
+| variations | Yes | Manual delete |
+| defects | Yes | Manual delete |
+| certifications | Yes | Manual delete |
+| documents | Yes | Manual delete |
+| inspections | Yes | Manual delete |
+| weekly_checkins | Yes | Manual delete |
+| communication_log | Yes | Manual delete |
+| payments | Yes | Manual delete |
+| progress_photos | Yes | Manual delete |
+| materials | Yes | Manual delete |
+| site_visits | Yes | Manual delete |
+| pre_handover_items | Yes | Manual delete |
+| contract_review_items | Yes | Manual delete |
+| builder_reviews | Yes | Manual delete |
+| Storage files | Yes | List + delete from all 3 buckets |
 
-**Note**: Most tables already have `ON DELETE CASCADE` on the `project_id` FK, so deleting the project row itself should cascade. The manual deletions in `actions.ts` are redundant (but harmless). The real gap is storage file cleanup.
+**Note**: Most tables also have `ON DELETE CASCADE` on `project_id` FK. Manual deletions are belt-and-suspenders.

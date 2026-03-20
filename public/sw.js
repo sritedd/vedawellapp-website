@@ -40,20 +40,10 @@ self.addEventListener("fetch", (event) => {
     // Skip auth callbacks and Supabase REST API
     if (url.pathname.startsWith("/auth/")) return;
 
-    // For Supabase API calls (data fetching): try network, fall back to cache
-    if (url.hostname.includes("supabase.co") && url.pathname.startsWith("/rest/")) {
-        event.respondWith(
-            fetch(event.request)
-                .then((response) => {
-                    if (response.ok) {
-                        const clone = response.clone();
-                        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-                    }
-                    return response;
-                })
-                .catch(() => caches.match(event.request))
-        );
-        return;
+    // Supabase API calls contain private user data — NEVER cache them.
+    // Offline support uses IndexedDB (offlineQueue.ts) instead.
+    if (url.hostname.includes("supabase.co")) {
+        return; // Let the browser handle normally, no caching
     }
 
     // Skip other API routes (mutations, webhooks)

@@ -16,9 +16,15 @@ function getSupabase() {
 }
 
 function getSupabaseAdmin() {
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!serviceKey) {
+        // AI cache is non-critical — fall back to anon client (reads may fail due to RLS, that's OK)
+        console.warn("[AI Cache] SUPABASE_SERVICE_ROLE_KEY not set, cache writes may fail");
+        return getSupabase();
+    }
     return createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        serviceKey,
         { cookies: { getAll: () => [], setAll: () => { } } }
     );
 }

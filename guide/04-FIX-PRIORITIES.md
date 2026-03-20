@@ -1,18 +1,17 @@
 # HomeOwner Guardian — Fix Priority List
 
-> **Last Updated**: 2026-03-19
-> **Status**: All original P1/P2 priorities completed. Updated with current priorities.
+> **Last Updated**: 2026-03-20
+> **Status**: All original and secondary priorities completed. Only deferred/on-hold items remain.
 
 ---
 
-## COMPLETED (All Original Priorities — Done)
+## COMPLETED (All Priorities — Done)
 
-All items from the original priority list (P1.1–P1.4, P2.1–P2.4, P3.1–P3.4) have been resolved:
-
+### Original Priorities (P1–P3)
 - P1.1 ProgressPhotos → WORKING (Supabase Storage + DB)
 - P1.2 ProjectDefects → WORKING (Full CRUD + AI assist)
 - P1.3 Storage buckets → Created (schema_v13)
-- P1.4 deleteProject → Cascade cleanup implemented
+- P1.4 deleteProject → Cascade cleanup (all tables + storage)
 - P2.1 Dynamic stages → Computed from DB
 - P2.2 Clickable dashboard → Stats link to project tabs
 - P2.3 NotificationCenter → Computes from real data
@@ -21,36 +20,57 @@ All items from the original priority list (P1.1–P1.4, P2.1–P2.4, P3.1–P3.4
 - P3.3 Image compression → Client-side before upload
 - P3.4 Referral code uniqueness → Random 8-char codes
 
+### Revenue & Conversion
+| # | Task | Status |
+|---|------|--------|
+| 1.1 | Yearly Stripe price | **ON HOLD** — user requested hold |
+| 1.2 | Stripe customer portal | **DONE** — ManageBillingButton + /api/stripe/portal |
+| 1.3 | Self-service 7-day trial | **DONE** — /api/guardian/start-trial + PricingClient CTA |
+
+### AI Feature Hardening
+| # | Task | Status |
+|---|------|--------|
+| 2.1 | Pro-tier gating for AI routes | **DONE** — `checkProAccess()` in rate-limit.ts |
+| 2.2 | Seed knowledge_base | **DONE** — 25 entries (NCC, AS standards, state regs) |
+| 2.3 | AI E2E tests | **DONE** — 12 tests in `e2e/guardian-ai.spec.ts` |
+| 2.4 | Gemini API fallback | DEFERRED — monitoring manually |
+
+### Data Integrity
+| # | Task | Status |
+|---|------|--------|
+| 3.1 | MaterialRegistry → DB | **DONE** — `materials` table (schema v16) |
+| 3.2 | SiteVisitLog → DB + offline | **DONE** — `site_visits` table + IndexedDB queue |
+| 3.3 | PreHandoverChecklist → DB | **DONE** — `pre_handover_items` table (schema v22) |
+| 3.4 | ContractReviewChecklist → DB | **DONE** — `contract_review_items` table (schema v24) |
+| 3.5 | BuilderRatings → DB | **DONE** — `builder_reviews` table with auto-migration (schema v24) |
+| 3.6 | Schema migrations v1–v20 applied | **DONE** |
+
+### Scale & Polish
+| # | Task | Status |
+|---|------|--------|
+| 4.1 | Builder license auto-verification | DEFERRED — manual text field + link only |
+| 4.2 | Offline mode | **DONE** — IndexedDB queue + enhanced service worker |
+| 4.3 | Builder portal | DEFERRED — not before June 2026 |
+| 4.4 | Real-time sync | **DONE** — Supabase Realtime on 12 tables |
+
+### Security Hardening (Session I — 2026-03-19)
+| # | Task | Status |
+|---|------|--------|
+| 5.1 | Fix checkProAccess() tier check | **DONE** — "guardian_trial" → "trial" |
+| 5.2 | Fix trial loop exploit | **DONE** — keep trial_ends_at on cleanup |
+| 5.3 | RLS hardening (schema_v26) | **DONE** — restrict sensitive column updates |
+| 5.4 | Referral anti-abuse | **DONE** — self-referral, cap, domain, age checks |
+
 ---
 
-## CURRENT PRIORITIES (as of 2026-03-19)
+## REMAINING (On Hold / Deferred)
 
-### P1 — Revenue & Conversion
-| # | Task | File(s) | Est |
-|---|------|---------|-----|
-| 1.1 | Create yearly Stripe price ($149/yr) and wire to PricingClient | `PricingClient.tsx` | 30m |
-| 1.2 | Add Stripe customer portal for subscription management | `/api/stripe/portal/route.ts` | 1h |
-
-### P2 — AI Feature Hardening
-| # | Task | File(s) | Est |
-|---|------|---------|-----|
-| 2.1 | Pro-tier gating for AI chat, builder check, stage advice | All AI API routes | 1h |
-| 2.2 | Seed knowledge_base with NCC/AS references for RAG | `knowledge_base` table | 2h |
-| 2.3 | AI E2E tests (defect assist, chat, builder check) | `e2e/guardian-ai.spec.ts` | 2h |
-| 2.4 | Monitor Gemini API usage and add fallback for rate limits | `src/lib/ai/provider.ts` | 1h |
-
-### P3 — Data Integrity
-| # | Task | File(s) | Est |
-|---|------|---------|-----|
-| 3.1 | Wire MaterialRegistry to `materials` table (schema v16) | `MaterialRegistry.tsx` | 1h |
-| 3.2 | Wire SiteVisitLog to `site_visits` table (schema v16) | `SiteVisitLog.tsx` | 1h |
-| 3.3 | Wire PreHandoverChecklist to DB (currently localStorage) | `PreHandoverChecklist.tsx` | 1h |
-| 3.4 | Confirm all schema migrations v13–v20 are applied | Supabase SQL Editor | 30m |
-
-### P4 — Scale & Polish
-| # | Task | File(s) | Est |
-|---|------|---------|-----|
-| 4.1 | Builder license auto-verification via ABN/QBCC APIs | New component | 3h |
-| 4.2 | Offline mode with service worker for site visits | `sw.js` | 3h |
-| 4.3 | Builder portal (read/write access for builders) | New pages | 5h |
-| 4.4 | Real-time sync via Supabase Realtime subscriptions | Multiple components | 3h |
+| # | Task | Status | Notes |
+|---|------|--------|-------|
+| 1 | Yearly Stripe price | ON HOLD | User requested hold |
+| 2 | Builder license auto-verification | DEFERRED | Manual text + link for now |
+| 3 | Builder portal | DEFERRED | Not before June 2026 |
+| 4 | Certifier integration | DEFERRED | Not before June 2026 |
+| 5 | Panchang rebuild | DEFERRED | Needs real astronomical calculations |
+| 6 | Run schemas v21–v26 on Supabase | PENDING | Must be done manually in SQL Editor |
+| 7 | Server-side web push notifications | DEFERRED | UI exists, server not implemented |

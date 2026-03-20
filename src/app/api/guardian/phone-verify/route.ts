@@ -59,9 +59,13 @@ async function getAuthenticatedUser(cookieStore: any) {
 }
 
 function getServiceSupabase() {
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!serviceKey) {
+        throw new Error("SUPABASE_SERVICE_ROLE_KEY is required for phone-verify");
+    }
     return createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        serviceKey,
         { cookies: { getAll: () => [], setAll: () => {} } }
     );
 }
@@ -133,8 +137,10 @@ export async function POST(request: NextRequest) {
             // Production: Replace with Twilio SMS
             const userEmail = user.email;
             if (userEmail) {
-                // Send OTP via email as fallback (free)
-                console.log(`[Phone OTP] Code for ${phone}: ${otp} (sent to ${userEmail})`);
+                // NEVER log the OTP in production — credential exposure risk
+                if (process.env.NODE_ENV === "development") {
+                    console.log(`[Phone OTP] Code for ${phone}: ${otp} (dev only)`);
+                }
 
                 // If Resend is configured, send email with OTP
                 if (process.env.RESEND_API_KEY) {
@@ -170,7 +176,9 @@ export async function POST(request: NextRequest) {
 
             return NextResponse.json({
                 success: true,
-                message: `Verification code sent to your email (${userEmail}). Check your inbox.`,
+                // Be transparent: this is email-based verification until SMS is integrated
+                message: `Verification code sent to your email (${userEmail}). This verifies your email identity — SMS verification coming soon.`,
+                method: "email", // Clients can show appropriate UI
                 expiresIn: OTP_EXPIRY_MINUTES * 60,
             });
         }
@@ -227,7 +235,9 @@ export async function POST(request: NextRequest) {
                 );
             }
 
-            // Success — mark phone as verified
+            // Success — mark as verified
+            // Note: Currently email-based OTP, so this verifies identity, not phone ownership.
+            // When Twilio SMS is integrated, this will verify actual phone ownership.
             await serviceSupabase
                 .from("profiles")
                 .update({

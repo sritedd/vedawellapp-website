@@ -21,9 +21,10 @@ function getServiceSupabase() {
  * Requires RESEND_API_KEY env var.
  */
 export async function GET(req: NextRequest) {
-    const secret = req.nextUrl.searchParams.get("secret");
+    // SECURITY: Secret in Authorization header, not query string
+    const authHeader = req.headers.get("authorization");
     const cronSecret = process.env.CRON_SECRET;
-    if (cronSecret && secret !== cronSecret) {
+    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
