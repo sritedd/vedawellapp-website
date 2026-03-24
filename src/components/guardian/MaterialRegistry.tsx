@@ -108,13 +108,15 @@ export default function MaterialRegistry({ projectId }: MaterialRegistryProps) {
 
     const toggleVerified = async (id: string, current: boolean) => {
         const supabase = createClient();
-        await supabase.from("materials").update({ verified: !current }).eq("id", id);
+        const { error } = await supabase.from("materials").update({ verified: !current }).eq("id", id);
+        if (error) { alert("Failed to update. Please try again."); return; }
         setMaterials(materials.map((m) => m.id === id ? { ...m, verified: !current } : m));
     };
 
     const deleteMaterial = async (id: string) => {
         const supabase = createClient();
-        await supabase.from("materials").delete().eq("id", id);
+        const { error } = await supabase.from("materials").delete().eq("id", id);
+        if (error) { alert("Failed to delete. Please try again."); return; }
         setMaterials(materials.filter((m) => m.id !== id));
     };
 

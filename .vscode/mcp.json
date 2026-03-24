@@ -1,0 +1,29 @@
+{
+  "servers": {
+    "supabase": {
+      "command": "npx",
+      "args": ["-y", "@supabase/mcp-server-supabase"],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "${env:SUPABASE_ACCESS_TOKEN}"
+      }
+    },
+    "netlify": {
+      "command": "npx",
+      "args": ["-y", "@netlify/mcp"],
+      "env": {
+        "NETLIFY_AUTH_TOKEN": "${env:NETLIFY_AUTH_TOKEN}"
+      }
+    },
+    "stripe": {
+      "command": "npx",
+      "args": ["-y", "@stripe/mcp"],
+      "env": {
+        "STRIPE_SECRET_KEY": "${env:STRIPE_SECRET_KEY}"
+      }
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp"]
+    }
+  }
+}

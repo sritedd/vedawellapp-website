@@ -77,8 +77,7 @@ type SectionId = (typeof SECTIONS)[number]["id"];
 const SECTION_SUBTABS: Record<SectionId, { id: string; label: string }[]> = {
     home: [
         { id: "overview", label: "Dashboard" },
-        { id: "actions", label: "Pending Actions" },
-        { id: "aichat", label: "AI Chat" },
+        { id: "actions", label: "Pending Actions" }
     ],
     build: [
         { id: "stagegate", label: "Stage Gate" },
@@ -533,12 +532,7 @@ export default function ProjectDetailPage() {
                                 builderEmail={project.builder_email}
                             />
                         )}
-                        {activeTab === "aichat" && (
-                            <GuardianChat
-                                projectId={project.id}
-                                projectName={project.name}
-                            />
-                        )}
+
 
                         {/* ── Build Section ── */}
                         {activeTab === "stagegate" && (
@@ -789,6 +783,9 @@ export default function ProjectDetailPage() {
 
             {/* Photo/Defect Speed Dial FAB */}
             <PhotoFAB onClick={() => setShowPhotoCapture(true)} />
+
+            {/* Global Floating AI Chat Widget */}
+            <GuardianChat projectId={project.id} projectName={project.name} />
 
             {/* Mobile Photo Capture Overlay */}
             {showPhotoCapture && (

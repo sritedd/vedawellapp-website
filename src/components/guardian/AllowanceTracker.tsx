@@ -59,7 +59,7 @@ export default function AllowanceTracker({ projectId }: { projectId: string }) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setSaving(false); return; }
 
-    await supabase.from("allowances").insert({
+    const { error } = await supabase.from("allowances").insert({
       project_id: projectId,
       user_id: user.id,
       category: form.category,
@@ -72,6 +72,8 @@ export default function AllowanceTracker({ projectId }: { projectId: string }) {
       status: form.status,
     });
 
+    if (error) { alert("Failed to save allowance. Please try again."); setSaving(false); return; }
+
     setForm({ category: "Kitchen Appliances", itemName: "", allowanceType: "pc", contractAmount: "", actualAmount: "", supplier: "", notes: "", status: "pending" });
     setShowForm(false);
     setSaving(false);
@@ -79,16 +81,18 @@ export default function AllowanceTracker({ projectId }: { projectId: string }) {
   };
 
   const updateActual = async (id: string, actual: string) => {
-    await supabase.from("allowances").update({
+    const { error } = await supabase.from("allowances").update({
       actual_amount: actual ? parseFloat(actual) : null,
       status: actual ? "selected" : "pending",
     }).eq("id", id);
+    if (error) { alert("Failed to update. Please try again."); return; }
     fetchAllowances();
   };
 
   const deleteAllowance = async (id: string) => {
     if (!confirm("Delete this allowance?")) return;
-    await supabase.from("allowances").delete().eq("id", id);
+    const { error } = await supabase.from("allowances").delete().eq("id", id);
+    if (error) { alert("Failed to delete. Please try again."); return; }
     fetchAllowances();
   };
 

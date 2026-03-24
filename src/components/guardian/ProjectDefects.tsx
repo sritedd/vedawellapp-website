@@ -242,7 +242,8 @@ export default function ProjectDefects({ projectId, stages, builderEmail, onData
         if (!defect) return;
 
         const newCount = defect.reminder_count + 1;
-        await supabase.from("defects").update({ reminder_count: newCount }).eq("id", id);
+        const { error } = await supabase.from("defects").update({ reminder_count: newCount }).eq("id", id);
+        if (error) { alert("Failed to update reminder count."); return; }
         setDefects(defects.map(d =>
             d.id === id ? { ...d, reminder_count: newCount } : d
         ));
@@ -346,7 +347,8 @@ export default function ProjectDefects({ projectId, stages, builderEmail, onData
             }
         }
 
-        await supabase.from("defects").delete().eq("id", id);
+        const { error: delErr } = await supabase.from("defects").delete().eq("id", id);
+        if (delErr) { alert("Failed to delete defect."); return; }
         setDefects(defects.filter(d => d.id !== id));
         onDataChanged?.();
     };

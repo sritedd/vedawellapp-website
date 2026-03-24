@@ -129,22 +129,34 @@ export default function NewProjectPage() {
 
         try {
             // Check free tier limits
-            const { data: profile } = await supabase
+            const { data: profile, error: profileErr } = await supabase
                 .from("profiles")
                 .select("subscription_tier, is_admin, trial_ends_at")
                 .eq("id", user.id)
                 .single();
 
-            const tier = profile?.subscription_tier || "free";
+            if (profileErr || !profile) {
+                setError("Could not load your profile. Please try again.");
+                setLoading(false);
+                return;
+            }
+
+            const tier = profile.subscription_tier || "free";
             const isAdmin = profile?.is_admin === true;
             const trialActive = tier === "trial" && profile?.trial_ends_at && new Date(profile.trial_ends_at) > new Date();
             const hasPro = tier === "guardian_pro" || isAdmin || trialActive;
 
             if (!hasPro) {
-                const { count } = await supabase
+                const { count, error: countErr } = await supabase
                     .from("projects")
                     .select("id", { count: "exact", head: true })
                     .eq("user_id", user.id);
+
+                if (countErr) {
+                    setError("Could not check project limits. Please try again.");
+                    setLoading(false);
+                    return;
+                }
 
                 if ((count || 0) >= 1) {
                     setError("Free plan allows 1 project. Upgrade to Guardian Pro for unlimited projects.");
@@ -224,7 +236,8 @@ export default function NewProjectPage() {
                         requires_photo: item.requiresPhoto || false,
                     }));
 
-                    await supabase.from("checklist_items").insert(itemsToInsert);
+                    const { error: clErr } = await supabase.from("checklist_items").insert(itemsToInsert);
+                    if (clErr) console.warn("Checklist insert failed:", clErr.message);
                 } else {
                     // Default items for stages without explicit checklist
                     const defaultItems = (stageTemplate as any).inspections || [];
@@ -237,26 +250,28 @@ export default function NewProjectPage() {
                             requires_photo: true,
                         }));
 
-                        await supabase.from("checklist_items").insert(itemsToInsert);
+                        const { error: clErr2 } = await supabase.from("checklist_items").insert(itemsToInsert);
+                        if (clErr2) console.warn("Checklist insert failed:", clErr2.message);
                     }
                 }
 
                 // Seed certificates for this stage
                 const certificates = (stageTemplate as any).certificates || [];
                 for (const cert of certificates) {
-                    await supabase.from("certifications").insert({
+                    const { error: certErr } = await supabase.from("certifications").insert({
                         project_id: projectId,
                         type: cert.toLowerCase().replace(/[^a-z]/g, "_").substring(0, 50),
                         status: "pending",
                         required_for_stage: stageData.id,
                     });
+                    if (certErr) console.warn("Cert insert failed:", certErr.message);
                 }
 
                 // Seed payment milestone for this stage (if it has a payment)
                 if (paymentPercent > 0) {
                     const contractVal = Math.max(0, parseFloat(formData.contract_value) || 0);
                     const certsForPayment = (stageTemplate as any).certificates || [];
-                    await supabase.from("payments").insert({
+                    const { error: payErr } = await supabase.from("payments").insert({
                         project_id: projectId,
                         stage_name: stageTemplate.name,
                         percentage: paymentPercent,
@@ -264,6 +279,7 @@ export default function NewProjectPage() {
                         status: "pending",
                         certificates_required: certsForPayment,
                     });
+                    if (payErr) console.warn("Payment insert failed:", payErr.message);
                 }
             }
 

@@ -81,7 +81,9 @@ export default function NotificationPreferences() {
       }, { onConflict: "user_id" });
 
     setSaving(false);
-    if (!error) {
+    if (error) {
+      alert("Failed to save preferences. Please try again.");
+    } else {
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     }

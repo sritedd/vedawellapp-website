@@ -256,7 +256,7 @@ export default function BuilderRatings({
     );
 
     if (error) {
-      console.error("Failed to save review:", error);
+      alert("Failed to save review. Please try again.");
       return;
     }
 

@@ -18,6 +18,12 @@ export default function ProjectSettings({ project, onProjectUpdated }: ProjectSe
     const [deleteConfirmText, setDeleteConfirmText] = useState("");
     const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
+    // MFA gate for destructive actions
+    const [mfaEnabled, setMfaEnabled] = useState(false);
+    const [mfaCode, setMfaCode] = useState("");
+    const [mfaVerified, setMfaVerified] = useState(false);
+    const [mfaVerifying, setMfaVerifying] = useState(false);
+
     const [form, setForm] = useState({
         name: project.name || "",
         address: project.address || "",
@@ -77,8 +83,44 @@ export default function ProjectSettings({ project, onProjectUpdated }: ProjectSe
         setSaving(false);
     };
 
+    // Check if user has MFA enabled when delete confirm is shown
+    const checkMfa = async () => {
+        const supabase = createClient();
+        const { data } = await supabase.auth.mfa.listFactors();
+        const verified = data?.totp?.find((f: { status: string }) => f.status === "verified");
+        setMfaEnabled(!!verified);
+        setMfaVerified(false);
+        setMfaCode("");
+    };
+
+    const verifyMfaCode = async () => {
+        if (mfaCode.length !== 6) return;
+        setMfaVerifying(true);
+        setMessage(null);
+
+        try {
+            const res = await fetch("/api/guardian/verify-mfa", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ code: mfaCode }),
+            });
+            const data = await res.json();
+
+            if (!res.ok) {
+                setMessage({ type: "error", text: data.error || "Invalid code" });
+            } else {
+                setMfaVerified(true);
+            }
+        } catch {
+            setMessage({ type: "error", text: "Verification failed" });
+        } finally {
+            setMfaVerifying(false);
+        }
+    };
+
     const handleDelete = async () => {
         if (deleteConfirmText !== project.name) return;
+        if (mfaEnabled && !mfaVerified) return;
 
         setDeleting(true);
         setMessage(null);
@@ -274,7 +316,7 @@ export default function ProjectSettings({ project, onProjectUpdated }: ProjectSe
 
                 {!showDeleteConfirm ? (
                     <button
-                        onClick={() => setShowDeleteConfirm(true)}
+                        onClick={() => { setShowDeleteConfirm(true); checkMfa(); }}
                         className="px-4 py-2 border border-danger text-danger rounded-lg font-medium hover:bg-danger/10 transition-colors"
                     >
                         Delete This Project
@@ -291,16 +333,47 @@ export default function ProjectSettings({ project, onProjectUpdated }: ProjectSe
                             placeholder="Type project name to confirm"
                             className="w-full px-4 py-3 rounded-lg border border-danger/30 bg-background focus:outline-none focus:ring-2 focus:ring-danger"
                         />
+
+                        {/* MFA verification step */}
+                        {mfaEnabled && !mfaVerified && (
+                            <div className="p-3 bg-yellow-500/5 border border-yellow-500/20 rounded-lg space-y-3">
+                                <p className="text-sm font-medium text-yellow-700">
+                                    Enter your authenticator code to proceed
+                                </p>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        value={mfaCode}
+                                        onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                                        placeholder="000000"
+                                        maxLength={6}
+                                        className="flex-1 px-3 py-2 text-sm rounded border border-border bg-background text-center tracking-widest font-mono"
+                                    />
+                                    <button
+                                        onClick={verifyMfaCode}
+                                        disabled={mfaCode.length !== 6 || mfaVerifying}
+                                        className="px-4 py-2 text-sm font-medium rounded bg-primary text-white hover:opacity-90 disabled:opacity-50"
+                                    >
+                                        {mfaVerifying ? "..." : "Verify"}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {mfaEnabled && mfaVerified && (
+                            <p className="text-xs text-green-600 font-medium">2FA verified</p>
+                        )}
+
                         <div className="flex gap-3">
                             <button
                                 onClick={handleDelete}
-                                disabled={deleteConfirmText !== project.name || deleting}
+                                disabled={deleteConfirmText !== project.name || deleting || (mfaEnabled && !mfaVerified)}
                                 className="px-4 py-2 bg-danger text-white rounded-lg font-medium disabled:opacity-50"
                             >
                                 {deleting ? "Deleting..." : "Permanently Delete Project"}
                             </button>
                             <button
-                                onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(""); }}
+                                onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(""); setMfaCode(""); setMfaVerified(false); }}
                                 className="px-4 py-2 border border-border rounded-lg font-medium hover:bg-muted/10"
                             >
                                 Cancel

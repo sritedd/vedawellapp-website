@@ -98,10 +98,15 @@ export async function POST(req: NextRequest) {
     }
 
     // Record event before processing (fail-safe: even if processing crashes, we don't re-process)
-    await supabase.from("stripe_webhook_events").insert({
+    const { error: idempotencyErr } = await supabase.from("stripe_webhook_events").insert({
         event_id: event.id,
         event_type: event.type,
     });
+    if (idempotencyErr) {
+        // If insert fails (e.g. unique constraint race), treat as duplicate
+        console.warn(`[Stripe] Idempotency insert failed for ${event.id}:`, idempotencyErr.message);
+        return NextResponse.json({ received: true, duplicate: true });
+    }
 
     // Guardian Pro price IDs — only these prices grant guardian_pro tier
     const GUARDIAN_PRO_PRICE_IDS = new Set(

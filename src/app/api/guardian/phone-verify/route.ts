@@ -145,20 +145,20 @@ export async function POST(request: NextRequest) {
                 // If Resend is configured, send email with OTP
                 if (process.env.RESEND_API_KEY) {
                     try {
-                        await fetch("https://api.resend.com/emails", {
+                        const emailRes = await fetch("https://api.resend.com/emails", {
                             method: "POST",
                             headers: {
                                 Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
                                 "Content-Type": "application/json",
                             },
                             body: JSON.stringify({
-                                from: "HomeOwner Guardian <noreply@vedawellapp.com>",
+                                from: "VedaWell Guardian <noreply@vedawellapp.com>",
                                 to: [userEmail],
                                 subject: `Your verification code: ${otp}`,
                                 html: `
                                     <div style="font-family: sans-serif; max-width: 400px; margin: 0 auto; padding: 20px;">
-                                        <h2 style="color: #333;">Phone Verification</h2>
-                                        <p>Your verification code for phone number ${phone} is:</p>
+                                        <h2 style="color: #333;">Identity Verification</h2>
+                                        <p>Your verification code is:</p>
                                         <div style="font-size: 32px; font-weight: bold; color: #4F46E5; letter-spacing: 8px; padding: 20px; text-align: center; background: #F5F3FF; border-radius: 8px; margin: 16px 0;">
                                             ${otp}
                                         </div>
@@ -168,17 +168,40 @@ export async function POST(request: NextRequest) {
                                 `,
                             }),
                         });
+
+                        if (!emailRes.ok) {
+                            const errBody = await emailRes.json().catch(() => ({}));
+                            console.error("[Phone OTP] Resend API error:", emailRes.status, errBody);
+                            return NextResponse.json(
+                                { error: "Failed to send verification email. Please try again." },
+                                { status: 502 }
+                            );
+                        }
                     } catch (emailErr) {
-                        console.warn("[Phone OTP] Email send failed:", emailErr);
+                        console.error("[Phone OTP] Email send failed:", emailErr);
+                        return NextResponse.json(
+                            { error: "Failed to send verification email. Please try again." },
+                            { status: 502 }
+                        );
                     }
+                } else {
+                    console.error("[Phone OTP] RESEND_API_KEY not configured");
+                    return NextResponse.json(
+                        { error: "Email service not configured. Please contact support." },
+                        { status: 503 }
+                    );
                 }
+            } else {
+                return NextResponse.json(
+                    { error: "No email address on account. Cannot send verification code." },
+                    { status: 400 }
+                );
             }
 
             return NextResponse.json({
                 success: true,
-                // Be transparent: this is email-based verification until SMS is integrated
-                message: `Verification code sent to your email (${userEmail}). This verifies your email identity — SMS verification coming soon.`,
-                method: "email", // Clients can show appropriate UI
+                message: `Verification code sent to your email (${userEmail}). Check your inbox and spam folder.`,
+                method: "email",
                 expiresIn: OTP_EXPIRY_MINUTES * 60,
             });
         }

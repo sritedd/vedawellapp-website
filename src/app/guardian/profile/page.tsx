@@ -88,15 +88,15 @@ export default function ProfilePage() {
 
         const supabase = createClient();
 
-        // Upsert profile (handles both new and existing profiles)
+        // Update profile (only safe fields — RLS blocks subscription_tier/is_admin changes)
         const { error: profileError } = await supabase
             .from("profiles")
-            .upsert({
-                id: profile?.id,
+            .update({
                 full_name: fullName.trim(),
                 phone: phone.trim() || null,
                 role: role,
-            });
+            })
+            .eq("id", profile?.id);
 
         if (profileError) {
             setMessage({ type: "error", text: profileError.message });

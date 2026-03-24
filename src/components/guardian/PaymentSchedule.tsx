@@ -87,12 +87,13 @@ export default function PaymentSchedule({ projectId, contractValue }: PaymentSch
     // Mark a payment as paid
     const markAsPaid = async (paymentId: string) => {
         const supabase = createClient();
-        await supabase.from("payments").update({
+        const { error } = await supabase.from("payments").update({
             status: "paid",
             paid_date: new Date().toISOString().split("T")[0],
             paid_amount: payments.find(p => p.id === paymentId)?.amount || 0,
         }).eq("id", paymentId);
 
+        if (error) { alert("Failed to update payment. Please try again."); return; }
         setShowPayConfirm(null);
         fetchData();
     };

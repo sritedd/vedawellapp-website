@@ -6,18 +6,22 @@ import { NextResponse } from 'next/server'
 export async function GET(request: Request) {
     const { searchParams, origin } = new URL(request.url)
     const code = searchParams.get('code')
+    const type = searchParams.get('type')
     const next = searchParams.get('next') ?? '/guardian/dashboard'
 
     if (code) {
         const supabase = await createClient()
         const { error } = await supabase.auth.exchangeCodeForSession(code)
         if (!error) {
+            // Recovery flow: redirect to reset-password page instead of dashboard
+            if (type === 'recovery') {
+                return NextResponse.redirect(`${origin}/guardian/reset-password`)
+            }
             return NextResponse.redirect(`${origin}${next}`)
         }
     }
 
-    // If there's a type=recovery in the hash, redirect to reset password page
-    const type = searchParams.get('type')
+    // Direct recovery link (no PKCE code, token in hash fragment)
     if (type === 'recovery') {
         return NextResponse.redirect(`${origin}/guardian/reset-password`)
     }

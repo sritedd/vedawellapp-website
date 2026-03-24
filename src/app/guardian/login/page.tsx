@@ -88,7 +88,9 @@ export default function LoginPage() {
             }
         } else {
             resetRateLimit();
-            const returnTo = searchParams.get("returnTo") || "/guardian/dashboard";
+            const raw = searchParams.get("returnTo") || "/guardian/dashboard";
+            // Prevent open redirect — only allow relative paths starting with /guardian/
+            const returnTo = raw.startsWith("/guardian/") ? raw : "/guardian/dashboard";
             router.push(returnTo);
         }
 

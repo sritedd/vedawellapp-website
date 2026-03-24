@@ -26,8 +26,13 @@ export default async function DashboardPage() {
     ]);
 
     const profile = profileResult.data;
-    const projects = projectsResult.data;
-    const announcement = announcementResult.data;
+    const projects = projectsResult.data || [];
+    const announcement = announcementResult.data; // OK if null — announcement is optional
+
+    if (profileResult.error || !profile) {
+        // Profile fetch failed — can't determine tier, show safe default
+        console.error("[dashboard] Profile fetch failed:", profileResult.error?.message);
+    }
 
     const rawTier = profile?.subscription_tier || 'free';
     const isAdmin = profile?.is_admin === true || isAdminEmail(user.email);

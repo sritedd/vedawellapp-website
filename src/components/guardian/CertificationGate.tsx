@@ -103,7 +103,7 @@ export default function CertificationGate({
 
             if (existing) {
                 // Update existing
-                await supabase
+                const { error: updateErr } = await supabase
                     .from("certifications")
                     .update({
                         status: "uploaded",
@@ -111,15 +111,17 @@ export default function CertificationGate({
                         uploaded_at: new Date().toISOString(),
                     })
                     .eq("id", existing.id);
+                if (updateErr) throw updateErr;
             } else {
                 // Create new
-                await supabase.from("certifications").insert({
+                const { error: insertErr } = await supabase.from("certifications").insert({
                     project_id: projectId,
                     type: certType,
                     status: "uploaded",
                     file_url: urlData.publicUrl,
                     required_for_stage: currentStage,
                 });
+                if (insertErr) throw insertErr;
             }
 
             fetchCertifications();

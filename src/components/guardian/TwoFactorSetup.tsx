@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 
-type MfaStatus = "loading" | "disabled" | "enrolling" | "verifying" | "enabled";
+type MfaStatus = "loading" | "disabled" | "enrolling" | "verifying" | "enabled" | "disabling";
 
 export default function TwoFactorSetup() {
   const [status, setStatus] = useState<MfaStatus>("loading");
@@ -12,6 +12,12 @@ export default function TwoFactorSetup() {
   const [verifyCode, setVerifyCode] = useState("");
   const [error, setError] = useState("");
   const [factorId, setFactorId] = useState("");
+
+  // Disable 2FA form state
+  const [disableMethod, setDisableMethod] = useState<"code" | "password">("code");
+  const [disableCode, setDisableCode] = useState("");
+  const [disablePassword, setDisablePassword] = useState("");
+  const [disabling, setDisabling] = useState(false);
 
   const supabase = createClient();
 
@@ -98,24 +104,59 @@ export default function TwoFactorSetup() {
     }
   };
 
-  const disableMfa = async () => {
-    if (!confirm("Are you sure you want to disable two-factor authentication? This makes your account less secure.")) return;
+  const showDisableForm = () => {
+    setError("");
+    setDisableCode("");
+    setDisablePassword("");
+    setDisableMethod("code");
+    setStatus("disabling");
+  };
+
+  const cancelDisable = () => {
+    setError("");
+    setDisableCode("");
+    setDisablePassword("");
+    setStatus("enabled");
+  };
+
+  const confirmDisable = async () => {
+    setError("");
+
+    if (disableMethod === "code" && (disableCode.length !== 6 || !/^\d{6}$/.test(disableCode))) {
+      setError("Enter a valid 6-digit authenticator code");
+      return;
+    }
+    if (disableMethod === "password" && !disablePassword.trim()) {
+      setError("Enter your account password");
+      return;
+    }
+
+    setDisabling(true);
 
     try {
-      await supabase.auth.mfa.unenroll({ factorId });
+      const body = disableMethod === "code"
+        ? { code: disableCode }
+        : { password: disablePassword };
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase.from("profiles").update({
-          mfa_enabled: false,
-          mfa_verified_at: null,
-        }).eq("id", user.id);
+      const res = await fetch("/api/guardian/disable-mfa", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to disable 2FA");
       }
 
       setStatus("disabled");
       setFactorId("");
+      setDisableCode("");
+      setDisablePassword("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to disable 2FA");
+    } finally {
+      setDisabling(false);
     }
   };
 
@@ -132,7 +173,7 @@ export default function TwoFactorSetup() {
             Add an extra layer of security with an authenticator app.
           </p>
         </div>
-        {status === "enabled" && (
+        {(status === "enabled" || status === "disabling") && (
           <span className="text-xs px-2 py-1 bg-green-500/10 text-green-700 rounded-full font-medium">Enabled</span>
         )}
       </div>
@@ -177,10 +218,77 @@ export default function TwoFactorSetup() {
       )}
 
       {status === "enabled" && (
-        <button onClick={disableMfa}
+        <button onClick={showDisableForm}
           className="text-xs text-muted hover:text-red-600 transition-colors">
           Disable 2FA
         </button>
+      )}
+
+      {status === "disabling" && (
+        <div className="p-4 bg-red-500/5 border border-red-500/20 rounded-lg space-y-4">
+          <p className="text-sm font-medium text-red-700">
+            Confirm your identity to disable 2FA
+          </p>
+
+          {/* Method toggle */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => { setDisableMethod("code"); setError(""); }}
+              className={`flex-1 text-xs py-2 rounded font-medium transition-colors ${
+                disableMethod === "code"
+                  ? "bg-primary text-white"
+                  : "bg-muted/10 text-muted hover:bg-muted/20"
+              }`}
+            >
+              Authenticator Code
+            </button>
+            <button
+              onClick={() => { setDisableMethod("password"); setError(""); }}
+              className={`flex-1 text-xs py-2 rounded font-medium transition-colors ${
+                disableMethod === "password"
+                  ? "bg-primary text-white"
+                  : "bg-muted/10 text-muted hover:bg-muted/20"
+              }`}
+            >
+              Account Password
+            </button>
+          </div>
+
+          {disableMethod === "code" ? (
+            <input
+              type="text"
+              value={disableCode}
+              onChange={(e) => setDisableCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              placeholder="000000"
+              maxLength={6}
+              className="w-full px-3 py-2 text-sm rounded border border-border bg-background text-center tracking-widest font-mono"
+            />
+          ) : (
+            <input
+              type="password"
+              value={disablePassword}
+              onChange={(e) => setDisablePassword(e.target.value)}
+              placeholder="Enter your password"
+              className="w-full px-3 py-2 text-sm rounded border border-border bg-background"
+            />
+          )}
+
+          <div className="flex gap-2">
+            <button
+              onClick={confirmDisable}
+              disabled={disabling}
+              className="px-4 py-2 text-sm font-medium rounded bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+            >
+              {disabling ? "Disabling..." : "Disable 2FA"}
+            </button>
+            <button
+              onClick={cancelDisable}
+              className="px-4 py-2 text-sm font-medium rounded border border-border hover:bg-muted/10"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
       )}
 
       {error && <p className="text-sm text-red-600 bg-red-500/10 px-3 py-2 rounded">{error}</p>}
