@@ -19,9 +19,9 @@ interface Stage {
 interface Inspection {
     id: string;
     project_id: string;
-    stage_name: string;
+    stage: string;
     scheduled_date: string;
-    status: string;
+    result: string;
     created_at: string;
 }
 
@@ -108,7 +108,7 @@ export default function ProgressTimeline({ projectId, startDate }: ProgressTimel
                     .from("stages")
                     .select("*")
                     .eq("project_id", projectId)
-                    .order("created_at", { ascending: true }),
+                    .order("order_index", { ascending: true }),
                 supabase
                     .from("inspections")
                     .select("*")
@@ -156,12 +156,12 @@ export default function ProgressTimeline({ projectId, startDate }: ProgressTimel
                 return dStage === stageKey;
             });
             const openDefects = stageDefects.filter(
-                (d) => d.status !== "resolved" && d.status !== "closed" && d.status !== "fixed"
+                (d) => d.status !== "rectified" && d.status !== "verified" && d.status !== "fixed"
             );
 
             // Inspections for this stage
             const stageInspections = inspections.filter(
-                (i) => (i.stage_name || "").toLowerCase().trim() === stageKey
+                (i) => (i.stage || "").toLowerCase().trim() === stageKey
             );
 
             return {
@@ -404,15 +404,15 @@ export default function ProgressTimeline({ projectId, startDate }: ProgressTimel
                                                 rx={1}
                                                 transform={`rotate(45 ${ix} ${iy})`}
                                                 className={
-                                                    insp.status === "passed" || insp.status === "completed"
+                                                    insp.result === "passed" || insp.result === "completed"
                                                         ? "fill-blue-500"
-                                                        : insp.status === "failed"
+                                                        : insp.result === "failed"
                                                             ? "fill-red-500"
                                                             : "fill-blue-400"
                                                 }
                                             />
                                             <title>
-                                                {insp.stage_name} inspection — {formatDate(inspDate)} ({insp.status})
+                                                {insp.stage} inspection — {formatDate(inspDate)} ({insp.result})
                                             </title>
                                         </g>
                                     );

@@ -36,16 +36,31 @@ export async function POST(req: NextRequest) {
         const origin = req.headers.get("origin") || "https://vedawellapp.com";
         const stripe = getStripe();
 
-        const session = await stripe.checkout.sessions.create({
+        // Check if user already has a Stripe customer (prevents duplicate customers on re-subscribe)
+        const { data: profile } = await supabase
+            .from("profiles")
+            .select("stripe_customer_id")
+            .eq("id", user.id)
+            .single();
+
+        const checkoutParams: Stripe.Checkout.SessionCreateParams = {
             mode: "subscription",
             line_items: [{ price: priceId, quantity: 1 }],
-            customer_email: user.email,
             metadata: {
                 supabase_user_id: user.id,
             },
             success_url: `${origin}/guardian/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${origin}/guardian/pricing?payment=cancelled`,
-        });
+        };
+
+        // Reuse existing Stripe customer if available, otherwise use email for new customer
+        if (profile?.stripe_customer_id) {
+            checkoutParams.customer = profile.stripe_customer_id;
+        } else {
+            checkoutParams.customer_email = user.email;
+        }
+
+        const session = await stripe.checkout.sessions.create(checkoutParams);
 
         return NextResponse.json({ url: session.url });
     } catch (error) {

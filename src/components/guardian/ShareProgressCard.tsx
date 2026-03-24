@@ -31,7 +31,7 @@ export default function ShareProgressCard({ projectId, projectName }: ShareProgr
                 .from("stages")
                 .select("name, status")
                 .eq("project_id", projectId)
-                .order("created_at", { ascending: true });
+                .order("order_index", { ascending: true });
 
             const totalStages = stages?.length || 0;
             const completedStages = stages?.filter((s: { status: string }) => s.status === "completed").length || 0;
@@ -45,7 +45,7 @@ export default function ShareProgressCard({ projectId, projectName }: ShareProgr
                 .eq("project_id", projectId);
 
             const totalDefects = defects?.length || 0;
-            const resolvedDefects = defects?.filter((d: { status: string }) => d.status === "resolved" || d.status === "closed").length || 0;
+            const resolvedDefects = defects?.filter((d: { status: string }) => d.status === "rectified" || d.status === "verified").length || 0;
 
             // Fetch weekly check-ins
             const { count: checkinCount } = await supabase

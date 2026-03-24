@@ -50,7 +50,9 @@ function toCsv(rows: Record<string, any>[], columns: string[]): string {
     const lines = rows.map(row =>
         columns.map(col => {
             const val = row[col] ?? "";
-            const str = String(val);
+            let str = String(val);
+            // Prevent CSV formula injection
+            if (/^[=+\-@\t\r]/.test(str)) str = `'${str}`;
             return str.includes(",") || str.includes('"') || str.includes("\n")
                 ? `"${str.replace(/"/g, '""')}"`
                 : str;

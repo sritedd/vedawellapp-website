@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { generateObject } from "ai";
-import { getCheapModel, isAIAvailable } from "@/lib/ai/provider";
+import { getCheapModel, isCheapAIAvailable } from "@/lib/ai/provider";
 import {
   buildDefectAssistPrompt,
   DefectAnalysisSchema,
   DEFECT_ANALYSIS_FALLBACK,
 } from "@/lib/ai/prompts";
-import { cachedAI } from "@/lib/ai/cache";
-import { checkRateLimit } from "@/lib/ai/rate-limit";
+import { cachedAI, logAIUsage, retrieveKnowledge } from "@/lib/ai/cache";
+import { checkRateLimit, checkDailyQuota } from "@/lib/ai/rate-limit";
 
 /** Strip HTML tags from user input */
 function stripHtml(input: string): string {
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. AI availability
-    if (!isAIAvailable()) {
+    if (!isCheapAIAvailable()) {
       return NextResponse.json(
         { error: "AI features are not configured" },
         { status: 503 }
@@ -57,6 +57,21 @@ export async function POST(request: NextRequest) {
     if (checkRateLimit(user.id)) {
       return NextResponse.json(
         { error: "Please wait a few seconds before trying again" },
+        { status: 429 }
+      );
+    }
+
+    // 3b. Daily quota check
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("subscription_tier, is_admin")
+      .eq("id", user.id)
+      .single();
+    const tier = profile?.is_admin ? "admin" : (profile?.subscription_tier || "free");
+    const quota = await checkDailyQuota(supabase, user.id, tier, "defect-assist");
+    if (!quota.allowed) {
+      return NextResponse.json(
+        { error: `Daily AI limit reached (${quota.used}/${quota.limit}). Upgrade to Pro for more.` },
         { status: 429 }
       );
     }
@@ -94,12 +109,22 @@ export async function POST(request: NextRequest) {
     const safeState =
       typeof state === "string" ? stripHtml(state).slice(0, 50) : undefined;
 
-    // 5. Generate (with caching — defect descriptions are generic, shared cache is fine)
+    // 5. Retrieve knowledge base context for grounding
+    const kbSnippets = await retrieveKnowledge({
+      state: safeState,
+      stage: safeStage,
+      category: "defects",
+    });
+
+    // 6. Generate (with caching — defect descriptions are generic, shared cache is fine)
     const analysis = await cachedAI(
       "defect-assist",
       { description: sanitized, stage: safeStage, state: safeState },
       async () => {
-        const prompt = buildDefectAssistPrompt(sanitized, safeStage, safeState);
+        let prompt = buildDefectAssistPrompt(sanitized, safeStage, safeState);
+        if (kbSnippets.length > 0) {
+          prompt += `\n\nREFERENCE DATA (use these to ground your response in real Australian Standards):\n${kbSnippets.join("\n\n")}`;
+        }
         const { object } = await generateObject({
           model: getCheapModel(),
           schema: DefectAnalysisSchema,
@@ -107,13 +132,18 @@ export async function POST(request: NextRequest) {
         });
         return object;
       },
-      86400
+      86400,
+      user.id
     );
 
     return NextResponse.json(analysis);
   } catch (error) {
     console.error("[describe-defect] AI generation failed:",
       error instanceof Error ? error.message : "Unknown error");
-    return NextResponse.json(DEFECT_ANALYSIS_FALLBACK, { status: 200 });
+    logAIUsage({ feature: "defect-assist", model: "gemini-2.5-flash-lite", success: false, errorCode: error instanceof Error ? error.message.slice(0, 100) : "unknown" }).catch(() => {});
+    return NextResponse.json(
+      { ...DEFECT_ANALYSIS_FALLBACK, fallback: true, reason: "AI generation failed" },
+      { status: 503 }
+    );
   }
 }

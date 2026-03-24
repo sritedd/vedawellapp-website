@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createServerClient } from "@supabase/ssr";
+import crypto from "crypto";
 
 function getStripe() {
     return new Stripe(process.env.STRIPE_SECRET_KEY!);
@@ -21,7 +22,8 @@ async function trackGA4Purchase(userId: string, amountCents: number, currency: s
             {
                 method: "POST",
                 body: JSON.stringify({
-                    client_id: userId,
+                    // GA4 expects a client_id format like "GA1.1.xxx" — use a stable hash of userId
+                    client_id: crypto.createHash("sha256").update(userId).digest("hex").slice(0, 20),
                     events: [{
                         name: "purchase",
                         params: {
@@ -82,6 +84,24 @@ export async function POST(req: NextRequest) {
     }
 
     const supabase = getServiceSupabase();
+
+    // Idempotency: skip already-processed events (Stripe retries on timeouts)
+    const { data: existing } = await supabase
+        .from("stripe_webhook_events")
+        .select("event_id")
+        .eq("event_id", event.id)
+        .single();
+
+    if (existing) {
+        console.log(`[Stripe] Skipping duplicate event: ${event.id} (${event.type})`);
+        return NextResponse.json({ received: true, duplicate: true });
+    }
+
+    // Record event before processing (fail-safe: even if processing crashes, we don't re-process)
+    await supabase.from("stripe_webhook_events").insert({
+        event_id: event.id,
+        event_type: event.type,
+    });
 
     // Guardian Pro price IDs — only these prices grant guardian_pro tier
     const GUARDIAN_PRO_PRICE_IDS = new Set(

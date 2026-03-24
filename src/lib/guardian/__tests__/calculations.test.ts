@@ -823,8 +823,8 @@ describe('Inspection Calculations', () => {
     const testInspections: InspectionType[] = [
         { id: '1', name: 'Slab', stage: 'Slab', status: 'passed', certificateRequired: true, certificateReceived: true },
         { id: '2', name: 'Frame', stage: 'Frame', status: 'passed', certificateRequired: true, certificateReceived: true },
-        { id: '3', name: 'Lockup', stage: 'Lockup', status: 'scheduled', certificateRequired: true, certificateReceived: false },
-        { id: '4', name: 'Final', stage: 'PC', status: 'pending', certificateRequired: true, certificateReceived: false },
+        { id: '3', name: 'Lockup', stage: 'Lockup', status: 'booked', certificateRequired: true, certificateReceived: false },
+        { id: '4', name: 'Final', stage: 'PC', status: 'not_booked', certificateRequired: true, certificateReceived: false },
         { id: '5', name: 'Optional', stage: 'PC', status: 'na', certificateRequired: false, certificateReceived: false },
     ];
 

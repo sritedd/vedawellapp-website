@@ -159,7 +159,7 @@ export function generateMilestones(
 
 export interface Defect {
     id: string;
-    status: 'open' | 'reported' | 'in_progress' | 'rectified' | 'verified' | 'disputed';
+    status: 'open' | 'reported' | 'in_progress' | 'fixed' | 'rectified' | 'verified' | 'disputed';
     severity: 'critical' | 'major' | 'minor' | 'cosmetic';
     reminderCount: number;
 }
@@ -180,7 +180,7 @@ export function countDefectsByStatus(defects: Defect[]): Record<string, number> 
  */
 export function getOpenDefects(defects: Defect[]): Defect[] {
     if (!defects || !Array.isArray(defects)) return [];
-    return defects.filter(d => !['verified', 'rectified'].includes(d.status));
+    return defects.filter(d => !['fixed', 'verified', 'rectified'].includes(d.status));
 }
 
 /**
@@ -213,7 +213,8 @@ export function isValidStatusTransition(
     const validTransitions: Record<Defect['status'], Defect['status'][]> = {
         'open': ['reported', 'disputed'],
         'reported': ['in_progress', 'rectified', 'disputed'],
-        'in_progress': ['rectified', 'disputed'],
+        'in_progress': ['fixed', 'rectified', 'disputed'],
+        'fixed': ['rectified', 'verified', 'disputed', 'open'],
         'rectified': ['verified', 'disputed', 'open'], // Can reopen if not properly fixed
         'verified': [], // Terminal state
         'disputed': ['open', 'reported'], // Can restart the process
@@ -826,7 +827,7 @@ export interface Inspection {
     id: string;
     name: string;
     stage: string;
-    status: 'pending' | 'scheduled' | 'passed' | 'failed' | 'na';
+    status: 'not_booked' | 'booked' | 'passed' | 'failed' | 'na';
     certificateRequired: boolean;
     certificateReceived: boolean;
 }
@@ -834,11 +835,13 @@ export interface Inspection {
 /**
  * Get CSS color class for inspection status.
  */
-export function getInspectionStatusColor(status: Inspection['status']): string {
+export function getInspectionStatusColor(status: string): string {
     switch (status) {
         case 'passed': return 'bg-green-500';
         case 'failed': return 'bg-red-500';
+        case 'booked':
         case 'scheduled': return 'bg-blue-500';
+        case 'not_booked':
         case 'pending': return 'bg-gray-300';
         case 'na': return 'bg-gray-200';
         default: return 'bg-gray-300';
@@ -848,11 +851,13 @@ export function getInspectionStatusColor(status: Inspection['status']): string {
 /**
  * Get display label for inspection status.
  */
-export function getInspectionStatusLabel(status: Inspection['status']): string {
+export function getInspectionStatusLabel(status: string): string {
     switch (status) {
         case 'passed': return '✓ Passed';
         case 'failed': return '✗ Failed';
+        case 'booked':
         case 'scheduled': return '📅 Scheduled';
+        case 'not_booked':
         case 'pending': return '⏳ Pending';
         case 'na': return 'N/A';
         default: return 'Unknown';

@@ -4,7 +4,8 @@ import { createServerClient } from "@supabase/ssr";
 import { streamText } from "ai";
 import { getSmartModel, isAIAvailable } from "@/lib/ai/provider";
 import { buildChatSystemPrompt } from "@/lib/ai/prompts";
-import { checkRateLimit, checkProAccess } from "@/lib/ai/rate-limit";
+import { checkRateLimit, checkProAccess, checkDailyQuota } from "@/lib/ai/rate-limit";
+import { logAIUsage, retrieveKnowledge } from "@/lib/ai/cache";
 
 function stripHtml(str: string): string {
   return str.replace(/<[^>]*>/g, "");
@@ -45,7 +46,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Tier gating — chat is Pro-only
-    const { allowed } = await checkProAccess(supabase, user.id);
+    const { allowed, tier } = await checkProAccess(supabase, user.id);
     if (!allowed) {
       return NextResponse.json(
         { error: "AI Chat is available on the Pro plan. Upgrade to unlock." },
@@ -57,6 +58,15 @@ export async function POST(request: NextRequest) {
     if (checkRateLimit(user.id, 3000)) {
       return NextResponse.json(
         { error: "Please wait a moment before sending another message" },
+        { status: 429 }
+      );
+    }
+
+    // Daily quota check
+    const quota = await checkDailyQuota(supabase, user.id, tier, "chat");
+    if (!quota.allowed) {
+      return NextResponse.json(
+        { error: `Daily chat limit reached (${quota.used}/${quota.limit}).` },
         { status: 429 }
       );
     }
@@ -151,6 +161,12 @@ export async function POST(request: NextRequest) {
       status: d.status,
     }));
 
+    // Retrieve knowledge base context for grounding
+    const kbSnippets = await retrieveKnowledge({
+      state: project.state,
+      limit: 8,
+    });
+
     // Build system prompt with real project data
     const systemPrompt = buildChatSystemPrompt(
       {
@@ -164,17 +180,33 @@ export async function POST(request: NextRequest) {
       openDefects
     );
 
+    // Append KB context to system prompt
+    const kbContext = kbSnippets.length > 0
+      ? `\n\nREFERENCE DATA (use these to ground your responses in real Australian Standards and NCC requirements — cite them when relevant):\n${kbSnippets.join("\n\n")}`
+      : "";
+
     // Stream the response
+    const startTime = Date.now();
     const result = streamText({
       model: getSmartModel(),
-      system: systemPrompt,
+      system: systemPrompt + kbContext,
       messages: sanitizedMessages,
     });
+
+    // Log telemetry (fire-and-forget, don't block stream)
+    logAIUsage({
+      userId: user.id,
+      feature: "chat",
+      model: process.env.ANTHROPIC_API_KEY ? "claude-sonnet-4-5" : "gemini-2.5-flash",
+      latencyMs: Date.now() - startTime,
+      success: true,
+    }).catch(() => {});
 
     return result.toUIMessageStreamResponse();
   } catch (error) {
     console.error("[guardian-chat] Error:",
       error instanceof Error ? error.message : "Unknown error");
+    logAIUsage({ feature: "chat", model: "unknown", success: false, errorCode: error instanceof Error ? error.message.slice(0, 100) : "unknown" }).catch(() => {});
     return NextResponse.json(
       { error: "An error occurred processing your request" },
       { status: 500 }

@@ -66,7 +66,7 @@ export default function TimelineBenchmark({ projectId, stateCode = "NSW" }: Time
                 .from("stages")
                 .select("name, status, created_at, expected_start_date, expected_end_date, completion_date")
                 .eq("project_id", projectId)
-                .order("created_at", { ascending: true });
+                .order("order_index", { ascending: true });
 
             if (stageData && stageData.length > 0) {
                 setStages(stageData);

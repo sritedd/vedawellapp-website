@@ -14,6 +14,99 @@ export interface BlogPost {
 
 export const BLOG_POSTS: BlogPost[] = [
     {
+        slug: "financial-protection-should-i-pay",
+        title: "The 'Should I Pay?' Button: Your Financial Shield Against Construction Risks",
+        description: "Stop guessing if your builder's invoice is safe to pay. Our new automated check verifies certificates, inspections, and defects before you send a single cent.",
+        date: "2026-03-23",
+        author: "VedaWell Team",
+        readTime: "3 min read",
+        keywords: ["should i pay my builder", "construction payment protection", "building invoice check", "homeowner financial protection"],
+        category: "HomeOwner Guardian",
+        relatedTools: [],
+        image: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&q=80",
+        content: `
+<p>One of the most stressful moments in building a new home is receiving an invoice. You want to pay so the builder keeps working, but how do you know if the work is actually done correctly? Are the certificates uploaded? Did the inspector sign off? </p>
+
+<p>That is why we built the <strong>"Should I Pay?"</strong> button — your ultimate financial shield.</p>
+
+<h2>One Button, One Verdict</h2>
+<p>Located prominently on your Guardian dashboard, this feature does the heavy lifting for you. When you tap it, Guardian runs a cross-check of your entire project:</p>
+
+<ul>
+<li><strong>Compliance Check:</strong> It verifies that all mandatory certificates for the current stage (Slab, Frame, etc.) have been uploaded.</li>
+<li><strong>Inspection Check:</strong> It checks if the independent or council inspections have passed without outstanding issues.</li>
+<li><strong>Defect Check:</strong> It scans your defect log to ensure no "Critical" items are left unresolved for that milestone.</li>
+</ul>
+
+<h2>The Green Light You Need</h2>
+<p>If everything is in order, you get a <strong>Green Light</strong>. It is safe to pay. If something is missing, you get a <strong>Red Light</strong> with a clear checklist of exactly what your builder needs to provide before you release payment.</p>
+
+<p>Protecting your cash is the easiest way to ensure your builder stays focused on quality. With the "Should I Pay?" button, you are never guessing — you are building with authority.</p>
+`,
+    },
+    {
+        slug: "ai-site-supervisor-value",
+        title: "How Guardian AI Becomes Your Personal 24/7 Site Supervisor",
+        description: "You don't need a building degree to manage your home build. Guardian's AI assistant is like having a veteran site supervisor in your pocket at all times.",
+        date: "2026-03-22",
+        author: "VedaWell Team",
+        readTime: "4 min read",
+        keywords: ["AI building assistant", "construction expert AI", "home building supervisor", "Guardian AI chat"],
+        category: "HomeOwner Guardian",
+        relatedTools: [],
+        image: "https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=800&q=80",
+        content: `
+<p>Most homeowners feel like they are speaking a different language when talking to their builder. NCC clauses, AS standards, and technical jargon can make it hard to know if you are being told the truth or just being rushed.</p>
+
+<p>Meet <strong>Guardian AI</strong>: your personal construction expert that never sleeps.</p>
+
+<h2>Expert Knowledge, On Demand</h2>
+<p>Guardian AI isn't just a chatbot; it's a specialized advisor trained on the National Construction Code (NCC 2025) and Australian Standards. You can ask it anything:</p>
+<ul>
+<li><em>"My builder says this crack is normal, what does the code say?"</em></li>
+<li><em>"What should I be checking during the Pre-Plasterboard stage?"</em></li>
+<li><em>"How do I explain a waterproofing defect so the builder takes it seriously?"</em></li>
+</ul>
+
+<h2>Translating Jargon into Action</h2>
+<p>When you spot a problem, our <strong>AI Assist</strong> feature helps you write professional defect reports. It takes your rough notes and turns them into NCC-referenced, evidence-ready descriptions that builders respect. No more "the wall looks funny" — now it's "Non-compliant stud spacing observed relative to AS 1684."</p>
+
+<p>With Guardian AI, you gain the confidence to have tough conversations with your builder, backed by the best technical knowledge available.</p>
+`,
+    },
+    {
+        slug: "guardian-essential-features-roundup",
+        title: "HomeOwner Guardian: 5 Essential Features to Protect Your Biggest Investment",
+        description: "A quick guide to the most powerful tools inside HomeOwner Guardian and how they work together to ensure your new home is built to standard.",
+        date: "2026-03-21",
+        author: "VedaWell Team",
+        readTime: "5 min read",
+        keywords: ["homeowner guardian features", "construction tracking tool", "building defect app", "new build protection"],
+        category: "HomeOwner Guardian",
+        relatedTools: [],
+        image: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=800&q=80",
+        content: `
+<p>Building a home is complex, but protecting it shouldn't be. Here are the five "Hero Features" of HomeOwner Guardian and how they help you cross the finish line with a defect-free home.</p>
+
+<h3>1. The Defect Evidence Vault</h3>
+<p>Photograph, tag, and track every issue from slab to handover. Create a professional paper trail that makes it impossible for builders to ignore substandard work.</p>
+
+<h3>2. Guardian AI Advisor</h3>
+<p>Get instant answers to your construction questions and translate technical code requirements into plain English. It's like having an expert by your side 24/7.</p>
+
+<h3>3. 'Should I Pay?' Automated Check</h3>
+<p>Instantly verify if an invoice milestone is actually safe to pay. We check your certificates and inspections so you don't have to be a contract expert.</p>
+
+<h3>4. Builder Speed Benchmarking</h3>
+<p>See exactly how your builder's pace compares to industry averages. Know if your build is truly delayed or just moving through a complex stage.</p>
+
+<h3>5. Tribunal-Ready Evidence Export</h3>
+<p>If things go wrong, generate a complete, formatted evidence pack for NCAT, VCAT, or QCAT in a single tap. Save days of stress and paperwork.</p>
+
+<p>Whether you're a first-home buyer or a seasoned investor, these tools give you the upper hand in your construction journey.</p>
+`,
+    },
+    {
         slug: "guardian-should-i-pay-tribunal-export",
         title: "New: \"Should I Pay?\" Verdict, Builder Speed Benchmarks & Tribunal Evidence Export",
         description: "HomeOwner Guardian now answers the #1 question Australian homeowners ask during construction: Should I pay this invoice? Plus builder speed benchmarking and one-tap tribunal evidence packs.",
@@ -2140,5 +2233,490 @@ export const BLOG_POSTS: BlogPost[] = [
 <p>When you create a project in Guardian and select your state, you'll now get the correct stages, inspections, and certificates for your jurisdiction. No more generic checklists — everything is tailored to where you're building.</p>
 
 <p><a href="/guardian">Start your project</a> and see the full workflow for your state.</p>`,
+    },
+    {
+        slug: "guardian-activity-audit-log",
+        title: "New: Activity Log — Every Change Recorded, Tribunal-Ready",
+        description: "HomeOwner Guardian now logs every action with timestamps: defects, payments, certificates, variations, and stage changes. Your audit trail is now tribunal-grade evidence.",
+        date: "2026-03-23",
+        author: "VedaWell Team",
+        readTime: "3 min read",
+        keywords: ["activity log", "audit trail", "building dispute evidence", "construction accountability", "tribunal evidence Australia", "change tracking"],
+        category: "HomeOwner Guardian",
+        relatedTools: [],
+        image: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&q=80",
+        content: `
+<p>If you've ever been in a building dispute, you know the hardest part isn't proving what went wrong — it's proving <strong>when</strong> it happened and <strong>who knew</strong>.</p>
+
+<h2>Immutable Audit Trail</h2>
+
+<p>Every action in your Guardian project is now automatically logged with a timestamp:</p>
+
+<ul>
+<li>Defect created, updated, or resolved</li>
+<li>Payment recorded or status changed</li>
+<li>Certificate uploaded</li>
+<li>Variation created or signed</li>
+<li>Stage advanced</li>
+<li>Communication logged</li>
+<li>Escalation started or advanced</li>
+</ul>
+
+<p>The log is <strong>append-only</strong> — entries cannot be edited or deleted. This makes it admissible as evidence in Fair Trading complaints and tribunal hearings.</p>
+
+<h2>Timeline View</h2>
+
+<p>The Activity Log shows a clean vertical timeline with icons per action type, relative timestamps ("2 hours ago"), and old→new value diffs for updates. Filter by type (defects, payments, certificates, etc.) to focus on what matters.</p>
+
+<h2>Part of Your Evidence Pack</h2>
+
+<p>Combined with the Tribunal Evidence Export, the Activity Log gives you a complete, timestamped record of everything that happened on your build. No more relying on memory or scattered emails.</p>
+
+<p><a href="/guardian">Start tracking your build</a> — every action recorded automatically.</p>`,
+    },
+    {
+        slug: "guardian-builder-escalation-workflow",
+        title: "New: 4-Step Builder Escalation — From Reminder to Tribunal",
+        description: "Stop chasing your builder manually. Guardian's new escalation workflow generates professional letters at each level: friendly reminder, formal notice, Fair Trading complaint, and tribunal application.",
+        date: "2026-03-23",
+        author: "VedaWell Team",
+        readTime: "4 min read",
+        keywords: ["builder not responding", "construction dispute", "Fair Trading complaint", "NCAT application", "builder escalation", "formal notice builder"],
+        category: "HomeOwner Guardian",
+        relatedTools: [],
+        image: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=800&q=80",
+        content: `
+<p>The #1 complaint from homeowners: <em>"My builder won't respond about the defects."</em></p>
+
+<p>Until now, Guardian helped you <strong>record</strong> defects but left you on your own to <strong>chase</strong> them. Not anymore.</p>
+
+<h2>The 4-Level Escalation Ladder</h2>
+
+<p>For any unresolved defect, you can now start a formal escalation process:</p>
+
+<ol>
+<li><strong>Level 1 — Friendly Reminder</strong> (Blue): A polite, professional email asking for a timeline. Most defects get resolved here.</li>
+<li><strong>Level 2 — Formal Written Notice</strong> (Yellow): References the Home Building Act, gives a 14-day deadline, and names the state regulator. This letter has legal weight.</li>
+<li><strong>Level 3 — Fair Trading Complaint</strong> (Orange): A pre-drafted complaint to your state's building authority (NSW Fair Trading, VIC DBDRV, QLD QBCC, etc.) with evidence summary.</li>
+<li><strong>Level 4 — Tribunal Application</strong> (Red): A formal application outline for NCAT/VCAT/QCAT with chronology, evidence list, and orders sought.</li>
+</ol>
+
+<h2>State-Specific Templates</h2>
+
+<p>Every letter automatically references the correct regulatory body and tribunal for your state — all 8 Australian states and territories are supported.</p>
+
+<h2>One-Click Copy</h2>
+
+<p>Generate the letter, review it, copy to clipboard, and send. Each escalation step is logged in your audit trail with timestamps — building your evidence chain automatically.</p>
+
+<p><a href="/guardian">Start protecting your build</a> — escalation made effortless.</p>`,
+    },
+    {
+        slug: "guardian-calendar-export-claim-review",
+        title: "New: Calendar Export & AI Progress Claim Review",
+        description: "Export inspection dates, payment deadlines, and SLA dates to your calendar. Plus: AI-powered invoice review tells you PAY, HOLD, or DISPUTE with a pre-drafted response.",
+        date: "2026-03-23",
+        author: "VedaWell Team",
+        readTime: "4 min read",
+        keywords: ["construction calendar", "payment deadline tracker", "progress claim review", "AI invoice check", "builder payment protection", "ics calendar export"],
+        category: "HomeOwner Guardian",
+        relatedTools: [],
+        image: "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=800&q=80",
+        content: `
+<p>Two new features that directly protect your money and your time.</p>
+
+<h2>Calendar Export (.ics)</h2>
+
+<p>Never miss an inspection, payment deadline, or defect SLA date again. The new Calendar Export generates a standard .ics file you can import into:</p>
+
+<ul>
+<li>Google Calendar</li>
+<li>Apple Calendar</li>
+<li>Outlook</li>
+<li>Any calendar app that supports .ics</li>
+</ul>
+
+<p>Choose what to include — site visits, payment due dates, and defect SLA deadlines. Download the file and all your construction dates appear in your regular calendar with reminders.</p>
+
+<h2>AI Progress Claim Review (Pro)</h2>
+
+<p>This is the single most valuable feature for protecting your money during a build.</p>
+
+<p>When your builder sends a progress claim or invoice, enter the amount and the stage being claimed. The AI cross-references your project data:</p>
+
+<ul>
+<li>Are there unresolved critical defects at this stage?</li>
+<li>Are required certificates uploaded?</li>
+<li>Is the amount reasonable vs your contract value?</li>
+<li>Are there pending unapproved variations?</li>
+</ul>
+
+<p>The result is a clear verdict:</p>
+
+<ul>
+<li><strong>PAY ✅</strong> — All clear, safe to proceed</li>
+<li><strong>HOLD ⚠️</strong> — Minor issues to resolve first (with checklist)</li>
+<li><strong>DISPUTE ❌</strong> — Serious problems, do not pay (with reasons)</li>
+</ul>
+
+<p>Plus a <strong>pre-drafted response email</strong> to send to your builder — just copy and send.</p>
+
+<p>A homeowner who avoids one $20,000 overpayment has paid for 111 years of Guardian Pro. This feature pays for itself on the first invoice.</p>
+
+<p><a href="/guardian/pricing">Upgrade to Pro</a> and review your next progress claim with AI.</p>`,
+    },
+    {
+        slug: "guardian-family-sharing-team-access",
+        title: "New: Invite Your Partner, Family or Solicitor to Your Build Project",
+        description: "Building a home is a team effort. Guardian now lets you invite your partner, parents, or solicitor to view or collaborate on your project — everyone stays informed, no duplicate accounts needed.",
+        date: "2026-03-23",
+        author: "VedaWell Team",
+        readTime: "3 min read",
+        keywords: ["share building project", "family access construction", "invite partner home build", "team collaboration construction", "building project sharing Australia"],
+        category: "HomeOwner Guardian",
+        relatedTools: [],
+        image: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&q=80",
+        content: `
+<p>Building a home is rarely a one-person decision. Your partner wants to see the defect photos. Your parents want to check the payment schedule. Your solicitor needs access to the contract review. Until now, everyone had to crowd around one phone or create separate accounts with duplicate data.</p>
+
+<h2>Invite Anyone by Email</h2>
+
+<p>From your project's <strong>Team</strong> section, enter an email address and choose a role:</p>
+
+<ul>
+<li><strong>Viewer</strong> — Can see everything (defects, payments, photos, documents, communications) but cannot edit. Perfect for parents, partners who want oversight, or solicitors reviewing the build.</li>
+<li><strong>Collaborator</strong> — Can add defects, log communications, upload photos, and record site visits. Perfect for a partner who is also on-site during the build.</li>
+</ul>
+
+<p>The owner (you) retains full control — only you can delete the project, manage billing, or remove members.</p>
+
+<h2>Why This Matters</h2>
+
+<p>A $500,000 construction project shouldn't live in one person's app. When your partner can independently check whether the right certificates have been uploaded before a progress payment goes through, you have <strong>two sets of eyes protecting your investment</strong>.</p>
+
+<p>And when disputes arise, your solicitor can review the entire evidence chain — defects, communications, escalation letters — without you having to export and email PDFs back and forth.</p>
+
+<h2>How It Works</h2>
+
+<ol>
+<li>Go to your project → More → <strong>Team</strong></li>
+<li>Enter the email address and select a role</li>
+<li>If they already have a Guardian account, they get instant access</li>
+<li>If not, they'll see the project when they sign up with that email</li>
+</ol>
+
+<p><a href="/guardian">Open your project</a> and invite your team today.</p>`,
+    },
+    {
+        slug: "guardian-global-search",
+        title: "New: Search Across Your Entire Build — Defects, Documents, Photos, Everything",
+        description: "50+ defects? 100+ photos? Find anything instantly. Guardian's new global search lets you search across defects, variations, documents, communications, and site visits with Ctrl+K.",
+        date: "2026-03-23",
+        author: "VedaWell Team",
+        readTime: "3 min read",
+        keywords: ["search building project", "find construction defects", "building document search", "construction project search", "home build search"],
+        category: "HomeOwner Guardian",
+        relatedTools: [],
+        image: "https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=800&q=80",
+        content: `
+<p>If you've been tracking your build properly, you'll have dozens of defects, variations, photos, documents, and communications. That's the point — thorough documentation protects you. But finding that one cracked tile you photographed three months ago? That used to mean scrolling through tabs.</p>
+
+<h2>Search Everything, Instantly</h2>
+
+<p>The new search bar sits at the top of every project page. Type a keyword and results appear instantly, grouped by type:</p>
+
+<ul>
+<li><strong>Defects</strong> — search by title, description, or location</li>
+<li><strong>Variations</strong> — search by title or description</li>
+<li><strong>Communications</strong> — search by subject, message, or contact name</li>
+<li><strong>Documents</strong> — search by filename or type</li>
+<li><strong>Site Visits</strong> — search by notes</li>
+</ul>
+
+<p>Click any result to jump straight to the right tab with your data in view.</p>
+
+<h2>Keyboard Shortcut</h2>
+
+<p>Press <strong>Ctrl+K</strong> (or Cmd+K on Mac) to instantly focus the search bar from anywhere in the project. Press Escape to close. It's the same shortcut developers use — fast and familiar.</p>
+
+<h2>Why Search Matters for Disputes</h2>
+
+<p>When you're on a call with Fair Trading and they ask "when did you first report the waterproofing issue?", you need that answer in seconds, not minutes. Search turns Guardian from a recording tool into a <strong>retrieval tool</strong> — and in a dispute, fast retrieval wins.</p>
+
+<p><a href="/guardian">Open your project</a> and try searching for any defect or document.</p>`,
+    },
+    {
+        slug: "guardian-site-diary-evidence-mode",
+        title: "New: Site Diary — Turn Every Visit Into Tribunal-Grade Evidence",
+        description: "Guardian's Site Diary captures GPS coordinates, live weather data, area tags, and trade information with every visit. Your site records are now evidence a tribunal can't ignore.",
+        date: "2026-03-23",
+        author: "VedaWell Team",
+        readTime: "4 min read",
+        keywords: ["site diary construction", "building site evidence", "construction GPS tracking", "site visit record", "tribunal evidence site diary", "building inspection diary"],
+        category: "HomeOwner Guardian",
+        relatedTools: [],
+        image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80",
+        content: `
+<p>Taking a photo on your phone proves something existed. But a photo with a <strong>GPS location, timestamp, weather conditions, and tagged area</strong> proves something existed <em>at that exact place, at that exact time, under those exact conditions</em>. That's the difference between a phone gallery and evidence.</p>
+
+<h2>What the Site Diary Captures</h2>
+
+<p>When you tap "Site Diary" in your project, Guardian records:</p>
+
+<ul>
+<li><strong>GPS coordinates</strong> — one tap captures your exact position (with accuracy reading). This proves you were physically on site.</li>
+<li><strong>Weather data</strong> — pulled automatically from your GPS location using live weather APIs. "It was 34°C and sunny when the concreter poured the slab" is relevant when cracks appear.</li>
+<li><strong>Area tags</strong> — tap which rooms or areas you inspected (Kitchen, Bathroom, Exterior, etc.)</li>
+<li><strong>Trade tags</strong> — which trades were on site (Electrician, Plumber, Tiler, etc.)</li>
+<li><strong>Workers on site</strong> — how many people were working</li>
+<li><strong>Observations</strong> — what you saw, in your own words</li>
+<li><strong>Concerns</strong> — issues that need attention</li>
+<li><strong>Follow-up actions</strong> — what needs to happen next</li>
+<li><strong>Voice notes</strong> — paste a transcription from your phone's voice recorder</li>
+</ul>
+
+<h2>Why Weather Matters</h2>
+
+<p>Concrete poured in extreme heat without proper curing can crack. Brickwork laid in rain can develop efflorescence. Waterproofing applied below minimum temperature may fail. When your site diary records the weather at the time of construction, you have evidence that connects <strong>conditions to defects</strong>.</p>
+
+<h2>From Diary to Dispute Pack</h2>
+
+<p>Every site diary entry feeds into your Activity Log and is available in your Tribunal Evidence Export. When you combine GPS-stamped site visits with timestamped defect photos and a formal escalation chain, you have a case that's hard to argue against.</p>
+
+<p><a href="/guardian">Open your project</a> and record your next site visit with evidence mode.</p>`,
+    },
+    {
+        slug: "guardian-contract-parser-inspector-import",
+        title: "New: Upload Your Contract or Inspector Report — AI Does the Rest",
+        description: "Stop manually typing 15 fields from a 40-page contract. Upload the PDF and AI extracts everything: contract sum, stages, allowances, and flags unusual clauses. Inspector reports auto-create defects.",
+        date: "2026-03-23",
+        author: "VedaWell Team",
+        readTime: "4 min read",
+        keywords: ["building contract parser", "AI contract analysis", "inspector report defects", "construction PDF import", "building contract review Australia"],
+        category: "HomeOwner Guardian",
+        relatedTools: [],
+        image: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&q=80",
+        content: `
+<p>Two new PDF-powered features that save hours of manual data entry and help you spot problems before they cost money.</p>
+
+<h2>Contract PDF Parser (Pro)</h2>
+
+<p>Upload your building contract PDF and AI extracts:</p>
+
+<ul>
+<li>Contract sum and builder details (name, license, ABN)</li>
+<li>Project address and key dates (start, completion, cooling off)</li>
+<li>Payment stage schedule with percentages</li>
+<li>Prime Cost (PC) and Provisional Sum (PS) allowances</li>
+<li>Insurance and warranty details</li>
+</ul>
+
+<p>But the real value is what the AI <strong>flags</strong>:</p>
+
+<ul>
+<li><strong>Unusual clauses</strong> — terms that deviate from standard HIA/MBA contracts</li>
+<li><strong>Missing protections</strong> — things that should be in your contract but aren't (like liquidated damages for delays, or defects liability periods)</li>
+</ul>
+
+<p>This is like having a building solicitor do a first-pass review — for the cost of a Pro subscription.</p>
+
+<h2>Inspector Report Import (Pro)</h2>
+
+<p>Many homeowners hire private building inspectors at key stages. The inspector gives you a PDF report with 20+ findings. Until now, you had to manually create each defect in Guardian, typing descriptions and locations one by one.</p>
+
+<p>Now: upload the PDF, and AI extracts every defect with:</p>
+
+<ul>
+<li>Title and description</li>
+<li>Location (room/area)</li>
+<li>Severity (critical, major, minor, cosmetic)</li>
+<li>Inspector's recommendation</li>
+</ul>
+
+<p>Review the extracted defects, deselect any you don't want, and hit <strong>"Create All Defects"</strong>. Twenty defects created in 30 seconds instead of 20 minutes.</p>
+
+<p><a href="/guardian/pricing">Upgrade to Pro</a> and import your next contract or inspector report.</p>`,
+    },
+    {
+        slug: "guardian-pc-ps-allowance-tracker",
+        title: "Are Your Allowances Blowing Out? Track Every PC and PS Item",
+        description: "Prime Cost and Provisional Sum blowouts are the #1 surprise cost for first-time builders. Guardian's new tracker shows exactly where you're over or under budget, item by item.",
+        date: "2026-03-23",
+        author: "VedaWell Team",
+        readTime: "3 min read",
+        keywords: ["prime cost allowance", "provisional sum tracking", "construction budget blowout", "PC PS allowance Australia", "building budget tracker", "home build budget"],
+        category: "HomeOwner Guardian",
+        relatedTools: [],
+        image: "https://images.unsplash.com/photo-1554224154-26032ffc0d07?w=800&q=80",
+        content: `
+<p>Your contract says "$8,000 allowance for kitchen appliances." You walk into the showroom, fall in love with a dishwasher, and suddenly that allowance is $12,500. Multiply that across tiles, tapware, lighting, flooring, and landscaping, and a $500,000 build quietly becomes $560,000.</p>
+
+<h2>What Are PC and PS Allowances?</h2>
+
+<p><strong>Prime Cost (PC)</strong> items are things you'll select later — the builder includes an estimated price in the contract. You pay the difference if your selection costs more (or get a credit if it costs less).</p>
+
+<p><strong>Provisional Sum (PS)</strong> items are work where the final cost isn't known yet — like excavation, which depends on soil conditions. The builder estimates, and you pay the actual cost.</p>
+
+<p>Both are perfectly legal. But both can blow out your budget if you're not tracking them.</p>
+
+<h2>The Allowance Tracker</h2>
+
+<p>For each PC or PS item in your contract:</p>
+
+<ul>
+<li>Enter the contract allowance amount</li>
+<li>Enter your actual selection price when you choose</li>
+<li>See the difference instantly: green (under) or red (over)</li>
+</ul>
+
+<p>The dashboard shows three numbers that matter:</p>
+
+<ul>
+<li><strong>Total Contract Allowances</strong> — what your contract budgeted</li>
+<li><strong>Total Actual Selections</strong> — what you've actually chosen</li>
+<li><strong>Budget Drift</strong> — the gap, in dollars and colour-coded</li>
+</ul>
+
+<h2>No Surprises at Settlement</h2>
+
+<p>The worst time to discover your allowances blew out by $40,000 is at practical completion when the builder hands you the final invoice. Track it as you go, and you'll know exactly where you stand at every stage.</p>
+
+<p><a href="/guardian">Open your project</a> and start tracking your allowances.</p>`,
+    },
+    {
+        slug: "guardian-two-factor-authentication",
+        title: "Protect Your Build Data with Two-Factor Authentication",
+        description: "Your construction project data is sensitive — contracts, finances, photos, disputes. Learn how to lock down your Guardian account with two-factor authentication in under 60 seconds.",
+        date: "2026-03-23",
+        author: "VedaWell Team",
+        readTime: "2 min read",
+        keywords: ["two factor authentication", "2fa construction app", "secure building data", "homeowner account security"],
+        category: "HomeOwner Guardian",
+        relatedTools: [],
+        image: "https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=800&q=80",
+        content: `
+<p>Your Guardian account holds some of the most sensitive information about your life — your building contract, payment history, site photos, defect records, and potentially tribunal evidence. That is exactly why we have added <strong>two-factor authentication (2FA)</strong> to every Guardian account.</p>
+
+<h2>Why Does This Matter?</h2>
+
+<p>If someone gains access to your Guardian account, they could see your contract value, payment schedule, defect history, and dispute documentation. For a $500,000+ home build, that data is worth protecting.</p>
+
+<p>Two-factor authentication means even if someone guesses your password, they still cannot get in without your phone.</p>
+
+<h2>How to Set It Up</h2>
+
+<ol>
+<li>Go to your <strong>Profile</strong> page</li>
+<li>Find the <strong>Two-Factor Authentication</strong> section</li>
+<li>Click <strong>Enable 2FA</strong></li>
+<li>Scan the QR code with your authenticator app (Google Authenticator, Authy, or similar)</li>
+<li>Enter the 6-digit code to verify</li>
+</ol>
+
+<p>That is it. From now on, every login requires both your password and a code from your authenticator app.</p>
+
+<h2>Which Authenticator App Should I Use?</h2>
+
+<p>Any TOTP-compatible authenticator works. Popular options include Google Authenticator (free), Authy (free, with cloud backup), and 1Password (if you already use it for password management).</p>
+
+<p>We recommend <strong>Authy</strong> because it backs up your codes to the cloud — so if you lose your phone, you can recover them on a new device.</p>
+
+<h2>Can I Turn It Off Later?</h2>
+
+<p>Yes. You can disable 2FA from the same Profile page. But we strongly recommend keeping it on for the duration of your build, especially if you are in a dispute or have a tribunal case pending.</p>
+
+<p><a href="/guardian/profile">Secure your account now</a> — it takes less than 60 seconds.</p>`,
+    },
+    {
+        slug: "guardian-notification-preferences-csv-import",
+        title: "Take Control: Custom Notifications and Bulk CSV Import",
+        description: "Choose exactly which alerts you receive and import your existing defect lists or payment schedules from a spreadsheet in seconds.",
+        date: "2026-03-23",
+        author: "VedaWell Team",
+        readTime: "3 min read",
+        keywords: ["construction notification settings", "csv import defects", "bulk upload building data", "homeowner alert preferences"],
+        category: "HomeOwner Guardian",
+        relatedTools: [],
+        image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80",
+        content: `
+<p>Two features that our users have been asking for are finally here: <strong>customisable notification preferences</strong> and <strong>CSV bulk import</strong> for defects and payments.</p>
+
+<h2>Notification Preferences: Your Alerts, Your Way</h2>
+
+<p>Not every homeowner needs every alert. Some of you are hands-on and want to know the moment a defect hits 7 days overdue. Others prefer a weekly summary without the daily noise.</p>
+
+<p>From your Profile page, you can now toggle exactly which notifications you receive:</p>
+
+<ul>
+<li><strong>Defect reminders</strong> — alerts at 7, 14, and 30 days for unresolved defects</li>
+<li><strong>Payment due dates</strong> — upcoming stage payment notifications</li>
+<li><strong>Certificate expiry</strong> — alerts when certificates are approaching expiry</li>
+<li><strong>Weekly email digest</strong> — a Monday morning summary of your build progress</li>
+<li><strong>Warranty deadlines</strong> — countdown alerts before warranty periods expire</li>
+<li><strong>Insurance expiry</strong> — warnings when your builder's insurance is about to lapse</li>
+</ul>
+
+<p>Each toggle saves instantly to our server, so your preferences follow you across devices.</p>
+
+<h2>CSV Import: From Spreadsheet to Guardian in Seconds</h2>
+
+<p>If you have been tracking defects or payments in Excel or Google Sheets, you do not need to re-enter everything manually. Our new CSV Import tool lets you upload your existing data in bulk.</p>
+
+<h3>How It Works</h3>
+
+<ol>
+<li>Open your project and go to <strong>More → CSV Import</strong></li>
+<li>Choose whether you are importing <strong>defects</strong> or <strong>payments</strong></li>
+<li>Download the template CSV to see the expected format</li>
+<li>Upload your CSV file — you will see a preview of the first 5 rows</li>
+<li>Click <strong>Import</strong> and watch them flow into your project</li>
+</ol>
+
+<h3>What Can I Import?</h3>
+
+<p><strong>Defects:</strong> title, description, location, severity, stage, and status. The importer validates severity values and sets sensible defaults for anything missing.</p>
+
+<p><strong>Payments:</strong> stage name, amount, due date, status, and notes. Perfect for migrating your payment schedule from a spreadsheet.</p>
+
+<p>If you already have a list of 20 defects from your own inspection, you can get them all into Guardian in under a minute instead of typing each one by hand.</p>
+
+<p><a href="/guardian">Open your project</a> and try importing your data.</p>`,
+    },
+    {
+        slug: "guardian-ncc-compliance-database",
+        title: "Your NCC 2025 Compliance Progress Now Syncs Across All Your Devices",
+        description: "The NCC 2025 Compliance Tracker now saves your progress to our secure database instead of your browser — so you never lose your verified checklist items again.",
+        date: "2026-03-23",
+        author: "VedaWell Team",
+        readTime: "2 min read",
+        keywords: ["ncc 2025 compliance tracker", "building code checklist", "construction compliance australia", "7 star energy rating"],
+        category: "HomeOwner Guardian",
+        relatedTools: [],
+        image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80",
+        content: `
+<p>If you have been using the NCC 2025 Compliance Tracker to verify that your builder is meeting the new 7-star energy, accessibility, and condensation requirements, you may have noticed a frustrating limitation: your checked items only lived in your browser.</p>
+
+<p>Clear your browser data or switch to your phone, and all your verification progress was gone.</p>
+
+<h2>Now It Saves to the Cloud</h2>
+
+<p>We have migrated the entire NCC 2025 checklist to our secure database. Every item you verify is now saved against your project in real-time. This means:</p>
+
+<ul>
+<li><strong>Switch devices freely</strong> — check items on your laptop at home, review them on your phone at the building site</li>
+<li><strong>Never lose progress</strong> — clearing browser data or using a different browser has no effect</li>
+<li><strong>Shared visibility</strong> — if you invite a family member or partner to your project, they can see which items have been verified</li>
+<li><strong>Evidence trail</strong> — each verification is timestamped, so you have a record of when you confirmed compliance</li>
+</ul>
+
+<h2>The Builder Shortcuts Section Too</h2>
+
+<p>The "Common NCC 2025 Shortcuts Builders Take" section at the bottom of the tracker — where you mark items as OK or Flag an Issue — also syncs to the database now. If you flagged that your builder used non-permeable building wrap, that flag is saved permanently and can be included in dispute documentation.</p>
+
+<h2>Nothing Changes for You</h2>
+
+<p>The interface looks and works exactly the same. The only difference is that your data is now safe, synced, and permanent. Open the NCC 2025 tab on any of your projects and your progress will be right where you left it.</p>
+
+<p><a href="/guardian">Check your NCC compliance progress</a>.</p>`,
     },
 ];

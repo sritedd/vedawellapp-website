@@ -88,8 +88,8 @@ export default function LoginPage() {
             }
         } else {
             resetRateLimit();
-            const redirect = searchParams.get("redirect") || "/guardian/dashboard";
-            router.push(redirect);
+            const returnTo = searchParams.get("returnTo") || "/guardian/dashboard";
+            router.push(returnTo);
         }
 
         setLoading(false);

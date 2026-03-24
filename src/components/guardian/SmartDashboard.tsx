@@ -331,7 +331,7 @@ export default function SmartDashboard({ project, currentStage, stageNames, onNa
                 .from("stages")
                 .select("id, name, status")
                 .eq("project_id", projectId)
-                .order("created_at", { ascending: true });
+                .order("order_index", { ascending: true });
             if (stageData) setStages(stageData);
 
             // Count open defects

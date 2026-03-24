@@ -28,6 +28,7 @@ export async function createClient() {
                             cookieStore.set(name, value, options)
                         )
                     } catch {
+                        // Expected in Server Components where headers are read-only
                     }
                 },
             },

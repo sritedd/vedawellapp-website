@@ -239,10 +239,10 @@ export default function PricingClient() {
                         <p className="text-sm text-green-600 font-semibold mb-4">{PLANS.pro_yearly.savings}</p>
                         <button
                             onClick={() => handleCheckout(PLANS.pro_yearly.priceId)}
-                            disabled={loading}
+                            disabled={loading || !PLANS.pro_yearly.priceId}
                             className="block w-full text-center px-6 py-3 border border-primary text-primary rounded-lg font-semibold hover:bg-primary/10 transition-colors mb-8 disabled:opacity-50"
                         >
-                            {loading ? "Redirecting..." : "Start Yearly Plan"}
+                            {!PLANS.pro_yearly.priceId ? "Coming Soon" : loading ? "Redirecting..." : "Start Yearly Plan"}
                         </button>
                         <ul className="space-y-3">
                             {PLANS.pro_yearly.features.map(f => (

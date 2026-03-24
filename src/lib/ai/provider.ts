@@ -63,7 +63,12 @@ export function getEmbeddingModel() {
     return getOpenAI().embedding("text-embedding-3-small");
 }
 
-/** Check if AI features are available — only needs a free Google AI key */
+/** Check if cheap AI (Gemini) is available — required for defect-assist, stage-advice, builder-check */
+export function isCheapAIAvailable(): boolean {
+    return !!process.env.GOOGLE_GENERATIVE_AI_API_KEY || !!process.env.GOOGLE_AI_API_KEY;
+}
+
+/** Check if any AI model is available (smart routes fall back to Gemini if no Anthropic) */
 export function isAIAvailable(): boolean {
-    return !!process.env.GOOGLE_GENERATIVE_AI_API_KEY || !!process.env.GOOGLE_AI_API_KEY || !!process.env.ANTHROPIC_API_KEY;
+    return isCheapAIAvailable() || !!process.env.ANTHROPIC_API_KEY;
 }

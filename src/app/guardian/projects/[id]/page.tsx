@@ -48,6 +48,17 @@ import ProgressTimeline from "@/components/guardian/ProgressTimeline";
 import ProjectHealthScore from "@/components/guardian/ProjectHealthScore";
 import MilestoneCelebrations from "@/components/guardian/MilestoneCelebrations";
 import ShareProgressCard from "@/components/guardian/ShareProgressCard";
+import ActivityLog from "@/components/guardian/ActivityLog";
+import BuilderEscalation from "@/components/guardian/BuilderEscalation";
+import CalendarExport from "@/components/guardian/CalendarExport";
+import ClaimReview from "@/components/guardian/ClaimReview";
+import ProjectMembers from "@/components/guardian/ProjectMembers";
+import GlobalSearch from "@/components/guardian/GlobalSearch";
+import SiteDiary from "@/components/guardian/SiteDiary";
+import ContractParser from "@/components/guardian/ContractParser";
+import InspectorReportImport from "@/components/guardian/InspectorReportImport";
+import AllowanceTracker from "@/components/guardian/AllowanceTracker";
+import CSVImport from "@/components/guardian/CSVImport";
 
 /* ------------------------------------------------------------------ */
 /*  Navigation Structure — 5 main sections                            */
@@ -111,6 +122,16 @@ const MORE_ITEMS = [
     { id: "pushnotifs", label: "Notifications", desc: "Push notification settings", icon: "notifs" },
     { id: "notifications", label: "Alerts", desc: "View all alerts", icon: "alerts" },
     { id: "share", label: "Share Progress", desc: "Share your build progress", icon: "share" },
+    { id: "team", label: "Team", desc: "Invite family & partners", icon: "share" },
+    { id: "escalation", label: "Escalate Builder", desc: "Formal escalation workflow", icon: "alerts" },
+    { id: "claimreview", label: "Claim Review", desc: "AI-powered invoice check", icon: "budget" },
+    { id: "activitylog", label: "Activity Log", desc: "Audit trail of all changes", icon: "reports" },
+    { id: "calendar", label: "Calendar Export", desc: "Download .ics file", icon: "export" },
+    { id: "sitediary", label: "Site Diary", desc: "Evidence-grade site visits", icon: "checklists" },
+    { id: "contractparser", label: "Parse Contract", desc: "AI extracts contract details", icon: "reports" },
+    { id: "inspectorreport", label: "Import Report", desc: "Auto-create defects from PDF", icon: "checklists" },
+    { id: "allowances", label: "PC/PS Tracker", desc: "Track allowance blowouts", icon: "budget" },
+    { id: "csvimport", label: "CSV Import", desc: "Import defects or payments", icon: "export" },
     { id: "settings", label: "Settings", desc: "Project settings", icon: "settings" },
 ];
 
@@ -252,7 +273,7 @@ export default function ProjectDetailPage() {
                 .from("stages")
                 .select("name, status")
                 .eq("project_id", params.id)
-                .order("created_at", { ascending: true });
+                .order("order_index", { ascending: true });
 
             if (stages && stages.length > 0) {
                 setStageNames(stages.map((s: { name: string }) => s.name));
@@ -411,6 +432,11 @@ export default function ProjectDetailPage() {
 
             <main role="main" aria-label="Project content" className="flex-1 py-6 px-4 md:px-6">
                 <div className="max-w-7xl mx-auto">
+                    {/* Global Search */}
+                    <div className="mb-4">
+                        <GlobalSearch />
+                    </div>
+
                     {/* Project Header — compact */}
                     <div className="mb-6">
                         <h1 className="text-2xl md:text-3xl font-bold mb-1">{project.name}</h1>
@@ -678,6 +704,56 @@ export default function ProjectDetailPage() {
                         {activeTab === "share" && (
                             <MoreToolWrapper title="Share Progress" onBack={() => setActiveTab("more_grid")}>
                                 <ShareProgressCard projectId={project.id} projectName={project.name} />
+                            </MoreToolWrapper>
+                        )}
+                        {activeTab === "team" && (
+                            <MoreToolWrapper title="Team Members" onBack={() => setActiveTab("more_grid")}>
+                                <ProjectMembers projectId={project.id} />
+                            </MoreToolWrapper>
+                        )}
+                        {activeTab === "escalation" && (
+                            <MoreToolWrapper title="Builder Escalation" onBack={() => setActiveTab("more_grid")}>
+                                <BuilderEscalation projectId={project.id} />
+                            </MoreToolWrapper>
+                        )}
+                        {activeTab === "claimreview" && (
+                            <MoreToolWrapper title="Progress Claim Review" onBack={() => setActiveTab("more_grid")}>
+                                <ClaimReview projectId={project.id} />
+                            </MoreToolWrapper>
+                        )}
+                        {activeTab === "activitylog" && (
+                            <MoreToolWrapper title="Activity Log" onBack={() => setActiveTab("more_grid")}>
+                                <ActivityLog projectId={project.id} />
+                            </MoreToolWrapper>
+                        )}
+                        {activeTab === "calendar" && (
+                            <MoreToolWrapper title="Calendar Export" onBack={() => setActiveTab("more_grid")}>
+                                <CalendarExport projectId={project.id} />
+                            </MoreToolWrapper>
+                        )}
+                        {activeTab === "sitediary" && (
+                            <MoreToolWrapper title="Site Diary" onBack={() => setActiveTab("more_grid")}>
+                                <SiteDiary projectId={project.id} onSaved={fetchProject} />
+                            </MoreToolWrapper>
+                        )}
+                        {activeTab === "contractparser" && (
+                            <MoreToolWrapper title="Contract Parser" onBack={() => setActiveTab("more_grid")}>
+                                <ContractParser projectId={project.id} />
+                            </MoreToolWrapper>
+                        )}
+                        {activeTab === "inspectorreport" && (
+                            <MoreToolWrapper title="Inspector Report Import" onBack={() => setActiveTab("more_grid")}>
+                                <InspectorReportImport projectId={project.id} />
+                            </MoreToolWrapper>
+                        )}
+                        {activeTab === "allowances" && (
+                            <MoreToolWrapper title="PC/PS Allowance Tracker" onBack={() => setActiveTab("more_grid")}>
+                                <AllowanceTracker projectId={project.id} />
+                            </MoreToolWrapper>
+                        )}
+                        {activeTab === "csvimport" && (
+                            <MoreToolWrapper title="CSV Import" onBack={() => setActiveTab("more_grid")}>
+                                <CSVImport projectId={project.id} />
                             </MoreToolWrapper>
                         )}
                         {activeTab === "settings" && (

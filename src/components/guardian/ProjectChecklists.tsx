@@ -23,7 +23,7 @@ export default function ProjectChecklists({ projectId }: { projectId: string }) 
             .from("stages")
             .select("*, checklist_items(*)")
             .eq("project_id", projectId)
-            .order("created_at", { ascending: true });
+            .order("order_index", { ascending: true });
 
         if (error) {
             console.error("Error fetching stages:", error);

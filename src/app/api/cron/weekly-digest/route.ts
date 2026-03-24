@@ -62,9 +62,17 @@ export async function POST(req: NextRequest) {
         });
     }
 
-    // 2. Process each user
-    for (const user of users) {
+    // 2. Process each user (batch limit to avoid Netlify 26s timeout)
+    const BATCH_LIMIT = 50;
+    const startTime = Date.now();
+    const usersToProcess = users.slice(0, BATCH_LIMIT);
+    for (const user of usersToProcess) {
         if (!user.email) continue;
+        // Safety: bail if approaching Netlify's 26s timeout
+        if (Date.now() - startTime > 20_000) {
+            errors.push(`Timeout: processed ${emailsSent} of ${usersToProcess.length} users`);
+            break;
+        }
 
         try {
             // Fetch user's projects

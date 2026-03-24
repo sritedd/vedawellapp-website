@@ -70,7 +70,7 @@ export default function StageGate({ projectId, currentStage, nextStage, onProcee
             // 1. Check inspections for this stage
             const { data: inspections } = await supabase
                 .from("inspections")
-                .select("id, type, result, certificate_received, stage")
+                .select("id, stage, result, certificate_received, inspector_name")
                 .eq("project_id", projectId);
 
             if (inspections) {
@@ -85,16 +85,16 @@ export default function StageGate({ projectId, currentStage, nextStage, onProcee
                     reqs.push({
                         id: `insp-${insp.id}`,
                         category: "inspection",
-                        name: `${insp.type} inspection passed`,
+                        name: `${insp.stage || "Stage"} inspection passed`,
                         required: true,
-                        completed: insp.result === "passed" || insp.result === "pass",
+                        completed: insp.result === "passed",
                         blocksProgress: true,
                     });
 
                     reqs.push({
                         id: `cert-insp-${insp.id}`,
                         category: "certificate",
-                        name: `${insp.type} certificate received`,
+                        name: `${insp.stage || "Stage"} certificate received`,
                         required: true,
                         completed: insp.certificate_received === true,
                         blocksProgress: true,
@@ -263,12 +263,18 @@ export default function StageGate({ projectId, currentStage, nextStage, onProcee
         // Get open defects for this stage and mark them as disputed with override reason
         const { data: defects } = await supabase
             .from("defects")
-            .select("id, title")
+            .select("id, title, stage")
             .eq("project_id", projectId)
-            .not("status", "in", '("verified","rectified","disputed")');
+            .not("status", "in", '("verified","rectified","disputed","fixed")');
 
         if (defects) {
-            const stageDefects = defects.filter((d: { id: string; title: string }) => true); // All open defects at this point
+            const stageNameLower = currentStage.toLowerCase();
+            const stageDefects = defects.filter((d: { id: string; title: string; stage?: string }) =>
+                d.stage && (
+                    d.stage.toLowerCase().includes(stageNameLower) ||
+                    stageNameLower.includes(d.stage.toLowerCase())
+                )
+            );
             for (const defect of stageDefects) {
                 await supabase
                     .from("defects")

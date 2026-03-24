@@ -54,6 +54,7 @@ const STATUS_CONFIG = {
     open: { label: "Open", color: "text-red-700 bg-red-100" },
     reported: { label: "Reported to Builder", color: "text-orange-700 bg-orange-100" },
     in_progress: { label: "In Progress", color: "text-blue-700 bg-blue-100" },
+    fixed: { label: "Fixed", color: "text-teal-700 bg-teal-100" },
     rectified: { label: "Rectified", color: "text-purple-700 bg-purple-100" },
     verified: { label: "Verified Fixed", color: "text-green-700 bg-green-100" },
     disputed: { label: "Disputed", color: "text-red-700 bg-red-200" },

@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
 
         const { confirmEmail } = await req.json();
 
-        if (!confirmEmail || confirmEmail !== user.email) {
+        if (!confirmEmail || confirmEmail.toLowerCase() !== user.email?.toLowerCase()) {
             return NextResponse.json(
                 { error: "Email confirmation does not match your account email" },
                 { status: 400 }

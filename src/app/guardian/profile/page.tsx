@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import TwoFactorSetup from "@/components/guardian/TwoFactorSetup";
+import NotificationPreferences from "@/components/guardian/NotificationPreferences";
 
 interface Profile {
     id: string;
@@ -435,6 +437,16 @@ export default function ProfilePage() {
                             </button>
                         </form>
                     )}
+                </div>
+
+                {/* Security — Two-Factor Authentication */}
+                <div className="card mb-6">
+                    <TwoFactorSetup />
+                </div>
+
+                {/* Notification Preferences */}
+                <div className="card mb-6">
+                    <NotificationPreferences />
                 </div>
 
                 {/* Your Data */}

@@ -300,28 +300,31 @@ Output: **PAY ✅ / HOLD ⚠️ / DISPUTE ❌** with a pre-drafted response emai
 | Server-side notification prefs | S | Deferred |
 | 2FA/MFA | S | Deferred |
 
-### Sprint 2 (Weeks 4-6): Protection Features
-| Feature | Effort | Impact |
+### Sprint 2 (Weeks 4-6): Protection Features — ✅ DONE (2026-03-23)
+| Feature | Effort | Status |
 |---------|--------|--------|
-| Defect aging + SLA + auto-reminders | M | Core value proposition |
-| Builder escalation workflow | M | Killer feature for disputes |
-| Activity/audit log | M | Evidence credibility |
-| Calendar .ics export | S | Quality of life |
+| Activity/audit log (append-only, timeline UI, filters) | M | ✅ Done |
+| Builder escalation workflow (4-level ladder, state-specific templates) | M | ✅ Done |
+| Calendar .ics export (inspections, payments, SLA deadlines) | S | ✅ Done |
+| Progress Claim Review AI (PAY/HOLD/DISPUTE verdict, Pro-only) | M-L | ✅ Done |
+| 3 blog posts for new features | S | ✅ Done |
 
-### Sprint 3 (Weeks 7-9): Collaboration + Intelligence
-| Feature | Effort | Impact |
+### Sprint 3 (Weeks 7-9): Collaboration + Intelligence — ✅ DONE (2026-03-23)
+| Feature | Effort | Status |
 |---------|--------|--------|
-| Multi-user/family sharing | L | Unlocks team usage |
-| Global search | M | Usability at scale |
-| Progress claim review AI | M-L | Highest conversion driver |
+| Multi-user/family sharing (invite by email, 3 roles, per-project) | L | ✅ Done |
+| Global search (5 entity types, Ctrl+K, grouped results) | M | ✅ Done |
+| Progress claim review AI | M-L | ✅ Done (Sprint 2) |
+| 2 blog posts for new features | S | ✅ Done |
 
-### Sprint 4 (Weeks 10-12): Evidence + Import
-| Feature | Effort | Impact |
+### Sprint 4 (Weeks 10-12): Evidence + Import — ✅ DONE (2026-03-23)
+| Feature | Effort | Status |
 |---------|--------|--------|
-| Site diary evidence mode | M-L | Evidence grade upgrade |
-| Contract PDF parsing | L | Onboarding wow |
-| Inspector report import | M | Workflow integration |
-| PC/PS allowance tracker | M | Budget protection |
+| Site diary evidence mode (GPS, weather, area/trade tags) | M-L | ✅ Done |
+| Contract PDF parsing (AI extracts fields, flags clauses) | L | ✅ Done |
+| Inspector report import → auto-create defects | M | ✅ Done |
+| PC/PS allowance tracker (budget drift dashboard) | M | ✅ Done |
+| 3 blog posts for new features | S | ✅ Done |
 
 ---
 

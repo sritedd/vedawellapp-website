@@ -193,7 +193,7 @@ export async function GET(req: NextRequest) {
     const [defectsRes, variationsRes, stagesRes, commsRes, inspectionsRes] = await Promise.all([
         supabase.from("defects").select("*").eq("project_id", projectId).order("created_at", { ascending: false }),
         supabase.from("variations").select("*").eq("project_id", projectId).order("created_at", { ascending: false }),
-        supabase.from("stages").select("*").eq("project_id", projectId).order("created_at", { ascending: true }),
+        supabase.from("stages").select("*").eq("project_id", projectId).order("order_index", { ascending: true }),
         supabase.from("communication_log").select("*").eq("project_id", projectId).order("date", { ascending: true }),
         supabase.from("inspections").select("*").eq("project_id", projectId).order("created_at", { ascending: true }),
     ]);

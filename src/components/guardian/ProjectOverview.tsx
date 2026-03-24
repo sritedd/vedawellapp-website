@@ -51,7 +51,7 @@ export default function ProjectOverview({ project }: ProjectOverviewProps) {
                 .from("stages")
                 .select("id, name, status")
                 .eq("project_id", project.id)
-                .order("created_at", { ascending: true });
+                .order("order_index", { ascending: true });
 
             if (stageData && stageData.length > 0) {
                 setStages(stageData);

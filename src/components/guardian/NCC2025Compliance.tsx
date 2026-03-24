@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/components/guardian/Toast";
 
 /* ------------------------------------------------------------------ */
@@ -322,8 +323,6 @@ export default function NCC2025Compliance({
   stateCode = "NSW",
   buildCategory = "new_build",
 }: NCC2025ComplianceProps) {
-  const storageKey = `ncc2025-${projectId}`;
-
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [expanded, setExpanded] = useState<Record<string, boolean>>({
     nathers: true,
@@ -334,37 +333,50 @@ export default function NCC2025Compliance({
   const [loaded, setLoaded] = useState(false);
   const { toast } = useToast();
 
-  /* Load from localStorage on mount */
+  const supabase = createClient();
+
+  /* Load from Supabase on mount */
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(storageKey);
-      if (raw) {
-        const parsed: Record<string, boolean> = JSON.parse(raw);
-        setChecked(parsed);
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from("ncc_checklist_items")
+          .select("item_key, checked")
+          .eq("project_id", projectId);
+
+        if (data && data.length > 0) {
+          const map: Record<string, boolean> = {};
+          for (const row of data) {
+            map[row.item_key] = row.checked;
+          }
+          setChecked(map);
+        }
+      } catch {
+        // ignore errors — start unchecked
       }
-    } catch {
-      // ignore parse errors
-    }
-    setLoaded(true);
-  }, [storageKey]);
+      setLoaded(true);
+    })();
+  }, [projectId, supabase]);
 
-  /* Persist to localStorage on change */
-  useEffect(() => {
-    if (!loaded) return;
-    try {
-      localStorage.setItem(storageKey, JSON.stringify(checked));
-    } catch {
-      // ignore quota errors
-    }
-  }, [checked, storageKey, loaded]);
+  const toggleItem = useCallback(async (id: string) => {
+    const newVal = !checked[id];
+    setChecked((prev) => ({ ...prev, [id]: newVal }));
+    if (newVal) toast("Item verified", "success");
 
-  const toggleItem = useCallback((id: string) => {
-    setChecked((prev) => {
-      const newVal = !prev[id];
-      if (newVal) toast("Item verified", "success");
-      return { ...prev, [id]: newVal };
-    });
-  }, [toast]);
+    // Persist to Supabase
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    await supabase
+      .from("ncc_checklist_items")
+      .upsert({
+        project_id: projectId,
+        user_id: user.id,
+        item_key: id,
+        checked: newVal,
+        checked_at: newVal ? new Date().toISOString() : null,
+      }, { onConflict: "project_id,item_key" });
+  }, [checked, projectId, supabase, toast]);
 
   const toggleSection = useCallback((key: string) => {
     setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -375,28 +387,68 @@ export default function NCC2025Compliance({
   }, []);
 
   /* Shortcut verification state (binary: verified OK / found issue) */
-  const shortcutStorageKey = `ncc2025-shortcuts-${projectId}`;
   const [shortcutVerifications, setShortcutVerifications] = useState<Record<string, "verified" | "issue" | null>>({});
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(shortcutStorageKey);
-      if (raw) setShortcutVerifications(JSON.parse(raw));
-    } catch { /* ignore */ }
-  }, [shortcutStorageKey]);
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from("ncc_checklist_items")
+          .select("item_key, checked")
+          .eq("project_id", projectId)
+          .like("item_key", "shortcut-%");
 
-  const toggleShortcutVerification = useCallback((id: string, status: "verified" | "issue") => {
-    setShortcutVerifications((prev) => {
-      const next = { ...prev, [id]: prev[id] === status ? null : status };
-      try { localStorage.setItem(shortcutStorageKey, JSON.stringify(next)); } catch { /* ignore */ }
-      return next;
-    });
-    if (status === "verified") {
+        if (data && data.length > 0) {
+          const map: Record<string, "verified" | "issue" | null> = {};
+          for (const row of data) {
+            // We store shortcut status as checked=true for "verified", checked=false for "issue"
+            // and item_key has a suffix: shortcut-id:verified or shortcut-id:issue
+            const parts = row.item_key.split(":");
+            if (parts.length === 2) {
+              map[parts[0]] = parts[1] as "verified" | "issue";
+            }
+          }
+          setShortcutVerifications(map);
+        }
+      } catch { /* ignore */ }
+    })();
+  }, [projectId, supabase]);
+
+  const toggleShortcutVerification = useCallback(async (id: string, status: "verified" | "issue") => {
+    const currentStatus = shortcutVerifications[id];
+    const newStatus = currentStatus === status ? null : status;
+    setShortcutVerifications((prev) => ({ ...prev, [id]: newStatus }));
+
+    if (newStatus === "verified") {
       toast("Marked as compliant", "success");
-    } else {
+    } else if (newStatus === "issue") {
       toast("Non-compliance flagged", "error");
     }
-  }, [shortcutStorageKey, toast]);
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    if (newStatus === null) {
+      // Remove both possible entries
+      await supabase.from("ncc_checklist_items").delete()
+        .eq("project_id", projectId)
+        .in("item_key", [`${id}:verified`, `${id}:issue`]);
+    } else {
+      // Remove old status entry if exists, then insert new
+      const oldKey = `${id}:${currentStatus === "verified" ? "verified" : "issue"}`;
+      await supabase.from("ncc_checklist_items").delete()
+        .eq("project_id", projectId)
+        .eq("item_key", oldKey);
+
+      await supabase.from("ncc_checklist_items").upsert({
+        project_id: projectId,
+        user_id: user.id,
+        item_key: `${id}:${newStatus}`,
+        checked: true,
+        checked_at: new Date().toISOString(),
+      }, { onConflict: "project_id,item_key" });
+    }
+  }, [shortcutVerifications, projectId, supabase, toast]);
 
   /* Scoring helpers */
   const sectionScore = (section: ComplianceSection) => {

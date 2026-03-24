@@ -2,7 +2,7 @@
 
 > **PURPOSE**: This is the persistent memory for the Guardian app. Every new conversation should read this file FIRST to understand current state, what's been done, and what to work on next.
 >
-> **LAST UPDATED**: 2026-03-20
+> **LAST UPDATED**: 2026-03-24
 
 ---
 
@@ -27,7 +27,8 @@ profiles, projects, stages, checklist_items, variations, defects,
 certifications, inspections, documents, weekly_checkins,
 communication_log, announcements, support_messages,
 email_subscribers, progress_photos, materials, site_visits,
-payments, ai_cache, knowledge_base
+payments, ai_cache, knowledge_base, ai_usage_log,
+stripe_webhook_events
 ```
 
 ### Storage Buckets (3, require manual creation + RLS)
@@ -50,6 +51,47 @@ payments, ai_cache, knowledge_base
 ---
 
 ## 2. WHAT'S BEEN DONE (Completed Work)
+
+### Session: 2026-03-24 — Final Audit Bug Fixes (30+ bugs) + Critical Security & AI Fixes
+
+**Deep scan + audit report fixes: 30+ bugs across functional, security, data integrity, and AI layers**
+
+#### Audit Report Critical Fixes (from `guide/11-FINAL-AUDIT-REPORT.md`)
+| Change | File(s) |
+|--------|---------|
+| **BUG-1/BUG-2: AI cache fixed** — `getCached()` now uses service-role client (was anon key with empty cookies → RLS blocked all reads → 0% cache hit rate). All user-facing RLS policies on `ai_cache` dropped | `cache.ts`, `schema_v36_ai_telemetry.sql` |
+| **BUG-3: Phone verify false-success** — Now checks update result when setting `identity_verified`; returns 500 if column write fails | `phone-verify/route.ts` |
+| **BUG-4: isAIAvailable() split** — Added `isCheapAIAvailable()` (requires Google key). 3 cheap-model routes (describe-defect, stage-advice, builder-check) now use it. Prevents crash if only Anthropic is configured | `provider.ts`, 3 AI routes |
+| **BUG-7: Builder check disabled** — Returns 503 "coming soon" instead of generating hallucinated reports from zero real data | `builder-check/route.ts` |
+| **BUG-6: Login redirect standardized** — All redirect params now use `returnTo` (was `redirectTo` in proxy.ts, `redirect` in login page) | `proxy.ts`, `login/page.tsx` |
+| **SEC-1: Webhook idempotency** — Checks `stripe_webhook_events` table before processing; skips duplicate events from Stripe retries | `webhook/route.ts`, `schema_v36_ai_telemetry.sql` |
+| **AI telemetry table** — `ai_usage_log` table for cost monitoring, per-user quotas, feature analytics | `schema_v36_ai_telemetry.sql` |
+| **BUG-5: Stripe customer reuse** — Checkout checks `profiles.stripe_customer_id` before creating session; reuses existing customer on re-subscribe | `checkout/route.ts` |
+| **SEC-3: AI fallbacks return 503** — describe-defect and stage-advice now return 503 with `{ fallback: true }` on errors instead of silent 200 | `describe-defect/route.ts`, `stage-advice/route.ts` |
+| **AI telemetry wired** — `logAIUsage()` helper called from all 4 active AI routes (defect-assist, stage-advice, chat, claim-review) + cache hits/misses | `cache.ts`, 4 AI routes |
+| **CSP header** — Content-Security-Policy with explicit domains for Google Analytics, Stripe, Supabase, AdSense | `next.config.ts` |
+| **KB retrieval** — `retrieveKnowledge()` queries `knowledge_base` by state/stage/category, injects snippets into all AI prompts for grounded responses | `cache.ts`, 4 AI routes |
+| **Per-user daily AI quotas** — `checkDailyQuota()` enforces limits by tier (free:5, trial:20, pro:50, admin:unlimited) using `ai_usage_log` | `rate-limit.ts`, 4 AI routes |
+| **GA4 client_id fix** — Uses SHA-256 hash of userId instead of raw UUID for proper GA4 attribution | `webhook/route.ts` |
+
+#### Deep Scan Bug Fixes (earlier in session)
+| Change | File(s) |
+|--------|---------|
+| **claim-review wrong table** — `certificates` → `certifications`, added JSON parse try-catch | `claim-review/route.ts` |
+| **search wrong table + columns** — `communications` → `communication_log`, fixed column names | `search/route.ts` |
+| **InspectorReportImport missing stage** — Added required `stage` field on defect insert | `InspectorReportImport.tsx` |
+| **calculations.ts enum fixes** — Added `fixed` to DefectStatus, fixed Inspection status enum (`not_booked`/`booked`), added `fixed` transitions | `calculations.ts` |
+| **ProjectHealthScore** — Fixed `"pass"` → `"passed"`, `i.status` → `i.result` | `ProjectHealthScore.tsx` |
+| **StageGate** — Fixed `type`/`date` columns (don't exist), `"pass"` check, added `stage` to confirmOverride select | `StageGate.tsx` |
+| **ProjectDefects** — Added `fixed` to STATUS_CONFIG | `ProjectDefects.tsx` |
+| **Stage ordering** — 12 files changed from `.order("created_at")` to `.order("order_index")` | 12 component/API files |
+| **Notifications auth bypass** — Fixed fail-open `if (cronSecret && ...)` to fail-closed `if (!cronSecret?.trim() || ...)` | `notifications/route.ts` |
+| **Delete account case-sensitive** — Email comparison now case-insensitive | `delete-account/route.ts` |
+| **Admin CSV injection** — Sanitizes cells starting with `=+\-@\t\r` | `admin/export/route.ts` |
+| **Activity log NaN** — parseInt fallbacks with Math.max | `activity-log/route.ts` |
+| **Contract parser size limit** — 50KB limit, returns 413 | `parse-contract/route.ts` |
+| **Pricing yearly button** — Disabled when no priceId, shows "Coming Soon" | `PricingClient.tsx` |
+| **Cron timeout safety** — 50-user batch limit + 20-second bail-out | `weekly-digest/route.ts` |
 
 ### Session: 2026-03-19 (I) — Security Audit & Exploit Fixes
 
@@ -373,6 +415,12 @@ payments, ai_cache, knowledge_base
 - ⬜ `schema_v28_defect_sla.sql` — Defect SLA tracking: reported_at, escalation_level, sla_days columns (NEEDS TO BE RUN)
 - ⬜ `schema_v29_account_deletion.sql` — account_deletion_log table (NEEDS TO BE RUN)
 - ⬜ `schema_v30_ai_conversations.sql` — ai_conversations table with RLS + trigger (NEEDS TO BE RUN)
+- ⬜ `schema_v31_activity_log.sql` — Append-only activity/audit log table with RLS (NEEDS TO BE RUN)
+- ⬜ `schema_v32_escalations.sql` — Builder escalation workflow table with RLS + trigger (NEEDS TO BE RUN)
+- ⬜ `schema_v33_project_members.sql` — Multi-user/family sharing with roles + RLS (NEEDS TO BE RUN)
+- ⬜ `schema_v34_sprint4.sql` — Site diary evidence columns + allowances table (NEEDS TO BE RUN)
+- ⬜ `schema_v35_saas_infra.sql` — SaaS infrastructure (NEEDS TO BE RUN)
+- ⬜ `schema_v36_ai_telemetry.sql` — AI usage log, ai_cache RLS fix, webhook idempotency table (NEEDS TO BE RUN)
 
 ---
 

@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { generateObject } from "ai";
-import { getCheapModel, isAIAvailable } from "@/lib/ai/provider";
+import { getCheapModel, isCheapAIAvailable } from "@/lib/ai/provider";
 import {
   buildStageAdvicePrompt,
   StageAdviceSchema,
   type StageAdvice,
 } from "@/lib/ai/prompts";
-import { cachedAI } from "@/lib/ai/cache";
-import { checkRateLimit, checkProAccess, VALID_STATES } from "@/lib/ai/rate-limit";
+import { cachedAI, logAIUsage, retrieveKnowledge } from "@/lib/ai/cache";
+import { checkRateLimit, checkProAccess, checkDailyQuota, VALID_STATES } from "@/lib/ai/rate-limit";
 
 /** Strip HTML tags from user input */
 function sanitize(input: string): string {
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check AI availability
-    if (!isAIAvailable()) {
+    if (!isCheapAIAvailable()) {
       return NextResponse.json(
         { error: "AI features are not configured" },
         { status: 503 }
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Tier gating — stage advice is Pro-only
-    const { allowed } = await checkProAccess(supabase, user.id);
+    const { allowed, tier } = await checkProAccess(supabase, user.id);
     if (!allowed) {
       return NextResponse.json(
         { error: "AI Stage Advice is available on the Pro plan. Upgrade to unlock." },
@@ -89,6 +89,15 @@ export async function POST(request: NextRequest) {
     if (checkRateLimit(user.id)) {
       return NextResponse.json(
         { error: "Please wait a few seconds before trying again" },
+        { status: 429 }
+      );
+    }
+
+    // Daily quota check
+    const quota = await checkDailyQuota(supabase, user.id, tier, "stage-advice");
+    if (!quota.allowed) {
+      return NextResponse.json(
+        { error: `Daily AI limit reached (${quota.used}/${quota.limit}).` },
         { status: 429 }
       );
     }
@@ -131,12 +140,22 @@ export async function POST(request: NextRequest) {
       ? sanitize(String(rawContext)).slice(0, 500)
       : undefined;
 
+    // Retrieve knowledge base context for grounding
+    const kbSnippets = await retrieveKnowledge({
+      state,
+      stage,
+      category: "stage_guidance",
+    });
+
     // Generate advice with caching (7-day TTL, shared cache — stage advice is generic)
     const advice = await cachedAI<StageAdvice>(
       "stage-advice",
       { stage, state, projectContext: projectContext || "" },
       async () => {
-        const prompt = buildStageAdvicePrompt(stage, state, projectContext);
+        let prompt = buildStageAdvicePrompt(stage, state, projectContext);
+        if (kbSnippets.length > 0) {
+          prompt += `\n\nREFERENCE DATA (use these to ground your response in real Australian Standards and NCC requirements):\n${kbSnippets.join("\n\n")}`;
+        }
         const { object } = await generateObject({
           model: getCheapModel(),
           schema: StageAdviceSchema,
@@ -144,13 +163,18 @@ export async function POST(request: NextRequest) {
         });
         return object;
       },
-      604800 // 7 days
+      604800, // 7 days
+      user.id
     );
 
     return NextResponse.json(advice);
   } catch (error) {
     console.error("[stage-advice] AI generation failed:",
       error instanceof Error ? error.message : "Unknown error");
-    return NextResponse.json(STAGE_ADVICE_FALLBACK);
+    logAIUsage({ feature: "stage-advice", model: "gemini-2.5-flash-lite", success: false, errorCode: error instanceof Error ? error.message.slice(0, 100) : "unknown" }).catch(() => {});
+    return NextResponse.json(
+      { ...STAGE_ADVICE_FALLBACK, fallback: true, reason: "AI generation failed" },
+      { status: 503 }
+    );
   }
 }

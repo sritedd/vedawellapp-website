@@ -238,7 +238,7 @@ export async function POST(request: NextRequest) {
             // Success — mark identity as verified via email OTP.
             // phone_verified remains false until real SMS verification is integrated.
             // identity_verified tracks that the user completed an OTP challenge (email-based).
-            await serviceSupabase
+            const { error: updateError } = await serviceSupabase
                 .from("profiles")
                 .update({
                     identity_verified: true,
@@ -248,6 +248,14 @@ export async function POST(request: NextRequest) {
                     phone_otp_attempts: 0,
                 })
                 .eq("id", user.id);
+
+            if (updateError) {
+                console.error("[phone-verify] Failed to update identity_verified:", updateError.message);
+                return NextResponse.json(
+                    { error: "Verification succeeded but profile update failed. Please try again." },
+                    { status: 500 }
+                );
+            }
 
             return NextResponse.json({
                 success: true,

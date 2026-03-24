@@ -9,12 +9,10 @@ import {
 
 interface Inspection {
     id: string;
-    type: string;
     stage: string | null;
-    result: string | null; // maps to status: pending/scheduled/passed/failed
+    result: string | null; // DB values: not_booked/booked/passed/failed
     scheduled_date: string | null;
-    date: string | null; // completed date
-    inspector: string | null;
+    inspector_name: string | null;
     certificate_received: boolean;
     notes: string | null;
 }
@@ -26,8 +24,8 @@ interface InspectionTimelineProps {
 
 // Map DB result values to display status
 function getStatus(result: string | null): "pending" | "scheduled" | "passed" | "failed" {
-    if (!result || result === "pending") return "pending";
-    if (result === "scheduled") return "scheduled";
+    if (!result || result === "not_booked") return "pending";
+    if (result === "booked") return "scheduled";
     if (result === "passed" || result === "pass") return "passed";
     if (result === "failed" || result === "fail") return "failed";
     return "pending";
@@ -40,9 +38,8 @@ export default function InspectionTimeline({ projectId, currentStage }: Inspecti
     const [expandedStage, setExpandedStage] = useState<string | null>(null);
     const [showAddForm, setShowAddForm] = useState(false);
     const [newInspection, setNewInspection] = useState({
-        type: "",
         stage: "",
-        inspector: "",
+        inspector_name: "",
         scheduled_date: "",
         notes: "",
     });
@@ -56,7 +53,7 @@ export default function InspectionTimeline({ projectId, currentStage }: Inspecti
                 .from("stages")
                 .select("name")
                 .eq("project_id", projectId)
-                .order("created_at", { ascending: true });
+                .order("order_index", { ascending: true });
 
             const stageNames = stageData?.map((s: { name: string }) => s.name) || [];
             setStages(stageNames);
@@ -64,7 +61,7 @@ export default function InspectionTimeline({ projectId, currentStage }: Inspecti
             // Fetch inspections from DB
             const { data: inspData } = await supabase
                 .from("inspections")
-                .select("id, type, stage, result, scheduled_date, date, inspector, certificate_received, notes")
+                .select("id, stage, result, scheduled_date, inspector_name, certificate_received, notes")
                 .eq("project_id", projectId)
                 .order("created_at", { ascending: true });
 
@@ -86,7 +83,7 @@ export default function InspectionTimeline({ projectId, currentStage }: Inspecti
         fetchData();
     }, [projectId, currentStage]);
 
-    const updateInspection = async (id: string, updates: Partial<{ result: string; date: string; certificate_received: boolean; scheduled_date: string }>) => {
+    const updateInspection = async (id: string, updates: Partial<{ result: string; certificate_received: boolean; scheduled_date: string }>) => {
         const supabase = createClient();
 
         // Optimistic update
@@ -103,7 +100,7 @@ export default function InspectionTimeline({ projectId, currentStage }: Inspecti
             // Revert — refetch
             const { data } = await supabase
                 .from("inspections")
-                .select("id, type, stage, result, scheduled_date, date, inspector, certificate_received, notes")
+                .select("id, stage, result, scheduled_date, inspector_name, certificate_received, notes")
                 .eq("project_id", projectId)
                 .order("created_at", { ascending: true });
             setInspections(data || []);
@@ -111,18 +108,17 @@ export default function InspectionTimeline({ projectId, currentStage }: Inspecti
     };
 
     const addInspection = async () => {
-        if (!newInspection.type.trim()) return;
+        if (!newInspection.stage.trim()) return;
 
         const supabase = createClient();
         const { data, error } = await supabase
             .from("inspections")
             .insert({
                 project_id: projectId,
-                type: newInspection.type,
                 stage: newInspection.stage || null,
-                inspector: newInspection.inspector || null,
+                inspector_name: newInspection.inspector_name || null,
                 scheduled_date: newInspection.scheduled_date || null,
-                result: newInspection.scheduled_date ? "scheduled" : "pending",
+                result: newInspection.scheduled_date ? "booked" : "not_booked",
                 notes: newInspection.notes || null,
                 certificate_received: false,
             })
@@ -131,7 +127,7 @@ export default function InspectionTimeline({ projectId, currentStage }: Inspecti
 
         if (!error && data) {
             setInspections(prev => [...prev, data]);
-            setNewInspection({ type: "", stage: "", inspector: "", scheduled_date: "", notes: "" });
+            setNewInspection({ stage: "", inspector_name: "", scheduled_date: "", notes: "" });
             setShowAddForm(false);
         }
     };
@@ -188,13 +184,6 @@ export default function InspectionTimeline({ projectId, currentStage }: Inspecti
                 <div className="p-4 bg-card border border-border rounded-xl space-y-3">
                     <h3 className="font-bold">Add New Inspection</h3>
                     <div className="grid md:grid-cols-2 gap-3">
-                        <input
-                            type="text"
-                            placeholder="Inspection type (e.g. Frame Inspection)"
-                            value={newInspection.type}
-                            onChange={e => setNewInspection({ ...newInspection, type: e.target.value })}
-                            className="w-full p-2 border border-border rounded-lg text-sm"
-                        />
                         <select
                             value={newInspection.stage}
                             onChange={e => setNewInspection({ ...newInspection, stage: e.target.value })}
@@ -206,8 +195,8 @@ export default function InspectionTimeline({ projectId, currentStage }: Inspecti
                         <input
                             type="text"
                             placeholder="Inspector (e.g. Council, Private Certifier)"
-                            value={newInspection.inspector}
-                            onChange={e => setNewInspection({ ...newInspection, inspector: e.target.value })}
+                            value={newInspection.inspector_name}
+                            onChange={e => setNewInspection({ ...newInspection, inspector_name: e.target.value })}
                             className="w-full p-2 border border-border rounded-lg text-sm"
                         />
                         <input
@@ -295,10 +284,10 @@ export default function InspectionTimeline({ projectId, currentStage }: Inspecti
                                             <div key={inspection.id} className="p-4 bg-card border border-border rounded-lg">
                                                 <div className="flex justify-between items-start mb-2">
                                                     <div>
-                                                        <div className="font-medium">{inspection.type}</div>
-                                                        {inspection.inspector && (
+                                                        <div className="font-medium">{inspection.stage || "Inspection"}</div>
+                                                        {inspection.inspector_name && (
                                                             <div className="text-sm text-muted-foreground">
-                                                                Inspector: {inspection.inspector}
+                                                                Inspector: {inspection.inspector_name}
                                                             </div>
                                                         )}
                                                     </div>
@@ -307,20 +296,12 @@ export default function InspectionTimeline({ projectId, currentStage }: Inspecti
                                                     </span>
                                                 </div>
 
-                                                <div className="grid grid-cols-2 gap-2 text-sm mt-3">
-                                                    {inspection.scheduled_date && (
-                                                        <div>
-                                                            <span className="text-muted-foreground">Scheduled: </span>
-                                                            {new Date(inspection.scheduled_date).toLocaleDateString("en-AU")}
-                                                        </div>
-                                                    )}
-                                                    {inspection.date && (
-                                                        <div>
-                                                            <span className="text-muted-foreground">Completed: </span>
-                                                            {new Date(inspection.date).toLocaleDateString("en-AU")}
-                                                        </div>
-                                                    )}
-                                                </div>
+                                                {inspection.scheduled_date && (
+                                                    <div className="text-sm mt-3">
+                                                        <span className="text-muted-foreground">Scheduled: </span>
+                                                        {new Date(inspection.scheduled_date).toLocaleDateString("en-AU")}
+                                                    </div>
+                                                )}
 
                                                 {/* Certificate status */}
                                                 <div className="mt-3 flex items-center gap-2">
@@ -353,7 +334,7 @@ export default function InspectionTimeline({ projectId, currentStage }: Inspecti
                                                     <div className="mt-3 flex gap-2">
                                                         <button
                                                             onClick={() => updateInspection(inspection.id, {
-                                                                result: "scheduled",
+                                                                result: "booked",
                                                                 scheduled_date: new Date().toISOString().split("T")[0]
                                                             })}
                                                             className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm"
@@ -366,8 +347,7 @@ export default function InspectionTimeline({ projectId, currentStage }: Inspecti
                                                     <div className="mt-3 flex gap-2">
                                                         <button
                                                             onClick={() => updateInspection(inspection.id, {
-                                                                result: "passed",
-                                                                date: new Date().toISOString().split("T")[0]
+                                                                result: "passed"
                                                             })}
                                                             className="px-3 py-1 bg-green-100 text-green-700 rounded text-sm"
                                                         >
@@ -375,8 +355,7 @@ export default function InspectionTimeline({ projectId, currentStage }: Inspecti
                                                         </button>
                                                         <button
                                                             onClick={() => updateInspection(inspection.id, {
-                                                                result: "failed",
-                                                                date: new Date().toISOString().split("T")[0]
+                                                                result: "failed"
                                                             })}
                                                             className="px-3 py-1 bg-red-100 text-red-700 rounded text-sm"
                                                         >
@@ -402,7 +381,7 @@ export default function InspectionTimeline({ projectId, currentStage }: Inspecti
                                     return (
                                         <div key={inspection.id} className="p-4 bg-card border border-border rounded-lg">
                                             <div className="flex justify-between items-start">
-                                                <div className="font-medium">{inspection.type}</div>
+                                                <div className="font-medium">{inspection.stage || "Inspection"}</div>
                                                 <span className={`px-2 py-1 rounded text-xs text-white ${getInspectionStatusColor(status)}`}>
                                                     {getInspectionStatusLabel(status)}
                                                 </span>

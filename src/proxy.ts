@@ -70,7 +70,7 @@ export async function proxy(request: NextRequest) {
     if (!user) {
         const loginUrl = request.nextUrl.clone()
         loginUrl.pathname = '/guardian/login'
-        loginUrl.searchParams.set('redirectTo', pathname)
+        loginUrl.searchParams.set('returnTo', pathname)
         return NextResponse.redirect(loginUrl)
     }
 

@@ -59,7 +59,7 @@ export interface Variation {
 // ===========================================
 
 export type DefectSeverity = 'critical' | 'major' | 'minor' | 'cosmetic';
-export type DefectStatus = 'open' | 'reported' | 'in_progress' | 'rectified' | 'verified' | 'disputed';
+export type DefectStatus = 'open' | 'reported' | 'in_progress' | 'fixed' | 'rectified' | 'verified' | 'disputed';
 
 export interface Defect {
     id: string;
@@ -92,6 +92,7 @@ export interface Stage {
     project_id: string;
     name: string;
     status: StageStatus;
+    order_index?: number;
     completion_date?: string;
     payment_percentage?: number;
     expected_start_date?: string;

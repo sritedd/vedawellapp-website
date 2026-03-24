@@ -28,6 +28,50 @@ if (typeof setInterval !== "undefined") {
 export const VALID_STATES = ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "ACT", "NT"] as const;
 export type AustralianState = (typeof VALID_STATES)[number];
 
+// ─── Per-User Daily AI Quotas ─────────────────────────────────────
+
+const DAILY_QUOTAS: Record<string, { ai: number; chat: number }> = {
+    free: { ai: 5, chat: 0 },
+    trial: { ai: 20, chat: 10 },
+    guardian_pro: { ai: 50, chat: 30 },
+    admin: { ai: 9999, chat: 9999 },
+};
+
+/**
+ * Check if a user has exceeded their daily AI quota.
+ * Returns { allowed: true } or { allowed: false, limit, used }.
+ * Requires the ai_usage_log table (schema_v36).
+ */
+export async function checkDailyQuota(
+    supabase: { from: (table: string) => any },
+    userId: string,
+    tier: string,
+    feature: string
+): Promise<{ allowed: boolean; limit: number; used: number }> {
+    const quotas = DAILY_QUOTAS[tier] || DAILY_QUOTAS.free;
+    const limit = feature === "chat" ? quotas.chat : quotas.ai;
+
+    // Admins have no real limit
+    if (limit >= 9999) return { allowed: true, limit, used: 0 };
+
+    try {
+        const startOfDay = new Date();
+        startOfDay.setHours(0, 0, 0, 0);
+
+        const { count } = await supabase
+            .from("ai_usage_log")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", userId)
+            .gte("created_at", startOfDay.toISOString());
+
+        const used = count ?? 0;
+        return { allowed: used < limit, limit, used };
+    } catch {
+        // If table doesn't exist or query fails, allow the request (fail-open for quotas)
+        return { allowed: true, limit, used: 0 };
+    }
+}
+
 /**
  * Check if a user has a Pro subscription.
  * Returns the subscription_tier string, or null if lookup fails.

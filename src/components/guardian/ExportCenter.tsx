@@ -125,7 +125,7 @@ export default function ExportCenter({ projectId, projectName, builderName, cont
             .from("stages")
             .select("name, status")
             .eq("project_id", projectId)
-            .order("created_at", { ascending: true });
+            .order("order_index", { ascending: true });
 
         if (stagesData) {
             setStages(stagesData as { name: string; status: string }[]);

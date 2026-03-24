@@ -7,14 +7,6 @@ import crypto from "crypto";
  * Falls back gracefully if the ai_cache table doesn't exist yet.
  */
 
-function getSupabase() {
-    return createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        { cookies: { getAll: () => [], setAll: () => { } } }
-    );
-}
-
 function getSupabaseAdmin() {
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     if (!serviceKey) {
@@ -35,10 +27,13 @@ export function makeCacheKey(feature: string, params: Record<string, unknown>, u
     return crypto.createHash("sha256").update(`${scope}${feature}:${sorted}`).digest("hex");
 }
 
-/** Get a cached AI response. Returns null if not found or expired. */
+/** Get a cached AI response. Returns null if not found or expired.
+ *  Uses service-role client — ai_cache is server-side infra, not user-facing. */
 export async function getCached<T>(key: string): Promise<T | null> {
     try {
-        const supabase = getSupabase();
+        const supabase = getSupabaseAdmin();
+        if (!supabase) return null; // Service key not configured — skip cache
+
         const { data } = await supabase
             .from("ai_cache")
             .select("response, expires_at")
@@ -87,9 +82,90 @@ export async function cachedAI<T>(
     const key = makeCacheKey(feature, params, userId);
 
     const cached = await getCached<T>(key);
-    if (cached) return cached;
+    if (cached) {
+        // Log cache hit (fire-and-forget)
+        logAIUsage({ userId, feature, model: "cached", cacheHit: true, success: true }).catch(() => {});
+        return cached;
+    }
 
+    const start = Date.now();
     const result = await generator();
+    const latencyMs = Date.now() - start;
+
     await setCache(key, result, ttlSeconds);
+
+    // Log cache miss (fire-and-forget)
+    logAIUsage({ userId, feature, model: "gemini-2.5-flash-lite", cacheHit: false, latencyMs, success: true }).catch(() => {});
+
     return result;
+}
+
+/** Retrieve relevant knowledge base entries to ground AI prompts in real data. */
+export async function retrieveKnowledge(opts: {
+    state?: string;
+    stage?: string;
+    category?: string;
+    limit?: number;
+}): Promise<string[]> {
+    try {
+        const supabase = getSupabaseAdmin();
+        if (!supabase) return [];
+
+        let query = supabase
+            .from("knowledge_base")
+            .select("content")
+            .limit(opts.limit ?? 5);
+
+        // Filter by state (include entries with null state = general/national)
+        if (opts.state) {
+            query = query.or(`state.eq.${opts.state},state.is.null`);
+        }
+
+        // Filter by stage if provided
+        if (opts.stage) {
+            query = query.or(`stage.ilike.%${opts.stage}%,stage.is.null`);
+        }
+
+        // Filter by category if provided
+        if (opts.category) {
+            query = query.or(`category.eq.${opts.category},category.eq.general`);
+        }
+
+        const { data } = await query;
+        return (data || []).map((row: { content: string }) => row.content);
+    } catch {
+        return [];
+    }
+}
+
+/** Log an AI request to ai_usage_log for cost monitoring and quotas. */
+export async function logAIUsage(opts: {
+    userId?: string;
+    feature: string;
+    model: string;
+    cacheHit?: boolean;
+    inputTokens?: number;
+    outputTokens?: number;
+    latencyMs?: number;
+    success?: boolean;
+    errorCode?: string;
+}): Promise<void> {
+    try {
+        const supabase = getSupabaseAdmin();
+        if (!supabase) return;
+
+        await supabase.from("ai_usage_log").insert({
+            user_id: opts.userId || null,
+            feature: opts.feature,
+            model: opts.model,
+            cache_hit: opts.cacheHit ?? false,
+            input_tokens: opts.inputTokens ?? null,
+            output_tokens: opts.outputTokens ?? null,
+            latency_ms: opts.latencyMs ?? null,
+            success: opts.success ?? true,
+            error_code: opts.errorCode ?? null,
+        });
+    } catch {
+        // Non-critical — don't break AI features if telemetry fails
+    }
 }

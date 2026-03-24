@@ -67,10 +67,10 @@ export default function ProjectHealthScore({ projectId }: ProjectHealthScoreProp
             ).length;
             const totalInspections = inspections.length;
             const passedInspections = inspections.filter(
-                (i: { result?: string; status?: string }) => i.result === "pass" || i.result === "passed" || i.status === "passed"
+                (i: { result?: string }) => i.result === "passed"
             ).length;
             const hasOverduePayment = payments.some(
-                (p: { status: string }) => p.status === "overdue"
+                (p: { status: string }) => p.status === "blocked"
             );
             const commCount = comms.length;
 
