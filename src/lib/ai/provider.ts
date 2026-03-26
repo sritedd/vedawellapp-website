@@ -28,7 +28,7 @@ function getAnthropic() {
 
 function getGoogle() {
     if (!_google) {
-        const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GOOGLE_AI_API_KEY;
+        const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GOOGLE_AI_API_KEY || process.env.GEMINI_API_KEY;
         if (!apiKey) throw new Error("GOOGLE_GENERATIVE_AI_API_KEY not configured — get a free key at ai.google.dev");
         _google = createGoogleGenerativeAI({ apiKey });
     }
@@ -65,7 +65,7 @@ export function getEmbeddingModel() {
 
 /** Check if cheap AI (Gemini) is available — required for defect-assist, stage-advice, builder-check */
 export function isCheapAIAvailable(): boolean {
-    return !!process.env.GOOGLE_GENERATIVE_AI_API_KEY || !!process.env.GOOGLE_AI_API_KEY;
+    return !!process.env.GOOGLE_GENERATIVE_AI_API_KEY || !!process.env.GOOGLE_AI_API_KEY || !!process.env.GEMINI_API_KEY;
 }
 
 /** Check if any AI model is available (smart routes fall back to Gemini if no Anthropic) */

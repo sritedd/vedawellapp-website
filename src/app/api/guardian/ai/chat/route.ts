@@ -187,8 +187,21 @@ export async function POST(request: NextRequest) {
 
     // Stream the response
     const startTime = Date.now();
+    const modelName = process.env.ANTHROPIC_API_KEY ? "claude-sonnet-4-5" : "gemini-2.5-flash";
+
+    let model;
+    try {
+      model = getSmartModel();
+    } catch (modelError) {
+      console.error("[guardian-chat] Model init failed:", modelError);
+      return NextResponse.json(
+        { error: "AI service is not configured. Please try again later." },
+        { status: 503 }
+      );
+    }
+
     const result = streamText({
-      model: getSmartModel(),
+      model,
       system: systemPrompt + kbContext,
       messages: sanitizedMessages,
     });
@@ -197,12 +210,24 @@ export async function POST(request: NextRequest) {
     logAIUsage({
       userId: user.id,
       feature: "chat",
-      model: process.env.ANTHROPIC_API_KEY ? "claude-sonnet-4-5" : "gemini-2.5-flash",
+      model: modelName,
       latencyMs: Date.now() - startTime,
       success: true,
     }).catch(() => {});
 
-    return result.toUIMessageStreamResponse();
+    return result.toUIMessageStreamResponse({
+      onError: (error) => {
+        console.error("[guardian-chat] Stream error:", error);
+        logAIUsage({
+          userId: user.id,
+          feature: "chat",
+          model: modelName,
+          success: false,
+          errorCode: error instanceof Error ? error.message.slice(0, 100) : "stream-error",
+        }).catch(() => {});
+        return "AI service encountered an error. Please try again.";
+      },
+    });
   } catch (error) {
     console.error("[guardian-chat] Error:",
       error instanceof Error ? error.message : "Unknown error");

@@ -1,4 +1,4 @@
-const CACHE_NAME = "vedawell-v3";
+const CACHE_NAME = "vedawell-v4";
 const PRECACHE_URLS = [
     "/",
     "/tools",
@@ -27,28 +27,23 @@ self.addEventListener("activate", (event) => {
 
 // Fetch: network-first with cache fallback (public pages only)
 self.addEventListener("fetch", (event) => {
-    // Skip non-GET and auth requests
+    // Skip non-GET requests
     if (event.request.method !== "GET") return;
+
     const url = new URL(event.request.url);
 
-    // Skip auth callbacks and Supabase REST API
+    // Only handle same-origin HTTP(S) requests — skip extensions, third-party, etc.
+    if (url.origin !== self.location.origin) return;
+
+    // Skip auth callbacks
     if (url.pathname.startsWith("/auth/")) return;
 
-    // Supabase API calls contain private user data — NEVER cache them.
-    // Offline support uses IndexedDB (offlineQueue.ts) instead.
-    if (url.hostname.includes("supabase.co")) {
-        return; // Let the browser handle normally, no caching
-    }
-
-    // Skip API routes (mutations, webhooks)
+    // Skip API routes (mutations, webhooks, streaming)
     if (url.pathname.startsWith("/api/")) return;
 
-    // SECURITY: Never cache ANY guardian pages — they contain private project data.
-    // This covers dashboard, projects, profile, admin, support, refer, etc.
-    // Offline support for guardian uses IndexedDB, not service worker cache.
-    if (url.pathname.startsWith("/guardian/")) {
-        return;
-    }
+    // SECURITY: Never cache guardian pages — private project data.
+    // Offline support uses IndexedDB, not service worker cache.
+    if (url.pathname.startsWith("/guardian/")) return;
 
     // Default: network-first with cache fallback (public pages only)
     event.respondWith(
@@ -60,6 +55,10 @@ self.addEventListener("fetch", (event) => {
                 }
                 return response;
             })
-            .catch(() => caches.match(event.request))
+            .catch(() =>
+                caches.match(event.request).then((cached) =>
+                    cached || new Response("Offline", { status: 503, statusText: "Service Unavailable" })
+                )
+            )
     );
 });

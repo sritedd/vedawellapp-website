@@ -419,7 +419,7 @@ export default function SmartDashboard({ project, currentStage, stageNames, onNa
 
             const { data: recentComms } = await supabase
                 .from("communication_log")
-                .select("id, subject, type, created_at")
+                .select("id, summary, type, created_at")
                 .eq("project_id", projectId)
                 .order("created_at", { ascending: false })
                 .limit(3);
@@ -428,7 +428,7 @@ export default function SmartDashboard({ project, currentStage, stageNames, onNa
                     activities.push({
                         id: c.id,
                         type: "communication",
-                        title: c.subject || "Communication",
+                        title: c.summary || "Communication",
                         detail: c.type || "Note",
                         date: c.created_at,
                         icon: "💬",
