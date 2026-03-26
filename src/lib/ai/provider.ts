@@ -64,23 +64,24 @@ export function getCheapModel() {
 }
 
 /** Smart model for complex reasoning (chat, contract analysis).
- *  Priority: Claude Sonnet → Gemini 2.5 Flash → Groq Llama */
+ *  Priority: Gemini 2.5 Flash → Groq Llama
+ *  Note: Claude/Anthropic disabled — API key may no longer be valid */
 export function getSmartModel() {
-    if (process.env.ANTHROPIC_API_KEY) {
-        return getAnthropic()("claude-sonnet-4-5-20250514");
-    }
+    // if (process.env.ANTHROPIC_API_KEY) {
+    //     return getAnthropic()("claude-haiku-4-5-20251001");
+    // }
     if (getGoogleApiKey()) {
         return getGoogle()("gemini-2.5-flash");
     }
     if (process.env.GROQ_API_KEY) {
         return getGroq()("llama-3.3-70b-versatile");
     }
-    throw new Error("No AI provider configured. Set GOOGLE_AI_API_KEY, ANTHROPIC_API_KEY, or GROQ_API_KEY.");
+    throw new Error("No AI provider configured. Set GOOGLE_AI_API_KEY or GROQ_API_KEY.");
 }
 
 /** Returns the name of the active smart model for telemetry */
 export function getSmartModelName(): string {
-    if (process.env.ANTHROPIC_API_KEY) return "claude-sonnet-4-5";
+    // if (process.env.ANTHROPIC_API_KEY) return "claude-haiku-4-5";
     if (getGoogleApiKey()) return "gemini-2.5-flash";
     if (process.env.GROQ_API_KEY) return "llama-3.3-70b-versatile";
     return "unknown";
@@ -98,5 +99,6 @@ export function isCheapAIAvailable(): boolean {
 
 /** Check if any AI model is available */
 export function isAIAvailable(): boolean {
-    return isCheapAIAvailable() || !!process.env.ANTHROPIC_API_KEY;
+    // Anthropic disabled — only Gemini and Groq are active providers
+    return isCheapAIAvailable();
 }
