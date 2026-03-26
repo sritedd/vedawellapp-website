@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate and sanitize each message
+    // Validate, sanitize, and normalize messages (Gemini strictly requires alternating roles starting with 'user')
     const sanitizedMessages = messages.map(
       (msg: any) => {
         let rawText = "";
@@ -117,6 +117,26 @@ export async function POST(request: NextRequest) {
         return { role: role as "user" | "assistant", content: safeContent };
       }
     );
+
+    // Ensure messages strictly alternate for Google AI (user -> assistant -> user)
+    const normalizedMessages: { role: "user" | "assistant"; content: string }[] = [];
+    for (const msg of sanitizedMessages) {
+      if (normalizedMessages.length === 0) {
+        if (msg.role === "assistant") {
+          // Google requires the first message to be from the user
+          normalizedMessages.push({ role: "user", content: "[Conversation started by assistant]" });
+        }
+        normalizedMessages.push(msg);
+      } else {
+        const lastMsg = normalizedMessages[normalizedMessages.length - 1];
+        if (lastMsg.role === msg.role) {
+          // Merge consecutive messages of the same role
+          lastMsg.content += "\\n\\n" + msg.content;
+        } else {
+          normalizedMessages.push(msg);
+        }
+      }
+    }
 
     // Fetch project and verify ownership
     const { data: project, error: projectError } = await supabase
@@ -203,7 +223,7 @@ export async function POST(request: NextRequest) {
     const result = streamText({
       model,
       system: systemPrompt + kbContext,
-      messages: sanitizedMessages,
+      messages: normalizedMessages,
     });
 
     // Log telemetry (fire-and-forget, don't block stream)
