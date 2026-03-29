@@ -91,7 +91,7 @@ export default function LoginPage() {
             const raw = searchParams.get("returnTo") || "/guardian/dashboard";
             // Prevent open redirect — only allow relative paths starting with /guardian/
             const returnTo = raw.startsWith("/guardian/") ? raw : "/guardian/dashboard";
-            router.push(returnTo);
+            window.location.href = returnTo;
         }
 
         setLoading(false);
