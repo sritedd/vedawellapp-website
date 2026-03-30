@@ -393,6 +393,9 @@ export default function NewProjectPage() {
                         {error && (
                             <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-600 text-sm">
                                 {error}
+                                {error.includes("Upgrade") && (
+                                    <Link href="/guardian/pricing" className="ml-2 font-semibold underline">Upgrade →</Link>
+                                )}
                             </div>
                         )}
 

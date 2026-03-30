@@ -127,9 +127,9 @@ export default async function DashboardPage() {
                         <h1 className="text-3xl font-bold">HomeOwner Guardian</h1>
                         <div className="flex items-center gap-3">
                             {isFree ? (
-                                <span className="text-xs px-2 py-1 bg-muted text-muted-foreground rounded-full font-medium">
-                                    Free
-                                </span>
+                                <Link href="/guardian/pricing" className="text-xs px-3 py-1.5 bg-primary text-primary-foreground rounded-full font-medium hover:opacity-90 transition-opacity">
+                                    ✦ Upgrade to Pro
+                                </Link>
                             ) : trialActive ? (
                                 <span className="text-xs px-2 py-1 bg-blue-500/10 text-blue-600 rounded-full font-medium">
                                     Trial — ends {new Date(profile!.trial_ends_at!).toLocaleDateString("en-AU")}
@@ -154,6 +154,19 @@ export default async function DashboardPage() {
                             }`}>
                             {announcement.message}
                         </div>
+                    )}
+
+                    {/* Upgrade banner for free users */}
+                    {isFree && (
+                        <Link href="/guardian/pricing" className="block mb-6 p-4 rounded-lg bg-gradient-to-r from-primary/10 to-blue-500/10 border border-primary/20 hover:border-primary/40 transition-colors">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <div className="font-semibold text-foreground">Unlock Guardian Pro</div>
+                                    <div className="text-sm text-muted-foreground mt-0.5">Unlimited projects, AI chat, PDF exports, priority support — $14.99/mo</div>
+                                </div>
+                                <span className="text-sm font-medium text-primary whitespace-nowrap ml-4">View Plans →</span>
+                            </div>
+                        </Link>
                     )}
 
                     {/* Stats Cards — clickable when project exists */}

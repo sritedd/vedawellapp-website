@@ -455,6 +455,9 @@ export default function ProjectDefects({ projectId, stages, builderEmail, onData
             {error && (
                 <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
                     {error}
+                    {error.includes("Upgrade") && (
+                        <Link href="/guardian/pricing" className="ml-2 font-semibold underline">Upgrade →</Link>
+                    )}
                     <button onClick={() => setError("")} className="ml-2 text-red-500 hover:underline">dismiss</button>
                 </div>
             )}
