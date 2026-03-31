@@ -139,7 +139,7 @@ export default async function AdminPage() {
 
         // ── Second batch (depends on nothing, also parallel) ──────
         // Supabase query builders don't have .catch() — wrap in async IIFE
-        const [announcementResult, allUsersResult, supportResult, subSourcesResult, toolResult, pageViewsResult, idleUsersResult] = await Promise.all([
+        const [announcementResult, allUsersResult, supportResult, subSourcesResult, toolResult, pageViewsResult, idleUsersResult, socialHistoryResult] = await Promise.all([
             (async () => { try { return await supabase.from("announcements").select("id, message, type, created_at").eq("active", true).order("created_at", { ascending: false }).limit(1).single(); } catch { return { data: null }; } })(),
             (async () => { try { return await supabase.from("profiles").select("id, email, full_name, subscription_tier, is_admin, trial_ends_at, last_seen_at, created_at, phone, phone_verified, email_verified_override").order("created_at", { ascending: false }).limit(100); } catch { return { data: [] }; } })(),
             (async () => { try { return await getAdminConversations(); } catch { return { conversations: [] }; } })(),
@@ -147,6 +147,7 @@ export default async function AdminPage() {
             (async () => { try { return await supabase.from("tool_usage").select("tool_slug, use_count, last_used_at").order("use_count", { ascending: false }).limit(15); } catch { return { data: [] }; } })(),
             (async () => { try { return await supabase.from("page_views").select("id, user_id, path, created_at, profiles(email, full_name)").order("created_at", { ascending: false }).limit(30); } catch { return { data: [] }; } })(),
             (async () => { try { return await supabase.from("profiles").select("id, email, full_name, last_seen_at, subscription_tier").lt("last_seen_at", sevenDaysAgo).not("last_seen_at", "is", null).order("last_seen_at", { ascending: true }).limit(20); } catch { return { data: [] }; } })(),
+            (async () => { try { return await supabase.from("social_post_history").select("id, platform, post_id, post_label, posted_at").order("posted_at", { ascending: false }).limit(20); } catch { return { data: [] }; } })(),
         ]);
 
         // ── Process results ───────────────────────────────────────
@@ -208,6 +209,7 @@ export default async function AdminPage() {
         const topTools = toolResult?.data ?? [];
         const recentPageViews = pageViewsResult?.data ?? [];
         const idleUsers = idleUsersResult?.data ?? [];
+        const socialHistory = socialHistoryResult?.data ?? [];
 
         const fmt = (d: string | null) =>
             d ? new Date(d).toLocaleDateString("en-AU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "—";
@@ -534,6 +536,39 @@ export default async function AdminPage() {
                                                 </tr>
                                             );
                                         })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </section>
+
+                    {/* Social Media Post History */}
+                    <section>
+                        <h2 className="text-lg font-bold mb-4">Social Media Posts</h2>
+                        {socialHistory.length === 0 ? (
+                            <p className="text-muted text-sm">No social posts yet. Run <code>schema_v38_social_tracking.sql</code> and configure platform credentials.</p>
+                        ) : (
+                            <div className="bg-card border border-border rounded-xl overflow-hidden">
+                                <table className="w-full text-sm">
+                                    <thead className="bg-muted/10 text-muted text-left">
+                                        <tr>
+                                            <th className="px-4 py-3 font-medium">Platform</th>
+                                            <th className="px-4 py-3 font-medium">Post</th>
+                                            <th className="px-4 py-3 font-medium">Posted</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-border">
+                                        {socialHistory.map((s: any) => (
+                                            <tr key={s.id} className="hover:bg-muted/5">
+                                                <td className="px-4 py-3">
+                                                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.platform === "bluesky" ? "bg-blue-500/10 text-blue-600" : s.platform === "facebook" ? "bg-indigo-500/10 text-indigo-600" : s.platform === "linkedin" ? "bg-sky-500/10 text-sky-600" : "bg-muted text-muted-foreground"}`}>
+                                                        {s.platform}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-3 font-medium">{s.post_label || s.post_id}</td>
+                                                <td className="px-4 py-3 text-muted whitespace-nowrap">{fmt(s.posted_at)}</td>
+                                            </tr>
+                                        ))}
                                     </tbody>
                                 </table>
                             </div>

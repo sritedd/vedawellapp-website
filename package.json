@@ -11,7 +11,18 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:e2e": "playwright test",
-    "test:e2e:headed": "playwright test --headed"
+    "test:e2e:headed": "playwright test --headed",
+    "social:generate": "node scripts/generate-guardian-social.mjs",
+    "social:bluesky": "node scripts/post-to-bluesky.mjs",
+    "social:bluesky:dry": "node scripts/post-to-bluesky.mjs --dry-run",
+    "social:meta": "node scripts/post-to-meta.mjs",
+    "social:meta:dry": "node scripts/post-to-meta.mjs --dry-run",
+    "social:meta:list": "node scripts/post-to-meta.mjs --list",
+    "social:auto": "node scripts/auto-post-social.mjs",
+    "social:auto:dry": "node scripts/auto-post-social.mjs --dry-run",
+    "social:auto:status": "node scripts/auto-post-social.mjs --status",
+    "social:ai": "node scripts/generate-ai-posts.mjs",
+    "social:ai:preview": "node scripts/generate-ai-posts.mjs --preview"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.58",

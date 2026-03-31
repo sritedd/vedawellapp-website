@@ -43,3 +43,6 @@ next-env.d.ts
 
 # Local Netlify folder
 .netlify
+
+# Social media local post history
+scripts/.social-post-history.json
