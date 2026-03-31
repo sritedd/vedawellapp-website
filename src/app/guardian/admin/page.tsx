@@ -139,12 +139,14 @@ export default async function AdminPage() {
 
         // ── Second batch (depends on nothing, also parallel) ──────
         // Supabase query builders don't have .catch() — wrap in async IIFE
-        const [announcementResult, allUsersResult, supportResult, subSourcesResult, toolResult] = await Promise.all([
+        const [announcementResult, allUsersResult, supportResult, subSourcesResult, toolResult, pageViewsResult, idleUsersResult] = await Promise.all([
             (async () => { try { return await supabase.from("announcements").select("id, message, type, created_at").eq("active", true).order("created_at", { ascending: false }).limit(1).single(); } catch { return { data: null }; } })(),
             (async () => { try { return await supabase.from("profiles").select("id, email, full_name, subscription_tier, is_admin, trial_ends_at, last_seen_at, created_at, phone, phone_verified, email_verified_override").order("created_at", { ascending: false }).limit(100); } catch { return { data: [] }; } })(),
             (async () => { try { return await getAdminConversations(); } catch { return { conversations: [] }; } })(),
             safeSelect(supabase, "email_subscribers", "source", { filters: { status: "active" } }),
             (async () => { try { return await supabase.from("tool_usage").select("tool_slug, use_count, last_used_at").order("use_count", { ascending: false }).limit(15); } catch { return { data: [] }; } })(),
+            (async () => { try { return await supabase.from("page_views").select("id, user_id, path, created_at, profiles(email, full_name)").order("created_at", { ascending: false }).limit(30); } catch { return { data: [] }; } })(),
+            (async () => { try { return await supabase.from("profiles").select("id, email, full_name, last_seen_at, subscription_tier").lt("last_seen_at", sevenDaysAgo).not("last_seen_at", "is", null).order("last_seen_at", { ascending: true }).limit(20); } catch { return { data: [] }; } })(),
         ]);
 
         // ── Process results ───────────────────────────────────────
@@ -204,6 +206,8 @@ export default async function AdminPage() {
         const topSources = Object.entries(sourceCounts).sort((a, b) => b[1] - a[1]).slice(0, 8);
 
         const topTools = toolResult?.data ?? [];
+        const recentPageViews = pageViewsResult?.data ?? [];
+        const idleUsers = idleUsersResult?.data ?? [];
 
         const fmt = (d: string | null) =>
             d ? new Date(d).toLocaleDateString("en-AU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "—";
@@ -455,6 +459,85 @@ export default async function AdminPage() {
                                 </tbody>
                             </table>
                         </div>
+                    </section>
+
+                    {/* Recent Page Views */}
+                    <section>
+                        <h2 className="text-lg font-bold mb-4">Recent Page Views (Live)</h2>
+                        {recentPageViews.length === 0 ? (
+                            <p className="text-muted text-sm">No page views recorded yet. Run <code>schema_v37_page_views.sql</code> first.</p>
+                        ) : (
+                            <div className="bg-card border border-border rounded-xl overflow-hidden">
+                                <table className="w-full text-sm">
+                                    <thead className="bg-muted/10 text-muted text-left">
+                                        <tr>
+                                            <th className="px-4 py-3 font-medium">User</th>
+                                            <th className="px-4 py-3 font-medium">Page</th>
+                                            <th className="px-4 py-3 font-medium">When</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-border">
+                                        {recentPageViews.map((pv: any) => (
+                                            <tr key={pv.id} className="hover:bg-muted/5">
+                                                <td className="px-4 py-3">
+                                                    <div className="font-medium">{pv.profiles?.full_name || "—"}</div>
+                                                    <div className="text-xs text-muted">{pv.profiles?.email || "—"}</div>
+                                                </td>
+                                                <td className="px-4 py-3 font-mono text-xs">{pv.path}</td>
+                                                <td className="px-4 py-3 text-muted whitespace-nowrap">{fmt(pv.created_at)}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </section>
+
+                    {/* Idle Users (7+ days) */}
+                    <section>
+                        <h2 className="text-lg font-bold mb-4">Idle Users (7+ days inactive)</h2>
+                        {idleUsers.length === 0 ? (
+                            <p className="text-muted text-sm">All users active within the last 7 days.</p>
+                        ) : (
+                            <div className="bg-card border border-border rounded-xl overflow-hidden">
+                                <table className="w-full text-sm">
+                                    <thead className="bg-muted/10 text-muted text-left">
+                                        <tr>
+                                            <th className="px-4 py-3 font-medium">User</th>
+                                            <th className="px-4 py-3 font-medium">Tier</th>
+                                            <th className="px-4 py-3 font-medium">Last Seen</th>
+                                            <th className="px-4 py-3 font-medium">Days Idle</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-border">
+                                        {idleUsers.map((u: any) => {
+                                            const daysIdle = u.last_seen_at
+                                                ? Math.floor((Date.now() - new Date(u.last_seen_at).getTime()) / 86400000)
+                                                : 999;
+                                            return (
+                                                <tr key={u.id} className="hover:bg-muted/5">
+                                                    <td className="px-4 py-3">
+                                                        <div className="font-medium">{u.full_name || "—"}</div>
+                                                        <div className="text-xs text-muted">{u.email || "—"}</div>
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <span className={`text-xs px-2 py-0.5 rounded-full ${u.subscription_tier === "guardian_pro" ? "bg-green-500/10 text-green-600" : u.subscription_tier === "trial" ? "bg-blue-500/10 text-blue-600" : "bg-muted text-muted-foreground"}`}>
+                                                            {u.subscription_tier === "guardian_pro" ? "Pro" : u.subscription_tier === "trial" ? "Trial" : "Free"}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-muted whitespace-nowrap">{fmt(u.last_seen_at)}</td>
+                                                    <td className="px-4 py-3">
+                                                        <span className={`font-bold ${daysIdle >= 14 ? "text-red-600" : daysIdle >= 7 ? "text-orange-500" : ""}`}>
+                                                            {daysIdle}d
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
                     </section>
 
                     {/* Email Subscriber Sources */}

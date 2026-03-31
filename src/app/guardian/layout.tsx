@@ -2,6 +2,7 @@
 
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { ToastProvider } from "@/components/guardian/Toast";
+import PageViewTracker from "@/components/guardian/PageViewTracker";
 
 export default function GuardianLayout({
     children,
@@ -10,7 +11,10 @@ export default function GuardianLayout({
 }) {
     return (
         <ErrorBoundary>
-            <ToastProvider>{children}</ToastProvider>
+            <ToastProvider>
+                <PageViewTracker />
+                {children}
+            </ToastProvider>
         </ErrorBoundary>
     );
 }
