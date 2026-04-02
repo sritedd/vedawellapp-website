@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-import { readFileSync } from "fs";
-import { join } from "path";
 
 function getServiceSupabase() {
     return createServerClient(
@@ -20,14 +18,12 @@ interface SocialPost {
     platforms: Record<string, string>;
 }
 
-// Load posts at runtime from the scripts directory
+// Inline post data — Netlify serverless can't read filesystem at runtime
+// To update: copy from scripts/social-posts.json
+import POSTS_DATA from "@/data/social-posts.json";
+
 function loadPosts(): SocialPost[] {
-    try {
-        const filePath = join(process.cwd(), "scripts", "social-posts.json");
-        return JSON.parse(readFileSync(filePath, "utf8"));
-    } catch {
-        return [];
-    }
+    return POSTS_DATA as SocialPost[];
 }
 
 function buildLink(post: SocialPost, platform: string): string {
@@ -49,12 +45,27 @@ async function postToBluesky(text: string, link: string): Promise<{ id: string }
     const password = process.env.BLUESKY_APP_PASSWORD;
     if (!handle || !password) return null;
 
+    // For custom domain handles, resolve DID first
+    let identifier = handle;
+    if (!handle.endsWith(".bsky.social")) {
+        const resolveRes = await fetch(
+            `https://public.api.bsky.app/xrpc/com.atproto.identity.resolveHandle?handle=${encodeURIComponent(handle)}`
+        );
+        if (resolveRes.ok) {
+            const { did } = await resolveRes.json();
+            identifier = did; // Use DID for auth instead of custom domain
+        }
+    }
+
     const authRes = await fetch("https://bsky.social/xrpc/com.atproto.server.createSession", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ identifier: handle, password }),
+        body: JSON.stringify({ identifier, password }),
     });
-    if (!authRes.ok) throw new Error(`Bluesky auth: ${authRes.status}`);
+    if (!authRes.ok) {
+        const errBody = await authRes.text();
+        throw new Error(`Bluesky auth: ${authRes.status} — ${errBody}`);
+    }
     const session = await authRes.json();
 
     const facets: any[] = [];
@@ -114,21 +125,26 @@ export async function POST(req: NextRequest) {
     const platforms = ["bluesky", "facebook"] as const;
 
     for (const platform of platforms) {
-        // Get posting history from DB
-        const { data: history } = await supabase
-            .from("social_post_history")
-            .select("post_id")
-            .eq("platform", platform)
-            .order("posted_at", { ascending: false })
-            .limit(POSTS.length);
+        // Get posting history from DB (gracefully handle missing table)
+        let postedIds = new Set<string>();
+        try {
+            const { data: history } = await supabase
+                .from("social_post_history")
+                .select("post_id")
+                .eq("platform", platform)
+                .order("posted_at", { ascending: false })
+                .limit(POSTS.length);
 
-        const postedIds = new Set((history || []).map((h: { post_id: string }) => h.post_id));
+            postedIds = new Set((history || []).map((h: { post_id: string }) => h.post_id));
+        } catch {
+            // Table doesn't exist yet — post index 0
+        }
 
         // Find next unposted
         let postIdx = POSTS.findIndex(p => !postedIds.has(p.id));
         if (postIdx === -1) {
             // All posted — clear history and restart
-            await supabase.from("social_post_history").delete().eq("platform", platform);
+            try { await supabase.from("social_post_history").delete().eq("platform", platform); } catch {}
             postIdx = 0;
         }
 
@@ -152,15 +168,18 @@ export async function POST(req: NextRequest) {
                 continue;
             }
 
-            // Log to DB
-            await supabase.from("social_post_history").insert({
-                platform,
-                post_id: post.id,
-                post_label: post.label,
-                external_id: postResult.id,
-                utm_campaign: post.id,
-                posted_at: now.toISOString(),
-            });
+            // Log to DB (best-effort — table may not exist yet)
+            try {
+                await supabase.from("social_post_history").insert({
+                    platform,
+                    post_id: post.id,
+                    post_label: post.label,
+                    external_id: postResult.id,
+                    utm_campaign: post.id,
+                    posted_at: now.toISOString(),
+                });
+            } catch {}
+
 
             results[platform] = { postId: post.id, status: "posted" };
         } catch (err) {
