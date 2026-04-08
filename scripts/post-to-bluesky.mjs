@@ -2,27 +2,37 @@
 /**
  * Auto-post to Bluesky (AT Protocol) — 100% FREE, no API costs.
  * 
- * Usage:
- *   node scripts/post-to-bluesky.mjs --handle "yourhandle.bsky.social" --password "your-app-password"
+ * Reads posts from scripts/social-posts.json and posts bluesky content.
+ * Tracks already-posted content in scripts/.bluesky-posted.json to avoid duplicates.
  * 
- * Or set environment variables:
+ * Usage:
+ *   node scripts/post-to-bluesky.mjs                  # Auto-select next unposted
+ *   node scripts/post-to-bluesky.mjs --dry-run         # Preview without posting
+ *   node scripts/post-to-bluesky.mjs --post 5          # Post specific index
+ *   node scripts/post-to-bluesky.mjs --all             # Post all unposted (60s delay)
+ *   node scripts/post-to-bluesky.mjs --status           # Show posting status
+ *   node scripts/post-to-bluesky.mjs --reset            # Reset posted history
+ * 
+ * Environment variables:
  *   BLUESKY_HANDLE=yourhandle.bsky.social
  *   BLUESKY_APP_PASSWORD=your-app-password
- *   node scripts/post-to-bluesky.mjs
  * 
  * To get an app password:
  *   1. Go to bsky.app → Settings → Privacy and Security → App Passwords
  *   2. Create a new app password
  *   3. Use it here (NOT your main account password)
- * 
- * Features:
- *   - Auto-post text with links
- *   - Upload and attach images
- *   - Rich text with link cards
- *   - Dry-run mode (--dry-run)
  */
 
+import { readFileSync, writeFileSync, existsSync } from "fs";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 const SITE = "https://vedawellapp.com";
+const POSTS_FILE = join(__dirname, "social-posts.json");
+const HISTORY_FILE = join(__dirname, ".bluesky-posted.json");
 
 // Parse CLI args
 const args = process.argv.slice(2);
@@ -31,39 +41,59 @@ const getArg = (name) => {
     return idx !== -1 && args[idx + 1] ? args[idx + 1] : null;
 };
 const isDryRun = args.includes("--dry-run");
+const showStatus = args.includes("--status");
+const resetHistory = args.includes("--reset");
+const postAll = args.includes("--all");
 
 const HANDLE = getArg("handle") || process.env.BLUESKY_HANDLE;
 const APP_PASSWORD = getArg("password") || process.env.BLUESKY_APP_PASSWORD;
 
-if (!isDryRun && (!HANDLE || !APP_PASSWORD)) {
-    console.error("❌ Missing credentials.");
-    console.error("Usage: node scripts/post-to-bluesky.mjs --handle your.bsky.social --password your-app-password");
-    console.error("Or set BLUESKY_HANDLE and BLUESKY_APP_PASSWORD environment variables.");
-    console.error("Or use --dry-run to preview posts without credentials.");
-    process.exit(1);
+// ─── Load posts from social-posts.json ───────────────────────────────
+function loadPosts() {
+    if (!existsSync(POSTS_FILE)) {
+        console.error(`❌ Posts file not found: ${POSTS_FILE}`);
+        process.exit(1);
+    }
+    const raw = readFileSync(POSTS_FILE, "utf-8");
+    const allPosts = JSON.parse(raw);
+    
+    // Extract bluesky content and resolve {{link}} placeholders
+    return allPosts
+        .filter(p => p.platforms?.bluesky)
+        .map(p => {
+            const blogUrl = p.blog.startsWith("http") ? p.blog : `${SITE}${p.blog}`;
+            const text = p.platforms.bluesky.replace(/\{\{link\}\}/g, blogUrl);
+            return {
+                id: p.id,
+                label: p.label,
+                text,
+                link: blogUrl,
+            };
+        });
 }
 
-// Bluesky AT Protocol API
+// ─── Posted history tracking ─────────────────────────────────────────
+function loadHistory() {
+    if (!existsSync(HISTORY_FILE)) return { posted: [], lastRun: null };
+    try {
+        return JSON.parse(readFileSync(HISTORY_FILE, "utf-8"));
+    } catch {
+        return { posted: [], lastRun: null };
+    }
+}
+
+function saveHistory(history) {
+    writeFileSync(HISTORY_FILE, JSON.stringify(history, null, 2));
+}
+
+// ─── Bluesky AT Protocol API ─────────────────────────────────────────
 const ATP_SERVICE = "https://bsky.social";
 
 async function createSession() {
-    // Custom domain handles need DID resolution first
-    let identifier = HANDLE;
-    if (!HANDLE.endsWith(".bsky.social")) {
-        const resolveRes = await fetch(
-            `https://public.api.bsky.app/xrpc/com.atproto.identity.resolveHandle?handle=${encodeURIComponent(HANDLE)}`
-        );
-        if (resolveRes.ok) {
-            const { did } = await resolveRes.json();
-            identifier = did;
-            console.log(`   Resolved ${HANDLE} → ${did}`);
-        }
-    }
-
     const res = await fetch(`${ATP_SERVICE}/xrpc/com.atproto.server.createSession`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ identifier, password: APP_PASSWORD }),
+        body: JSON.stringify({ identifier: HANDLE, password: APP_PASSWORD }),
     });
     if (!res.ok) {
         const err = await res.text();
@@ -98,9 +128,10 @@ async function createPost(session, text, link = null) {
     };
 
     if (isDryRun) {
-        console.log("\n🔍 DRY RUN — Would post:");
-        console.log(`   Text: ${text.slice(0, 100)}...`);
+        console.log(`\n🔍 DRY RUN — Would post:`);
+        console.log(`   Text: ${text.slice(0, 120)}...`);
         console.log(`   Link: ${link || "none"}`);
+        console.log(`   Length: ${text.length} chars`);
         return { uri: "dry-run", cid: "dry-run" };
     }
 
@@ -124,84 +155,125 @@ async function createPost(session, text, link = null) {
     return res.json();
 }
 
-// Queue of posts to send — one at a time with delays
-const GUARDIAN_POSTS = [
-    {
-        text: `🚨 Your builder sent an invoice. Should you pay it?\n\nHomeOwner Guardian's "Should I Pay?" button checks certificates, inspections, and defects in one tap.\n\n✅ Green = Safe to pay\n🔴 Red = DO NOT PAY\n\nStop guessing. Start building with authority.\n\n${SITE}/guardian`,
-        link: `${SITE}/guardian`,
-    },
-    {
-        text: `🤖 What if you had a construction expert in your pocket 24/7?\n\nGuardian AI is trained on the NCC 2025 + Australian Standards. It turns "the wall looks funny" into professional, code-referenced defect reports.\n\nNo building degree required.\n\n${SITE}/guardian`,
-        link: `${SITE}/guardian`,
-    },
-    {
-        text: `😱 85% of new apartment buildings in NSW have at least one SERIOUS defect.\n\nThe top 5 defects cost homeowners $8K-$100K+ to fix AFTER handover.\n\nYour only chance to catch them? During construction.\n\nHomeOwner Guardian = your construction watchdog 🐕\n\n${SITE}/blog/10-construction-defects-australian-homes`,
-        link: `${SITE}/blog/10-construction-defects-australian-homes`,
-    },
-    {
-        text: `⚠️ 6 tactics dodgy builders use:\n\n1. "Trust me, it's industry standard"\n2. "Concrete is booked, skip inspection"\n3. "This product is equivalent"\n4. "Don't worry about paperwork"\n5. "You can't visit the site"\n6. "Pay now or trades stop"\n\nKnow your rights 👇\n${SITE}/blog/why-builders-hate-informed-homeowners`,
-        link: `${SITE}/blog/why-builders-hate-informed-homeowners`,
-    },
-    {
-        text: `⚖️ If your builder dispute went to tribunal tomorrow, could you produce evidence?\n\nHomeOwner Guardian generates a complete tribunal-ready evidence pack in ONE TAP.\n\nAll 10 sections. Customised to your state (NCAT, VCAT, QCAT).\n\n3 seconds, not 3 days.\n\n${SITE}/guardian`,
-        link: `${SITE}/guardian`,
-    },
-];
+// ─── Post a single item and update history ───────────────────────────
+async function postItem(session, post, history) {
+    console.log(`\n📨 Posting: "${post.label}" (${post.id})`);
+    
+    // Check character limit (300 for Bluesky)
+    if (post.text.length > 300) {
+        console.warn(`   ⚠️  Text is ${post.text.length} chars (limit 300). Truncating...`);
+        post.text = post.text.slice(0, 297) + "...";
+    }
+    
+    const result = await createPost(session, post.text, post.link);
+    
+    if (!isDryRun) {
+        history.posted.push({
+            id: post.id,
+            postedAt: new Date().toISOString(),
+            uri: result.uri,
+        });
+        history.lastRun = new Date().toISOString();
+        saveHistory(history);
+    }
+    
+    console.log(`   ✅ Posted! URI: ${result.uri}`);
+    return result;
+}
 
+// ─── Main ────────────────────────────────────────────────────────────
 async function main() {
-    console.log(`\n🦋 Bluesky Auto-Poster for VedaWell`);
-    console.log(`   Handle: ${HANDLE}`);
-    console.log(`   Mode: ${isDryRun ? "DRY RUN" : "LIVE"}`);
-    console.log(`   Posts queued: ${GUARDIAN_POSTS.length}\n`);
-
-    // Select which post to send (round-robin based on day of year)
+    const posts = loadPosts();
+    const history = loadHistory();
+    const postedIds = new Set(history.posted.map(p => p.id));
+    
+    console.log(`\n🦋 Bluesky Auto-Poster for HomeOwner Guardian`);
+    console.log(`   Posts available: ${posts.length}`);
+    console.log(`   Already posted: ${postedIds.size}`);
+    console.log(`   Remaining: ${posts.length - postedIds.size}`);
+    
+    // ── Status mode ──
+    if (showStatus) {
+        console.log(`\n📊 Posting Status:`);
+        console.log(`   Last run: ${history.lastRun || "never"}`);
+        console.log(`\n   ✅ Posted:`);
+        history.posted.forEach(p => {
+            console.log(`      ${p.id} — ${p.postedAt}`);
+        });
+        console.log(`\n   🔲 Not yet posted:`);
+        posts.filter(p => !postedIds.has(p.id)).forEach(p => {
+            console.log(`      ${p.id} — ${p.label}`);
+        });
+        return;
+    }
+    
+    // ── Reset mode ──
+    if (resetHistory) {
+        saveHistory({ posted: [], lastRun: null });
+        console.log(`\n🔄 History reset. All ${posts.length} posts are now available.`);
+        return;
+    }
+    
+    // ── Credential check ──
+    if (!isDryRun && (!HANDLE || !APP_PASSWORD)) {
+        console.error("\n❌ Missing credentials.");
+        console.error("Set these environment variables:");
+        console.error("   BLUESKY_HANDLE=yourhandle.bsky.social");
+        console.error("   BLUESKY_APP_PASSWORD=your-app-password");
+        console.error("\nOr use --dry-run to preview posts without credentials.");
+        process.exit(1);
+    }
+    
+    console.log(`   Handle: ${HANDLE || "(dry-run)"}`);
+    console.log(`   Mode: ${isDryRun ? "DRY RUN 🔍" : "LIVE 🔴"}`);
+    
+    // ── Get unposted items ──
+    const unposted = posts.filter(p => !postedIds.has(p.id));
+    
+    if (unposted.length === 0) {
+        console.log("\n🎉 All posts have been published! Use --reset to start over.");
+        return;
+    }
+    
+    // ── Authenticate ──
+    let session = null;
+    if (!isDryRun) {
+        console.log("\n🔐 Authenticating with Bluesky...");
+        session = await createSession();
+        console.log(`   ✅ Authenticated as ${session.handle}`);
+    }
+    
     const postIndex = getArg("post");
     
     if (postIndex !== null) {
-        // Post a specific one
+        // ── Post specific index ──
         const idx = parseInt(postIndex, 10);
-        if (idx < 0 || idx >= GUARDIAN_POSTS.length) {
-            console.error(`❌ Invalid post index. Use 0-${GUARDIAN_POSTS.length - 1}`);
+        if (idx < 0 || idx >= posts.length) {
+            console.error(`❌ Invalid post index. Use 0-${posts.length - 1}`);
             process.exit(1);
         }
+        await postItem(session, posts[idx], history);
         
-        console.log(`📨 Posting #${idx}...`);
-        if (!isDryRun) {
-            const session = await createSession();
-            const result = await createPost(session, GUARDIAN_POSTS[idx].text, GUARDIAN_POSTS[idx].link);
-            console.log(`✅ Posted! URI: ${result.uri}`);
-        } else {
-            await createPost(null, GUARDIAN_POSTS[idx].text, GUARDIAN_POSTS[idx].link);
-        }
-    } else if (args.includes("--all")) {
-        // Post all with 60-second delays
-        console.log("📨 Posting ALL with 60-second delays...");
-        const session = await createSession();
+    } else if (postAll) {
+        // ── Post all unposted with delays ──
+        console.log(`\n📨 Posting ${unposted.length} unposted items with 60-second delays...`);
         
-        for (let i = 0; i < GUARDIAN_POSTS.length; i++) {
-            console.log(`\n📨 Posting ${i + 1}/${GUARDIAN_POSTS.length}...`);
-            const result = await createPost(session, GUARDIAN_POSTS[i].text, GUARDIAN_POSTS[i].link);
-            console.log(`✅ Posted! URI: ${result.uri}`);
+        for (let i = 0; i < unposted.length; i++) {
+            await postItem(session, unposted[i], history);
             
-            if (i < GUARDIAN_POSTS.length - 1) {
-                console.log("⏳ Waiting 60 seconds...");
+            if (i < unposted.length - 1) {
+                console.log("   ⏳ Waiting 60 seconds...");
                 await new Promise(r => setTimeout(r, 60000));
             }
         }
-        console.log("\n🎉 All posts published!");
-    } else {
-        // Auto-select based on day of year (round-robin)
-        const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
-        const idx = dayOfYear % GUARDIAN_POSTS.length;
+        console.log(`\n🎉 Batch complete! ${unposted.length} posts published.`);
         
-        console.log(`📨 Auto-selected post #${idx} (day ${dayOfYear} of year)...`);
-        if (!isDryRun) {
-            const session = await createSession();
-            const result = await createPost(session, GUARDIAN_POSTS[idx].text, GUARDIAN_POSTS[idx].link);
-            console.log(`✅ Posted! URI: ${result.uri}`);
-        } else {
-            await createPost(null, GUARDIAN_POSTS[idx].text, GUARDIAN_POSTS[idx].link);
-        }
+    } else {
+        // ── Auto-select next unposted (default) ──
+        const next = unposted[0];
+        console.log(`\n📨 Auto-selecting next unposted: "${next.label}"`);
+        await postItem(session, next, history);
+        console.log(`\n📊 Progress: ${postedIds.size + 1}/${posts.length} posts published`);
     }
 }
 

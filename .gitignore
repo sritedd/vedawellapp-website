@@ -46,3 +46,4 @@ next-env.d.ts
 
 # Social media local post history
 scripts/.social-post-history.json
+scripts/.bluesky-posted.json
