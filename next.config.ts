@@ -30,7 +30,7 @@ const nextConfig: NextConfig = {
                             "default-src 'self'",
                             "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://pagead2.googlesyndication.com https://js.stripe.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google https://*.services-prod.nsvcs.net https://browser.sentry-cdn.com",
                             "style-src 'self' 'unsafe-inline'",
-                            "img-src 'self' data: blob: https://zukychfztnaghmsszxrw.supabase.co https://pagead2.googlesyndication.com https://*.google.com https://*.googleapis.com",
+                            "img-src 'self' data: blob: https://zukychfztnaghmsszxrw.supabase.co https://images.unsplash.com https://pagead2.googlesyndication.com https://*.google.com https://*.googleapis.com",
                             "font-src 'self'",
                             "connect-src 'self' https://zukychfztnaghmsszxrw.supabase.co https://*.supabase.co wss://*.supabase.co https://www.google-analytics.com https://www.googletagmanager.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://adservice.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google https://api.stripe.com https://api.resend.com https://*.services-prod.nsvcs.net https://*.ingest.us.sentry.io",
                             "frame-src https://js.stripe.com https://pagead2.googlesyndication.com https://td.doubleclick.net https://googleads.g.doubleclick.net",
