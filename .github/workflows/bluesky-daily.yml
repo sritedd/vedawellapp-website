@@ -1,4 +1,4 @@
-name: 🦋 Daily Bluesky Post
+name: Daily Bluesky Post
 
 on:
   schedule:
@@ -14,43 +14,39 @@ jobs:
   post-to-bluesky:
     runs-on: ubuntu-latest
     name: Post to Bluesky
-    
+
     steps:
-      - name: 📥 Checkout repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: 🟢 Setup Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: 📦 Install dependencies
-        working-directory: vedawell-next
+      - name: Install dependencies
         run: npm ci
 
-      - name: 📂 Restore posting history
+      - name: Restore posting history
         uses: actions/cache@v4
         with:
-          path: vedawell-next/scripts/.bluesky-posted.json
+          path: scripts/.bluesky-posted.json
           key: bluesky-posted-${{ github.run_number }}
           restore-keys: |
             bluesky-posted-
 
-      - name: 🦋 Post to Bluesky
-        working-directory: vedawell-next
+      - name: Post to Bluesky
         run: node scripts/post-to-bluesky.mjs
 
-      - name: 📊 Show status
-        working-directory: vedawell-next
+      - name: Show status
         run: node scripts/post-to-bluesky.mjs --status
 
-      - name: 💾 Commit posting history
-        working-directory: vedawell-next
+      - name: Commit posting history
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           if [ -f scripts/.bluesky-posted.json ]; then
             git add scripts/.bluesky-posted.json
-            git diff --staged --quiet || git commit -m "🦋 Auto-post to Bluesky [skip ci]"
+            git diff --staged --quiet || git commit -m "Auto-post to Bluesky [skip ci]"
             git push
           fi
