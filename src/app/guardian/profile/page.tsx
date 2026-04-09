@@ -39,6 +39,12 @@ export default function ProfilePage() {
     const [deleteError, setDeleteError] = useState<string | null>(null);
     const deleteInputRef = useRef<HTMLInputElement>(null);
 
+    // MFA gate for account deletion
+    const [deleteMfaEnabled, setDeleteMfaEnabled] = useState(false);
+    const [deleteMfaCode, setDeleteMfaCode] = useState("");
+    const [deleteMfaVerified, setDeleteMfaVerified] = useState(false);
+    const [deleteMfaVerifying, setDeleteMfaVerifying] = useState(false);
+
     useEffect(() => {
         loadProfile();
     }, []);
@@ -88,14 +94,21 @@ export default function ProfilePage() {
 
         const supabase = createClient();
 
+        // Check if phone number changed — if so, reset identity verification
+        const newPhone = phone.trim() || null;
+        const currentPhone = profile?.phone || null;
+        const phoneChanged = newPhone !== currentPhone;
+
         // Update profile (only safe fields — RLS blocks subscription_tier/is_admin changes)
+        const profileUpdate: Record<string, unknown> = {
+            full_name: fullName.trim(),
+            phone: newPhone,
+            role: role,
+        };
+
         const { error: profileError } = await supabase
             .from("profiles")
-            .update({
-                full_name: fullName.trim(),
-                phone: phone.trim() || null,
-                role: role,
-            })
+            .update(profileUpdate)
             .eq("id", profile?.id);
 
         if (profileError) {
@@ -104,11 +117,24 @@ export default function ProfilePage() {
             return;
         }
 
+        // If phone changed, reset identity verification via API (needs service-role to update identity_verified)
+        if (phoneChanged && newPhone) {
+            try {
+                await fetch("/api/guardian/phone-verify", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ action: "reset-for-phone-change" }),
+                });
+            } catch {
+                // Non-blocking — verification will be required on next project creation
+            }
+        }
+
         // Also update auth user metadata
         const { error: authError } = await supabase.auth.updateUser({
             data: {
                 full_name: fullName.trim(),
-                phone: phone.trim() || null,
+                phone: newPhone,
                 role: role,
             },
         });
@@ -116,8 +142,10 @@ export default function ProfilePage() {
         if (authError) {
             setMessage({ type: "error", text: authError.message });
         } else {
-            setMessage({ type: "success", text: "Profile updated successfully!" });
-            // Refresh profile
+            const suffix = phoneChanged && newPhone
+                ? " Phone number changed — you'll need to re-verify your identity."
+                : "";
+            setMessage({ type: "success", text: `Profile updated successfully!${suffix}` });
             await loadProfile();
         }
 
@@ -184,9 +212,45 @@ export default function ProfilePage() {
         }
     };
 
+    const checkDeleteMfa = async () => {
+        const supabase = createClient();
+        const { data } = await supabase.auth.mfa.listFactors();
+        const verified = data?.totp?.find((f: { status: string }) => f.status === "verified");
+        setDeleteMfaEnabled(!!verified);
+        setDeleteMfaVerified(false);
+        setDeleteMfaCode("");
+    };
+
+    const verifyDeleteMfaCode = async () => {
+        if (deleteMfaCode.length !== 6) return;
+        setDeleteMfaVerifying(true);
+        setDeleteError(null);
+        try {
+            const res = await fetch("/api/guardian/verify-mfa", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ code: deleteMfaCode }),
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                setDeleteError(data.error || "Invalid code");
+            } else {
+                setDeleteMfaVerified(true);
+            }
+        } catch {
+            setDeleteError("MFA verification failed");
+        } finally {
+            setDeleteMfaVerifying(false);
+        }
+    };
+
     const handleDeleteAccount = async () => {
         if (deleteConfirmEmail !== profile?.email) {
             setDeleteError("Email does not match your account email.");
+            return;
+        }
+        if (deleteMfaEnabled && !deleteMfaVerified) {
+            setDeleteError("Please verify your authenticator code first.");
             return;
         }
         setDeleting(true);
@@ -471,6 +535,7 @@ export default function ProfilePage() {
                                 setShowDeleteModal(true);
                                 setDeleteConfirmEmail("");
                                 setDeleteError(null);
+                                checkDeleteMfa();
                                 setTimeout(() => deleteInputRef.current?.focus(), 100);
                             }}
                             className="px-4 py-2 rounded-lg border border-danger/30 text-danger text-sm hover:bg-danger/10 transition-colors"
@@ -501,6 +566,36 @@ export default function ProfilePage() {
                                 className="w-full px-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-danger mb-4"
                                 placeholder="Type your email to confirm"
                             />
+                            {/* MFA verification step */}
+                            {deleteMfaEnabled && !deleteMfaVerified && (
+                                <div className="p-3 bg-yellow-500/5 border border-yellow-500/20 rounded-lg space-y-3 mb-4">
+                                    <p className="text-sm font-medium text-yellow-700">
+                                        Enter your authenticator code to proceed
+                                    </p>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={deleteMfaCode}
+                                            onChange={(e) => setDeleteMfaCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                                            placeholder="000000"
+                                            maxLength={6}
+                                            className="flex-1 px-3 py-2 text-sm rounded border border-border bg-background text-center tracking-widest font-mono"
+                                        />
+                                        <button
+                                            onClick={verifyDeleteMfaCode}
+                                            disabled={deleteMfaCode.length !== 6 || deleteMfaVerifying}
+                                            className="px-4 py-2 text-sm font-medium rounded bg-primary text-white hover:opacity-90 disabled:opacity-50"
+                                        >
+                                            {deleteMfaVerifying ? "..." : "Verify"}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {deleteMfaEnabled && deleteMfaVerified && (
+                                <p className="text-xs text-green-600 font-medium mb-4">2FA verified</p>
+                            )}
+
                             {deleteError && (
                                 <div className="p-3 rounded-lg text-sm bg-danger/10 text-danger border border-danger/20 mb-4">
                                     {deleteError}
@@ -516,7 +611,7 @@ export default function ProfilePage() {
                                 </button>
                                 <button
                                     onClick={handleDeleteAccount}
-                                    disabled={deleting || deleteConfirmEmail !== profile?.email}
+                                    disabled={deleting || deleteConfirmEmail !== profile?.email || (deleteMfaEnabled && !deleteMfaVerified)}
                                     className="px-4 py-2 rounded-lg bg-danger text-white text-sm hover:bg-danger/90 disabled:opacity-50 flex items-center gap-2 transition-colors"
                                 >
                                     {deleting && (

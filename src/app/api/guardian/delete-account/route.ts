@@ -29,6 +29,21 @@ export async function POST(req: NextRequest) {
             );
         }
 
+        // SERVER-SIDE MFA ENFORCEMENT: If user has MFA enabled, require aal2 session
+        const { data: factors } = await supabase.auth.mfa.listFactors();
+        const hasVerifiedTotp = factors?.totp?.some(
+            (f: { status: string }) => f.status === "verified"
+        );
+        if (hasVerifiedTotp) {
+            const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+            if (aal?.currentLevel !== "aal2") {
+                return NextResponse.json(
+                    { error: "MFA verification required for account deletion" },
+                    { status: 403 }
+                );
+            }
+        }
+
         const serviceSupabase = getServiceSupabase();
 
         // Fetch all user projects

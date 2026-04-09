@@ -40,6 +40,18 @@ export async function deleteProject(projectId: string) {
         return { error: "Not authenticated" };
     }
 
+    // SERVER-SIDE MFA ENFORCEMENT: If user has MFA enabled, require aal2 session
+    const { data: factors } = await supabase.auth.mfa.listFactors();
+    const hasVerifiedTotp = factors?.totp?.some(
+        (f: { status: string }) => f.status === "verified"
+    );
+    if (hasVerifiedTotp) {
+        const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+        if (aal?.currentLevel !== "aal2") {
+            return { error: "MFA verification required. Please verify your authenticator code first." };
+        }
+    }
+
     // Verify ownership before deletion
     const { data: project } = await supabase
         .from("projects")

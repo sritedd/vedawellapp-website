@@ -26,7 +26,8 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "No active subscription found" }, { status: 404 });
         }
 
-        const origin = req.headers.get("origin") || "https://vedawellapp.com";
+        // Use server-side base URL — never trust client Origin header (open-redirect risk)
+        const origin = process.env.NEXT_PUBLIC_SITE_URL || "https://vedawellapp.com";
         const stripe = getStripe();
 
         const session = await stripe.billingPortal.sessions.create({

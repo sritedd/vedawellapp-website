@@ -246,6 +246,8 @@ export default function ProjectDetailPage() {
         }
     };
 
+    const [memberRole, setMemberRole] = useState<"owner" | "collaborator" | "viewer" | null>(null);
+
     const fetchProject = useCallback(async () => {
         const supabase = createClient();
 
@@ -257,12 +259,37 @@ export default function ProjectDetailPage() {
         }
 
         // Fetch project with user ownership check (defense-in-depth alongside RLS)
-        const { data, error } = await supabase
+        let { data, error } = await supabase
             .from("projects")
             .select("*")
             .eq("id", params.id)
             .eq("user_id", user.id)
             .single();
+
+        if (data) {
+            setMemberRole("owner");
+        } else {
+            // Not the owner — check if user is an accepted project member
+            const { data: membership } = await supabase
+                .from("project_members")
+                .select("role, project_id")
+                .eq("project_id", params.id as string)
+                .eq("user_id", user.id)
+                .eq("status", "accepted")
+                .single();
+
+            if (membership) {
+                // Fetch project without ownership filter (RLS on project_members grants read)
+                const { data: sharedProject, error: sharedError } = await supabase
+                    .from("projects")
+                    .select("*")
+                    .eq("id", params.id)
+                    .single();
+                data = sharedProject;
+                error = sharedError;
+                setMemberRole(membership.role as "collaborator" | "viewer");
+            }
+        }
 
         if (data) {
             setProject(data);

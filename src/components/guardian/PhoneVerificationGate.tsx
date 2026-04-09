@@ -104,7 +104,7 @@ export default function PhoneVerificationGate({ onVerified }: Props) {
             if (!res.ok) {
                 setMessage({ type: "error", text: data.error || "Verification failed" });
             } else {
-                setMessage({ type: "success", text: "Phone verified!" });
+                setMessage({ type: "success", text: "Identity verified!" });
                 setStep("verified");
                 setTimeout(() => onVerified(), 1000);
             }
@@ -127,10 +127,11 @@ export default function PhoneVerificationGate({ onVerified }: Props) {
     return (
         <div className="bg-card border border-border rounded-xl p-8 shadow-sm max-w-md mx-auto">
             <div className="text-center mb-6">
-                <div className="text-4xl mb-3">📱</div>
-                <h2 className="text-xl font-bold">Verify Your Phone</h2>
+                <div className="text-4xl mb-3">🔐</div>
+                <h2 className="text-xl font-bold">Verify Your Identity</h2>
                 <p className="text-muted text-sm mt-2">
-                    We need to verify your phone number before you can create a project.
+                    We need to verify your identity before you can create a project.
+                    Enter your phone number and we&apos;ll send a verification code to your email.
                     This helps prevent duplicate accounts and keeps the platform fair for everyone.
                 </p>
             </div>
@@ -150,7 +151,7 @@ export default function PhoneVerificationGate({ onVerified }: Props) {
                             placeholder="0400 000 000"
                         />
                         <p className="text-xs text-muted mt-1">
-                            A verification code will be sent to your email for this phone number.
+                            We&apos;ll send a verification code to your account email. Your phone number is stored as contact info.
                         </p>
                     </div>
                     <button

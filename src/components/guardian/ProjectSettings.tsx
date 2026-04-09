@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { deleteProject } from "@/app/guardian/actions";
 import type { Project } from "@/types/guardian";
 
 interface ProjectSettingsProps {
@@ -11,7 +11,6 @@ interface ProjectSettingsProps {
 }
 
 export default function ProjectSettings({ project, onProjectUpdated }: ProjectSettingsProps) {
-    const router = useRouter();
     const [saving, setSaving] = useState(false);
     const [deleting, setDeleting] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -125,38 +124,15 @@ export default function ProjectSettings({ project, onProjectUpdated }: ProjectSe
         setDeleting(true);
         setMessage(null);
 
-        const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-            setMessage({ type: "error", text: "Not authenticated" });
+        // Use server action — enforces MFA server-side (checks aal2 if TOTP enabled)
+        // and handles full cascade delete (storage, all related tables, project)
+        const result = await deleteProject(project.id);
+
+        if (result?.error) {
+            setMessage({ type: "error", text: result.error });
             setDeleting(false);
-            return;
         }
-
-        // Delete related data
-        const { data: stages } = await supabase.from("stages").select("id").eq("project_id", project.id);
-        if (stages && stages.length > 0) {
-            const stageIds = stages.map((s: { id: string }) => s.id);
-            await supabase.from("checklist_items").delete().in("stage_id", stageIds);
-        }
-        await supabase.from("stages").delete().eq("project_id", project.id);
-        await supabase.from("variations").delete().eq("project_id", project.id);
-        await supabase.from("defects").delete().eq("project_id", project.id);
-        await supabase.from("certifications").delete().eq("project_id", project.id);
-
-        const { error } = await supabase
-            .from("projects")
-            .delete()
-            .eq("id", project.id)
-            .eq("user_id", user.id);
-
-        if (error) {
-            setMessage({ type: "error", text: error.message });
-            setDeleting(false);
-        } else {
-            router.push("/guardian/projects");
-            router.refresh();
-        }
+        // On success, the server action redirects to /guardian/projects
     };
 
     return (

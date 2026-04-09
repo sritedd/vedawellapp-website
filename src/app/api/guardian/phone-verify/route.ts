@@ -286,6 +286,28 @@ export async function POST(request: NextRequest) {
             });
         }
 
+        if (action === "reset-for-phone-change") {
+            // Called when user changes their phone number in profile settings.
+            // Resets identity_verified so they must re-verify on next project creation.
+            await serviceSupabase
+                .from("profiles")
+                .update({
+                    identity_verified: false,
+                    identity_verified_at: null,
+                    phone_verified: false,
+                    phone_verified_at: null,
+                    phone_otp_hash: null,
+                    phone_otp_expires_at: null,
+                    phone_otp_attempts: 0,
+                })
+                .eq("id", user.id);
+
+            return NextResponse.json({
+                success: true,
+                message: "Verification reset. You'll need to re-verify your identity.",
+            });
+        }
+
         return NextResponse.json({ error: "Invalid action" }, { status: 400 });
     } catch (error) {
         console.error("[phone-verify] Error:", error instanceof Error ? error.message : error);

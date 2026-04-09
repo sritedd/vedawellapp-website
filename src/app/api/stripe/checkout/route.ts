@@ -33,7 +33,8 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Invalid price ID" }, { status: 400 });
         }
 
-        const origin = req.headers.get("origin") || "https://vedawellapp.com";
+        // Use server-side base URL — never trust client Origin header (open-redirect risk)
+        const origin = process.env.NEXT_PUBLIC_SITE_URL || "https://vedawellapp.com";
         const stripe = getStripe();
 
         // Check if user already has a Stripe customer (prevents duplicate customers on re-subscribe)
