@@ -544,12 +544,13 @@ export default function PreHandoverChecklist({
       const rows = snags.map((s) => ({
         project_id: projectId,
         title: s.text,
-        description: s.description,
+        description: s.photoNote
+          ? `${s.description}\n\nPhoto note: ${s.photoNote}`
+          : s.description,
         location: s.location || s.category,
         stage: "practical_completion",
         severity: s.severity,
         status: "open" as const,
-        image_url: s.photoNote || null,
       }));
 
       const { data, error } = await supabase

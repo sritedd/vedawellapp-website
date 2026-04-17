@@ -228,12 +228,15 @@ export default function ProjectDefects({ projectId, stages, builderEmail, onData
             .update(updates)
             .eq("id", id);
 
-        if (!updateError) {
-            setDefects(defects.map(d =>
-                d.id === id ? { ...d, ...updates } as Defect : d
-            ));
-            onDataChanged?.();
+        if (updateError) {
+            setError(`Failed to update status: ${updateError.message}`);
+            return;
         }
+
+        setDefects(defects.map(d =>
+            d.id === id ? { ...d, ...updates } as Defect : d
+        ));
+        onDataChanged?.();
     };
 
     const sendReminder = async (id: string) => {

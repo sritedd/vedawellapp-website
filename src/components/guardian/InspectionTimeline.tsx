@@ -35,8 +35,10 @@ export default function InspectionTimeline({ projectId, currentStage }: Inspecti
     const [inspections, setInspections] = useState<Inspection[]>([]);
     const [stages, setStages] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState<string | null>(null);
     const [expandedStage, setExpandedStage] = useState<string | null>(null);
     const [showAddForm, setShowAddForm] = useState(false);
+    const [addError, setAddError] = useState<string | null>(null);
     const [newInspection, setNewInspection] = useState({
         stage: "",
         inspector_name: "",
@@ -49,21 +51,33 @@ export default function InspectionTimeline({ projectId, currentStage }: Inspecti
             const supabase = createClient();
 
             // Fetch project stages for grouping
-            const { data: stageData } = await supabase
+            const { data: stageData, error: stageErr } = await supabase
                 .from("stages")
                 .select("name")
                 .eq("project_id", projectId)
                 .order("order_index", { ascending: true });
 
+            if (stageErr) {
+                setLoadError(`Failed to load stages: ${stageErr.message}`);
+                setLoading(false);
+                return;
+            }
+
             const stageNames = stageData?.map((s: { name: string }) => s.name) || [];
             setStages(stageNames);
 
             // Fetch inspections from DB
-            const { data: inspData } = await supabase
+            const { data: inspData, error: inspErr } = await supabase
                 .from("inspections")
                 .select("id, stage, result, scheduled_date, inspector_name, certificate_received, notes")
                 .eq("project_id", projectId)
                 .order("created_at", { ascending: true });
+
+            if (inspErr) {
+                setLoadError(`Failed to load inspections: ${inspErr.message}`);
+                setLoading(false);
+                return;
+            }
 
             setInspections(inspData || []);
 
@@ -109,6 +123,7 @@ export default function InspectionTimeline({ projectId, currentStage }: Inspecti
 
     const addInspection = async () => {
         if (!newInspection.stage.trim()) return;
+        setAddError(null);
 
         const supabase = createClient();
         const { data, error } = await supabase
@@ -125,11 +140,14 @@ export default function InspectionTimeline({ projectId, currentStage }: Inspecti
             .select()
             .single();
 
-        if (!error && data) {
-            setInspections(prev => [...prev, data]);
-            setNewInspection({ stage: "", inspector_name: "", scheduled_date: "", notes: "" });
-            setShowAddForm(false);
+        if (error || !data) {
+            setAddError(error?.message || "Failed to add inspection. Please try again.");
+            return;
         }
+
+        setInspections(prev => [...prev, data]);
+        setNewInspection({ stage: "", inspector_name: "", scheduled_date: "", notes: "" });
+        setShowAddForm(false);
     };
 
     const passedCount = inspections.filter(i => getStatus(i.result) === "passed").length;
@@ -158,6 +176,14 @@ export default function InspectionTimeline({ projectId, currentStage }: Inspecti
         return (
             <div className="flex items-center justify-center p-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+        );
+    }
+
+    if (loadError) {
+        return (
+            <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg text-sm text-red-700">
+                {loadError}
             </div>
         );
     }
@@ -206,6 +232,11 @@ export default function InspectionTimeline({ projectId, currentStage }: Inspecti
                             className="w-full p-2 border border-border rounded-lg text-sm"
                         />
                     </div>
+                    {addError && (
+                        <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-sm text-red-700">
+                            {addError}
+                        </div>
+                    )}
                     <div className="flex gap-2">
                         <button onClick={addInspection} className="px-4 py-2 bg-primary text-white rounded-lg text-sm">Save</button>
                         <button onClick={() => setShowAddForm(false)} className="px-4 py-2 bg-muted rounded-lg text-sm">Cancel</button>

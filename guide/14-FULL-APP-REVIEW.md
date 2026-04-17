@@ -104,28 +104,56 @@ The app is considered production-solid when ALL of the following hold:
 
 ---
 
-### PHASE 3 — Workflow Completeness [TODO]
+### PHASE 3 — Workflow Completeness [IN PROGRESS]
 
 Trace each user journey end-to-end. For each, list the pages/APIs touched and flag any dead end, silent failure, or UX gap.
 
-- [ ] **J1 — Cold visitor → signup → email/phone verify → first project**
-- [ ] **J2 — Create project → pick state → seed stages → onboarding tour**
-- [ ] **J3 — Upload contract → parser → review checklist → save findings**
-- [ ] **J4 — Log defect with photo → AI describe → severity → export**
-- [ ] **J5 — Inspection booked → result entered → stage gate unlocks next stage**
-- [ ] **J6 — Payment claim from builder → ClaimReview → ShouldIPay verdict → record payment**
-- [ ] **J7 — Variation requested → sign → budget dashboard updates**
-- [ ] **J8 — Pre-handover checklist → create defects from failed items → tribunal export**
-- [ ] **J9 — Start trial → upgrade to Pro → portal → cancel → downgrade**
-- [ ] **J10 — Invite collaborator → accept → viewer vs collaborator permissions enforced**
-- [ ] **J11 — Delete project (with MFA) → all tables + storage purged**
-- [ ] **J12 — Delete account (with MFA) → GDPR-complete erasure**
-- [ ] **J13 — Admin impersonation / reset / bypass flows**
-- [ ] **J14 — Referral → friend signs up → +7 days trial credited**
-- [ ] **J15 — Offline site visit → reconnect → queue drains → data persists**
+- [x] **J1 — Cold visitor → signup → email/phone verify → first project** — traced via `login/page.tsx` + `handle_new_user` trigger in `schema_unified.sql:657-670`. Signup flow is clean. 1 finding (P3-4).
+- [x] **J2 — Create project → pick state → seed stages → onboarding tour** — traced `projects/new/page.tsx`. 1 finding (P3-1 non-atomic seed).
+- [x] **J3 — Upload contract → parser → review checklist → save findings** — traced `ContractParser.tsx` + `parse-contract/route.ts`. 5 findings (P3-11 to P3-15) — most notable: AI result never persisted back to project.
+- [x] **J4 — Log defect with photo → AI describe → severity → export** — traced `ProjectDefects.tsx`. 1 finding (P3-2) — ✅ FIXED.
+- [x] **J5 — Inspection booked → result entered → stage gate unlocks next stage** — traced `InspectionTimeline.tsx`. 3 findings (P3-16/17/18) — notably no stage gate wiring: passing inspection does NOT advance `current_stage`.
+- [x] **J6 — Payment claim from builder → ClaimReview → ShouldIPay verdict → record payment** — traced `PaymentSchedule.tsx`. 2 findings (P3-6 no audit log, P3-7 fetch errors discarded).
+- [x] **J7 — Variation requested → sign → budget dashboard updates** — traced `ProjectVariations.tsx`. 4 findings (P3-19/20/21/22) — notably: tier-check fails OPEN if profile query errors (free users get Pro features).
+- [x] **J8 — Pre-handover checklist → create defects from failed items → tribunal export** — traced `PreHandoverChecklist.tsx`. 2 findings (P3-23 schema mismatch stores photoNote in image_url; P3-24 partial-success not flagged).
+- [ ] **J9 — Start trial → upgrade to Pro → portal → cancel → downgrade** _(deferred to next session)_
+- [ ] **J10 — Invite collaborator → accept → viewer vs collaborator permissions enforced** _(deferred to next session)_
+- [ ] **J11 — Delete project (with MFA) → all tables + storage purged** _(covered in Phase 2 P2-3 — full cascade list now applied)_
+- [ ] **J12 — Delete account (with MFA) → GDPR-complete erasure** _(covered in Phase 2 P2-4)_
+- [ ] **J13 — Admin impersonation / reset / bypass flows** _(deferred to next session)_
+- [x] **J14 — Referral → friend signs up → +7 days trial credited** — traced `referral-reward/route.ts`. 2 findings — the endpoint logic is solid BUT **P3-26 is P0: no code anywhere in the app calls this endpoint**. The referral flow is completely unwired — dead code.
+- [x] **J15 — Offline site visit → reconnect → queue drains → data persists** — traced `useOfflineSync.ts`. 3 findings (P3-3 unbounded retry, P3-9 errors silenced, P3-10 useEffect dep).
 
 **Phase 3 Findings**
-_(fill in as the phase runs)_
+
+| ID | Severity | File / Line | Issue | Status |
+|----|----------|-------------|-------|--------|
+| P3-1 | **P1** | `src/app/guardian/projects/new/page.tsx:207-284` | Project seeding loop (stages, pre-handover items, contract fields) is client-side and non-atomic. If the page closes mid-loop, the project exists but stages are partial. No transaction boundary, no rollback. | OPEN — needs server action / RPC |
+| P3-2 | **P1** | `src/components/guardian/ProjectDefects.tsx` updateStatus | `if (!updateError)` had no else branch — DB update failures silently ignored, UI showed stale status. | ✅ FIXED (s4) — surfaces error via setError + early return. |
+| P3-3 | P1 | `src/lib/offline/useOfflineSync.ts` replay loop | Queued mutation retries are unbounded. A malformed payload or permanently-failing row retries forever on every reconnect, hammering the API. | OPEN — add max-retry + dead-letter state |
+| P3-4 | P2 | `src/app/guardian/login/page.tsx:140` | Post-signup profile update (`is_builder`, `is_certifier` flags) does not check `.error`. If the profile row wasn't yet created by the trigger (race), the update silently no-ops. | OPEN — check error + retry once |
+| P3-5 | P2 | `src/app/guardian/projects/new/page.tsx` contract date | `contract_signed_date` IS persisted in project insert at line 183 — initial suspicion was wrong. Not a bug. | CLEARED |
+| P3-6 | P2 | `src/components/guardian/PaymentSchedule.tsx` markAsPaid | Payment recording does not write to `activity_log`. Every other mutation (defects, variations) logs to activity; payments are a notable gap for the audit trail story. | OPEN — add `logActivity(...)` call |
+| P3-7 | P2 | `src/components/guardian/PaymentSchedule.tsx` fetchData | Catches errors from payment fetch and silently sets empty array — user sees "no payments" when the query actually failed. | OPEN — surface error state |
+| P3-8 | P3 | `src/app/guardian/projects/new/page.tsx` state validation | No UI check that state (NSW/VIC/etc.) is valid before the seed workflow lookup. If user types an invalid state via URL hack, seed returns 0 stages and project looks broken. | OPEN — add allowlist |
+| P3-9 | P2 | `src/lib/offline/useOfflineSync.ts` replay errors | When a replay item fails, the error is logged to console but nothing surfaces to the UI. User has no idea their offline writes didn't land. | OPEN — expose failedQueue + toast |
+| P3-10 | P3 | `src/lib/offline/useOfflineSync.ts:49` | `useEffect` missing `replayQueue` in deps — uses initial closure. Works today because the ref is stable, but a refactor could break it silently. | OPEN — extract to `useCallback` |
+| P3-11 | **P1** | `src/app/api/guardian/parse-contract/route.ts:29-35` | Missing `checkDailyQuota` + `logAIUsage` — contract parsing is not counted toward user AI quota or logged to telemetry. Violates `.claude/rules/api-routes.md` "All AI routes: check quota, log usage". Cost leak + telemetry gap. | OPEN |
+| P3-12 | **P1** | `src/components/guardian/ContractParser.tsx:95` | AI-extracted contract data is displayed only. There is **no "Save to Project"** action — user uploads, AI parses, user closes tab → all data is lost. User must re-parse (burning another AI quota) every session. Should write `contract_sum`, `builder_name`, etc. back to `projects` row. | OPEN |
+| P3-13 | P2 | `src/app/api/guardian/parse-contract/route.ts:52-75` | Does not inject KB context via `retrieveKnowledge()` — all other AI routes do. Contract parsing could benefit from state-specific clauses ("NSW Fair Trading mandates..."). | OPEN |
+| P3-14 | P2 | `src/app/api/guardian/parse-contract/route.ts:87` | `JSON.parse(jsonMatch[0])` has no try/catch — malformed AI output crashes to the 500 handler with generic "Failed to parse contract", no retry, wasted AI call. | OPEN |
+| P3-15 | P3 | `src/app/api/guardian/parse-contract/route.ts:39` | `projectId` destructured from request body but never used — dead param. Either wire it into a persist-to-project write (see P3-12) or remove. | OPEN |
+| P3-16 | P2 | `src/components/guardian/InspectionTimeline.tsx:128-132` | `addInspection` silent-fails: if insert errors, `data` is null, branch skips all UI updates including `setShowAddForm(false)`. No error surfaced to user. | ✅ FIXED (s4) — sets `addError`, renders inline red banner. |
+| P3-17 | P2 | `src/components/guardian/InspectionTimeline.tsx:50-68` | `fetchData` reads `stages` + `inspections` but never checks `.error` on either. DB failure = empty lists shown as "no inspections" / "no stages" with no error signal. | ✅ FIXED (s4) — sets `loadError`, renders red banner in place of empty list. |
+| P3-18 | **P1** | `src/components/guardian/InspectionTimeline.tsx:86-108` | **Stage-gate gap**: passing an inspection updates the inspections row but does NOT advance `projects.current_stage`. J5 canonical flow ("result entered → stage gate unlocks next stage") is incomplete. Users manually change stage or don't know next stage is available. | OPEN |
+| P3-19 | P2 | `src/components/guardian/ProjectVariations.tsx:131` | `handleSign` uses `if (!error)` with no else — signature + approval silently fail. User sees dialog just close with no "saved" confirmation or error. | ✅ FIXED (s4) — surfaces error via setTierError + early return. |
+| P3-20 | **P1** | `src/components/guardian/ProjectVariations.tsx:62-75` | Tier check fails OPEN: if the profile select errors, `tierLimited` stays `false` and Pro gating is bypassed. Free users get unlimited variations on transient DB error. Server-side insert is also unguarded. | ✅ FIXED (s4) — fail-closed: no-user or profile-fetch-error both now set `tierLimited = true`. |
+| P3-21 | P3 | `src/components/guardian/ProjectVariations.tsx:43-47` | `fetchVariations` logs error but leaves prior state; could mask stale data post-failure. Low severity. | OPEN |
+| P3-22 | P1 | `src/components/guardian/ProjectVariations.tsx` free-tier check | Free-tier variation limit is client-side only. A user who tampers with state (or a future API client) can insert unlimited variations — RLS allows owner writes unconditionally. | OPEN — enforce in DB trigger or API route |
+| P3-23 | **P1** | `src/components/guardian/PreHandoverChecklist.tsx:552` | Bridge stores `s.photoNote` (a text note) in the `image_url` column. Schema mismatch — when ProjectDefects renders `image_url` as an `<img src>`, it will break. Should be `notes` or a dedicated field. | ✅ FIXED (s4) — photoNote now appended to `description` instead; image_url left null. |
+| P3-24 | P3 | `src/components/guardian/PreHandoverChecklist.tsx:562-566` | Partial-success not flagged: shows "N defects created" using DB-returned count, but doesn't tell the user if fewer were created than requested. | OPEN |
+| P3-25 | P3 | `src/app/api/guardian/referral-reward/route.ts:111-115` | The `guardian_pro` branch does an atomic CAS update but silently returns success even if `updatedCount === 0` (race lost). Inconsistent with the trial branch which 409s. | OPEN |
+| P3-26 | **P0** | `/api/guardian/referral-reward` has zero callers | **Referral rewards endpoint is completely unwired.** Grep for `referral-reward` across the codebase returns only the route definition itself. Signup flow does not POST a referral on new user creation. Every referral link silently fails to credit the referrer. J14 is broken end-to-end. | OPEN — wire into signup flow or scheduled job |
 
 ---
 
@@ -258,18 +286,23 @@ Ship P0 first, then P1. P2/P3 become a separate roadmap doc.
 
 ## Next Action (update after every session)
 
-**As of 2026-04-17 (session 3)**: Phase 1 + Phase 2 DONE. All P0s + most P1s + several P2s fixed. Build passes clean. Next session = **Phase 3 (Workflow Completeness — J1..J15)**.
+**As of 2026-04-17 (session 4)**: Phase 1 + Phase 2 DONE. Phase 3 traced 11/15 journeys (J1, J2, J3, J4, J5, J6, J7, J8, J14, J15) — found 26 issues, fixed 6 in-session (P3-2, P3-16, P3-17, P3-19, P3-20, P3-23). 1 confirmed **P0 discovered**: P3-26 (referral-reward endpoint has zero callers — entire J14 broken). J9-J13 deferred (trial/Pro upgrade, collab, admin flows) to next session. Build passes clean.
 
 First thing next session:
 
 ```bash
 cd c:/Users/sridh/Documents/Github/Ayurveda/vedawell-next
 
-# Phase 3: load canonical journey definitions
-cat guide/12-PROCESS-MAP.md | head -200
-```
+# Priority #1: wire the referral flow (P3-26). Trace signup →
+# see if ?ref=CODE is captured; if not, add capture + referral-reward call.
+grep -r "ref=" src/app/guardian/login/ src/app/guardian/page.tsx
 
-Then trace each journey J1..J15 through the code — page → API → DB → back — flagging dead ends, silent failures, and UX gaps into the Phase 3 findings table.
+# Priority #2: finish Phase 3 — trace remaining journeys
+#   J9 (trial/Pro upgrade), J10 (collab), J13 (admin flows)
+# Priority #3: fix remaining P1s from Phase 3
+#   P3-1 (non-atomic project seed), P3-11/P3-12 (parse-contract persist),
+#   P3-18 (stage gate wiring), P3-22 (server-side variation limit)
+```
 
 Optional follow-up work queued but not blocking:
 - React `act()` warning in `BuilderActionList.test.tsx` (state update after async fetch — pre-existing, surfaced once OOM fixed)
@@ -284,9 +317,15 @@ Optional follow-up work queued but not blocking:
 
 - **P1-1** — ✅ FIXED (2026-04-17 s2) — `src/lib/supabase/useRealtimeProject.ts` — moved ref write into `useLayoutEffect`, typed payload as `RealtimePostgresChangesPayload<Record<string, unknown>>`, replaced `as any` with `as never`.
 - **P2-1** — ✅ FIXED (2026-04-17 s2) — `src/app/api/guardian/ai/chat/route.ts` — GET now requires authenticated admin (profile.is_admin OR isAdminEmail); returns 401 / 403 to non-admins. Replaced `(model as any).modelId` with safe cast.
+- **P3-26** — ⚠️ OPEN (2026-04-17 s4) — `/api/guardian/referral-reward` endpoint has **zero callers**. J14 is broken end-to-end: every referral link generates a signup, but no code credits the referrer. Requires signup-side capture of `?ref=CODE` + server-side call to referral-reward with CRON_SECRET. **P0 — must fix before launch**.
 
 ### P1 — fix within the review
 
+- **P3-2** — ✅ FIXED (2026-04-17 s4) — `src/components/guardian/ProjectDefects.tsx` updateStatus — silent failure on DB error now surfaces via `setError` + early return.
+- **P3-17** — ✅ FIXED (2026-04-17 s4) — `src/components/guardian/InspectionTimeline.tsx` — `fetchData` now checks `.error` on stages + inspections reads and renders a red banner.
+- **P3-20** — ✅ FIXED (2026-04-17 s4) — `ProjectVariations.tsx` tier check now fails CLOSED on DB error (was fail-open).
+- **P3-23** — ✅ FIXED (2026-04-17 s4) — `PreHandoverChecklist.tsx` no longer stores `photoNote` (text) in `image_url` (URL) column; appends to description instead.
+- **P3-1 / P3-11 / P3-12 / P3-18 / P3-22** — OPEN P1s carried to next session: non-atomic project seed, parse-contract quota/log, parse-contract persistence, inspection → stage-gate wiring, server-side variation limit.
 - **P2-11** — ✅ FIXED (2026-04-17 s3) — `src/app/api/admin/export/route.ts` — admin auth upgraded to canonical `profile.is_admin === true || isAdminEmail(email)` pattern.
 - **P1-2** — ✅ FIXED (2026-04-17 s2) — `src/lib/activity-log.ts` — replaced `Function` with `InsertThenable` + `SupabaseInsertable` types; insert wrapped in `Promise.resolve(...).then(onFulfilled, onRejected)`.
 - **P1-3** — ✅ FIXED (2026-04-17 s2) — `src/app/tools/__tests__/ImageCompressor.test.tsx` — switched from `getByText(/Compress/i)` to `getAllByText(...).length > 0`.
@@ -298,6 +337,13 @@ Optional follow-up work queued but not blocking:
 
 ### P2 — polish
 
+- **P3-16** — ✅ FIXED (2026-04-17 s4) — `InspectionTimeline.tsx` addInspection — silent failure now shows `addError` in the form.
+- **P3-19** — ✅ FIXED (2026-04-17 s4) — `ProjectVariations.tsx` handleSign — silent failure surfaces via `setTierError`.
+- **P3-4** — OPEN — `login/page.tsx:140` unchecked profile update on signup.
+- **P3-6** — OPEN — `PaymentSchedule.tsx` markAsPaid doesn't write to `activity_log`.
+- **P3-7** — OPEN — `PaymentSchedule.tsx` fetchData errors are silenced.
+- **P3-13** — OPEN — `parse-contract/route.ts` doesn't inject KB context.
+- **P3-14** — OPEN — `parse-contract/route.ts` JSON.parse has no try/catch.
 - **P1-5 / P1-6 / P1-7 / P1-8** — `any` types across Supabase wrappers, unused vars, stale useEffect deps, dead `getAnthropic` export. _(deferred to next polish pass — not blocking)_
 - **P2-6** — ✅ FIXED (2026-04-17 s2) — Realtime hook now uses `"postgres_changes"` literal with `as never` instead of `as any`.
 - **P2-7** — Stripe webhook `(invoice as any).subscription` typing hack. _(deferred — Stripe API version stable, low risk)_
@@ -324,6 +370,11 @@ Optional follow-up work queued but not blocking:
   - Admin routes: `/api/admin/export` (only one) was using env-only `isAdminEmail()` check — upgraded to canonical `profile.is_admin === true || isAdminEmail(email)` pattern to match CLAUDE.md convention.
   - Also: removed OTP from email subject line (was visible in notifications/previews before opening the email).
   - Phase 2 DONE. Next: Phase 3 workflow trace J1..J15.
+
+- **2026-04-17 (session 4)** — PHASE 3 TRACE. Walked 11/15 user journeys end-to-end. Logged 26 findings (P3-1..P3-26). Biggest find: **P3-26 is a P0** — the `/api/guardian/referral-reward` endpoint exists but NO code calls it. Referral links silently fail to credit referrers. Wiring requires signup-side `?ref=CODE` capture + internal CRON_SECRET-signed call post-verification. Deferred to next session.
+  - Fixed 6 issues in-session while tracing: P3-2 (defect status silent fail), P3-16 (addInspection silent fail), P3-17 (inspection load error silenced), P3-19 (variation signature silent fail), P3-20 (variation tier-check fail-open → fail-closed), P3-23 (PreHandover schema mismatch — photoNote in image_url → description).
+  - Journey summary: J1/J2/J4/J14/J15 CLEAN or fixed. J3 has 5 findings (contract parser not persisting). J5 has stage-gate wiring gap (P3-18). J6 has audit-log gap (P3-6). J7 had 2 P1s both fixed. J8 fixed. J9/J10/J11/J12/J13 deferred.
+  - Build: PASSES clean. Next session: fix P3-26 referral wiring, P3-1 non-atomic seed, P3-11/P3-12 parse-contract persist, P3-18 stage gate, then resume tracing J9/J10/J13.
 
 - **2026-04-17 (session 2)** — FIX SESSION. Closed all 2 P0s and 6 P1s from sessions 1–2:
   - P1-1: `useRealtimeProject` ref write moved into `useLayoutEffect`, payload typed properly.

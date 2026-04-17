@@ -57,17 +57,26 @@ export default function ProjectVariations({
         const checkTier = async () => {
             const supabase = createClient();
             const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return;
+            if (!user) {
+                setTierLimited(true); // fail-closed: no user = gate the feature
+                return;
+            }
 
-            const { data: profile } = await supabase
+            const { data: profile, error } = await supabase
                 .from("profiles")
                 .select("subscription_tier, is_admin, trial_ends_at")
                 .eq("id", user.id)
                 .single();
 
-            const tier = profile?.subscription_tier || "free";
-            const isAdmin = profile?.is_admin === true;
-            const trialActive = tier === "trial" && profile?.trial_ends_at && new Date(profile.trial_ends_at) > new Date();
+            if (error || !profile) {
+                // fail-closed: don't grant Pro on DB error
+                setTierLimited(true);
+                return;
+            }
+
+            const tier = profile.subscription_tier || "free";
+            const isAdmin = profile.is_admin === true;
+            const trialActive = tier === "trial" && profile.trial_ends_at && new Date(profile.trial_ends_at) > new Date();
             const hasPro = tier === "guardian_pro" || isAdmin || trialActive;
 
             if (!hasPro) {
@@ -128,10 +137,13 @@ export default function ProjectVariations({
             })
             .eq("id", variationId);
 
-        if (!error) {
-            setSelectedVariation(null);
-            fetchVariations();
+        if (error) {
+            setTierError(`Failed to save signature: ${error.message}`);
+            return;
         }
+
+        setSelectedVariation(null);
+        fetchVariations();
     };
 
     if (loading) return <div className="text-sm text-muted">Loading variations...</div>;
