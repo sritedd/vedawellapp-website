@@ -30,6 +30,7 @@
     "@ai-sdk/groq": "^3.0.31",
     "@ai-sdk/openai": "^3.0.41",
     "@ai-sdk/react": "^3.0.118",
+    "@netlify/blobs": "^10.7.4",
     "@sentry/nextjs": "^10.46.0",
     "@stripe/stripe-js": "^8.8.0",
     "@supabase/ssr": "^0.8.0",
