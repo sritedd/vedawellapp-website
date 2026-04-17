@@ -154,7 +154,7 @@ export async function POST(request: NextRequest) {
                             body: JSON.stringify({
                                 from: "VedaWell Guardian <noreply@vedawellapp.com>",
                                 to: [userEmail],
-                                subject: `Your verification code: ${otp}`,
+                                subject: "Your VedaWell verification code",
                                 html: `
                                     <div style="font-family: sans-serif; max-width: 400px; margin: 0 auto; padding: 20px;">
                                         <h2 style="color: #333;">Identity Verification</h2>

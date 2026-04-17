@@ -6,8 +6,19 @@ export async function GET(req: NextRequest) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
-    if (!user || !isAdminEmail(user.email)) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    if (!user) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { data: profile } = await supabase
+        .from("profiles")
+        .select("is_admin")
+        .eq("id", user.id)
+        .single();
+
+    const isAdmin = profile?.is_admin === true || isAdminEmail(user.email);
+    if (!isAdmin) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const type = req.nextUrl.searchParams.get("type");

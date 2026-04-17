@@ -61,7 +61,7 @@ The app is considered production-solid when ALL of the following hold:
 
 ---
 
-### PHASE 2 — Security & Auth [IN PROGRESS]
+### PHASE 2 — Security & Auth [DONE]
 
 - [x] Proxy redirects unauth users on `/guardian/*` via `returnTo` (src/proxy.ts:70-74). OK.
 - [x] Login page validates `returnTo.startsWith("/guardian/")` (login/page.tsx:93). OK.
@@ -72,10 +72,10 @@ The app is considered production-solid when ALL of the following hold:
 - [x] `checkProAccess` uses `"trial"` correctly (rate-limit.ts:91-92). OK.
 - [x] `ai_usage_log`, `ai_cache`, `stripe_webhook_events` — need to grep for client-side reads (still TODO).
 - [x] DB-level `ON DELETE CASCADE` is set on every project-scoped child in schema_unified.sql. Safety net exists.
-- [ ] No `console.log` leaking OTP / tokens (TODO — grep for `otp`, `token` in console logs).
-- [ ] CSP header not broken for Stripe/AdSense/GA (TODO — actually request the headers).
-- [ ] Service worker `/guardian/**` exclusion (TODO — read `public/sw.js`).
-- [ ] Admin routes authorization check (TODO — read admin API routes).
+- [x] No `console.log` leaking OTP / tokens — OTP log gated behind `NODE_ENV === "development"` at `phone-verify/route.ts:141`. Other error logs only emit `.message` / non-secret error data. CLEAN.
+- [x] CSP header not broken for Stripe/AdSense/GA — covers all third-parties in use; strengthened with `base-uri 'self'`, `frame-ancestors 'none'`, `form-action 'self' https://checkout.stripe.com`.
+- [x] Service worker `/guardian/**` exclusion — `public/sw.js:46` excludes `/guardian/`, `:42` excludes `/api/`, `:39` excludes `/auth/`, same-origin GET only. CLEAN.
+- [x] Admin routes authorization check — only one API route under `/api/admin/`: `export/route.ts`. Fixed to use canonical `profile.is_admin === true || isAdminEmail(email)` pattern (was env-only).
 
 **Phase 2 Findings**
 
@@ -92,13 +92,15 @@ The app is considered production-solid when ALL of the following hold:
 | P2-9 | P2 | `src/app/api/stripe/webhook/route.ts:187-188` | Uses literal `"active"` / `"trialing"` for Stripe status check. Safe but brittle. Consider a constant set. |
 | P2-10 | P3 | Routes survey | Several AI / guardian routes have `debug` logging (`[guardian-chat] ✓ step_name`) emitting payload slices to console. Fine in dev, noisy in prod. Gate by `NODE_ENV !== "production"` or use Sentry breadcrumbs instead. |
 
-**Phase 2 verdict**: Core auth, MFA, Stripe, cron auth, and cascade deletes are in good shape. The diagnostic endpoint leak (P2-1) is the one real P0 in this phase. Other items are cleanup.
+**Phase 2 verdict**: Core auth, MFA, Stripe, cron auth, cascade deletes, service worker exclusions, and CSP are all solid. One P1 discovered + fixed in-session (admin-export auth), one P2 discovered + fixed (OTP in email subject), two CSP hardening directives added. Phase DONE.
 
-**Phase 2 still open (continue here next session)**:
-1. Grep for `console.log` in auth / OTP / phone-verify / verify-mfa routes — ensure no secret leakage.
-2. Fetch the running server's headers to confirm CSP is applied and not broken.
-3. Read `public/sw.js` to confirm `/guardian/**` path exclusion.
-4. Walk `src/app/api/admin/*` routes for proper admin check.
+**New findings discovered in Phase 2 closeout**:
+
+| ID | Severity | File / Line | Issue | Status |
+|----|----------|-------------|-------|--------|
+| P2-11 | **P1** | `src/app/api/admin/export/route.ts:9` | Admin check used `isAdminEmail()` only (env-allowlist). Canonical pattern is `profile.is_admin === true || isAdminEmail(user.email)`. Exports all users + subscribers as CSV = high-sensitivity PII. | ✅ FIXED — now DB + env hybrid. |
+| P2-12 | P2 | `src/app/api/guardian/phone-verify/route.ts:157` | OTP embedded in email subject line — visible in notifications/previews/lock-screens before the user even opens the mail. Standard-weak OTP delivery. | ✅ FIXED — subject is now generic ("Your VedaWell verification code"). |
+| P2-13 | P2 | `netlify.toml:32` | CSP missing `frame-ancestors 'none'` (modern clickjacking defense; X-Frame-Options covers it but CSP is canonical), `base-uri 'self'` (prevents base-tag injection), `form-action` restriction. | ✅ FIXED — all three directives added. |
 
 ---
 
@@ -256,26 +258,23 @@ Ship P0 first, then P1. P2/P3 become a separate roadmap doc.
 
 ## Next Action (update after every session)
 
-**As of 2026-04-17 (session 2)**: All P0 + most P1 findings from sessions 1–2 are FIXED and the build passes clean (exit 0). Test OOM resolved. Tracker reflects status. Next session begins at **Phase 2 — still open** (4 items below) then **Phase 3 (Workflow Completeness — J1..J15)**.
+**As of 2026-04-17 (session 3)**: Phase 1 + Phase 2 DONE. All P0s + most P1s + several P2s fixed. Build passes clean. Next session = **Phase 3 (Workflow Completeness — J1..J15)**.
 
-Concrete commands to run first thing:
+First thing next session:
 
 ```bash
 cd c:/Users/sridh/Documents/Github/Ayurveda/vedawell-next
 
-# P2 resume item 1 — scan for secret leakage in logs
-rg -n "console\.(log|warn)" src/app/api/guardian/phone-verify src/app/api/guardian/verify-mfa | rg -i "otp|code|token|secret"
-
-# P2 resume item 3 — check service worker
-cat public/sw.js | head -60
-
-# P2 resume item 4 — admin auth check
-rg -n "isAdminEmail|is_admin|ADMIN_EMAILS" src/app/api/admin/
+# Phase 3: load canonical journey definitions
+cat guide/12-PROCESS-MAP.md | head -200
 ```
 
-After Phase 2 finishes, begin Phase 3 by reading `guide/12-PROCESS-MAP.md` to get the canonical journey definitions, then trace each J1..J15 through the code and note dead ends / silent failures.
+Then trace each journey J1..J15 through the code — page → API → DB → back — flagging dead ends, silent failures, and UX gaps into the Phase 3 findings table.
 
-Optional follow-up: address the React `act()` warning in `BuilderActionList.test.tsx` (state update after async fetch) — pre-existing, surfaced once OOM was fixed. Wrap the user-event interaction or use `await waitFor(() => …)`.
+Optional follow-up work queued but not blocking:
+- React `act()` warning in `BuilderActionList.test.tsx` (state update after async fetch — pre-existing, surfaced once OOM fixed)
+- `npm audit` (1 critical, 11 high) — targeted upgrades in Phase 8 (Tests & CI)
+- P1-5/P1-6/P1-7/P1-8 type-cleanup pass
 
 ---
 
@@ -288,6 +287,7 @@ Optional follow-up: address the React `act()` warning in `BuilderActionList.test
 
 ### P1 — fix within the review
 
+- **P2-11** — ✅ FIXED (2026-04-17 s3) — `src/app/api/admin/export/route.ts` — admin auth upgraded to canonical `profile.is_admin === true || isAdminEmail(email)` pattern.
 - **P1-2** — ✅ FIXED (2026-04-17 s2) — `src/lib/activity-log.ts` — replaced `Function` with `InsertThenable` + `SupabaseInsertable` types; insert wrapped in `Promise.resolve(...).then(onFulfilled, onRejected)`.
 - **P1-3** — ✅ FIXED (2026-04-17 s2) — `src/app/tools/__tests__/ImageCompressor.test.tsx` — switched from `getByText(/Compress/i)` to `getAllByText(...).length > 0`.
 - **P1-4** — ✅ FIXED (2026-04-17 s2) — Added global Supabase client mock in `jest.setup.js` (chainable stub) + bumped scripts to `--maxWorkers=2 --workerIdleMemoryLimit=512MB` in `package.json`. 3 OOM suites now run; 1 pre-existing act() warning in BuilderActionList remains as a separate test-quality follow-up.
@@ -303,6 +303,8 @@ Optional follow-up: address the React `act()` warning in `BuilderActionList.test
 - **P2-7** — Stripe webhook `(invoice as any).subscription` typing hack. _(deferred — Stripe API version stable, low risk)_
 - **P2-8** — ✅ FIXED (2026-04-17 s2) — `account_deletion_log.email` now SHA-256 hashed.
 - **P2-9** — Stripe status literal `"active" | "trialing"` — move to a constant. _(deferred — cosmetic)_
+- **P2-12** — ✅ FIXED (2026-04-17 s3) — OTP removed from email subject line (`phone-verify/route.ts:157`).
+- **P2-13** — ✅ FIXED (2026-04-17 s3) — CSP hardened with `base-uri`, `frame-ancestors 'none'`, `form-action`.
 
 ### P3 — deferred / nice-to-have
 
@@ -314,6 +316,14 @@ Optional follow-up: address the React `act()` warning in `BuilderActionList.test
 ## Session Log
 
 - **2026-04-17 (session 1)** — Created tracker, ran Phase 1 (build/lint/tests — build clean, 391 lint errors mostly cosmetic, 62 failing tests), started Phase 2 (cron/Stripe/delete/proxy audits) + found P0 diagnostic-endpoint leak. Next: close remaining Phase 2 items (log leakage grep, service worker, CSP headers, admin routes) then Phase 3.
+
+- **2026-04-17 (session 3)** — Phase 2 closeout. Completed the 4 remaining Phase 2 audits:
+  - Log-leakage scan: OTP log at `phone-verify/route.ts:141` correctly gated behind `NODE_ENV === "development"`; no secrets in error paths. CLEAN.
+  - Service worker: `/guardian/`, `/api/`, `/auth/` all excluded; same-origin GET only. CLEAN.
+  - CSP: hardened with `base-uri 'self'`, `frame-ancestors 'none'`, `form-action 'self' https://checkout.stripe.com` in `netlify.toml`.
+  - Admin routes: `/api/admin/export` (only one) was using env-only `isAdminEmail()` check — upgraded to canonical `profile.is_admin === true || isAdminEmail(email)` pattern to match CLAUDE.md convention.
+  - Also: removed OTP from email subject line (was visible in notifications/previews before opening the email).
+  - Phase 2 DONE. Next: Phase 3 workflow trace J1..J15.
 
 - **2026-04-17 (session 2)** — FIX SESSION. Closed all 2 P0s and 6 P1s from sessions 1–2:
   - P1-1: `useRealtimeProject` ref write moved into `useLayoutEffect`, payload typed properly.

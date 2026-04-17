@@ -8,6 +8,7 @@
 
 ## Session log — full-review
 - 2026-04-17 (session 1) — Set up tracker + memory. Phase 1 DONE (build clean, 391 lint errors cosmetic, 62 failing tests). Phase 2 IN PROGRESS (found **P0**: `GET /api/guardian/ai/chat` is a public env-var leak; cron cron-secret fail-closed inconsistency; deleteProject cascade gaps). 20 findings recorded, 2 P0 flagged.
+- 2026-04-17 (session 3) — Phase 2 closeout. 4 remaining audits done (log-leak grep, service worker, CSP, admin routes). 1 P1 + 2 P2 found + fixed in-session: admin-export auth upgraded to `profile.is_admin OR isAdminEmail` (was env-only), OTP removed from email subject, CSP hardened (`base-uri`, `frame-ancestors 'none'`, `form-action`). Phase 2 now DONE. Next session = Phase 3 (J1..J15 workflow trace).
 - 2026-04-17 (session 2) — FIX SESSION. Both P0s closed + 6 P1s + 2 P2s. Build still passes (exit 0); Jest OOM resolved (3 prior-OOM Guardian suites now run). Changes:
   - `useRealtimeProject.ts`: ref write moved into `useLayoutEffect`; payload typed; no more `as any`.
   - `/api/guardian/ai/chat` GET: now requires authenticated admin (profile.is_admin OR isAdminEmail).
