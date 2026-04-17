@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import ScrollReveal from "@/components/ScrollReveal";
 import BreadcrumbJsonLd from "@/components/seo/BreadcrumbJsonLd";
+import RefCapture from "@/components/guardian/RefCapture";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -92,6 +93,7 @@ export default async function GuardianPage() {
 
     return (
         <>
+            <RefCapture />
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

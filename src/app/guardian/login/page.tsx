@@ -38,6 +38,20 @@ export default function LoginPage() {
         });
     }, []);
 
+    // Capture referral code from ?ref=CODE and persist for signup.
+    // Persists across navigation so users can land on /guardian?ref=X, browse,
+    // then sign up — the referrer still gets credited.
+    useEffect(() => {
+        const ref = searchParams.get("ref");
+        if (ref && /^[A-Z0-9]{4,16}$/.test(ref)) {
+            try {
+                localStorage.setItem("vw_ref_code", ref);
+            } catch {
+                // Storage may be blocked in privacy mode — referral silently skipped.
+            }
+        }
+    }, [searchParams]);
+
     // Count down rate limit timer
     useEffect(() => {
         if (rateLimitSeconds <= 0) return;
@@ -136,11 +150,17 @@ export default function LoginPage() {
         }
 
         if (data.session) {
-            if (phone.trim()) {
-                await supabase.from("profiles").update({
+            if (phone.trim() && data.user?.id) {
+                const { error: phoneErr } = await supabase.from("profiles").update({
                     phone: phone.trim(),
-                }).eq("id", data.user?.id);
+                }).eq("id", data.user.id);
+                if (phoneErr) {
+                    console.error("[signup] phone update failed:", phoneErr.message);
+                }
             }
+
+            await applyReferralIfPresent();
+
             setMessage({ type: "success", text: "Account created! Redirecting..." });
             window.location.href = "/guardian/dashboard";
         } else {
@@ -156,11 +176,40 @@ export default function LoginPage() {
                 });
                 setView("sign-in");
             } else {
+                await applyReferralIfPresent();
                 window.location.href = "/guardian/dashboard";
             }
         }
 
         setLoading(false);
+    };
+
+    // Credit referrer (if user signed up via ?ref=CODE link). Fire-and-forget —
+    // signup must not be blocked by referral failures.
+    const applyReferralIfPresent = async () => {
+        let refCode: string | null = null;
+        try {
+            refCode = localStorage.getItem("vw_ref_code");
+        } catch {
+            return;
+        }
+        if (!refCode) return;
+
+        try {
+            await fetch("/api/guardian/apply-referral", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ refCode }),
+            });
+        } catch (err) {
+            console.error("[signup] apply-referral failed:", err);
+        } finally {
+            try {
+                localStorage.removeItem("vw_ref_code");
+            } catch {
+                // noop
+            }
+        }
     };
 
     const handleForgotPassword = async (e: React.FormEvent) => {

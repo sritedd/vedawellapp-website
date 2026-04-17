@@ -153,7 +153,7 @@ Trace each user journey end-to-end. For each, list the pages/APIs touched and fl
 | P3-23 | **P1** | `src/components/guardian/PreHandoverChecklist.tsx:552` | Bridge stores `s.photoNote` (a text note) in the `image_url` column. Schema mismatch — when ProjectDefects renders `image_url` as an `<img src>`, it will break. Should be `notes` or a dedicated field. | ✅ FIXED (s4) — photoNote now appended to `description` instead; image_url left null. |
 | P3-24 | P3 | `src/components/guardian/PreHandoverChecklist.tsx:562-566` | Partial-success not flagged: shows "N defects created" using DB-returned count, but doesn't tell the user if fewer were created than requested. | OPEN |
 | P3-25 | P3 | `src/app/api/guardian/referral-reward/route.ts:111-115` | The `guardian_pro` branch does an atomic CAS update but silently returns success even if `updatedCount === 0` (race lost). Inconsistent with the trial branch which 409s. | OPEN |
-| P3-26 | **P0** | `/api/guardian/referral-reward` has zero callers | **Referral rewards endpoint is completely unwired.** Grep for `referral-reward` across the codebase returns only the route definition itself. Signup flow does not POST a referral on new user creation. Every referral link silently fails to credit the referrer. J14 is broken end-to-end. | OPEN — wire into signup flow or scheduled job |
+| P3-26 | **P0** | `/api/guardian/referral-reward` has zero callers | **Referral rewards endpoint is completely unwired.** Grep for `referral-reward` across the codebase returns only the route definition itself. Signup flow does not POST a referral on new user creation. Every referral link silently fails to credit the referrer. J14 is broken end-to-end. | ✅ FIXED (s5) — new `/api/guardian/apply-referral` route + `RefCapture` component on `/guardian` landing + localStorage persistence across navigation + signup-side fire-and-forget call. |
 
 ---
 
@@ -286,22 +286,21 @@ Ship P0 first, then P1. P2/P3 become a separate roadmap doc.
 
 ## Next Action (update after every session)
 
-**As of 2026-04-17 (session 4)**: Phase 1 + Phase 2 DONE. Phase 3 traced 11/15 journeys (J1, J2, J3, J4, J5, J6, J7, J8, J14, J15) — found 26 issues, fixed 6 in-session (P3-2, P3-16, P3-17, P3-19, P3-20, P3-23). 1 confirmed **P0 discovered**: P3-26 (referral-reward endpoint has zero callers — entire J14 broken). J9-J13 deferred (trial/Pro upgrade, collab, admin flows) to next session. Build passes clean.
+**As of 2026-04-17 (session 5)**: Phase 1 + Phase 2 DONE. Phase 3 traced 11/15 journeys. The **P0 (P3-26 referral wiring) is now FIXED** — full end-to-end wiring via new `apply-referral` route + `RefCapture` component + login-side call. P3-4 (phone update error handling) also fixed. Build passes clean.
 
 First thing next session:
 
 ```bash
 cd c:/Users/sridh/Documents/Github/Ayurveda/vedawell-next
 
-# Priority #1: wire the referral flow (P3-26). Trace signup →
-# see if ?ref=CODE is captured; if not, add capture + referral-reward call.
-grep -r "ref=" src/app/guardian/login/ src/app/guardian/page.tsx
-
-# Priority #2: finish Phase 3 — trace remaining journeys
-#   J9 (trial/Pro upgrade), J10 (collab), J13 (admin flows)
-# Priority #3: fix remaining P1s from Phase 3
-#   P3-1 (non-atomic project seed), P3-11/P3-12 (parse-contract persist),
-#   P3-18 (stage gate wiring), P3-22 (server-side variation limit)
+# Priority #1: finish Phase 3 — trace remaining journeys
+#   J9 (trial/Pro upgrade flow), J10 (collaborator invite), J13 (admin flows)
+# Priority #2: fix remaining P1s from Phase 3
+#   P3-1 (non-atomic project seed — needs server action / RPC),
+#   P3-11 (parse-contract missing checkDailyQuota + logAIUsage),
+#   P3-12 (parse-contract result not persisted to project),
+#   P3-18 (inspection pass does NOT advance current_stage — stage gate wiring),
+#   P3-22 (server-side variation free-tier limit enforcement)
 ```
 
 Optional follow-up work queued but not blocking:
@@ -317,7 +316,11 @@ Optional follow-up work queued but not blocking:
 
 - **P1-1** — ✅ FIXED (2026-04-17 s2) — `src/lib/supabase/useRealtimeProject.ts` — moved ref write into `useLayoutEffect`, typed payload as `RealtimePostgresChangesPayload<Record<string, unknown>>`, replaced `as any` with `as never`.
 - **P2-1** — ✅ FIXED (2026-04-17 s2) — `src/app/api/guardian/ai/chat/route.ts` — GET now requires authenticated admin (profile.is_admin OR isAdminEmail); returns 401 / 403 to non-admins. Replaced `(model as any).modelId` with safe cast.
-- **P3-26** — ⚠️ OPEN (2026-04-17 s4) — `/api/guardian/referral-reward` endpoint has **zero callers**. J14 is broken end-to-end: every referral link generates a signup, but no code credits the referrer. Requires signup-side capture of `?ref=CODE` + server-side call to referral-reward with CRON_SECRET. **P0 — must fix before launch**.
+- **P3-26** — ✅ FIXED (2026-04-17 s5) — Wired end-to-end:
+  1. `src/components/guardian/RefCapture.tsx` — client component captures `?ref=CODE` on any guardian landing visit, stores to localStorage.
+  2. `src/app/guardian/page.tsx` — `<RefCapture />` mounted on the landing.
+  3. `src/app/guardian/login/page.tsx` — signup success now calls `applyReferralIfPresent()` which POSTs the stored code to the new route, then clears localStorage. Fire-and-forget — signup UX never blocked by referral failures.
+  4. `src/app/api/guardian/apply-referral/route.ts` — new authenticated route: looks up referrer by public `referral_code`, writes `profiles.referred_by`, then internally calls `/api/guardian/referral-reward` with `CRON_SECRET`. Idempotent (skips if `referred_by` already set) + self-referral guard.
 
 ### P1 — fix within the review
 
@@ -339,7 +342,7 @@ Optional follow-up work queued but not blocking:
 
 - **P3-16** — ✅ FIXED (2026-04-17 s4) — `InspectionTimeline.tsx` addInspection — silent failure now shows `addError` in the form.
 - **P3-19** — ✅ FIXED (2026-04-17 s4) — `ProjectVariations.tsx` handleSign — silent failure surfaces via `setTierError`.
-- **P3-4** — OPEN — `login/page.tsx:140` unchecked profile update on signup.
+- **P3-4** — ✅ FIXED (2026-04-17 s5) — `login/page.tsx` signup now checks `phoneErr` and guards on `data.user?.id`.
 - **P3-6** — OPEN — `PaymentSchedule.tsx` markAsPaid doesn't write to `activity_log`.
 - **P3-7** — OPEN — `PaymentSchedule.tsx` fetchData errors are silenced.
 - **P3-13** — OPEN — `parse-contract/route.ts` doesn't inject KB context.
@@ -370,6 +373,14 @@ Optional follow-up work queued but not blocking:
   - Admin routes: `/api/admin/export` (only one) was using env-only `isAdminEmail()` check — upgraded to canonical `profile.is_admin === true || isAdminEmail(email)` pattern to match CLAUDE.md convention.
   - Also: removed OTP from email subject line (was visible in notifications/previews before opening the email).
   - Phase 2 DONE. Next: Phase 3 workflow trace J1..J15.
+
+- **2026-04-17 (session 5)** — FIX SESSION. Closed the P0 (P3-26 referral wiring) + 1 P2 (P3-4):
+  - New `src/app/api/guardian/apply-referral/route.ts` — authenticated user route that looks up referrer by public `referral_code`, writes `profiles.referred_by` for idempotency, then calls `/api/guardian/referral-reward` internally with `CRON_SECRET`. Self-referral + already-referred + unknown-code guards. Fail-soft on missing env vars (returns `applied:false` without 500-ing signup).
+  - New `src/components/guardian/RefCapture.tsx` — client component on `/guardian` landing that captures `?ref=CODE` and persists to localStorage across navigation.
+  - `login/page.tsx` — useEffect to re-capture `?ref=` on login page (covers direct share of the login URL). Signup handler now calls `applyReferralIfPresent()` after both direct-session and password-sign-in paths, clears localStorage, fire-and-forget so referral failures never block signup. Phone-update now checks `.error` + guards on `data.user?.id`.
+  - `/guardian/page.tsx` mounts `<RefCapture />` at the top of the returned fragment.
+  - Build: PASSES clean (14.6s compile + 242 static pages).
+  - **J14 is now end-to-end functional**. Next session: J9/J10/J13 traces + P3-1/P3-11/P3-12/P3-18/P3-22 P1 fixes.
 
 - **2026-04-17 (session 4)** — PHASE 3 TRACE. Walked 11/15 user journeys end-to-end. Logged 26 findings (P3-1..P3-26). Biggest find: **P3-26 is a P0** — the `/api/guardian/referral-reward` endpoint exists but NO code calls it. Referral links silently fail to credit referrers. Wiring requires signup-side `?ref=CODE` capture + internal CRON_SECRET-signed call post-verification. Deferred to next session.
   - Fixed 6 issues in-session while tracing: P3-2 (defect status silent fail), P3-16 (addInspection silent fail), P3-17 (inspection load error silenced), P3-19 (variation signature silent fail), P3-20 (variation tier-check fail-open → fail-closed), P3-23 (PreHandover schema mismatch — photoNote in image_url → description).
