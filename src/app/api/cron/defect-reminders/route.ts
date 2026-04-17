@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     // SECURITY: fail-closed — reject if CRON_SECRET is not configured
     const authHeader = req.headers.get("authorization");
     const cronSecret = process.env.CRON_SECRET;
-    if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+    if (!cronSecret?.trim() || authHeader !== `Bearer ${cronSecret}`) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

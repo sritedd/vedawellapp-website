@@ -14,9 +14,10 @@ const MAX_REFERRAL_REWARDS = 10;
 
 export async function POST(req: NextRequest) {
     try {
-        // Verify CRON_SECRET — internal use only
+        // Verify CRON_SECRET — internal use only. Fail-closed if env not set.
         const authHeader = req.headers.get("authorization");
-        if (!authHeader || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+        const cronSecret = process.env.CRON_SECRET;
+        if (!cronSecret?.trim() || authHeader !== `Bearer ${cronSecret}`) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 

@@ -6,9 +6,29 @@ import { getSmartModel, getSmartModelName, isAIAvailable, isCheapAIAvailable } f
 import { buildChatSystemPrompt } from "@/lib/ai/prompts";
 import { checkRateLimit, checkProAccess, checkDailyQuota } from "@/lib/ai/rate-limit";
 import { logAIUsage, retrieveKnowledge } from "@/lib/ai/cache";
+import { createClient } from "@/lib/supabase/server";
+import { isAdminEmail } from "@/lib/admin";
 
-/** GET /api/guardian/ai/chat — diagnostic endpoint (no auth required) */
+/**
+ * GET /api/guardian/ai/chat — admin-only diagnostic endpoint.
+ * Reveals which AI provider keys are configured. Admin-gated to prevent
+ * deployment-topology disclosure to unauthenticated callers.
+ */
 export async function GET() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("is_admin")
+    .eq("id", user.id)
+    .single();
+  if (profile?.is_admin !== true && !isAdminEmail(user.email)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const diag: Record<string, unknown> = {
     timestamp: new Date().toISOString(),
     ai_available: isAIAvailable(),
@@ -30,7 +50,7 @@ export async function GET() {
     diag.selected_model = getSmartModelName();
     const model = getSmartModel();
     diag.model_init = "ok";
-    diag.model_id = (model as any).modelId || "unknown";
+    diag.model_id = (model as { modelId?: string }).modelId || "unknown";
   } catch (e) {
     diag.model_init = "failed";
     diag.model_error = e instanceof Error ? e.message : String(e);

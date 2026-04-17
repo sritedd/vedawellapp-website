@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import crypto from "crypto";
 import { createClient } from "@/lib/supabase/server";
 import { createServerClient } from "@supabase/ssr";
 
@@ -96,22 +97,31 @@ export async function POST(req: NextRequest) {
                     .in("stage_id", stageIds.map((s: { id: string }) => s.id));
             }
 
-            // Delete from all project-scoped tables
+            // Delete from all project-scoped tables. ON DELETE CASCADE on
+            // projects(id) is the safety net; this manual sweep ensures the
+            // rows are gone even if the projects DELETE is delayed or the
+            // RLS context loses the user mid-operation.
             const tables = [
-                "contract_review_items",
+                "activity_log",
+                "ai_conversations",
+                "allowances",
                 "builder_reviews",
+                "certifications",
+                "communication_log",
+                "contract_review_items",
+                "defects",
+                "documents",
+                "escalations",
+                "inspections",
+                "materials",
+                "payments",
                 "pre_handover_items",
                 "progress_photos",
-                "communication_log",
-                "documents",
-                "inspections",
-                "weekly_checkins",
-                "payments",
-                "variations",
-                "defects",
-                "certifications",
+                "project_members",
                 "site_visits",
                 "stages",
+                "variations",
+                "weekly_checkins",
             ];
 
             for (const table of tables) {
@@ -141,13 +151,31 @@ export async function POST(req: NextRequest) {
             console.warn("Delete support_messages:", e);
         }
 
-        // 3. Log the deletion event (before deleting profile)
+        // Unsubscribe newsletter row (keyed on email, not user_id, so it
+        // doesn't auto-cascade when the auth user is deleted)
+        if (user.email) {
+            try {
+                await serviceSupabase
+                    .from("email_subscribers")
+                    .update({ status: "unsubscribed" })
+                    .eq("email", user.email.toLowerCase());
+            } catch (e) {
+                console.warn("Unsubscribe email_subscribers:", e);
+            }
+        }
+
+        // 3. Log the deletion event (before deleting profile).
+        // Email is hashed (SHA-256) so the audit trail proves a deletion
+        // happened without retaining identifiable PII.
         try {
+            const emailHash = user.email
+                ? crypto.createHash("sha256").update(user.email.toLowerCase()).digest("hex")
+                : "unknown";
             await serviceSupabase
                 .from("account_deletion_log")
                 .insert({
                     user_id: user.id,
-                    email: user.email,
+                    email: emailHash,
                     project_count: projectCount,
                 });
         } catch (e) {

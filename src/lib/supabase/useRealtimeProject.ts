@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
+import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import { createClient } from "./client";
 
 /**
@@ -35,9 +36,14 @@ export function useRealtimeProject(
   onChanged: () => void
 ) {
   const onChangedRef = useRef(onChanged);
-  onChangedRef.current = onChanged;
 
-  // Debounce: if multiple changes come in rapid succession, only refresh once
+  // Keep the latest callback in a ref WITHOUT writing during render.
+  // useLayoutEffect runs synchronously after DOM mutations but before paint,
+  // so the ref is updated before any subscription callback can fire.
+  useLayoutEffect(() => {
+    onChangedRef.current = onChanged;
+  });
+
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -47,31 +53,33 @@ export function useRealtimeProject(
 
     const channel = supabase.channel(`project-${projectId}`);
 
+    const handleChange = (_payload: RealtimePostgresChangesPayload<Record<string, unknown>>) => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => {
+        try {
+          Promise.resolve(onChangedRef.current()).catch((err) =>
+            console.error("[Realtime] Sync callback failed:", err)
+          );
+        } catch (err) {
+          console.error("[Realtime] Sync callback failed:", err);
+        }
+      }, 500);
+    };
+
     for (const table of WATCHED_TABLES) {
-      // For the "projects" table, filter on id; for others, filter on project_id
       const filterCol = table === "projects" ? "id" : "project_id";
 
+      // Supabase JS overload signature for postgres_changes is loose;
+      // using a typed callback above keeps the call site safe.
       channel.on(
-        "postgres_changes" as any,
+        "postgres_changes" as never,
         {
           event: "*",
           schema: "public",
           table,
           filter: `${filterCol}=eq.${projectId}`,
         },
-        () => {
-          // Debounce rapid changes (e.g. bulk insert of checklist items)
-          if (timerRef.current) clearTimeout(timerRef.current);
-          timerRef.current = setTimeout(() => {
-            try {
-              Promise.resolve(onChangedRef.current()).catch((err) =>
-                console.error("[Realtime] Sync callback failed:", err)
-              );
-            } catch (err) {
-              console.error("[Realtime] Sync callback failed:", err);
-            }
-          }, 500);
-        }
+        handleChange
       );
     }
 

@@ -91,23 +91,33 @@ export async function deleteProject(projectId: string) {
         }
     }
 
-    // Delete related data (best-effort — continue even if some fail)
+    // Delete related data (best-effort — continue even if some fail).
+    // The DB has ON DELETE CASCADE on every project_id FK, so the final
+    // DELETE FROM projects below will sweep any leftover rows. This loop
+    // is defence-in-depth in case the project DELETE itself races or is
+    // partially rolled back by an RLS policy.
     const tables = [
         { name: "ai_conversations", method: "direct" as const },
-        { name: "contract_review_items", method: "direct" as const },
+        { name: "activity_log", method: "direct" as const },
+        { name: "allowances", method: "direct" as const },
         { name: "builder_reviews", method: "direct" as const },
-        { name: "pre_handover_items", method: "direct" as const },
+        { name: "certifications", method: "direct" as const },
         { name: "checklist_items", method: "nested" as const },
-        { name: "progress_photos", method: "direct" as const },
         { name: "communication_log", method: "direct" as const },
+        { name: "contract_review_items", method: "direct" as const },
+        { name: "defects", method: "direct" as const },
         { name: "documents", method: "direct" as const },
+        { name: "escalations", method: "direct" as const },
         { name: "inspections", method: "direct" as const },
-        { name: "weekly_checkins", method: "direct" as const },
+        { name: "materials", method: "direct" as const },
         { name: "payments", method: "direct" as const },
+        { name: "pre_handover_items", method: "direct" as const },
+        { name: "progress_photos", method: "direct" as const },
+        { name: "project_members", method: "direct" as const },
+        { name: "site_visits", method: "direct" as const },
         { name: "stages", method: "direct" as const },
         { name: "variations", method: "direct" as const },
-        { name: "defects", method: "direct" as const },
-        { name: "certifications", method: "direct" as const },
+        { name: "weekly_checkins", method: "direct" as const },
     ];
 
     for (const table of tables) {
@@ -146,8 +156,8 @@ export async function deleteProject(projectId: string) {
     redirect("/guardian/projects");
 }
 
-/** Update project details. Only the project owner can update. */
-export async function updateProject(projectId: string, updates: {
+/** Allowed fields for updateProject. Anything outside this is ignored. */
+type ProjectUpdatePayload = {
     name?: string;
     address?: string;
     builder_name?: string;
@@ -158,7 +168,16 @@ export async function updateProject(projectId: string, updates: {
     contract_value?: number;
     start_date?: string;
     status?: string;
-}) {
+};
+
+const PROJECT_UPDATE_WHITELIST: (keyof ProjectUpdatePayload)[] = [
+    "name", "address", "builder_name", "builder_license_number",
+    "builder_abn", "hbcf_policy_number", "insurance_expiry_date",
+    "contract_value", "start_date", "status",
+];
+
+/** Update project details. Only the project owner can update. */
+export async function updateProject(projectId: string, updates: ProjectUpdatePayload) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -166,17 +185,12 @@ export async function updateProject(projectId: string, updates: {
         return { error: "Not authenticated" };
     }
 
-    // Only allow whitelisted fields to be updated
-    const allowedFields: Record<string, any> = {};
-    const whitelist = [
-        "name", "address", "builder_name", "builder_license_number",
-        "builder_abn", "hbcf_policy_number", "insurance_expiry_date",
-        "contract_value", "start_date", "status"
-    ];
-
-    for (const key of whitelist) {
-        if (key in updates && updates[key as keyof typeof updates] !== undefined) {
-            allowedFields[key] = updates[key as keyof typeof updates];
+    const allowedFields: ProjectUpdatePayload = {};
+    for (const key of PROJECT_UPDATE_WHITELIST) {
+        const value = updates[key];
+        if (value !== undefined) {
+            // Type-safe assignment — TS narrows on per-key basis
+            (allowedFields as Record<string, unknown>)[key] = value;
         }
     }
 

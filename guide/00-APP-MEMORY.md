@@ -2,7 +2,22 @@
 
 > **PURPOSE**: This is the persistent memory for the Guardian app. Every new conversation should read this file FIRST to understand current state, what's been done, and what to work on next.
 >
-> **LAST UPDATED**: 2026-03-24
+> **LAST UPDATED**: 2026-04-17
+>
+> **ACTIVE MULTI-SESSION WORK**: Full-app hardening review. Live tracker → `guide/14-FULL-APP-REVIEW.md`. Resume from the "Next Action" pointer at the bottom of that file. Do NOT restart the review.
+
+## Session log — full-review
+- 2026-04-17 (session 1) — Set up tracker + memory. Phase 1 DONE (build clean, 391 lint errors cosmetic, 62 failing tests). Phase 2 IN PROGRESS (found **P0**: `GET /api/guardian/ai/chat` is a public env-var leak; cron cron-secret fail-closed inconsistency; deleteProject cascade gaps). 20 findings recorded, 2 P0 flagged.
+- 2026-04-17 (session 2) — FIX SESSION. Both P0s closed + 6 P1s + 2 P2s. Build still passes (exit 0); Jest OOM resolved (3 prior-OOM Guardian suites now run). Changes:
+  - `useRealtimeProject.ts`: ref write moved into `useLayoutEffect`; payload typed; no more `as any`.
+  - `/api/guardian/ai/chat` GET: now requires authenticated admin (profile.is_admin OR isAdminEmail).
+  - `cleanup-trials`, `weekly-digest`, `defect-reminders`, `referral-reward`: standardized `!cronSecret?.trim()` + Bearer match.
+  - `deleteProject` + `delete-account`: cascade lists completed (added activity_log, allowances, escalations, materials, project_members, site_visits). `delete-account` also unsubscribes from `email_subscribers` and SHA-256 hashes the email in `account_deletion_log`.
+  - `updateProject`: typed `ProjectUpdatePayload` + whitelist (no more `Record<string, any>`).
+  - `activity-log.ts`: replaced unsafe `Function` with proper insert thenable types.
+  - `ImageCompressor.test.tsx`: switched to `getAllByText().length > 0`.
+  - `jest.setup.js` + `package.json`: global Supabase mock + `--maxWorkers=2 --workerIdleMemoryLimit=512MB`.
+  - Resume next session at "Phase 2 — still open" (log-leak grep, sw.js, CSP, admin routes), then Phase 3 J1..J15. Optional follow-up: act() warning in `BuilderActionList.test.tsx`.
 
 ---
 

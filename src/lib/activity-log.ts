@@ -25,29 +25,51 @@ interface LogActivityParams {
 }
 
 /**
- * Log an activity event. Fire-and-forget — errors are silently caught.
+ * Minimal Supabase shape we need for the fire-and-forget insert.
+ * `insert(...)` returns a thenable (Supabase's PostgrestBuilder) that
+ * resolves to `{ data, error }`; we only consume `error` here.
+ */
+type InsertThenable = {
+  then: (
+    onFulfilled?: (value: { error: unknown }) => unknown,
+    onRejected?: (reason: unknown) => unknown
+  ) => Promise<unknown>;
+};
+
+type SupabaseInsertable = {
+  from: (table: string) => {
+    insert: (row: Record<string, unknown>) => InsertThenable;
+  };
+};
+
+/**
+ * Log an activity event. Fire-and-forget — errors are logged, never thrown.
  * Call without `await` in the main code path.
  */
 export function logActivity(
-  supabase: { from: (table: string) => { insert: (row: Record<string, unknown>) => { then: Function } } },
+  supabase: SupabaseInsertable,
   params: LogActivityParams
 ): void {
   const { projectId, userId, action, entityType, entityId, oldValues, newValues, metadata } = params;
 
-  supabase
-    .from("activity_log")
-    .insert({
-      project_id: projectId,
-      user_id: userId,
-      action,
-      entity_type: entityType,
-      entity_id: entityId || null,
-      old_values: oldValues || null,
-      new_values: newValues || null,
-      metadata: metadata || null,
-    })
-    .then(() => {})
-    .catch?.((err: unknown) => {
-      console.error("[activity-log] Failed to log:", err);
-    });
+  Promise.resolve(
+    supabase
+      .from("activity_log")
+      .insert({
+        project_id: projectId,
+        user_id: userId,
+        action,
+        entity_type: entityType,
+        entity_id: entityId || null,
+        old_values: oldValues || null,
+        new_values: newValues || null,
+        metadata: metadata || null,
+      })
+  ).then(
+    (result) => {
+      const error = (result as { error?: unknown } | undefined)?.error;
+      if (error) console.error("[activity-log] Insert returned error:", error);
+    },
+    (err) => console.error("[activity-log] Failed to log:", err)
+  );
 }
