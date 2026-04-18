@@ -25,6 +25,7 @@ interface ParsedContract {
   warrantyPeriod: string | null;
   unusualClauses: string[];
   missingProtections: string[];
+  persisted?: boolean;
 }
 
 export default function ContractParser({ projectId }: { projectId: string }) {
@@ -73,11 +74,12 @@ export default function ContractParser({ projectId }: { projectId: string }) {
         return;
       }
 
-      // Send to AI for parsing
+      // Send to AI for parsing. Request persistence so the extracted fields
+      // land on the project record and survive page refresh.
       const res = await fetch("/api/guardian/parse-contract", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ textContent: fullText, projectId }),
+        body: JSON.stringify({ textContent: fullText, projectId, persistToProject: true }),
       });
 
       if (res.status === 403) {
@@ -146,6 +148,16 @@ export default function ContractParser({ projectId }: { projectId: string }) {
       {/* Results */}
       {result && (
         <div className="space-y-4">
+          {/* Persistence confirmation */}
+          {result.persisted && (
+            <div className="card border-green-500/30 bg-green-500/10">
+              <div className="flex items-center gap-2 text-sm text-green-700">
+                <span className="font-bold">Saved:</span>
+                <span>Contract details written to your project. They'll still be here after refresh.</span>
+              </div>
+            </div>
+          )}
+
           {/* Key Details */}
           <div className="card">
             <h4 className="font-bold text-sm mb-3">Extracted Contract Details</h4>

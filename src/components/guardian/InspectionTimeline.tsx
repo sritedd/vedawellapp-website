@@ -118,6 +118,23 @@ export default function InspectionTimeline({ projectId, currentStage }: Inspecti
                 .eq("project_id", projectId)
                 .order("created_at", { ascending: true });
             setInspections(data || []);
+            return;
+        }
+
+        // Stage-gate progress signal: when an inspection for a stage is marked passed,
+        // promote that stage from `pending` → `in_progress` so the user sees movement
+        // on the timeline. Final completion still flows through StageGate (explicit
+        // user confirmation with defect/override review) — we never auto-complete.
+        if (updates.result === "passed" || updates.result === "pass") {
+            const insp = inspections.find(i => i.id === id);
+            if (insp?.stage) {
+                await supabase
+                    .from("stages")
+                    .update({ status: "in_progress" })
+                    .eq("project_id", projectId)
+                    .eq("status", "pending")
+                    .ilike("name", `%${insp.stage}%`);
+            }
         }
     };
 

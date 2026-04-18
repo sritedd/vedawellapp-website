@@ -286,21 +286,19 @@ Ship P0 first, then P1. P2/P3 become a separate roadmap doc.
 
 ## Next Action (update after every session)
 
-**As of 2026-04-17 (session 5)**: Phase 1 + Phase 2 DONE. Phase 3 traced 11/15 journeys. The **P0 (P3-26 referral wiring) is now FIXED** — full end-to-end wiring via new `apply-referral` route + `RefCapture` component + login-side call. P3-4 (phone update error handling) also fixed. Build passes clean.
+**As of 2026-04-17 (session 6)**: Phase 1 + Phase 2 DONE. Phase 3 traced 15/15 journeys (J9/J10/J13 completed this session). Fixed P3-11/P3-12 (parse-contract quota/log/KB + persist to project) and P3-18 (inspection pass promotes stage to `in_progress`). J10 surfaced 5 new findings (P3-27..P3-31); J13 found 1 (P3-32). Only P3-1 and P3-22 remain open from Phase 3 P1s. Build passes clean.
 
 First thing next session:
 
 ```bash
 cd c:/Users/sridh/Documents/Github/Ayurveda/vedawell-next
 
-# Priority #1: finish Phase 3 — trace remaining journeys
-#   J9 (trial/Pro upgrade flow), J10 (collaborator invite), J13 (admin flows)
-# Priority #2: fix remaining P1s from Phase 3
-#   P3-1 (non-atomic project seed — needs server action / RPC),
-#   P3-11 (parse-contract missing checkDailyQuota + logAIUsage),
-#   P3-12 (parse-contract result not persisted to project),
-#   P3-18 (inspection pass does NOT advance current_stage — stage gate wiring),
-#   P3-22 (server-side variation free-tier limit enforcement)
+# Priority #1: close remaining Phase 3 P1s
+#   P3-1  (non-atomic project seed — needs server action / RPC),
+#   P3-22 (server-side variation free-tier limit enforcement),
+#   P3-27 (project-member auto-accept privacy — require consent step),
+#   P3-28 (no email notification on invite accept)
+# Priority #2: close Phase 3, begin Phase 4 (API route audit)
 ```
 
 Optional follow-up work queued but not blocking:
@@ -328,7 +326,13 @@ Optional follow-up work queued but not blocking:
 - **P3-17** — ✅ FIXED (2026-04-17 s4) — `src/components/guardian/InspectionTimeline.tsx` — `fetchData` now checks `.error` on stages + inspections reads and renders a red banner.
 - **P3-20** — ✅ FIXED (2026-04-17 s4) — `ProjectVariations.tsx` tier check now fails CLOSED on DB error (was fail-open).
 - **P3-23** — ✅ FIXED (2026-04-17 s4) — `PreHandoverChecklist.tsx` no longer stores `photoNote` (text) in `image_url` (URL) column; appends to description instead.
-- **P3-1 / P3-11 / P3-12 / P3-18 / P3-22** — OPEN P1s carried to next session: non-atomic project seed, parse-contract quota/log, parse-contract persistence, inspection → stage-gate wiring, server-side variation limit.
+- **P3-11** — ✅ FIXED (2026-04-17 s6) — `src/app/api/guardian/parse-contract/route.ts` — now calls `checkDailyQuota`, `logAIUsage` on success/failure paths, and `retrieveKnowledge({ state, category: "contract" })` grounds the prompt with state-specific contract standards. Token usage extracted via `inputTokens ?? promptTokens` dual-name fallback to match AI SDK v5.
+- **P3-12** — ✅ FIXED (2026-04-17 s6) — `parse-contract/route.ts` accepts `persistToProject: true` + `projectId` and writes `contract_value`, `builder_name`, `builder_license_number`, `builder_abn`, `start_date`, `contract_signed_date`, `expected_end_date`, `hbcf_policy_number` back to `projects`. `ContractParser.tsx` opts-in + renders green "Saved" confirmation when `persisted: true`.
+- **P3-14** — ✅ FIXED (2026-04-17 s6) — `parse-contract/route.ts` `JSON.parse(jsonMatch[0])` wrapped in try/catch; returns 502 + logs `errorCode: "json-parse-failed"` on malformed AI output (was uncaught, would 500).
+- **P3-18** — ✅ FIXED (2026-04-17 s6) — `InspectionTimeline.tsx updateInspection` — when result flips to `pass`/`passed`, matching stage row (status=pending, name ilike inspection.stage) is promoted to `in_progress`. Covers the stage-gate wiring gap flagged in J5.
+- **P3-27** — OPEN P1 — `src/app/api/guardian/project-members/route.ts:129-130` — when invited email matches an existing profile, member row is inserted with `status: "accepted"` without any consent step. Privacy risk: anyone can silently add you to their project if they know your signup email.
+- **P3-28** — OPEN P1 — same route — no email notification sent on invite (neither "pending" nor "auto-accepted"). Invitee has no out-of-band signal they were added.
+- **P3-1 / P3-22** — OPEN P1s carried to next session: non-atomic project seed, server-side variation limit.
 - **P2-11** — ✅ FIXED (2026-04-17 s3) — `src/app/api/admin/export/route.ts` — admin auth upgraded to canonical `profile.is_admin === true || isAdminEmail(email)` pattern.
 - **P1-2** — ✅ FIXED (2026-04-17 s2) — `src/lib/activity-log.ts` — replaced `Function` with `InsertThenable` + `SupabaseInsertable` types; insert wrapped in `Promise.resolve(...).then(onFulfilled, onRejected)`.
 - **P1-3** — ✅ FIXED (2026-04-17 s2) — `src/app/tools/__tests__/ImageCompressor.test.tsx` — switched from `getByText(/Compress/i)` to `getAllByText(...).length > 0`.
@@ -345,8 +349,11 @@ Optional follow-up work queued but not blocking:
 - **P3-4** — ✅ FIXED (2026-04-17 s5) — `login/page.tsx` signup now checks `phoneErr` and guards on `data.user?.id`.
 - **P3-6** — OPEN — `PaymentSchedule.tsx` markAsPaid doesn't write to `activity_log`.
 - **P3-7** — OPEN — `PaymentSchedule.tsx` fetchData errors are silenced.
-- **P3-13** — OPEN — `parse-contract/route.ts` doesn't inject KB context.
-- **P3-14** — OPEN — `parse-contract/route.ts` JSON.parse has no try/catch.
+- **P3-13** — ✅ FIXED (2026-04-17 s6) — `parse-contract/route.ts` now calls `retrieveKnowledge({ state, category: "contract", limit: 5 })` and appends a REFERENCE DATA block to the prompt (state from `projects.state` when `projectId` provided).
+- **P3-29** — OPEN P2 — `project-members/route.ts DELETE` — no `.error` check after `.delete()`. Silent failure if RLS denies.
+- **P3-30** — OPEN P2 — same route — no `.trim()` or lowercase on invited email; inconsistent matches vs `profiles.email`.
+- **P3-31** — OPEN P3 — same route — no rate limit on invite POST; could spam invites at a target email.
+- **P3-32** — OPEN P2 — `src/components/guardian/AdminSupportInbox.tsx:63` — `adminReply` failure is silently swallowed (`if (res.error) return;`); admin thinks reply sent but it didn't.
 - **P1-5 / P1-6 / P1-7 / P1-8** — `any` types across Supabase wrappers, unused vars, stale useEffect deps, dead `getAnthropic` export. _(deferred to next polish pass — not blocking)_
 - **P2-6** — ✅ FIXED (2026-04-17 s2) — Realtime hook now uses `"postgres_changes"` literal with `as never` instead of `as any`.
 - **P2-7** — Stripe webhook `(invoice as any).subscription` typing hack. _(deferred — Stripe API version stable, low risk)_
@@ -373,6 +380,15 @@ Optional follow-up work queued but not blocking:
   - Admin routes: `/api/admin/export` (only one) was using env-only `isAdminEmail()` check — upgraded to canonical `profile.is_admin === true || isAdminEmail(email)` pattern to match CLAUDE.md convention.
   - Also: removed OTP from email subject line (was visible in notifications/previews before opening the email).
   - Phase 2 DONE. Next: Phase 3 workflow trace J1..J15.
+
+- **2026-04-17 (session 6)** — PHASE 3 CLOSEOUT. Fixed 4 findings and traced the last 3 journeys:
+  - **P3-11 / P3-12 / P3-13 / P3-14**: full rewrite of `parse-contract/route.ts` — now calls `checkDailyQuota`, `logAIUsage` (success + every error branch), `retrieveKnowledge({ state, category: "contract" })` for KB grounding, and accepts `persistToProject: true` to write 8 extracted fields (`contract_value`, `builder_name`, `builder_license_number`, `builder_abn`, `start_date`, `contract_signed_date`, `expected_end_date`, `hbcf_policy_number`) back to the project row. `JSON.parse` wrapped in try/catch. `ContractParser.tsx` opts-in to persistence and shows a green "Saved: contract details written to your project" confirmation card when persisted. Fixed AI SDK v5 token extraction (`inputTokens ?? promptTokens` dual-name cast).
+  - **P3-18**: `InspectionTimeline.tsx updateInspection` — when inspection result changes to `pass`/`passed`, promotes the matching stage (`status=pending`, `name ilike %inspection.stage%`) to `in_progress`. Closes the stage-gate wiring gap from J5.
+  - **J9 trace** (start trial → Pro → portal): `start-trial/route.ts`, `checkout/route.ts`, `portal/route.ts` all CLEAN — prior hardening from session 3 holds. No new findings.
+  - **J10 trace** (invite collaborator → accept → permissions): `project-members/route.ts` found 5 issues — **P3-27** (P1 privacy: auto-accept when invited email matches existing profile, no consent step), **P3-28** (P1: no email notification on invite), **P3-29** (P2: DELETE no .error check), **P3-30** (P2: no email trim/lowercase), **P3-31** (P3: no rate limit on invite POST).
+  - **J13 trace** (admin flows): `admin/page.tsx` + `actions.ts::requireAdmin` + `AdminUserManager` all solid — `requireAdmin()` checks auth user + `isAdminEmail`, returns service-role client only to admins. Found 1 minor: **P3-32** (P2: `AdminSupportInbox.tsx:63` silently swallows `adminReply` failure).
+  - **Phase 3 trace is COMPLETE** (15/15 journeys walked). 9 P1s fixed across sessions 4/5/6; 4 P1s still open (P3-1 non-atomic seed, P3-22 server-side variation limit, P3-27 auto-accept privacy, P3-28 invite email notify) — phase header stays `[IN PROGRESS]` until those close.
+  - Build: PASSES clean. Next: close the 4 open P1s, then mark Phase 3 DONE and begin Phase 4 (API route audit).
 
 - **2026-04-17 (session 5)** — FIX SESSION. Closed the P0 (P3-26 referral wiring) + 1 P2 (P3-4):
   - New `src/app/api/guardian/apply-referral/route.ts` — authenticated user route that looks up referrer by public `referral_code`, writes `profiles.referred_by` for idempotency, then calls `/api/guardian/referral-reward` internally with `CRON_SECRET`. Self-referral + already-referred + unknown-code guards. Fail-soft on missing env vars (returns `applied:false` without 500-ing signup).
