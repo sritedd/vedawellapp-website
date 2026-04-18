@@ -6,6 +6,7 @@ import { formatMoney } from "@/utils/format";
 import { logout, touchLastSeen } from "@/app/guardian/actions";
 import ManageBillingButton from "@/components/guardian/ManageBillingButton";
 import OnboardingWizard from "@/components/guardian/OnboardingWizard";
+import PendingInvitations from "@/components/guardian/PendingInvitations";
 
 export default async function DashboardPage() {
     const supabase = await createClient();
@@ -155,6 +156,11 @@ export default async function DashboardPage() {
                             {announcement.message}
                         </div>
                     )}
+
+                    {/* Pending project invitations */}
+                    <div className="mb-6">
+                        <PendingInvitations />
+                    </div>
 
                     {/* Upgrade banner for free users */}
                     {isFree && (

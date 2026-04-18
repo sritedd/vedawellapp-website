@@ -204,6 +204,7 @@ export default function NewProjectPage() {
             const stages = stateWorkflow?.stages || [];
 
             // 3. Seed stages and checklist items based on workflow
+            let stageFailures = 0;
             for (const stageTemplate of stages) {
                 const paymentPercent = (stageTemplate as any).paymentMilestone
                     ? parseFloat(((stageTemplate as any).paymentMilestone as string).match(/\d+/)?.[0] || "0")
@@ -222,6 +223,7 @@ export default function NewProjectPage() {
 
                 if (stageError) {
                     console.error("Error creating stage:", stageError);
+                    stageFailures++;
                     continue;
                 }
 
@@ -281,6 +283,16 @@ export default function NewProjectPage() {
                     });
                     if (payErr) console.warn("Payment insert failed:", payErr.message);
                 }
+            }
+
+            // Atomicity guard: if any stage insert failed, the project is
+            // partially seeded. Roll back the project row so the user can
+            // retry from scratch instead of landing on a broken project page.
+            if (stages.length > 0 && stageFailures > 0) {
+                await supabase.from("projects").delete().eq("id", projectId).eq("user_id", user.id);
+                setError(`Project setup incomplete — ${stageFailures} stage(s) failed. Please try again.`);
+                setLoading(false);
+                return;
             }
 
             // Redirect to project detail page

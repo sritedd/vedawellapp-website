@@ -104,7 +104,7 @@ The app is considered production-solid when ALL of the following hold:
 
 ---
 
-### PHASE 3 — Workflow Completeness [IN PROGRESS]
+### PHASE 3 — Workflow Completeness [DONE]
 
 Trace each user journey end-to-end. For each, list the pages/APIs touched and flag any dead end, silent failure, or UX gap.
 
@@ -286,20 +286,27 @@ Ship P0 first, then P1. P2/P3 become a separate roadmap doc.
 
 ## Next Action (update after every session)
 
-**As of 2026-04-17 (session 6)**: Phase 1 + Phase 2 DONE. Phase 3 traced 15/15 journeys (J9/J10/J13 completed this session). Fixed P3-11/P3-12 (parse-contract quota/log/KB + persist to project) and P3-18 (inspection pass promotes stage to `in_progress`). J10 surfaced 5 new findings (P3-27..P3-31); J13 found 1 (P3-32). Only P3-1 and P3-22 remain open from Phase 3 P1s. Build passes clean.
+**As of 2026-04-18 (session 7)**: Phase 1 + Phase 2 + Phase 3 all DONE. All Phase 3 P1s closed: P3-1 (atomic project seed via stage-failure rollback), P3-22 (server-side variation limit via `schema_v41` trigger), P3-27 (mandatory pending-consent flow + new PATCH route + PendingInvitations dashboard widget), P3-28 (Resend invite email), P3-29/P3-30/P3-31 (DELETE error check, email normalization, soft rate limit). Build passes clean.
 
-First thing next session:
+**Migration pending for deploy**: `supabase/schema_v41_variation_limit.sql` must be run in Supabase SQL Editor before the variation limit is actually enforced server-side.
+
+First thing next session — **PHASE 4: API route audit**:
 
 ```bash
 cd c:/Users/sridh/Documents/Github/Ayurveda/vedawell-next
 
-# Priority #1: close remaining Phase 3 P1s
-#   P3-1  (non-atomic project seed — needs server action / RPC),
-#   P3-22 (server-side variation free-tier limit enforcement),
-#   P3-27 (project-member auto-accept privacy — require consent step),
-#   P3-28 (no email notification on invite accept)
-# Priority #2: close Phase 3, begin Phase 4 (API route audit)
+# For every route in src/app/api/**/route.ts, verify:
+#   - auth check present (and correct: user vs admin vs cron-secret vs service role)
+#   - input validation (types, length bounds, enum allowlists)
+#   - rate limit / quota where appropriate
+#   - error paths log with context but never leak secrets
+#   - response shape stable; status codes correct (400/401/403/404/409/429/500/502/503)
+#   - no partial DB writes on failure (use existing rollback patterns)
+#
+# Start with: /api/guardian/ai/*, /api/stripe/*, /api/cron/*, /api/admin/*
 ```
+
+Also remaining open from earlier phases: **P3-32** (P2: AdminSupportInbox silently swallows reply failure), and carry-over polish (P3-6 payment activity log, P3-7 payment fetch error, P1-5/6/7/8 type-cleanup).
 
 Optional follow-up work queued but not blocking:
 - React `act()` warning in `BuilderActionList.test.tsx` (state update after async fetch — pre-existing, surfaced once OOM fixed)
@@ -330,9 +337,10 @@ Optional follow-up work queued but not blocking:
 - **P3-12** — ✅ FIXED (2026-04-17 s6) — `parse-contract/route.ts` accepts `persistToProject: true` + `projectId` and writes `contract_value`, `builder_name`, `builder_license_number`, `builder_abn`, `start_date`, `contract_signed_date`, `expected_end_date`, `hbcf_policy_number` back to `projects`. `ContractParser.tsx` opts-in + renders green "Saved" confirmation when `persisted: true`.
 - **P3-14** — ✅ FIXED (2026-04-17 s6) — `parse-contract/route.ts` `JSON.parse(jsonMatch[0])` wrapped in try/catch; returns 502 + logs `errorCode: "json-parse-failed"` on malformed AI output (was uncaught, would 500).
 - **P3-18** — ✅ FIXED (2026-04-17 s6) — `InspectionTimeline.tsx updateInspection` — when result flips to `pass`/`passed`, matching stage row (status=pending, name ilike inspection.stage) is promoted to `in_progress`. Covers the stage-gate wiring gap flagged in J5.
-- **P3-27** — OPEN P1 — `src/app/api/guardian/project-members/route.ts:129-130` — when invited email matches an existing profile, member row is inserted with `status: "accepted"` without any consent step. Privacy risk: anyone can silently add you to their project if they know your signup email.
-- **P3-28** — OPEN P1 — same route — no email notification sent on invite (neither "pending" nor "auto-accepted"). Invitee has no out-of-band signal they were added.
-- **P3-1 / P3-22** — OPEN P1s carried to next session: non-atomic project seed, server-side variation limit.
+- **P3-27** — ✅ FIXED (2026-04-18 s7) — `project-members/route.ts` now always inserts `status: "pending"` regardless of whether invitee has a profile; added new `PATCH` handler so invitee can `accept` or `decline` via their own session (checks `invited_email` OR `user_id` match). New `PendingInvitations.tsx` component mounted on the dashboard shows outstanding invites with accept/decline buttons.
+- **P3-28** — ✅ FIXED (2026-04-18 s7) — `project-members/route.ts` POST now sends a Resend email from `notifications@vedawellapp.com` with project name, inviter name, role, and a dashboard link. Fire-and-forget — email failures do not block the invite.
+- **P3-1** — ✅ FIXED (2026-04-18 s7) — `projects/new/page.tsx` — tracks `stageFailures` across the seed loop; if any stage insert fails the project row is rolled back via `.delete().eq("id", projectId).eq("user_id", user.id)` and the user sees `Project setup incomplete — N stage(s) failed. Please try again.`. Closes the half-seeded-project failure mode.
+- **P3-22** — ✅ FIXED (2026-04-18 s7) — new `supabase/schema_v41_variation_limit.sql` — BEFORE INSERT trigger on `variations` that looks up `projects.user_id → profiles.subscription_tier`; raises `FREE_TIER_VARIATION_LIMIT` when free-tier user already has 2 variations on the project. Client-side `ProjectVariations.tsx` maps the error to the existing tier-upgrade banner.
 - **P2-11** — ✅ FIXED (2026-04-17 s3) — `src/app/api/admin/export/route.ts` — admin auth upgraded to canonical `profile.is_admin === true || isAdminEmail(email)` pattern.
 - **P1-2** — ✅ FIXED (2026-04-17 s2) — `src/lib/activity-log.ts` — replaced `Function` with `InsertThenable` + `SupabaseInsertable` types; insert wrapped in `Promise.resolve(...).then(onFulfilled, onRejected)`.
 - **P1-3** — ✅ FIXED (2026-04-17 s2) — `src/app/tools/__tests__/ImageCompressor.test.tsx` — switched from `getByText(/Compress/i)` to `getAllByText(...).length > 0`.
@@ -350,9 +358,9 @@ Optional follow-up work queued but not blocking:
 - **P3-6** — OPEN — `PaymentSchedule.tsx` markAsPaid doesn't write to `activity_log`.
 - **P3-7** — OPEN — `PaymentSchedule.tsx` fetchData errors are silenced.
 - **P3-13** — ✅ FIXED (2026-04-17 s6) — `parse-contract/route.ts` now calls `retrieveKnowledge({ state, category: "contract", limit: 5 })` and appends a REFERENCE DATA block to the prompt (state from `projects.state` when `projectId` provided).
-- **P3-29** — OPEN P2 — `project-members/route.ts DELETE` — no `.error` check after `.delete()`. Silent failure if RLS denies.
-- **P3-30** — OPEN P2 — same route — no `.trim()` or lowercase on invited email; inconsistent matches vs `profiles.email`.
-- **P3-31** — OPEN P3 — same route — no rate limit on invite POST; could spam invites at a target email.
+- **P3-29** — ✅ FIXED (2026-04-18 s7) — `project-members/route.ts DELETE` now checks `.error` on `.delete()`; returns `500 { error: "Failed to remove member" }` on failure.
+- **P3-30** — ✅ FIXED (2026-04-18 s7) — POST normalizes invited email via `.trim().toLowerCase()` + regex validation; consistent with `profiles.email` storage.
+- **P3-31** — ✅ FIXED (2026-04-18 s7) — soft rate limit (max 10 pending invites per project) before insert; returns 429.
 - **P3-32** — OPEN P2 — `src/components/guardian/AdminSupportInbox.tsx:63` — `adminReply` failure is silently swallowed (`if (res.error) return;`); admin thinks reply sent but it didn't.
 - **P1-5 / P1-6 / P1-7 / P1-8** — `any` types across Supabase wrappers, unused vars, stale useEffect deps, dead `getAnthropic` export. _(deferred to next polish pass — not blocking)_
 - **P2-6** — ✅ FIXED (2026-04-17 s2) — Realtime hook now uses `"postgres_changes"` literal with `as never` instead of `as any`.
@@ -380,6 +388,17 @@ Optional follow-up work queued but not blocking:
   - Admin routes: `/api/admin/export` (only one) was using env-only `isAdminEmail()` check — upgraded to canonical `profile.is_admin === true || isAdminEmail(email)` pattern to match CLAUDE.md convention.
   - Also: removed OTP from email subject line (was visible in notifications/previews before opening the email).
   - Phase 2 DONE. Next: Phase 3 workflow trace J1..J15.
+
+- **2026-04-18 (session 7)** — PHASE 3 DONE. Closed the 4 open Phase 3 P1s + 3 P2/P3 polish items:
+  - **P3-27 / P3-28 / P3-29 / P3-30 / P3-31** (project-members route overhaul):
+    - POST always inserts `status: "pending"` — removed the silent auto-accept path that exposed a privacy issue.
+    - New PATCH route for `accept` / `decline`; invitee authorization matches on either `user_id` or `invited_email` (lowercased).
+    - New `src/components/guardian/PendingInvitations.tsx` mounted on the dashboard — lists outstanding invites for the signed-in user (by `user_id` OR `invited_email`) with accept/decline buttons.
+    - POST sends Resend notification email (`notifications@vedawellapp.com` → invitee) with project name, inviter name, role, and dashboard link; fire-and-forget.
+    - Email normalized (`.trim().toLowerCase()` + regex); DELETE now checks `.error`; soft cap of 10 pending invites per project (429).
+  - **P3-1** (atomic project seed): `projects/new/page.tsx` tracks `stageFailures` in the seed loop; if any stage insert fails, rolls back the project row with `.delete().eq("id", projectId).eq("user_id", user.id)` and surfaces `Project setup incomplete — N stage(s) failed.`. User lands on a clean slate instead of a half-seeded project.
+  - **P3-22** (server-side variation limit): new `supabase/schema_v41_variation_limit.sql` — `BEFORE INSERT` trigger on `variations` resolves owner tier via `projects.user_id → profiles.subscription_tier`; raises `FREE_TIER_VARIATION_LIMIT` check_violation when a free-tier user has already hit 2 variations on the project. Client maps the error to the existing `tierError` banner. Trigger is `SECURITY DEFINER` so direct Supabase client calls can't bypass it.
+  - Build: PASSES clean (11.7s compile). Phase 3 header now `[DONE]`. Next: Phase 4 (API route audit).
 
 - **2026-04-17 (session 6)** — PHASE 3 CLOSEOUT. Fixed 4 findings and traced the last 3 journeys:
   - **P3-11 / P3-12 / P3-13 / P3-14**: full rewrite of `parse-contract/route.ts` — now calls `checkDailyQuota`, `logAIUsage` (success + every error branch), `retrieveKnowledge({ state, category: "contract" })` for KB grounding, and accepts `persistToProject: true` to write 8 extracted fields (`contract_value`, `builder_name`, `builder_license_number`, `builder_abn`, `start_date`, `contract_signed_date`, `expected_end_date`, `hbcf_policy_number`) back to the project row. `JSON.parse` wrapped in try/catch. `ContractParser.tsx` opts-in to persistence and shows a green "Saved: contract details written to your project" confirmation card when persisted. Fixed AI SDK v5 token extraction (`inputTokens ?? promptTokens` dual-name cast).

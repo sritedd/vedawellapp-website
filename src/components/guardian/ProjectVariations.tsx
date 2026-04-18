@@ -246,6 +246,8 @@ export default function ProjectVariations({
                             setShowAddForm(false);
                             fetchVariations();
                             onDataChanged?.();
+                        } else if (error.message?.includes("FREE_TIER_VARIATION_LIMIT")) {
+                            setTierError(`Free plan allows ${FREE_VARIATION_LIMIT} variations. Upgrade to Guardian Pro for unlimited.`);
                         } else {
                             alert("Failed to add variation. Please try again.");
                         }
