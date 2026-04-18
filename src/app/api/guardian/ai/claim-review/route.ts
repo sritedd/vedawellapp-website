@@ -61,17 +61,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "projectId, claimAmount, and claimStage are required" }, { status: 400 });
     }
 
-    // Verify ownership and fetch project data
-    const { data: project } = await supabase
+    // Verify ownership and fetch project data. NOTE: current_stage is NOT a
+    // DB column — it's computed from the stages table. Don't select it here.
+    const { data: project, error: projectErr } = await supabase
       .from("projects")
-      .select("id, name, address, contract_value, state, current_stage, builder_name")
+      .select("id, name, address, contract_value, state, builder_name")
       .eq("id", projectId)
       .eq("user_id", user.id)
       .single();
 
-    if (!project) {
+    if (projectErr || !project) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
+
+    // Compute current stage = first non-completed stage by order
+    const { data: stagesRow } = await supabase
+      .from("stages")
+      .select("name, status")
+      .eq("project_id", projectId)
+      .neq("status", "completed")
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    const currentStageName = stagesRow?.name || "Not specified";
 
     // Parallel fetch: defects, certificates, variations, payments
     const [defectsRes, certsRes, variationsRes, paymentsRes] = await Promise.all([
@@ -99,7 +111,7 @@ export async function POST(request: NextRequest) {
 PROJECT DETAILS:
 - Address: ${project.address || "Not specified"}
 - Contract Value: $${project.contract_value || "Not specified"}
-- Current Stage: ${project.current_stage || "Not specified"}
+- Current Stage: ${currentStageName}
 - Builder: ${project.builder_name || "Not specified"}
 - State: ${project.state || "Not specified"}
 
@@ -164,12 +176,13 @@ PAY = all clear, safe to pay. HOLD = minor issues to resolve first. DISPUTE = se
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       return NextResponse.json({
+        fallback: true,
         verdict: "HOLD",
         confidence: 50,
         reasons: ["AI analysis could not be parsed. Please review the claim manually."],
         missingItems: [],
         suggestedResponse: "Please review this claim with your building inspector before proceeding.",
-      });
+      }, { status: 502 });
     }
 
     let result;
@@ -178,23 +191,25 @@ PAY = all clear, safe to pay. HOLD = minor issues to resolve first. DISPUTE = se
     } catch {
       console.error("[claim-review] JSON parse failed:", jsonMatch[0].slice(0, 200));
       return NextResponse.json({
+        fallback: true,
         verdict: "HOLD",
         confidence: 50,
         reasons: ["AI response could not be parsed. Please try again or review manually."],
         missingItems: [],
         suggestedResponse: "Please review this claim with your building inspector before proceeding.",
-      });
+      }, { status: 502 });
     }
     return NextResponse.json(result);
   } catch (error) {
     console.error("[claim-review] Error:", error instanceof Error ? error.message : error);
     logAIUsage({ feature: "claim-review", model: "unknown", success: false, errorCode: error instanceof Error ? error.message.slice(0, 100) : "unknown" }).catch(() => {});
     return NextResponse.json({
+      fallback: true,
       verdict: "HOLD",
       confidence: 0,
       reasons: ["An error occurred during analysis. Please try again or review manually."],
       missingItems: [],
       suggestedResponse: "",
-    });
+    }, { status: 503 });
   }
 }
