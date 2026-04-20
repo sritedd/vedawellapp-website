@@ -104,8 +104,13 @@ export async function POST(request: NextRequest) {
             (f: { factor_type: string }) => f.factor_type === "totp"
         );
 
+        // Track factor-deletion failures — if any factor remains, the user
+        // would still be challenged for MFA at next login while believing
+        // it was disabled. Surface explicit error rather than silent partial
+        // success.
+        const failedFactors: string[] = [];
         for (const factor of totpFactors) {
-            await fetch(
+            const delRes = await fetch(
                 `${supabaseUrl}/auth/v1/admin/users/${user.id}/factors/${factor.id}`,
                 {
                     method: "DELETE",
@@ -114,6 +119,19 @@ export async function POST(request: NextRequest) {
                         apikey: serviceKey,
                     },
                 }
+            );
+            if (!delRes.ok) {
+                failedFactors.push(factor.id);
+                console.error(
+                    `[disable-mfa] Failed to delete factor ${factor.id} for user ${user.id}: ${delRes.status}`
+                );
+            }
+        }
+
+        if (failedFactors.length > 0) {
+            return NextResponse.json(
+                { error: "Could not fully disable 2FA. Please try again or contact support." },
+                { status: 502 }
             );
         }
 
@@ -124,10 +142,18 @@ export async function POST(request: NextRequest) {
             { cookies: { getAll: () => [], setAll: () => {} } }
         );
 
-        await serviceSupabase.from("profiles").update({
+        const { error: profileErr } = await serviceSupabase.from("profiles").update({
             mfa_enabled: false,
             mfa_verified_at: null,
         }).eq("id", user.id);
+
+        if (profileErr) {
+            console.error("[disable-mfa] Profile flag update failed:", profileErr.message);
+            return NextResponse.json(
+                { error: "2FA factors removed but profile flag update failed. Refresh to confirm." },
+                { status: 500 }
+            );
+        }
 
         return NextResponse.json({ success: true });
     } catch (error) {

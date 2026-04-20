@@ -157,36 +157,40 @@ Trace each user journey end-to-end. For each, list the pages/APIs touched and fl
 
 ---
 
-### PHASE 4 — API Route Audit [TODO]
+### PHASE 4 — API Route Audit [DONE]
 
-For each route in `src/app/api/**`:
+All ~30 API routes audited across 4 batches (AI / data / auth-account / external-cron-stripe). Per-route checklist: auth → validation → business logic → status codes → error logging → idempotency → rate-limit / quota.
 
-- [ ] `guardian/ai/*` (5 routes)
-- [ ] `guardian/phone-verify`
-- [ ] `guardian/start-trial`
-- [ ] `guardian/referral-reward`
-- [ ] `guardian/project-members`
-- [ ] `guardian/delete-account`
-- [ ] `guardian/export-data`
-- [ ] `guardian/export-pdf`
-- [ ] `guardian/parse-contract`
-- [ ] `guardian/parse-inspector-report`
-- [ ] `guardian/calendar-export`
-- [ ] `guardian/verify-mfa` / `disable-mfa`
-- [ ] `guardian/activity-log`
-- [ ] `guardian/search`
-- [ ] `guardian/track-view`
-- [ ] `stripe/checkout` / `portal` / `webhook`
-- [ ] `cron/*` (5 routes)
-- [ ] `admin/*`
-- [ ] `notifications`
-- [ ] `social/*`
-- [ ] `subscribe` / `track-tool`
-
-Per-route checklist: auth → validation → business logic → status codes → error logging → idempotency → rate-limit.
+- [x] `guardian/ai/*` — describe-defect, stage-advice, builder-check, chat, claim-review, parse-contract, parse-inspector-report
+- [x] `guardian/phone-verify`, `verify-mfa`, `disable-mfa`, `delete-account`
+- [x] `guardian/start-trial`, `apply-referral`, `referral-reward`, `track-view`, `project-members`
+- [x] `guardian/export-data`, `export-pdf`, `calendar-export`, `activity-log`, `search`
+- [x] `stripe/checkout`, `stripe/portal`, `stripe/webhook`
+- [x] `cron/*` (idle-users, cleanup-trials, weekly-digest, defect-reminders)
+- [x] `admin/export`, `notifications`, `social/auto-post`, `subscribe`, `track-tool`
 
 **Phase 4 Findings**
-_(fill in as the phase runs)_
+
+| ID | Severity | File / Line | Issue | Status |
+|----|----------|-------------|-------|--------|
+| P4-1 | **P1** | `src/app/api/guardian/ai/claim-review/route.ts:64-72` | Selecting non-existent `current_stage` column from `projects`. PostgREST silently returned no rows → every claim-review request 404'd with "Project not found". Production-broken. | ✅ FIXED (s8) — removed column from select; current stage now computed from first non-completed `stages` row. |
+| P4-2 | P3 | `src/app/api/guardian/ai/claim-review/route.ts:60` | Falsy `claimAmount` rejects $0 claims. Real-world impossibility — defer. | DEFERRED |
+| P4-3 | P2 | `src/app/api/guardian/ai/claim-review/route.ts:177-186` | JSON-parse-failure response was 200 without `fallback` flag — client UI couldn't distinguish degraded response from real verdict. | ✅ FIXED (s8) — now 502 with `{ fallback: true }`. |
+| P4-4 | P2 | `src/app/api/guardian/ai/claim-review/route.ts:203-214` | Catch-block response was 200 without fallback flag — same downstream UX problem as P4-3. | ✅ FIXED (s8) — now 503 with `{ fallback: true }`. |
+| P4-5 | **P2** | `src/app/api/guardian/ai/chat/route.ts` POST | `debug` object (step trace + `hasGoogleKey`/`hasAnthropicKey` env-config booleans) returned in error responses to ALL authenticated callers — info-disclosure. The GET handler is admin-gated for this exact reason; POST defeated it via error-body leak. | ✅ FIXED (s8) — added `scrubDebug(payload, isAdmin)` helper; non-admin error responses now omit `debug`. Admin status resolved once via `isAdminEmail(email)` + DB `is_admin` flag fallback. |
+| P4-6 | P2 | `src/app/api/guardian/parse-inspector-report/route.ts` | Pattern violation per `.claude/rules/api-routes.md`: missing `checkDailyQuota`, `logAIUsage` (success + error branches), `retrieveKnowledge` KB grounding, `{ fallback: true }` flag, length max-bound. | ✅ FIXED (s8) — full route rewrite to A+ AI-route standard. Quota counts under feature `parse-inspector-report`. |
+| P4-7 | P2 | `src/app/api/guardian/disable-mfa/route.ts:107-118` | Admin DELETE on each TOTP factor didn't check `response.ok`. Silent partial success: `mfa_enabled` flag flipped to false in profiles but factors remained in `auth.mfa` — user thought MFA was off but next login still challenged. | ✅ FIXED (s8) — track `failedFactors[]`; if any DELETE fails return 502 before flipping the profile flag. Profile update also now checks `.error` and returns 500 with explicit refresh prompt on failure. |
+| P4-8 | P3 | `src/app/api/guardian/phone-verify/route.ts:124-133, 246-249` | OTP-send and attempt-increment writes don't check `.error`. If write fails, OTP is sent but un-verifiable, or brute-force throttle silently breaks. Low-frequency, but worth tightening. | OPEN |
+| P4-9 | **P2** | `src/app/api/guardian/export-data/route.ts:14-18` | `profile.*` selected and dumped into the user's GDPR export — leaks credential `phone_otp_hash`, OTP attempt counter, `stripe_customer_id`. The hash is a low-entropy SHA-256 of a 6-digit code (~20 bits, brute-forceable). User receives credentials in their own export. | ✅ FIXED (s8) — replaced `select("*")` with explicit allowlist of 22 user-facing columns; credential + payment-system identifiers excluded. |
+| P4-10 | P3 | `src/app/api/guardian/export-pdf/route.ts:165-189` | `profile` and `project` queries don't check `.error`. `!profile` defaults tier to "free" (blocking — safe), but `!project` 404s without distinguishing RLS failure from missing row. | OPEN |
+| P4-11 | P3 | `src/app/api/guardian/export-pdf/route.ts` | No per-IP / per-user throttle on PDF generation. Pro user could spam endpoint to inflate Netlify function cost. | OPEN |
+| P4-12 | P3 | `src/app/api/guardian/calendar-export/route.ts:119` | `Content-Disposition` filename uses `project.name.replace(/\s+/g, "-")` — could contain CRLF or quotes that break the header. Should strip non-ASCII more aggressively. | OPEN |
+| P4-13 | P3 | `src/app/api/notifications/route.ts:117, 121` | Email template inserts `${info.projectName}` and project name without `escapeHtml`. Project name is user-controlled → self-XSS in own inbox. Low impact (sandboxed by mail clients) but inconsistent with `weekly-digest`/`defect-reminders` which do escape. | OPEN |
+| P4-14 | P3 | `src/app/api/guardian/apply-referral/route.ts:89` | `referred_by` profile update doesn't check `.error`. If the write fails the reward call still fires — referrer gets credit but the referee profile loses attribution. | OPEN |
+| P4-15 | P3 | `src/app/api/admin/export/route.ts:32` | Users CSV exports `phone` column in plaintext. Admins are trusted but PII handling discipline says minimize fields. | OPEN |
+| P4-16 | P3 | `src/app/api/cron/defect-reminders/route.ts:143-149` | Escalation tracking update (`escalation_level`, `last_escalation_at`) doesn't check `.error`. If write fails, same defect re-emails next cron run. | OPEN |
+
+**Phase 4 verdict**: 1 P1 (claim-review production bug — fixed + committed in isolation), 4 P2s (chat info-disclosure, parse-inspector standards, disable-mfa silent partial, export-data credential leak — all fixed). 8 P3 polish items left for backlog. All Stripe / cron / admin / external routes solid; no security holes. Build PASSES clean post-fixes.
 
 ---
 
@@ -286,27 +290,35 @@ Ship P0 first, then P1. P2/P3 become a separate roadmap doc.
 
 ## Next Action (update after every session)
 
-**As of 2026-04-18 (session 7)**: Phase 1 + Phase 2 + Phase 3 all DONE. All Phase 3 P1s closed: P3-1 (atomic project seed via stage-failure rollback), P3-22 (server-side variation limit via `schema_v41` trigger), P3-27 (mandatory pending-consent flow + new PATCH route + PendingInvitations dashboard widget), P3-28 (Resend invite email), P3-29/P3-30/P3-31 (DELETE error check, email normalization, soft rate limit). Build passes clean.
+**As of 2026-04-20 (session 8)**: Phase 1 + Phase 2 + Phase 3 + Phase 4 all DONE. Phase 4 audited all ~30 API routes across 4 batches. Closed: P4-1 (claim-review production bug — non-existent `current_stage` column), P4-3/P4-4 (claim-review missing fallback flag / wrong status codes), P4-5 (chat info-disclosure via `debug` object in error bodies — added `scrubDebug` non-admin stripping), P4-6 (parse-inspector-report rewrite to A+ AI standard: `checkDailyQuota`, `logAIUsage`, `retrieveKnowledge`, `fallback: true`, 50k max bound), P4-7 (disable-mfa silent partial success — track `failedFactors[]`, 502 before profile flip), P4-9 (export-data GDPR export leaking `phone_otp_hash` + `stripe_customer_id` — replaced `select("*")` with 22-field user-facing allowlist). Build passes clean.
 
 **Migration pending for deploy**: `supabase/schema_v41_variation_limit.sql` must be run in Supabase SQL Editor before the variation limit is actually enforced server-side.
 
-First thing next session — **PHASE 4: API route audit**:
+First thing next session — **PHASE 5: Component audit** (78 Guardian components):
 
 ```bash
 cd c:/Users/sridh/Documents/Github/Ayurveda/vedawell-next
 
-# For every route in src/app/api/**/route.ts, verify:
-#   - auth check present (and correct: user vs admin vs cron-secret vs service role)
-#   - input validation (types, length bounds, enum allowlists)
-#   - rate limit / quota where appropriate
-#   - error paths log with context but never leak secrets
-#   - response shape stable; status codes correct (400/401/403/404/409/429/500/502/503)
-#   - no partial DB writes on failure (use existing rollback patterns)
+# For every component under src/components/guardian/**, verify:
+#   - loading state present for all async
+#   - user-visible error (alert/toast) — not just console.error
+#   - no hardcoded mock/fake data
+#   - DB writes persist (not setState only); check .error on every query
+#   - mobile layout (md: breakpoints) correct
+#   - a11y attrs on interactive elements
 #
-# Start with: /api/guardian/ai/*, /api/stripe/*, /api/cron/*, /api/admin/*
+# Priority order (most user-facing / mutation-heavy first):
+#   1. Project mutation: DefectList, VariationTracker, PaymentTracker, DocumentVault, ProgressPhotoGallery
+#   2. Dashboard: SmartDashboard, ShouldIPay, ProjectHealthScore, MilestoneCelebrations
+#   3. AI: AIDefectAssist, AIStageAdvice, GuardianChat, ClaimReview, ContractParser, InspectorReport
+#   4. Admin: AdminUserManager, AdminSupportInbox, AdminAIUsage
+#   5. Settings: MFASetup, PhoneVerify, DeleteAccountButton, ProjectMembers, PendingInvitations
+#   6. Export/Report: ExportCenter, TribunalExport, ShareProgressCard
+#   7. Onboarding/Gates: EmailVerifyGate, PhoneOTPGate, TrialGate
+#   8. Read-only: ProgressTimeline, TimelineBenchmark, WarrantyCalculator
 ```
 
-Also remaining open from earlier phases: **P3-32** (P2: AdminSupportInbox silently swallows reply failure), and carry-over polish (P3-6 payment activity log, P3-7 payment fetch error, P1-5/6/7/8 type-cleanup).
+Also remaining open from earlier phases: **P3-32** (P2: AdminSupportInbox silently swallows reply failure), Phase 4 P3 backlog (P4-2, P4-8, P4-10, P4-11, P4-12, P4-13, P4-14, P4-15, P4-16), and carry-over polish (P3-6 payment activity log, P3-7 payment fetch error, P1-5/6/7/8 type-cleanup).
 
 Optional follow-up work queued but not blocking:
 - React `act()` warning in `BuilderActionList.test.tsx` (state update after async fetch — pre-existing, surfaced once OOM fixed)
@@ -378,6 +390,17 @@ Optional follow-up work queued but not blocking:
 ---
 
 ## Session Log
+
+- **2026-04-20 (session 8)** — PHASE 4 COMPLETE. Audited all ~30 API routes across 4 batches (AI / data / auth-account / external-cron-stripe). Logged 16 findings P4-1..P4-16; closed 1 P1 + 4 P2s; deferred 8 P3 polish items to backlog.
+  - **P4-1 (P1)**: `claim-review/route.ts` selecting non-existent `current_stage` column → every request 404'd with PostgREST silently returning no rows. Removed column from select; current stage now computed from first non-completed `stages` row. Also added `.error` check on project query.
+  - **P4-3 / P4-4 (P2)**: `claim-review` JSON-parse-failure + catch-block responses were 200 without `fallback` flag — client couldn't distinguish degraded response from real verdict. Now 502 / 503 with `{ fallback: true }`.
+  - **P4-5 (P2)**: `ai/chat/route.ts` POST — `debug` object (step trace + `hasGoogleKey`/`hasAnthropicKey` env booleans) returned in error responses to ALL authenticated callers. GET handler was admin-gated for this exact reason; POST leaked it via error body. Added `scrubDebug(payload, isAdmin)` helper; resolved `isAdmin` once via `isAdminEmail(email)` + DB `is_admin` flag; threaded through all 9 error response paths.
+  - **P4-6 (P2)**: `parse-inspector-report/route.ts` — full rewrite to A+ AI-route standard. Added `checkDailyQuota`, `retrieveKnowledge({ state, category: "defects" })` KB grounding, `logAIUsage` on success + every error branch (AI SDK v5 dual-name token fallback), max 50k char bound, `{ fallback: true }` on 422/502/503.
+  - **P4-7 (P2)**: `disable-mfa/route.ts` — admin DELETE per factor didn't check `response.ok`. Silent partial success: flag flipped to false but factors remained, so next login still challenged MFA. Now track `failedFactors[]`; if any DELETE fails return 502 before flipping the profile flag. Profile update also checks `.error`.
+  - **P4-9 (P2)**: `export-data/route.ts` — `profile.*` dump in GDPR export leaked credential `phone_otp_hash` (~20-bit SHA-256 of 6-digit OTP, brute-forceable), OTP attempt counter, and `stripe_customer_id`. Replaced `select("*")` with explicit 22-column user-facing allowlist.
+  - **8 P3 polish items queued** (P4-2, P4-8, P4-10–P4-16): phone-verify silent writes, export-pdf .error checks + throttling, calendar-export filename CRLF, notifications template XSS, apply-referral silent write, admin/export phone column, defect-reminders escalation tracking silent write.
+  - Audited clean (no fix needed): activity-log, search, calendar-export, export-pdf (polish only), phone-verify, verify-mfa, delete-account, start-trial, apply-referral, referral-reward, track-view, parse-contract, project-members, stripe checkout/portal/webhook (signature + idempotency + price verification + email cross-check all solid), all 4 cron routes (fail-closed CRON_SECRET + 20s timeout safety + per-row try/catch), notifications, subscribe, track-tool, admin/export, social/auto-post.
+  - Build: PASSES clean (12.4s compile, 242 static pages). Phase 4 header now `[DONE]`. Next: Phase 5 (Component audit, 78 Guardian components).
 
 - **2026-04-17 (session 1)** — Created tracker, ran Phase 1 (build/lint/tests — build clean, 391 lint errors mostly cosmetic, 62 failing tests), started Phase 2 (cron/Stripe/delete/proxy audits) + found P0 diagnostic-endpoint leak. Next: close remaining Phase 2 items (log leakage grep, service worker, CSP headers, admin routes) then Phase 3.
 

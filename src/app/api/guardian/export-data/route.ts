@@ -10,10 +10,24 @@ export async function GET() {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        // Fetch profile
+        // Fetch profile — explicit allowlist of user-facing fields.
+        // Excludes credentials (`phone_otp_hash`, `phone_otp_expires_at`,
+        // `phone_otp_attempts`), payment system identifiers
+        // (`stripe_customer_id`), and operational flags the user shouldn't
+        // see in their export. GDPR data-portability covers what the user
+        // provided + their account state, not internal infrastructure.
         const { data: profile } = await supabase
             .from("profiles")
-            .select("*")
+            .select(`
+                id, email, full_name, phone, role, state,
+                subscription_tier, trial_ends_at, subscription_updated_at,
+                phone_verified, phone_verified_at,
+                identity_verified, identity_verified_at,
+                email_verified, mfa_enabled, mfa_verified_at,
+                referral_code, referral_count, referred_by,
+                last_seen_at, last_page_view_at,
+                created_at, updated_at
+            `)
             .eq("id", user.id)
             .single();
 

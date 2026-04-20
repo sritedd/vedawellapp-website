@@ -9,6 +9,17 @@ import { logAIUsage, retrieveKnowledge } from "@/lib/ai/cache";
 import { createClient } from "@/lib/supabase/server";
 import { isAdminEmail } from "@/lib/admin";
 
+// Strip the diagnostic `debug` field from error responses for non-admins.
+// `debug` contains the step trace + env-key booleans (which provider keys
+// are configured) — admin-only diagnostic data that must not leak to
+// authenticated non-admin users via routine 4xx/5xx error bodies.
+function scrubDebug(payload: Record<string, unknown>, isAdmin: boolean) {
+  if (isAdmin) return payload;
+  const { debug: _omit, ...rest } = payload;
+  void _omit;
+  return rest;
+}
+
 /**
  * GET /api/guardian/ai/chat — admin-only diagnostic endpoint.
  * Reveals which AI provider keys are configured. Admin-gated to prevent
@@ -88,6 +99,7 @@ async function safeConvertMessages(messages: unknown[]) {
 
 export async function POST(request: NextRequest) {
   const debug: Record<string, unknown> = { steps: [] };
+  let isAdmin = false;
   const step = (name: string, data?: unknown) => {
     (debug.steps as string[]).push(name);
     if (data !== undefined) debug[name] = data;
@@ -100,7 +112,7 @@ export async function POST(request: NextRequest) {
     step("ai_available", { available });
     if (!available) {
       return NextResponse.json(
-        { error: "AI features are not currently available. Please configure an AI API key.", debug },
+        scrubDebug({ error: "AI features are not currently available. Please configure an AI API key.", debug }, isAdmin),
         { status: 503 }
       );
     }
@@ -138,16 +150,28 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       step("auth_failed");
-      return NextResponse.json({ error: "Unauthorized", debug }, { status: 401 });
+      return NextResponse.json(scrubDebug({ error: "Unauthorized", debug }, false), { status: 401 });
     }
     step("auth_ok", { userId: user.id.slice(0, 8) + "..." });
+
+    // Resolve admin status once, used to decide whether to surface
+    // diagnostic `debug` payload in error responses.
+    isAdmin = isAdminEmail(user.email);
+    if (!isAdmin) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("is_admin")
+        .eq("id", user.id)
+        .maybeSingle();
+      isAdmin = profile?.is_admin === true;
+    }
 
     // Step 3: Tier gating — chat is Pro-only
     const { allowed, tier } = await checkProAccess(supabase, user.id);
     step("tier_check", { allowed, tier });
     if (!allowed) {
       return NextResponse.json(
-        { error: "AI Chat is available on the Pro plan. Upgrade to unlock.", debug },
+        scrubDebug({ error: "AI Chat is available on the Pro plan. Upgrade to unlock.", debug }, isAdmin),
         { status: 403 }
       );
     }
@@ -156,7 +180,7 @@ export async function POST(request: NextRequest) {
     if (checkRateLimit(user.id, 3000)) {
       step("rate_limited");
       return NextResponse.json(
-        { error: "Please wait a moment before sending another message", debug },
+        scrubDebug({ error: "Please wait a moment before sending another message", debug }, isAdmin),
         { status: 429 }
       );
     }
@@ -167,7 +191,7 @@ export async function POST(request: NextRequest) {
     step("quota_check", { allowed: quota.allowed, used: quota.used, limit: quota.limit });
     if (!quota.allowed) {
       return NextResponse.json(
-        { error: `Daily chat limit reached (${quota.used}/${quota.limit}).`, debug },
+        scrubDebug({ error: `Daily chat limit reached (${quota.used}/${quota.limit}).`, debug }, isAdmin),
         { status: 429 }
       );
     }
@@ -185,21 +209,21 @@ export async function POST(request: NextRequest) {
 
     if (!projectId || typeof projectId !== "string") {
       return NextResponse.json(
-        { error: "projectId is required", debug },
+        scrubDebug({ error: "projectId is required", debug }, isAdmin),
         { status: 400 }
       );
     }
 
     if (!Array.isArray(messages) || messages.length === 0) {
       return NextResponse.json(
-        { error: "messages array is required", debug },
+        scrubDebug({ error: "messages array is required", debug }, isAdmin),
         { status: 400 }
       );
     }
 
     if (messages.length > 50) {
       return NextResponse.json(
-        { error: "Maximum 50 messages per request", debug },
+        scrubDebug({ error: "Maximum 50 messages per request", debug }, isAdmin),
         { status: 400 }
       );
     }
@@ -221,14 +245,14 @@ export async function POST(request: NextRequest) {
     if (projectError || !project) {
       step("project_not_found", { error: projectError?.message });
       return NextResponse.json(
-        { error: "Project not found", debug },
+        scrubDebug({ error: "Project not found", debug }, isAdmin),
         { status: 404 }
       );
     }
 
     if (project.user_id !== user.id) {
       step("project_forbidden");
-      return NextResponse.json({ error: "Forbidden", debug }, { status: 403 });
+      return NextResponse.json(scrubDebug({ error: "Forbidden", debug }, isAdmin), { status: 403 });
     }
     step("project_ok", { name: project.name, state: project.state });
 
@@ -300,7 +324,7 @@ export async function POST(request: NextRequest) {
       step("model_init_failed", { error: msg });
       console.error("[guardian-chat] Model init failed:", msg);
       return NextResponse.json(
-        { error: `AI service is not configured: ${msg}`, debug },
+        scrubDebug({ error: `AI service is not configured: ${msg}`, debug }, isAdmin),
         { status: 503 }
       );
     }
@@ -359,7 +383,7 @@ export async function POST(request: NextRequest) {
     }));
     logAIUsage({ feature: "chat", model: "unknown", success: false, errorCode: errorMsg.slice(0, 100) }).catch(() => {});
     return NextResponse.json(
-      { error: `An error occurred: ${errorMsg.slice(0, 200)}`, debug },
+      scrubDebug({ error: `An error occurred: ${errorMsg.slice(0, 200)}`, debug }, isAdmin),
       { status: 500 }
     );
   }
