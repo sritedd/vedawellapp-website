@@ -41,6 +41,10 @@ const DAILY_QUOTAS: Record<string, { ai: number; chat: number }> = {
  * Check if a user has exceeded their daily AI quota.
  * Returns { allowed: true } or { allowed: false, limit, used }.
  * Requires the ai_usage_log table (schema_v36).
+ *
+ * Fail-closed: if the usage log is unreachable, we deny the request rather
+ * than grant free AI. A stray DB error should never become a quota bypass.
+ * The chat and ai pools are counted separately so one doesn't drain the other.
  */
 export async function checkDailyQuota(
     supabase: { from: (table: string) => any },
@@ -49,27 +53,37 @@ export async function checkDailyQuota(
     feature: string
 ): Promise<{ allowed: boolean; limit: number; used: number }> {
     const quotas = DAILY_QUOTAS[tier] || DAILY_QUOTAS.free;
-    const limit = feature === "chat" ? quotas.chat : quotas.ai;
+    const isChat = feature === "chat";
+    const limit = isChat ? quotas.chat : quotas.ai;
 
     // Admins have no real limit
     if (limit >= 9999) return { allowed: true, limit, used: 0 };
 
-    try {
-        const startOfDay = new Date();
-        startOfDay.setHours(0, 0, 0, 0);
+    // Free tier has 0 chat quota — short-circuit before any DB call
+    if (limit === 0) return { allowed: false, limit, used: 0 };
 
-        const { count } = await supabase
-            .from("ai_usage_log")
-            .select("id", { count: "exact", head: true })
-            .eq("user_id", userId)
-            .gte("created_at", startOfDay.toISOString());
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
 
-        const used = count ?? 0;
-        return { allowed: used < limit, limit, used };
-    } catch {
-        // If table doesn't exist or query fails, allow the request (fail-open for quotas)
-        return { allowed: true, limit, used: 0 };
+    const query = supabase
+        .from("ai_usage_log")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .gte("created_at", startOfDay.toISOString());
+
+    // Scope the count to the matching pool (chat vs. everything else),
+    // otherwise ai calls drain the chat quota and vice-versa.
+    const scoped = isChat ? query.eq("feature", "chat") : query.neq("feature", "chat");
+
+    const { count, error } = await scoped;
+
+    if (error) {
+        console.error("[checkDailyQuota] usage log query failed:", error.message);
+        return { allowed: false, limit, used: limit };
     }
+
+    const used = count ?? 0;
+    return { allowed: used < limit, limit, used };
 }
 
 /**

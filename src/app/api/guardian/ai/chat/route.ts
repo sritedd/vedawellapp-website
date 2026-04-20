@@ -97,13 +97,39 @@ async function safeConvertMessages(messages: unknown[]) {
   }
 }
 
+// Per-message and total content-length caps. Without these the 50-message
+// cap is toothless — one 2MB message costs the same as 50 small ones, and
+// token-budget per request is effectively unbounded.
+const MAX_MESSAGE_CHARS = 8000;
+const MAX_TOTAL_CHARS = 40000;
+
+function measureMessageChars(msg: unknown): number {
+  if (!msg || typeof msg !== "object") return 0;
+  const m = msg as { content?: unknown; parts?: unknown };
+  if (typeof m.content === "string") return m.content.length;
+  if (Array.isArray(m.parts)) {
+    return m.parts.reduce((sum: number, p: unknown) => {
+      if (p && typeof p === "object" && "text" in p && typeof (p as { text?: unknown }).text === "string") {
+        return sum + ((p as { text: string }).text.length);
+      }
+      return sum;
+    }, 0);
+  }
+  return 0;
+}
+
 export async function POST(request: NextRequest) {
   const debug: Record<string, unknown> = { steps: [] };
   let isAdmin = false;
+  const isDev = process.env.NODE_ENV !== "production";
   const step = (name: string, data?: unknown) => {
     (debug.steps as string[]).push(name);
     if (data !== undefined) debug[name] = data;
-    console.log(`[guardian-chat] ✓ ${name}`, data !== undefined ? JSON.stringify(data).slice(0, 200) : "");
+    // Only emit the per-step trace in dev — it pollutes production logs and
+    // the `debug` payload is already returned in error responses for admins.
+    if (isDev) {
+      console.log(`[guardian-chat] ✓ ${name}`, data !== undefined ? JSON.stringify(data).slice(0, 200) : "");
+    }
   };
 
   try {
@@ -228,6 +254,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Bound per-message + total content length so a single request can't
+    // blow the token budget (50-message cap alone doesn't prevent one
+    // caller pasting an entire PDF's worth of text into one message).
+    let totalChars = 0;
+    for (const m of messages) {
+      const chars = measureMessageChars(m);
+      if (chars > MAX_MESSAGE_CHARS) {
+        return NextResponse.json(
+          scrubDebug({ error: `Each message must be under ${MAX_MESSAGE_CHARS} characters`, debug }, isAdmin),
+          { status: 413 }
+        );
+      }
+      totalChars += chars;
+    }
+    if (totalChars > MAX_TOTAL_CHARS) {
+      return NextResponse.json(
+        scrubDebug({ error: `Conversation too long (${totalChars}/${MAX_TOTAL_CHARS} characters). Start a new chat.`, debug }, isAdmin),
+        { status: 413 }
+      );
+    }
+    step("content_length_ok", { totalChars });
+
     // Step 7: Convert UIMessages from the client into model messages
     const modelMessages = await safeConvertMessages(messages);
     step("messages_converted", {
@@ -340,16 +388,26 @@ export async function POST(request: NextRequest) {
       model,
       system: systemPrompt + kbContext,
       messages: modelMessages,
+      // Log only after the stream completes so success is honest and token
+      // counts are real. The previous fire-and-forget at submit time logged
+      // success=true with no tokens regardless of whether the stream failed.
+      onFinish: ({ usage, finishReason }) => {
+        const u = usage as {
+          inputTokens?: number; outputTokens?: number;
+          promptTokens?: number; completionTokens?: number;
+        } | undefined;
+        logAIUsage({
+          userId: user.id,
+          feature: "chat",
+          model: modelName,
+          latencyMs: Date.now() - startTime,
+          success: true,
+          inputTokens: u?.inputTokens ?? u?.promptTokens,
+          outputTokens: u?.outputTokens ?? u?.completionTokens,
+          errorCode: finishReason && finishReason !== "stop" ? `finish:${finishReason}` : undefined,
+        }).catch(() => {});
+      },
     });
-
-    // Log telemetry (fire-and-forget, don't block stream)
-    logAIUsage({
-      userId: user.id,
-      feature: "chat",
-      model: modelName,
-      latencyMs: Date.now() - startTime,
-      success: true,
-    }).catch(() => {});
 
     return result.toUIMessageStreamResponse({
       onError: (error) => {

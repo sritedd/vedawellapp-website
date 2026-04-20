@@ -2,11 +2,13 @@
 
 > **PURPOSE**: This is the persistent memory for the Guardian app. Every new conversation should read this file FIRST to understand current state, what's been done, and what to work on next.
 >
-> **LAST UPDATED**: 2026-04-17
+> **LAST UPDATED**: 2026-04-20
 >
 > **ACTIVE MULTI-SESSION WORK**: Full-app hardening review. Live tracker → `guide/14-FULL-APP-REVIEW.md`. Resume from the "Next Action" pointer at the bottom of that file. Do NOT restart the review.
 
 ## Session log — full-review
+- 2026-04-20 (session 11) — Phase 7 [DONE]. AI/cost-paths audit. 7 findings; 5 P2s fixed + 1 P2 docs-closed + 1 P3 accepted. Key fixes: checkDailyQuota now fail-closed + feature-pool scoped (chat vs ai no longer drain each other), claim-review captures real tokens via `getSmartModelName()` + usage destructure, chat moves logAIUsage into `streamText.onFinish` so cost is only logged after the stream completes (prev fire-and-forget logged success=true with 0 tokens regardless of stream outcome), chat enforces MAX_MESSAGE_CHARS=8000 + MAX_TOTAL_CHARS=40000 cap (50-msg cap alone was toothless), guardian-chat `step()` debug log gated behind NODE_ENV (closes P2-10 backlog). Typecheck PASSES clean. **Phase 7 is code-only — no new migrations.** Resume from Phase 8 (Tests & CI).
+- 2026-04-20 (session 10) — Phase 6 [DONE]. Data-integrity audit. 6 findings; all fixed. Biggest unlock: referrers could never delete their account (profiles.referred_by had NO ON DELETE). New schema_v43_fk_cleanup.sql applied. stages.order_index now set on project creation.
 - 2026-04-17 (session 1) — Set up tracker + memory. Phase 1 DONE (build clean, 391 lint errors cosmetic, 62 failing tests). Phase 2 IN PROGRESS (found **P0**: `GET /api/guardian/ai/chat` is a public env-var leak; cron cron-secret fail-closed inconsistency; deleteProject cascade gaps). 20 findings recorded, 2 P0 flagged.
 - 2026-04-17 (session 3) — Phase 2 closeout. 4 remaining audits done (log-leak grep, service worker, CSP, admin routes). 1 P1 + 2 P2 found + fixed in-session: admin-export auth upgraded to `profile.is_admin OR isAdminEmail` (was env-only), OTP removed from email subject, CSP hardened (`base-uri`, `frame-ancestors 'none'`, `form-action`). Phase 2 now DONE. Next session = Phase 3 (J1..J15 workflow trace).
 - 2026-04-17 (session 2) — FIX SESSION. Both P0s closed + 6 P1s + 2 P2s. Build still passes (exit 0); Jest OOM resolved (3 prior-OOM Guardian suites now run). Changes:

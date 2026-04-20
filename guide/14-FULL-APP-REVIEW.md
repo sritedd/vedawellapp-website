@@ -272,18 +272,40 @@ Per-component: loading state present, error shown to user (not just console), no
 
 ---
 
-### PHASE 7 — AI / Cost Paths [TODO]
+### PHASE 7 — AI / Cost Paths [DONE]
 
-- [ ] Every AI route: quota → cache check → KB retrieval → inference → cache store → telemetry log
-- [ ] `ai_cache` reads + writes both use service-role
-- [ ] `checkDailyQuota` enforced on every AI route (not just chat)
-- [ ] Chat token budget / conversation summary bounded (memory flags unbounded cost)
-- [ ] Builder-check still disabled (503)
-- [ ] AI errors surface to UI as "temporarily unavailable" not silent fallbacks
-- [ ] `logAIUsage` captures tokens / model / latency / cache_hit for every request
+- [x] Every AI route: quota → cache check → KB retrieval → inference → cache store → telemetry log
+- [x] `ai_cache` reads + writes both use service-role
+- [x] `checkDailyQuota` enforced on every AI route (not just chat)
+- [x] Chat token budget / conversation summary bounded (per-message + total-chars cap added)
+- [x] Builder-check still disabled (503)
+- [x] AI errors surface to UI as "temporarily unavailable" not silent fallbacks
+- [x] `logAIUsage` captures tokens / model / latency / cache_hit for every request
 
 **Phase 7 Findings**
-_(fill in as the phase runs)_
+
+Routes audited: `describe-defect`, `stage-advice`, `claim-review`, `chat`, `builder-check` (still 503-disabled), `parse-contract`, `parse-inspector-report`. `describe-defect`, `stage-advice`, `parse-contract`, `parse-inspector-report` were already clean — full token capture, KB grounding, tiered quota, fallback payloads on failure.
+
+| ID | Sev | File : line | Issue | Status |
+|----|-----|-------------|-------|--------|
+| **P7-1** | P2 | `src/lib/ai/rate-limit.ts:69-72` | `checkDailyQuota` caught any error and returned `{ allowed: true }` — a transient DB blip silently granted unlimited AI. | ✅ FIXED — rewritten to fail-closed: returns `{ allowed: false, used: limit }` on query error so the user gets a 429 instead of free unlimited AI. Free-tier `chat` pool also short-circuits when quota=0 before any DB round-trip. |
+| **P7-2** | P2 | `src/lib/ai/rate-limit.ts:61-65` | Quota count query did not filter by `feature`, so chat calls drained the ai pool and vice-versa — a Pro user who hit 50 chat messages could no longer run `claim-review`. | ✅ FIXED — count is now scoped: `chat` pool filters `feature = 'chat'`, everything else filters `feature != 'chat'`. Logged against `ai_usage_log.feature` which every route already sets. |
+| **P7-3** | P3 | `src/app/api/guardian/ai/claim-review/route.ts` | No `cachedAI` wrapper. | Accepted — claim inputs (project state + open defects + payments) are per-request unique; caching would produce stale verdicts. Documented rationale. |
+| **P7-4** | P2 | `src/app/api/guardian/ai/claim-review/route.ts:170` | Telemetry logged `model: process.env.ANTHROPIC_API_KEY ? "claude-sonnet-4-5" : "gemini-2.5-flash"`, but Anthropic provider is currently disabled in `provider.ts`. With ANTHROPIC_API_KEY present for legacy reasons, telemetry lied about which model ran. | ✅ FIXED — imports `getSmartModelName()` and logs the real provider+model string the route actually used. |
+| **P7-5** | P2 | `claim-review/route.ts:160-173` + `chat/route.ts:339-352` | `generateText` and `streamText` both return `usage` with input/output tokens, but only `parse-contract` and `parse-inspector-report` captured them. `claim-review` logged no tokens at all; `chat` logged `success: true` with no tokens and fired **before** the stream completed — so a stream that errored mid-response was still logged as a success with 0 cost. | ✅ FIXED — `claim-review` now destructures `{ text, usage }` and logs `inputTokens` / `outputTokens` via the same `inputTokens ?? promptTokens` dual-name fallback used by `parse-contract`. `chat` moves the log into `streamText.onFinish` so cost is only recorded after the stream completes, and logs `errorCode: 'finish:<reason>'` when `finishReason !== 'stop'`. |
+| **P7-6** | P2 | `chat/route.ts:224-229` | 50-message cap existed but **no per-message or total content-length cap**. One caller pasting a 2 MB contract into a single chat message burned through Pro quota and tokens without tripping any limit. | ✅ FIXED — added `MAX_MESSAGE_CHARS = 8000` (returns 413 per-message) and `MAX_TOTAL_CHARS = 40000` (returns 413 for full conversation). `measureMessageChars` walks both `msg.content` string form and `msg.parts[].text` UIMessage form. |
+| **P7-7** | P3 | `chat/route.ts` debug-log noise | `step()` emitted `[guardian-chat] ✓ ${name}` on every step of every request in production (previously backlogged as P2-10). | ✅ FIXED — gated behind `process.env.NODE_ENV !== "production"`. Dev keeps verbose trace, prod only emits on genuine error paths (already gated). Closes P2-10. |
+
+**Not flagged — confirmed clean:**
+
+- `describe-defect/route.ts` — `cachedAI` 86400 s TTL, free-tier (rate limit + `FREE_MONTHLY_LIMIT`), fallback on 503.
+- `stage-advice/route.ts` — Pro-only, `cachedAI` 604800 s TTL, `VALID_STATES` allowlist, fallback on 503.
+- `parse-contract/route.ts` — correct reference pattern. Quota + length caps (min 100, max 50000 → truncated 15000) + KB + token capture + logAIUsage on every path.
+- `parse-inspector-report/route.ts` — mirrors parse-contract pattern exactly.
+- `builder-check/route.ts` — confirmed still 503-disabled, returns `{ error, comingSoon: true }`.
+- `lib/ai/cache.ts` — all `ai_cache` / `knowledge_base` / `ai_usage_log` reads and writes go through `getSupabaseAdmin()` (service role). `cachedAI()` wraps generate → log. No user-context Supabase client ever touches these tables.
+
+**Pending migrations for deploy**: none — all Phase 7 fixes are code-only.
 
 ---
 
@@ -332,32 +354,26 @@ Ship P0 first, then P1. P2/P3 become a separate roadmap doc.
 
 ## Next Action (update after every session)
 
-**As of 2026-04-20 (session 10)**: Phases 1 → 6 all DONE. Phase 6 audited `deleteProject` + `delete-account` cascade coverage, every FK's ON DELETE clause, stages seed path, UNIQUE race safety, and schema ↔ component consistency. 6 findings; all fixed in-session. **Biggest unlock**: P6-2 — referrers could never delete their own accounts (GDPR concern). Typecheck PASSES clean.
+**As of 2026-04-20 (session 11)**: Phases 1 → 7 all DONE. Phase 7 audited every AI route's quota/cache/KB/infer/log chain. 7 findings logged, 5 P2s fixed in-session (P7-1 fail-closed quota, P7-2 feature-pool scoping, P7-4 honest model name, P7-5 token capture in claim-review + chat via `onFinish`, P7-6 chat content-length cap), 1 P2 docs-only closed (P7-7 / P2-10 debug-log gate), 1 P3 accepted (P7-3 no-cache on claim-review is correct). Typecheck PASSES clean.
 
-**Migrations pending for deploy** (run in Supabase SQL Editor, in order):
-1. `supabase/schema_v41_variation_limit.sql` — server-side free-tier variation cap trigger (Phase 3 P3-22)
-2. `supabase/schema_v42_defect_limit.sql` — server-side free-tier defect cap trigger (Phase 5 P5-1)
-3. `supabase/schema_v43_fk_cleanup.sql` — auth.users + profiles FK ON DELETE cleanup (Phase 6 P6-2 through P6-5)
+**Migrations pending for deploy** — none for Phase 7 (code-only). Earlier sessions' migrations all applied:
+- ✅ `supabase/schema_v41_variation_limit.sql` (Phase 3 P3-22)
+- ✅ `supabase/schema_v42_defect_limit.sql` (Phase 5 P5-1)
+- ✅ `supabase/schema_v43_fk_cleanup.sql` (Phase 6 P6-2..P6-5)
 
-First thing next session — **PHASE 7: AI / Cost Paths**:
+First thing next session — **PHASE 8: Tests & CI**:
 
 ```bash
 cd c:/Users/sridh/Documents/Github/Ayurveda/vedawell-next
 
-# Per the checklist in the PHASE 7 section below:
-#   1. Every AI route: quota → cache check → KB retrieval → inference → cache store → telemetry log
-#   2. ai_cache reads + writes both use service-role
-#   3. checkDailyQuota enforced on every AI route (not just chat)
-#   4. Chat token budget / conversation summary bounded
-#   5. Builder-check still disabled (503)
-#   6. AI errors surface to UI as "temporarily unavailable" not silent fallbacks
-#   7. logAIUsage captures tokens/model/latency/cache_hit for every request
-#
-# Approach:
-#   - Walk every route in src/app/api/guardian/ai/*
-#   - Confirm each one: import checkDailyQuota, retrieveKnowledge, logAIUsage
-#   - For each: check the cache path uses service-role client, not user client
-#   - Grep for isCheapAIAvailable / isAIAvailable to find any unguarded AI call
+# Per the checklist in the PHASE 8 section below:
+#   1. Jest unit tests pass
+#   2. Playwright E2E: at minimum guardian-ai.spec.ts passes
+#   3. Add smoke E2E: signup → project → defect → export
+#   4. Netlify build settings recorded in guide/00-APP-MEMORY.md
+#   5. Sentry DSN wired; verify a deliberate error shows up
+#   6. GA4 purchase event fires server-side from webhook
+#   7. npm audit — 1 critical + 11 high: triage + targeted upgrades
 ```
 
 Also remaining open from earlier phases: **P3-32** (P2: AdminSupportInbox silently swallows reply failure), Phase 4 P3 backlog (P4-2, P4-8, P4-10, P4-11, P4-12, P4-13, P4-14, P4-15, P4-16), carry-over polish (P3-6 payment activity log, P3-7 payment fetch error, P1-5/6/7/8 type-cleanup), and Phase 5 P3 read-only silent-read backlog (SmartDashboard ~8 silent reads, ProjectHealthScore 5 silent reads, PaymentSchedule silent fetchData; InspectionTimeline stage-promotion silent update at line 131-136; PreHandoverChecklist 3 silent updates at lines 335/371/439; StageGate defect-override loop silent updates at lines 278-286; NCC2025Compliance 2 silent deletes at lines 433/439).

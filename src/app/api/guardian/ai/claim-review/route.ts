@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { generateText } from "ai";
-import { getSmartModel, isAIAvailable } from "@/lib/ai/provider";
+import { getSmartModel, getSmartModelName, isAIAvailable } from "@/lib/ai/provider";
 import { checkRateLimit, checkProAccess, checkDailyQuota } from "@/lib/ai/rate-limit";
 import { logAIUsage, retrieveKnowledge } from "@/lib/ai/cache";
 
@@ -157,19 +157,26 @@ PAY = all clear, safe to pay. HOLD = minor issues to resolve first. DISPUTE = se
     }
 
     const startTime = Date.now();
-    const { text } = await generateText({
+    const { text, usage } = await generateText({
       model: getSmartModel(),
       prompt,
     });
     const latencyMs = Date.now() - startTime;
+    const inputTokens = (usage as { inputTokens?: number; promptTokens?: number } | undefined)?.inputTokens
+      ?? (usage as { inputTokens?: number; promptTokens?: number } | undefined)?.promptTokens;
+    const outputTokens = (usage as { outputTokens?: number; completionTokens?: number } | undefined)?.outputTokens
+      ?? (usage as { outputTokens?: number; completionTokens?: number } | undefined)?.completionTokens;
 
-    // Log telemetry (fire-and-forget)
+    // Log telemetry (fire-and-forget). Model name is derived from the active
+    // provider, not a guess based on ANTHROPIC_API_KEY presence.
     logAIUsage({
       userId: user.id,
       feature: "claim-review",
-      model: process.env.ANTHROPIC_API_KEY ? "claude-sonnet-4-5" : "gemini-2.5-flash",
+      model: getSmartModelName(),
       latencyMs,
       success: true,
+      inputTokens,
+      outputTokens,
     }).catch(() => {});
 
     // Parse JSON from AI response
