@@ -193,7 +193,13 @@ export default function ProjectDefects({ projectId, stages, builderEmail, onData
             .single();
 
         if (insertError) {
-            setError(`Failed to save: ${insertError.message}`);
+            // Server-side trigger (schema_v42) surfaces as FREE_TIER_DEFECT_LIMIT
+            // for free users who bypassed the client-side guard.
+            if (insertError.message?.includes("FREE_TIER_DEFECT_LIMIT")) {
+                setError(`Free plan allows ${FREE_DEFECT_LIMIT} defect reports. Upgrade to Guardian Pro for unlimited.`);
+            } else {
+                setError(`Failed to save: ${insertError.message}`);
+            }
         } else if (data) {
             setDefects([{
                 ...data,
@@ -311,10 +317,20 @@ export default function ProjectDefects({ projectId, stages, builderEmail, onData
                 .from("evidence")
                 .getPublicUrl(filePath);
 
-            await supabase
+            const { error: updateErr } = await supabase
                 .from("defects")
                 .update({ image_url: urlData.publicUrl })
                 .eq("id", defectId);
+
+            if (updateErr) {
+                // Rollback: remove the uploaded blob so we don't leak storage
+                // on a failed metadata write, then surface the error.
+                await supabase.storage.from("evidence").remove([filePath]);
+                setError(`Photo upload saved but could not be linked to defect: ${updateErr.message}`);
+                setUploadingPhotoId(null);
+                if (fileInputRef.current) fileInputRef.current.value = "";
+                return;
+            }
 
             setDefects(defects.map(d =>
                 d.id === defectId ? { ...d, image_url: urlData.publicUrl } : d

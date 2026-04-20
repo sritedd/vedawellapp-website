@@ -191,7 +191,11 @@ export default function ProgressPhotos({ projectId, stages }: ProgressPhotosProp
             console.warn("Could not parse storage URL for cleanup:", photo.photo_url);
         }
 
-        await supabase.from("progress_photos").delete().eq("id", photo.id);
+        const { error: delErr } = await supabase.from("progress_photos").delete().eq("id", photo.id);
+        if (delErr) {
+            setError(`Failed to delete photo: ${delErr.message}`);
+            return;
+        }
         setPhotos(photos.filter(p => p.id !== photo.id));
     };
 

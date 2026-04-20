@@ -38,6 +38,7 @@ export default function DocumentVault({ projectId }: DocumentVaultProps) {
     const [uploading, setUploading] = useState(false);
     const [selectedType, setSelectedType] = useState("contract");
     const [customName, setCustomName] = useState("");
+    const [fetchError, setFetchError] = useState("");
 
     useEffect(() => {
         fetchDocuments();
@@ -51,10 +52,28 @@ export default function DocumentVault({ projectId }: DocumentVaultProps) {
             .eq("project_id", projectId)
             .order("uploaded_at", { ascending: false });
 
-        if (!error && data) {
+        if (error) {
+            console.error("[DocumentVault] fetch failed:", error.message);
+            setFetchError("Could not load documents. Refresh to try again.");
+        } else if (data) {
             setDocuments(data);
+            setFetchError("");
         }
         setLoading(false);
+    };
+
+    // Extract the storage object path from a public URL so we can delete the
+    // blob cleanly. Falls back to the raw split if URL parsing fails.
+    const extractStoragePath = (fileUrl: string): string | null => {
+        try {
+            const url = new URL(fileUrl);
+            const match = url.pathname.match(/\/object\/(?:public|sign)\/documents\/(.+)/);
+            if (match?.[1]) return decodeURIComponent(match[1]);
+        } catch {
+            // fall through
+        }
+        const parts = fileUrl.split("/documents/");
+        return parts[1] ?? null;
     };
 
     const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -71,11 +90,11 @@ export default function DocumentVault({ projectId }: DocumentVaultProps) {
 
         setUploading(true);
         const supabase = createClient();
+        const fileName = `${projectId}/${Date.now()}_${file.name}`;
 
         try {
             // Upload to Supabase Storage
-            const fileName = `${projectId}/${Date.now()}_${file.name}`;
-            const { data: uploadData, error: uploadError } = await supabase.storage
+            const { error: uploadError } = await supabase.storage
                 .from("documents")
                 .upload(fileName, file);
 
@@ -99,7 +118,12 @@ export default function DocumentVault({ projectId }: DocumentVaultProps) {
                 file_url: urlData.publicUrl,
             });
 
-            if (insertError) throw insertError;
+            if (insertError) {
+                // Roll back the storage upload — otherwise a metadata failure
+                // leaves an orphan blob the user can never see or delete.
+                await supabase.storage.from("documents").remove([fileName]);
+                throw insertError;
+            }
 
             // Refresh documents
             fetchDocuments();
@@ -116,15 +140,29 @@ export default function DocumentVault({ projectId }: DocumentVaultProps) {
         if (!confirm("Are you sure you want to delete this document?")) return;
 
         const supabase = createClient();
+
+        // Look up the file URL first so we can clean up storage too. Without
+        // this the row is deleted but the blob stays in the bucket forever.
+        const doc = documents.find((d) => d.id === docId);
+        const storagePath = doc ? extractStoragePath(doc.file_url) : null;
+
         const { error } = await supabase
             .from("documents")
             .delete()
             .eq("id", docId)
             .eq("project_id", projectId);
 
-        if (!error) {
-            setDocuments(documents.filter((d) => d.id !== docId));
+        if (error) {
+            alert(`Failed to delete document: ${error.message}`);
+            return;
         }
+
+        if (storagePath) {
+            // Best-effort: orphan cleanup after the DB row is gone.
+            await supabase.storage.from("documents").remove([storagePath]);
+        }
+
+        setDocuments(documents.filter((d) => d.id !== docId));
     };
 
     // Calculate completion status
@@ -159,6 +197,12 @@ export default function DocumentVault({ projectId }: DocumentVaultProps) {
                     </div>
                 </div>
             </div>
+
+            {fetchError && (
+                <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+                    {fetchError}
+                </div>
+            )}
 
             {/* Upload Section */}
             <div className="p-6 bg-card border border-border rounded-xl">

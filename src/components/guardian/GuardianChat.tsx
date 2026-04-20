@@ -91,10 +91,15 @@ export default function GuardianChat({
         : "New Conversation";
 
       if (conversationId) {
-        await supabase
+        const { error: updateErr } = await supabase
           .from("ai_conversations")
           .update({ messages: msgs, title })
           .eq("id", conversationId);
+
+        if (updateErr) {
+          console.error("[GuardianChat] Failed to save conversation:", updateErr.message);
+          return;
+        }
 
         setConversations((prev) =>
           prev.map((c) =>
@@ -104,7 +109,7 @@ export default function GuardianChat({
           )
         );
       } else {
-        const { data } = await supabase
+        const { data, error: insertErr } = await supabase
           .from("ai_conversations")
           .insert({
             project_id: projectId,
@@ -114,6 +119,11 @@ export default function GuardianChat({
           })
           .select("id, title, messages, updated_at")
           .single();
+
+        if (insertErr) {
+          console.error("[GuardianChat] Failed to create conversation:", insertErr.message);
+          return;
+        }
 
         if (data) {
           setActiveConversationId(data.id);
@@ -190,7 +200,11 @@ export default function GuardianChat({
   async function deleteConversation(convId: string, e: React.MouseEvent) {
     e.stopPropagation();
     const supabase = createClient();
-    await supabase.from("ai_conversations").delete().eq("id", convId);
+    const { error: delErr } = await supabase.from("ai_conversations").delete().eq("id", convId);
+    if (delErr) {
+      alert(`Failed to delete conversation: ${delErr.message}`);
+      return;
+    }
     setConversations((prev) => prev.filter((c) => c.id !== convId));
     if (activeConversationId === convId) {
       setActiveConversationId(null);

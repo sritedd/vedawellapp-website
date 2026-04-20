@@ -317,12 +317,22 @@ export default function StageGate({ projectId, currentStage, nextStage, onProcee
             .eq("name", stageName);
 
         // Fallback: try ilike match if exact name didn't work
+        let fallbackError: { message: string } | null = null;
         if (updateError || stageName === currentStage) {
-            await supabase
+            const { error: ilikeError } = await supabase
                 .from("stages")
                 .update({ status: "completed", completion_date: new Date().toISOString().split("T")[0] })
                 .eq("project_id", projectId)
                 .ilike("name", `%${currentStage.replace(/_/g, " ")}%`);
+            fallbackError = ilikeError;
+        }
+
+        // If both paths errored, don't advance — user would see UI move forward
+        // while DB still flags the stage as in_progress, and the next gate
+        // check would whiplash them back.
+        if (updateError && fallbackError) {
+            alert(`Could not mark stage complete: ${fallbackError.message}. Please try again.`);
+            return;
         }
 
         setShowConfirmation(false);

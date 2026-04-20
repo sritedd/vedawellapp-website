@@ -89,13 +89,24 @@ export default function TwoFactorSetup() {
 
       if (verifyError) throw verifyError;
 
-      // Update profile
+      // Update profile — MFA factor is already enrolled + verified in auth.mfa
+      // at this point, so a failure here means the UI flag drifts from reality:
+      // user is actually challenged on login but profile shows MFA disabled.
+      // Surface the error so they know to refresh or contact support.
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        await supabase.from("profiles").update({
+        const { error: profileErr } = await supabase.from("profiles").update({
           mfa_enabled: true,
           mfa_verified_at: new Date().toISOString(),
         }).eq("id", user.id);
+
+        if (profileErr) {
+          setError(
+            "2FA is enrolled, but the account flag could not be saved. Refresh the page — if it still shows disabled, contact support."
+          );
+          setStatus("enabled");
+          return;
+        }
       }
 
       setStatus("enabled");
