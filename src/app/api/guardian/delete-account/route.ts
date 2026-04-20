@@ -114,6 +114,7 @@ export async function POST(req: NextRequest) {
                 "escalations",
                 "inspections",
                 "materials",
+                "ncc_checklist_items",
                 "payments",
                 "pre_handover_items",
                 "progress_photos",

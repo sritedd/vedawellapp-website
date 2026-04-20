@@ -205,7 +205,8 @@ export default function NewProjectPage() {
 
             // 3. Seed stages and checklist items based on workflow
             let stageFailures = 0;
-            for (const stageTemplate of stages) {
+            for (let stageIdx = 0; stageIdx < stages.length; stageIdx++) {
+                const stageTemplate = stages[stageIdx];
                 const paymentPercent = (stageTemplate as any).paymentMilestone
                     ? parseFloat(((stageTemplate as any).paymentMilestone as string).match(/\d+/)?.[0] || "0")
                     : 0;
@@ -217,6 +218,7 @@ export default function NewProjectPage() {
                         name: stageTemplate.name,
                         status: "pending",
                         payment_percentage: paymentPercent,
+                        order_index: stageIdx,
                     })
                     .select()
                     .single();

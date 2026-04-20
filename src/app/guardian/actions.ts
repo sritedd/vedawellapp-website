@@ -110,6 +110,7 @@ export async function deleteProject(projectId: string) {
         { name: "escalations", method: "direct" as const },
         { name: "inspections", method: "direct" as const },
         { name: "materials", method: "direct" as const },
+        { name: "ncc_checklist_items", method: "direct" as const },
         { name: "payments", method: "direct" as const },
         { name: "pre_handover_items", method: "direct" as const },
         { name: "progress_photos", method: "direct" as const },

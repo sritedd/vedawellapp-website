@@ -238,19 +238,37 @@ Per-component: loading state present, error shown to user (not just console), no
 
 ---
 
-### PHASE 6 — Data Integrity [TODO]
+### PHASE 6 — Data Integrity [DONE]
 
-- [ ] `deleteProject` cascade covers every table referencing `project_id`
-- [ ] Storage buckets purged on project/account deletion
-- [ ] FK constraints + ON DELETE CASCADE defined in schema for every child table
-- [ ] No UNIQUE violation races (e.g., referral codes, phone numbers)
-- [ ] `updated_at` triggers present on every user-editable table
-- [ ] `stages` always seeded on project create; `order_index` never null
-- [ ] No component queries a table that doesn't exist
-- [ ] No component reads a column that no longer exists
+- [x] `deleteProject` cascade covers every table referencing `project_id`
+- [x] Storage buckets purged on project/account deletion
+- [x] FK constraints + ON DELETE CASCADE defined in schema for every child table
+- [x] No UNIQUE violation races (e.g., referral codes, phone numbers)
+- [x] `updated_at` triggers present on every user-editable table
+- [x] `stages` always seeded on project create; `order_index` never null
+- [x] No component queries a table that doesn't exist
+- [x] No component reads a column that no longer exists
 
 **Phase 6 Findings**
-_(fill in as the phase runs)_
+
+| ID | Pri | Location | Issue | Status |
+|----|-----|----------|-------|--------|
+| P6-1 | P3 | `src/app/guardian/actions.ts:99-121`, `src/app/api/guardian/delete-account/route.ts:104-125` | `ncc_checklist_items` missing from explicit project-scoped sweep in both deletion flows. CASCADE on `project_id` handles it transitively, but defence-in-depth list was out of sync with schema. | FIXED — added to both lists |
+| P6-2 | P2 | `supabase/schema_unified.sql:38` | `profiles.referred_by UUID REFERENCES auth.users(id)` had **no ON DELETE clause** (defaults to NO ACTION). Every successful referrer would be unable to delete their own account: `auth.admin.deleteUser()` would fail because the referee's `profiles.referred_by` still references the referrer's `auth.users` row. GDPR/right-to-deletion concern. | FIXED — `schema_v43` sets ON DELETE SET NULL + schema_unified synced |
+| P6-3 | P3 | `supabase/schema_unified.sql:328`, `:337` | `announcements.created_by` + `support_messages.admin_id` → `auth.users(id)` with no ON DELETE clause. Blocks admin self-deletion if they've written an announcement or replied to support. | FIXED — `schema_v43` sets ON DELETE SET NULL |
+| P6-4 | P3 | `supabase/schema_unified.sql:21` | `profiles.id UUID REFERENCES auth.users` had no ON DELETE. Current flow manually deletes profile first so this doesn't surface as a bug, but any future code path that skips that step would break auth deletion. Standard Supabase pattern is CASCADE. | FIXED — `schema_v43` ADD CONSTRAINT … ON DELETE CASCADE |
+| P6-5 | P3 | `supabase/schema_unified.sql:60` | `projects.user_id UUID REFERENCES profiles(id)` had no ON DELETE. Same defence-in-depth concern as P6-4. | FIXED — `schema_v43` ON DELETE CASCADE |
+| P6-6 | P2 | `src/app/guardian/projects/new/page.tsx:208-222` | Stage insert never set `order_index`, and `stages.order_index INTEGER` is nullable → every stage seeded with NULL. All 13 components that `.order("order_index")` on stages (project detail, AI chat, Export PDF, ProjectOverview, ExportCenter, TimelineBenchmark, InspectionTimeline, ProgressTimeline, ProjectChecklists, SmartDashboard, StageChecklist, ShareProgressCard, export-pdf route) were getting arbitrary order. Index `idx_stages_project_order` existed but was unused. | FIXED — loop now sets `order_index: stageIdx` on each insert |
+
+**Audited clean (no findings)**
+- All 21 `project_id` FKs (stages, variations, defects, certifications, inspections, weekly_checkins, documents, payments, communication_log, progress_photos, materials, site_visits, pre_handover_items, contract_review_items, builder_reviews, ai_conversations, activity_log, escalations, project_members, allowances, ncc_checklist_items) confirmed `ON DELETE CASCADE`.
+- Storage bucket cleanup: both deleteProject and delete-account sweep all 3 buckets (`evidence`, `documents`, `certificates`) × 4 subdirs (photos, defects, certs, signatures). All upload sites verified to target only these buckets.
+- `ai_usage_log.user_id` has `ON DELETE SET NULL` ✓; `account_deletion_log.user_id UUID NOT NULL` intentionally has no FK (survives deletion as audit trail).
+- UNIQUE constraints: `profiles.referral_code UNIQUE` + generate-with-retry loop in refer/page.tsx; `profiles.phone` unique partial index; both race-safe (collision surfaces as error, not silent duplicate).
+- `updated_at` triggers present on 8 tables that have the column (pre_handover_items, contract_review_items, builder_reviews, ai_conversations, escalations, project_members, allowances, notification_preferences). Older tables without updated_at column rely on `created_at` + status fields — scope creep, not a bug.
+- Phase 4 + Phase 5 already verified no component queries a nonexistent table/column (the one regression — `ClaimReview` probing `projects.current_stage` — was closed in Phase 4 P4-1).
+
+**Phase 6 verdict**: 6 findings, 6 fixed in-session. 1 P2 (referred_by FK) + 1 P2 (stages.order_index) + 4 P3s (sweep defence-in-depth + three minor FK gaps). Typecheck PASSES clean. Migration pending: `schema_v43_fk_cleanup.sql` must run in Supabase SQL Editor.
 
 ---
 
@@ -314,33 +332,32 @@ Ship P0 first, then P1. P2/P3 become a separate roadmap doc.
 
 ## Next Action (update after every session)
 
-**As of 2026-04-20 (session 9)**: Phase 1 + Phase 2 + Phase 3 + Phase 4 + Phase 5 all DONE. Phase 5 audited all 78 Guardian components across 5 batches (mutation → dashboard → AI → admin/settings → export/read-only). 15 findings: 2 P1s (defect-limit bypass server-side + ShouldIPay fail-safe verdict) + 12 P2s (silent writes, storage orphans, state drift) + 1 misc — all 14 mutation-path issues fixed in-session. 3 read-only dashboards with cosmetic silent reads deferred to P3. Build PASSES clean.
+**As of 2026-04-20 (session 10)**: Phases 1 → 6 all DONE. Phase 6 audited `deleteProject` + `delete-account` cascade coverage, every FK's ON DELETE clause, stages seed path, UNIQUE race safety, and schema ↔ component consistency. 6 findings; all fixed in-session. **Biggest unlock**: P6-2 — referrers could never delete their own accounts (GDPR concern). Typecheck PASSES clean.
 
 **Migrations pending for deploy** (run in Supabase SQL Editor, in order):
 1. `supabase/schema_v41_variation_limit.sql` — server-side free-tier variation cap trigger (Phase 3 P3-22)
 2. `supabase/schema_v42_defect_limit.sql` — server-side free-tier defect cap trigger (Phase 5 P5-1)
+3. `supabase/schema_v43_fk_cleanup.sql` — auth.users + profiles FK ON DELETE cleanup (Phase 6 P6-2 through P6-5)
 
-First thing next session — **PHASE 6: Data Integrity** (schema ↔ component ↔ cascade consistency):
+First thing next session — **PHASE 7: AI / Cost Paths**:
 
 ```bash
 cd c:/Users/sridh/Documents/Github/Ayurveda/vedawell-next
 
-# Per the checklist in the PHASE 6 section above:
-#   1. deleteProject cascade covers every table referencing project_id
-#   2. Storage buckets (evidence, documents, certificates, progress-photos) purged on project/account deletion
-#   3. FK constraints + ON DELETE CASCADE in schema for every child table
-#   4. No UNIQUE violation races (referral codes, phone numbers, etc.)
-#   5. updated_at triggers on every user-editable table
-#   6. stages always seeded on project create; order_index never null
-#   7. No component queries a table that doesn't exist
-#   8. No component reads a column that no longer exists
+# Per the checklist in the PHASE 7 section below:
+#   1. Every AI route: quota → cache check → KB retrieval → inference → cache store → telemetry log
+#   2. ai_cache reads + writes both use service-role
+#   3. checkDailyQuota enforced on every AI route (not just chat)
+#   4. Chat token budget / conversation summary bounded
+#   5. Builder-check still disabled (503)
+#   6. AI errors surface to UI as "temporarily unavailable" not silent fallbacks
+#   7. logAIUsage captures tokens/model/latency/cache_hit for every request
 #
 # Approach:
-#   - Compare src/app/guardian/actions.ts::deleteProject against full child-table list
-#     from src/types/guardian.ts + supabase/schema_unified.sql
-#   - For each bucket with user uploads, confirm cleanup path exists
-#   - grep src/ for `.from("<table>")` → validate table exists in schema_unified
-#   - grep src/ for specific column selects → validate column still present
+#   - Walk every route in src/app/api/guardian/ai/*
+#   - Confirm each one: import checkDailyQuota, retrieveKnowledge, logAIUsage
+#   - For each: check the cache path uses service-role client, not user client
+#   - Grep for isCheapAIAvailable / isAIAvailable to find any unguarded AI call
 ```
 
 Also remaining open from earlier phases: **P3-32** (P2: AdminSupportInbox silently swallows reply failure), Phase 4 P3 backlog (P4-2, P4-8, P4-10, P4-11, P4-12, P4-13, P4-14, P4-15, P4-16), carry-over polish (P3-6 payment activity log, P3-7 payment fetch error, P1-5/6/7/8 type-cleanup), and Phase 5 P3 read-only silent-read backlog (SmartDashboard ~8 silent reads, ProjectHealthScore 5 silent reads, PaymentSchedule silent fetchData; InspectionTimeline stage-promotion silent update at line 131-136; PreHandoverChecklist 3 silent updates at lines 335/371/439; StageGate defect-override loop silent updates at lines 278-286; NCC2025Compliance 2 silent deletes at lines 433/439).
@@ -423,6 +440,15 @@ Optional follow-up work queued but not blocking:
   - **P5-9/10/11/12/13/14/15 (P2 × 7)**: `ProjectMembers.handleRemove` silent non-OK, `SiteDiary` insert silent (tribunal evidence), `WeeklyCheckIn` insert silent, `CommunicationLog` insert silent, `BuilderEscalation` insert silent (letter generated but not logged), `InspectorReportImport` partial-failure silent count, `CertificationGate` storage orphan — all fixed with alert()/setMessage/rollback patterns.
   - Audited clean (no fix): ProjectVariations, ProjectHealthScore, MilestoneCelebrations, AIDefectAssist, AIStageAdvice, ClaimReview, ContractParser, AdminUserManager, AdminUserSearch, NotificationPreferences, ProjectSettings, PendingInvitations, PhoneVerificationGate, AllowanceTracker, MaterialRegistry, BuilderRatings, CSVImport, MobilePhotoCapture.
   - Build: PASSES clean. Phase 5 header now `[DONE]`. Next: Phase 6 (Data Integrity — schema ↔ component ↔ cascade consistency).
+- **2026-04-20 (session 10)** — PHASE 6 COMPLETE. Schema ↔ component ↔ cascade audit across all 21 `project_id` FKs + all `auth.users` FKs + stages-seeding path. 6 findings; all fixed in-session.
+  - **P6-2 (P2)**: `profiles.referred_by UUID REFERENCES auth.users(id)` had NO ON DELETE clause (NO ACTION default). Any user who had successfully referred someone could not delete their own account — `auth.admin.deleteUser()` would fail because the referee's `profiles.referred_by` still pointed at the referrer's `auth.users` row. GDPR/right-to-deletion concern. **Fix**: new `supabase/schema_v43_fk_cleanup.sql` — DROP + ADD CONSTRAINT with `ON DELETE SET NULL`. Preserves referee's profile while allowing referrer to delete.
+  - **P6-6 (P2)**: Stage insert in `projects/new/page.tsx:213-222` never set `order_index`, and `stages.order_index INTEGER` was nullable → every stage seeded with NULL. 13 components/routes that `.order("order_index")` on stages (project detail, AI chat, Export PDF, ProjectOverview, ExportCenter, TimelineBenchmark, InspectionTimeline, ProgressTimeline, ProjectChecklists, SmartDashboard, StageChecklist, ShareProgressCard, export-pdf route) were silently getting arbitrary order. Index `idx_stages_project_order` existed but was unused. **Fix**: converted `for (const stageTemplate of stages)` → `for (let stageIdx = 0; …)` + added `order_index: stageIdx` to the insert payload.
+  - **P6-1 (P3)**: `ncc_checklist_items` was in the schema (v29) but missing from the explicit project-scoped sweep in both `deleteProject` (`src/app/guardian/actions.ts`) and `delete-account/route.ts`. CASCADE handles it transitively but the defence-in-depth list was stale. **Fix**: added to both lists.
+  - **P6-3 (P3)**: `announcements.created_by` + `support_messages.admin_id` → `auth.users(id)` both had no ON DELETE. Blocks admin self-deletion. Low severity (admins rarely self-delete) but `schema_v43` now sets both `ON DELETE SET NULL`.
+  - **P6-4/P6-5 (P3)**: `profiles.id` and `projects.user_id` — no ON DELETE clauses. Current flows manually delete in the correct order, so no user-facing bug, but a future code path that skipped that order would break auth deletion. `schema_v43` adds `ON DELETE CASCADE` to both — standard Supabase pattern + defence in depth.
+  - `schema_unified.sql` re-synced to reflect v43 clauses so it stays source-of-truth.
+  - **Audited clean**: all 21 `project_id` FKs already CASCADE; storage buckets (evidence/documents/certificates) all purged in both deletion flows; `account_deletion_log.user_id` intentionally has no FK (audit trail); referral-code + phone UNIQUE constraints are race-safe (collision surfaces as error, not silent duplicate); `updated_at` triggers present on all 8 tables that have the column.
+  - Typecheck: PASSES clean (no errors). Phase 6 header now `[DONE]`. **Migrations pending for deploy** (order matters): `schema_v41_variation_limit.sql` → `schema_v42_defect_limit.sql` → `schema_v43_fk_cleanup.sql`. Next: Phase 7 (AI / Cost Paths).
 
 - **2026-04-20 (session 8)** — PHASE 4 COMPLETE. Audited all ~30 API routes across 4 batches (AI / data / auth-account / external-cron-stripe). Logged 16 findings P4-1..P4-16; closed 1 P1 + 4 P2s; deferred 8 P3 polish items to backlog.
   - **P4-1 (P1)**: `claim-review/route.ts` selecting non-existent `current_stage` column → every request 404'd with PostgREST silently returning no rows. Removed column from select; current stage now computed from first non-completed `stages` row. Also added `.error` check on project query.

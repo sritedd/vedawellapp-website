@@ -18,7 +18,7 @@ CREATE EXTENSION IF NOT EXISTS vector;
 
 -- ── 1.01 profiles ───────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS profiles (
-  id                    UUID REFERENCES auth.users NOT NULL PRIMARY KEY,
+  id                    UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL PRIMARY KEY,
   email                 TEXT,
   full_name             TEXT,
   phone                 TEXT,
@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS profiles (
   -- Referral (v11)
   referral_code         TEXT UNIQUE,
   referral_count        INTEGER DEFAULT 0,
-  referred_by           UUID REFERENCES auth.users(id),
+  referred_by           UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   -- Phone verification (v21)
   phone_verified        BOOLEAN DEFAULT false,
   phone_verified_at     TIMESTAMPTZ,
@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS profiles (
 -- ── 1.02 projects ───────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS projects (
   id                    UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  user_id               UUID REFERENCES profiles(id) NOT NULL,
+  user_id               UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
   name                  TEXT NOT NULL,
   builder_name          TEXT,
   contract_value        NUMERIC,
@@ -325,7 +325,7 @@ CREATE TABLE IF NOT EXISTS announcements (
   type                  TEXT DEFAULT 'info' CHECK (type IN ('info', 'warning', 'success')),
   active                BOOLEAN DEFAULT true,
   created_at            TIMESTAMPTZ DEFAULT now(),
-  created_by            UUID REFERENCES auth.users(id)
+  created_by            UUID REFERENCES auth.users(id) ON DELETE SET NULL
 );
 
 -- ── 1.19 support_messages ──────────────────────────────────────────────────
@@ -334,7 +334,7 @@ CREATE TABLE IF NOT EXISTS support_messages (
   user_id               UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   message               TEXT NOT NULL,
   is_admin_reply        BOOLEAN DEFAULT false,
-  admin_id              UUID REFERENCES auth.users(id),
+  admin_id              UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   read_at               TIMESTAMPTZ,
   created_at            TIMESTAMPTZ DEFAULT now()
 );
