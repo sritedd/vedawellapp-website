@@ -117,6 +117,7 @@ export default function InspectorReportImport({ projectId }: { projectId: string
     if (!user) { setCreating(false); return; }
 
     let count = 0;
+    let lastError: string | null = null;
     for (const defect of selected) {
       const { error } = await supabase.from("defects").insert({
         project_id: projectId,
@@ -129,10 +130,20 @@ export default function InspectorReportImport({ projectId }: { projectId: string
         status: "open",
         reported_date: result.inspectionDate || new Date().toISOString().split("T")[0],
       });
-      if (!error) count++;
+      if (!error) {
+        count++;
+      } else {
+        lastError = error.message;
+        console.error("[InspectorReportImport] insert failed:", error.message);
+      }
     }
 
     setCreated(count);
+    if (count < selected.length && lastError) {
+      // Partial or total failure — surface it so the user knows some defects
+      // didn't land instead of silently showing a lower count.
+      setError(`${selected.length - count} of ${selected.length} defects failed to save: ${lastError}`);
+    }
     setCreating(false);
   };
 

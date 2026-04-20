@@ -84,6 +84,9 @@ export default function CertificationGate({
     const handleUpload = async (certType: string, file: File) => {
         setUploading(certType);
         const supabase = createClient();
+        // Track the uploaded blob name so we can roll it back if the DB write
+        // fails — otherwise a metadata failure leaves an orphan in storage.
+        let uploadedFileName: string | null = null;
 
         try {
             // Upload file
@@ -93,6 +96,7 @@ export default function CertificationGate({
                 .upload(fileName, file);
 
             if (uploadError) throw uploadError;
+            uploadedFileName = fileName;
 
             const { data: urlData } = supabase.storage
                 .from("certificates")
@@ -127,6 +131,9 @@ export default function CertificationGate({
             fetchCertifications();
         } catch (err) {
             console.error("Upload error:", err);
+            if (uploadedFileName) {
+                await supabase.storage.from("certificates").remove([uploadedFileName]);
+            }
             alert("Failed to upload certificate.");
         } finally {
             setUploading(null);

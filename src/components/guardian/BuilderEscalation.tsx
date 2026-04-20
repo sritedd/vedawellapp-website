@@ -106,21 +106,23 @@ export default function BuilderEscalation({ projectId }: { projectId: string }) 
       letter_type: escalationGenerators[level - 1]?.name || `Level ${level}`,
     });
 
-    if (!error) {
-      // Generate letter
-      const params: TemplateParams = {
-        homeownerName: homeownerName || "Homeowner",
-        builderName: builderName || "Builder",
-        defectDescription: defect?.title || "Unspecified defect",
-        projectAddress,
-        daysSinceReport: defect ? Math.floor((Date.now() - new Date(defect.created_at).getTime()) / 86400000) : 0,
-        state: projectState,
-      };
-      const letter = escalationGenerators[level - 1]?.generator(params) || "";
-      setGeneratedLetter(letter);
-      setActiveLevel(level);
-      fetchData();
+    if (error) {
+      alert(`Could not start escalation: ${error.message}`);
+      return;
     }
+    // Generate letter
+    const params: TemplateParams = {
+      homeownerName: homeownerName || "Homeowner",
+      builderName: builderName || "Builder",
+      defectDescription: defect?.title || "Unspecified defect",
+      projectAddress,
+      daysSinceReport: defect ? Math.floor((Date.now() - new Date(defect.created_at).getTime()) / 86400000) : 0,
+      state: projectState,
+    };
+    const letter = escalationGenerators[level - 1]?.generator(params) || "";
+    setGeneratedLetter(letter);
+    setActiveLevel(level);
+    fetchData();
   };
 
   const generateLetter = (level: number) => {

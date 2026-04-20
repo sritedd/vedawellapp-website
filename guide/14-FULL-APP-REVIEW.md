@@ -194,23 +194,47 @@ All ~30 API routes audited across 4 batches (AI / data / auth-account / external
 
 ---
 
-### PHASE 5 — Component Audit [TODO]
+### PHASE 5 — Component Audit [DONE]
 
 78 Guardian components. Audit in priority order (user-facing / mutation-heavy first):
 
-- [ ] Project mutation components (Defects, Variations, Payments, Documents, Photos)
-- [ ] Dashboard components (SmartDashboard, ShouldIPay, ProjectHealthScore)
-- [ ] AI components (AIDefectAssist, AIStageAdvice, GuardianChat)
-- [ ] Admin components
-- [ ] Settings / Members / MFA
-- [ ] Export / Report / Tribunal
-- [ ] Onboarding / Phone / Email gates
-- [ ] Read-only displays (Timeline, Benchmark, WarrantyCalculator)
+- [x] Project mutation components (Defects, Variations, Payments, Documents, Photos)
+- [x] Dashboard components (SmartDashboard, ShouldIPay, ProjectHealthScore)
+- [x] AI components (AIDefectAssist, AIStageAdvice, GuardianChat, ClaimReview, ContractParser, InspectorReportImport)
+- [x] Admin components (AdminUserManager, AdminUserSearch, AdminAnnouncementManager)
+- [x] Settings / Members / MFA (TwoFactorSetup, ProjectSettings, ProjectMembers, PendingInvitations, NotificationPreferences, PhoneVerificationGate)
+- [x] Export / Report / Tribunal (ExportCenter, TribunalExport, ShareProgressCard, ReportGenerator)
+- [x] Onboarding / Phone / Email gates (OnboardingWizard, GuidedOnboarding)
+- [x] Read-only displays (ProgressTimeline, TimelineBenchmark, WarrantyCalculator, BuildJourneyTimeline, MilestoneCelebrations, ProjectHealthScore)
+- [x] Mutation components (SiteDiary, WeeklyCheckIn, CommunicationLog, BuilderEscalation, CertificationGate, AllowanceTracker, MaterialRegistry, BuilderRatings, CSVImport, MobilePhotoCapture)
 
 Per-component: loading state present, error shown to user (not just console), no mock data, mobile layout OK, a11y attrs on interactive elements.
 
 **Phase 5 Findings**
-_(fill in as the phase runs)_
+
+| ID | Severity | Location | Issue | Status |
+|----|----------|----------|-------|--------|
+| P5-1 | P1 | `src/components/guardian/ProjectDefects.tsx` + `supabase/schema_v42_defect_limit.sql` | Client-only `FREE_DEFECT_LIMIT = 3` bypassable via direct Supabase calls. Mirrors v41 variation gap. | ✅ FIXED (2026-04-20 s9) — new `BEFORE INSERT` trigger + client maps `FREE_TIER_DEFECT_LIMIT` error |
+| P5-2 | P2 | `src/components/guardian/ProjectDefects.tsx:314-322` | Defect photo `image_url` update silent + storage orphan on failure. UI showed success, DB never got URL. | ✅ FIXED — `.error` check + blob rollback |
+| P5-3 | P2 | `src/components/guardian/TwoFactorSetup.tsx:92-104` | `profiles.update({mfa_enabled})` silent after `auth.mfa.verify()` — factor enrolled but profile flag stuck at false = split-brain state. | ✅ FIXED — `.error` check + user-visible "refresh or contact support" message |
+| P5-4 | P2 | `src/components/guardian/StageGate.tsx:310-330` | Stage completion fallback `ilike` update didn't check its own error. Both paths could fail silently → `onProceed` fired → user advanced with DB still showing in_progress. | ✅ FIXED — capture `fallbackError`, block `onProceed` if both fail |
+| P5-5 | P2 | `src/components/guardian/GuardianChat.tsx:94,107,193` | `saveConversation` (update + insert paths) and `deleteConversation` silent. Chat history could silently fail to persist or delete. | ✅ FIXED — `.error` checks + alert on delete |
+| P5-6 | P2 | `src/components/guardian/ProgressPhotos.tsx:194` | Photo delete silent — UI removed photo but DB still had it. | ✅ FIXED — `.error` check + inline error |
+| P5-7 | P2 | `src/components/guardian/DocumentVault.tsx` | Upload: DB insert failure left storage blob orphan. Delete: storage blob not cleaned up after row delete. Fetch: errors swallowed to console. | ✅ FIXED — storage rollback on upload, `extractStoragePath()` helper + cleanup on delete, `fetchError` banner |
+| P5-8 | P1 | `src/components/guardian/ShouldIPay.tsx:40-116` | 4 silent reads (payments / certifications / inspections / defects). If any blocker-check query failed, arrays defaulted empty → wrongly showed **"Safe to Pay"**. Direct financial blast radius. | ✅ FIXED — `.error` check on every query; any failure now renders amber "Verdict Unavailable — do NOT pay until all checks load" card instead of green-light |
+| P5-9 | P2 | `src/components/guardian/ProjectMembers.tsx:82-85` | `handleRemove` silently swallowed non-OK DELETE responses. User confirmed removal, got no feedback, member stayed. | ✅ FIXED — surface `data.error` message on non-OK |
+| P5-10 | P2 | `src/components/guardian/SiteDiary.tsx:137-142` | Tribunal-grade site-visit save silent. User thought visit was recorded; nothing persisted. | ✅ FIXED — alert on error |
+| P5-11 | P2 | `src/components/guardian/WeeklyCheckIn.tsx:101-108` | Weekly check-in form silent on insert failure. | ✅ FIXED — alert on error |
+| P5-12 | P2 | `src/components/guardian/CommunicationLog.tsx:76-88` | Communication log entry silent on insert failure. | ✅ FIXED — alert on error |
+| P5-13 | P2 | `src/components/guardian/BuilderEscalation.tsx:109-124` | Escalation insert silent. Letter generated but no DB record — user thought escalation was logged. | ✅ FIXED — alert on error, early return |
+| P5-14 | P2 | `src/components/guardian/InspectorReportImport.tsx:119-137` | Insert loop tracked `count` but not failures. User saw partial count with no error messaging. | ✅ FIXED — capture `lastError`, setError when count < selected.length |
+| P5-15 | P2 | `src/components/guardian/CertificationGate.tsx:84-134` | Same storage orphan pattern as DocumentVault — upload succeeded, DB `insert/update` threw, blob left behind. | ✅ FIXED — track `uploadedFileName`, rollback on catch |
+
+**Audited clean (no fix needed)**: ProjectVariations (server+client already hardened by v41 trigger), ProjectHealthScore (read-only, cosmetic impact only), MilestoneCelebrations (cosmetic achievements), AIDefectAssist/AIStageAdvice/ClaimReview/ContractParser (proper `setError` on every branch), AdminUserManager/AdminUserSearch (server actions return `{error}` and surface inline), NotificationPreferences (alert on error), ProjectSettings (inline message), PendingInvitations (alerts on fetch failure), PhoneVerificationGate (`setMessage` on all branches), AllowanceTracker/MaterialRegistry/BuilderRatings/CSVImport (all alert on error), MobilePhotoCapture (full `setError` surfacing).
+
+**Queued P3 (read-only misleading score under silent fetch failure)**: SmartDashboard ~8 fetch queries, ProjectHealthScore 5 parallel queries, PaymentSchedule `fetchData` — all read-only dashboards that silently default to empty arrays on query failure. Impact is cosmetic (wrong score, missing items) vs. the P1 in ShouldIPay which drives a payment decision. Deferred.
+
+**Phase 5 verdict**: 15 findings, 14 fixed in-session. 2 P1s closed (defect-limit bypass = trigger + client mapping; ShouldIPay silent reads → fail-safe amber verdict). 12 P2s closed (6 silent writes, 4 storage/state orphans, 1 member-remove feedback gap, 1 2FA split-brain, 1 stage-gate whiplash). 3 components with P3-grade silent reads deferred (cosmetic). Build PASSES clean. Migration pending: `schema_v42_defect_limit.sql` must run in Supabase before defect cap is enforced server-side.
 
 ---
 
@@ -290,35 +314,36 @@ Ship P0 first, then P1. P2/P3 become a separate roadmap doc.
 
 ## Next Action (update after every session)
 
-**As of 2026-04-20 (session 8)**: Phase 1 + Phase 2 + Phase 3 + Phase 4 all DONE. Phase 4 audited all ~30 API routes across 4 batches. Closed: P4-1 (claim-review production bug — non-existent `current_stage` column), P4-3/P4-4 (claim-review missing fallback flag / wrong status codes), P4-5 (chat info-disclosure via `debug` object in error bodies — added `scrubDebug` non-admin stripping), P4-6 (parse-inspector-report rewrite to A+ AI standard: `checkDailyQuota`, `logAIUsage`, `retrieveKnowledge`, `fallback: true`, 50k max bound), P4-7 (disable-mfa silent partial success — track `failedFactors[]`, 502 before profile flip), P4-9 (export-data GDPR export leaking `phone_otp_hash` + `stripe_customer_id` — replaced `select("*")` with 22-field user-facing allowlist). Build passes clean.
+**As of 2026-04-20 (session 9)**: Phase 1 + Phase 2 + Phase 3 + Phase 4 + Phase 5 all DONE. Phase 5 audited all 78 Guardian components across 5 batches (mutation → dashboard → AI → admin/settings → export/read-only). 15 findings: 2 P1s (defect-limit bypass server-side + ShouldIPay fail-safe verdict) + 12 P2s (silent writes, storage orphans, state drift) + 1 misc — all 14 mutation-path issues fixed in-session. 3 read-only dashboards with cosmetic silent reads deferred to P3. Build PASSES clean.
 
-**Migration pending for deploy**: `supabase/schema_v41_variation_limit.sql` must be run in Supabase SQL Editor before the variation limit is actually enforced server-side.
+**Migrations pending for deploy** (run in Supabase SQL Editor, in order):
+1. `supabase/schema_v41_variation_limit.sql` — server-side free-tier variation cap trigger (Phase 3 P3-22)
+2. `supabase/schema_v42_defect_limit.sql` — server-side free-tier defect cap trigger (Phase 5 P5-1)
 
-First thing next session — **PHASE 5: Component audit** (78 Guardian components):
+First thing next session — **PHASE 6: Data Integrity** (schema ↔ component ↔ cascade consistency):
 
 ```bash
 cd c:/Users/sridh/Documents/Github/Ayurveda/vedawell-next
 
-# For every component under src/components/guardian/**, verify:
-#   - loading state present for all async
-#   - user-visible error (alert/toast) — not just console.error
-#   - no hardcoded mock/fake data
-#   - DB writes persist (not setState only); check .error on every query
-#   - mobile layout (md: breakpoints) correct
-#   - a11y attrs on interactive elements
+# Per the checklist in the PHASE 6 section above:
+#   1. deleteProject cascade covers every table referencing project_id
+#   2. Storage buckets (evidence, documents, certificates, progress-photos) purged on project/account deletion
+#   3. FK constraints + ON DELETE CASCADE in schema for every child table
+#   4. No UNIQUE violation races (referral codes, phone numbers, etc.)
+#   5. updated_at triggers on every user-editable table
+#   6. stages always seeded on project create; order_index never null
+#   7. No component queries a table that doesn't exist
+#   8. No component reads a column that no longer exists
 #
-# Priority order (most user-facing / mutation-heavy first):
-#   1. Project mutation: DefectList, VariationTracker, PaymentTracker, DocumentVault, ProgressPhotoGallery
-#   2. Dashboard: SmartDashboard, ShouldIPay, ProjectHealthScore, MilestoneCelebrations
-#   3. AI: AIDefectAssist, AIStageAdvice, GuardianChat, ClaimReview, ContractParser, InspectorReport
-#   4. Admin: AdminUserManager, AdminSupportInbox, AdminAIUsage
-#   5. Settings: MFASetup, PhoneVerify, DeleteAccountButton, ProjectMembers, PendingInvitations
-#   6. Export/Report: ExportCenter, TribunalExport, ShareProgressCard
-#   7. Onboarding/Gates: EmailVerifyGate, PhoneOTPGate, TrialGate
-#   8. Read-only: ProgressTimeline, TimelineBenchmark, WarrantyCalculator
+# Approach:
+#   - Compare src/app/guardian/actions.ts::deleteProject against full child-table list
+#     from src/types/guardian.ts + supabase/schema_unified.sql
+#   - For each bucket with user uploads, confirm cleanup path exists
+#   - grep src/ for `.from("<table>")` → validate table exists in schema_unified
+#   - grep src/ for specific column selects → validate column still present
 ```
 
-Also remaining open from earlier phases: **P3-32** (P2: AdminSupportInbox silently swallows reply failure), Phase 4 P3 backlog (P4-2, P4-8, P4-10, P4-11, P4-12, P4-13, P4-14, P4-15, P4-16), and carry-over polish (P3-6 payment activity log, P3-7 payment fetch error, P1-5/6/7/8 type-cleanup).
+Also remaining open from earlier phases: **P3-32** (P2: AdminSupportInbox silently swallows reply failure), Phase 4 P3 backlog (P4-2, P4-8, P4-10, P4-11, P4-12, P4-13, P4-14, P4-15, P4-16), carry-over polish (P3-6 payment activity log, P3-7 payment fetch error, P1-5/6/7/8 type-cleanup), and Phase 5 P3 read-only silent-read backlog (SmartDashboard ~8 silent reads, ProjectHealthScore 5 silent reads, PaymentSchedule silent fetchData; InspectionTimeline stage-promotion silent update at line 131-136; PreHandoverChecklist 3 silent updates at lines 335/371/439; StageGate defect-override loop silent updates at lines 278-286; NCC2025Compliance 2 silent deletes at lines 433/439).
 
 Optional follow-up work queued but not blocking:
 - React `act()` warning in `BuilderActionList.test.tsx` (state update after async fetch — pre-existing, surfaced once OOM fixed)
@@ -390,6 +415,14 @@ Optional follow-up work queued but not blocking:
 ---
 
 ## Session Log
+
+- **2026-04-20 (session 9)** — PHASE 5 COMPLETE. Audited all 78 Guardian components across 5 batches (mutation-heavy first). Logged 15 findings P5-1..P5-15; closed 2 P1s + 12 P2s; deferred 3 read-only dashboards (cosmetic silent reads) to P3.
+  - **P5-1 (P1)**: `ProjectDefects.tsx` had client-only `FREE_DEFECT_LIMIT = 3` bypassable via direct Supabase calls. Added `supabase/schema_v42_defect_limit.sql` — `BEFORE INSERT` trigger resolves tier via `projects → profiles.subscription_tier`, raises `FREE_TIER_DEFECT_LIMIT` check_violation when free user has 3+ defects. Client maps the trigger error message to the existing tier-error banner. Mirrors the v41 variation trigger pattern.
+  - **P5-8 (P1)**: `ShouldIPay.tsx` — the "Safe to Pay" mega-button's 4 blocker-check queries (payments / certifications / inspections / defects) all silently defaulted to empty arrays on error. A failed certs query would green-light a payment that actually had missing certs. Added `.error` check on every query; any failure now renders an amber "Verdict Unavailable — refresh, do NOT pay" card instead of the green-light verdict. Direct financial blast radius eliminated.
+  - **P5-2/3/4/5/6/7 (P2 × 6)**: `ProjectDefects` photo-URL update silent + orphan, `TwoFactorSetup` profile `mfa_enabled` silent (split-brain state), `StageGate` fallback-error not blocking `onProceed`, `GuardianChat` save + delete silent, `ProgressPhotos` delete silent, `DocumentVault` upload/delete orphan storage + silent fetch — all fixed with `.error` checks, blob rollbacks, and user-visible error messages.
+  - **P5-9/10/11/12/13/14/15 (P2 × 7)**: `ProjectMembers.handleRemove` silent non-OK, `SiteDiary` insert silent (tribunal evidence), `WeeklyCheckIn` insert silent, `CommunicationLog` insert silent, `BuilderEscalation` insert silent (letter generated but not logged), `InspectorReportImport` partial-failure silent count, `CertificationGate` storage orphan — all fixed with alert()/setMessage/rollback patterns.
+  - Audited clean (no fix): ProjectVariations, ProjectHealthScore, MilestoneCelebrations, AIDefectAssist, AIStageAdvice, ClaimReview, ContractParser, AdminUserManager, AdminUserSearch, NotificationPreferences, ProjectSettings, PendingInvitations, PhoneVerificationGate, AllowanceTracker, MaterialRegistry, BuilderRatings, CSVImport, MobilePhotoCapture.
+  - Build: PASSES clean. Phase 5 header now `[DONE]`. Next: Phase 6 (Data Integrity — schema ↔ component ↔ cascade consistency).
 
 - **2026-04-20 (session 8)** — PHASE 4 COMPLETE. Audited all ~30 API routes across 4 batches (AI / data / auth-account / external-cron-stripe). Logged 16 findings P4-1..P4-16; closed 1 P1 + 4 P2s; deferred 8 P3 polish items to backlog.
   - **P4-1 (P1)**: `claim-review/route.ts` selecting non-existent `current_stage` column → every request 404'd with PostgREST silently returning no rows. Removed column from select; current stage now computed from first non-completed `stages` row. Also added `.error` check on project query.

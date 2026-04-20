@@ -134,11 +134,13 @@ export default function SiteDiary({ projectId, onSaved }: SiteDiaryProps) {
     });
 
     setSaving(false);
-    if (!error) {
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
-      onSaved?.();
+    if (error) {
+      alert(`Failed to save site visit: ${error.message}`);
+      return;
     }
+    setSaved(true);
+    setTimeout(() => setSaved(false), 3000);
+    onSaved?.();
   };
 
   return (

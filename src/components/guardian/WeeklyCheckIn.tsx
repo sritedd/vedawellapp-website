@@ -98,14 +98,16 @@ export default function WeeklyCheckIn({ projectId }: WeeklyCheckInProps) {
             photos_count: 0,
         });
 
-        if (!error) {
-            setShowForm(false);
-            setFormData({
-                status: "on_track", notes: "", weather: "sunny",
-                workers_on_site: 0, work_completed: "", next_week_plan: "", issues: [],
-            });
-            fetchCheckIns();
+        if (error) {
+            alert(`Failed to save check-in: ${error.message}`);
+            return;
         }
+        setShowForm(false);
+        setFormData({
+            status: "on_track", notes: "", weather: "sunny",
+            workers_on_site: 0, work_completed: "", next_week_plan: "", issues: [],
+        });
+        fetchCheckIns();
     };
 
     const toggleIssue = (issue: string) => {

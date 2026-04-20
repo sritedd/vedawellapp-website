@@ -82,6 +82,11 @@ export default function ProjectMembers({ projectId }: { projectId: string }) {
       if (res.ok) {
         fetchMembers();
         setMessage({ type: "success", text: `Removed ${email}` });
+      } else {
+        // Without this branch a 403/404 would silently leave the member in
+        // place with no user feedback — confusing after a confirm prompt.
+        const data = await res.json().catch(() => ({}));
+        setMessage({ type: "error", text: data?.error || "Failed to remove member" });
       }
     } catch {
       setMessage({ type: "error", text: "Failed to remove member" });

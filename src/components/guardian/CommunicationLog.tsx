@@ -73,19 +73,21 @@ export default function CommunicationLog({ projectId }: CommunicationLogProps) {
             follow_up_date: formData.follow_up_required ? formData.follow_up_date : null,
         });
 
-        if (!error) {
-            setShowForm(false);
-            setFormData({
-                type: "call",
-                date: new Date().toISOString().split("T")[0],
-                summary: "",
-                details: "",
-                builder_response: "",
-                follow_up_required: false,
-                follow_up_date: "",
-            });
-            fetchEntries();
+        if (error) {
+            alert(`Failed to save communication entry: ${error.message}`);
+            return;
         }
+        setShowForm(false);
+        setFormData({
+            type: "call",
+            date: new Date().toISOString().split("T")[0],
+            summary: "",
+            details: "",
+            builder_response: "",
+            follow_up_required: false,
+            follow_up_date: "",
+        });
+        fetchEntries();
     };
 
     const filteredEntries = filter

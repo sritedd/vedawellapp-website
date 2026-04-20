@@ -31,17 +31,25 @@ export default function ShouldIPay({ projectId, contractValue, currentStage, onN
     const [nextPayment, setNextPayment] = useState<PaymentRow | null>(null);
     const [blockers, setBlockers] = useState<BlockerItem[]>([]);
     const [totalPaid, setTotalPaid] = useState(0);
+    const [fetchError, setFetchError] = useState(false);
 
     useEffect(() => {
         async function analyse() {
             const supabase = createClient();
 
             // 1. Get next unpaid payment milestone
-            const { data: payments } = await supabase
+            const { data: payments, error: paymentsErr } = await supabase
                 .from("payments")
                 .select("id, stage_name, percentage, amount, status, certificates_required")
                 .eq("project_id", projectId)
                 .order("percentage", { ascending: true });
+
+            if (paymentsErr) {
+                console.error("[ShouldIPay] payments fetch failed:", paymentsErr.message);
+                setFetchError(true);
+                setLoading(false);
+                return;
+            }
 
             if (!payments || payments.length === 0) {
                 setLoading(false);
@@ -60,34 +68,46 @@ export default function ShouldIPay({ projectId, contractValue, currentStage, onN
             setNextPayment(next);
 
             const issues: BlockerItem[] = [];
+            // Track whether any blocker-check query failed. If so we must NOT
+            // show "Safe to Pay" — a silent read failure could otherwise
+            // green-light a payment that actually has open certs/defects.
+            let checkFailed = false;
 
             // 2. Check required certificates
             if (next.certificates_required?.length > 0) {
-                const { data: certs } = await supabase
+                const { data: certs, error: certsErr } = await supabase
                     .from("certifications")
                     .select("type, status")
                     .eq("project_id", projectId);
 
-                for (const reqCert of next.certificates_required) {
-                    const norm = reqCert.toLowerCase().replace(/[^a-z]/g, "_");
-                    const found = (certs || []).find((c: { type: string; status: string }) => {
-                        const cNorm = c.type.toLowerCase().replace(/[^a-z]/g, "_");
-                        return cNorm === norm && (c.status === "uploaded" || c.status === "verified");
-                    });
-                    if (!found) {
-                        issues.push({ type: "certificate", label: reqCert, tab: "certificates" });
+                if (certsErr) {
+                    console.error("[ShouldIPay] certifications fetch failed:", certsErr.message);
+                    checkFailed = true;
+                } else {
+                    for (const reqCert of next.certificates_required) {
+                        const norm = reqCert.toLowerCase().replace(/[^a-z]/g, "_");
+                        const found = (certs || []).find((c: { type: string; status: string }) => {
+                            const cNorm = c.type.toLowerCase().replace(/[^a-z]/g, "_");
+                            return cNorm === norm && (c.status === "uploaded" || c.status === "verified");
+                        });
+                        if (!found) {
+                            issues.push({ type: "certificate", label: reqCert, tab: "certificates" });
+                        }
                     }
                 }
             }
 
             // 3. Check for failed inspections at current stage
-            const { data: inspections } = await supabase
+            const { data: inspections, error: inspectionsErr } = await supabase
                 .from("inspections")
                 .select("stage, result")
                 .eq("project_id", projectId)
                 .eq("result", "failed");
 
-            if (inspections && inspections.length > 0) {
+            if (inspectionsErr) {
+                console.error("[ShouldIPay] inspections fetch failed:", inspectionsErr.message);
+                checkFailed = true;
+            } else if (inspections && inspections.length > 0) {
                 for (const insp of inspections) {
                     issues.push({
                         type: "inspection",
@@ -98,14 +118,17 @@ export default function ShouldIPay({ projectId, contractValue, currentStage, onN
             }
 
             // 4. Check for critical/major open defects
-            const { data: defects } = await supabase
+            const { data: defects, error: defectsErr } = await supabase
                 .from("defects")
                 .select("title, severity")
                 .eq("project_id", projectId)
                 .in("severity", ["critical", "major"])
                 .not("status", "in", "(verified,rectified)");
 
-            if (defects && defects.length > 0) {
+            if (defectsErr) {
+                console.error("[ShouldIPay] defects fetch failed:", defectsErr.message);
+                checkFailed = true;
+            } else if (defects && defects.length > 0) {
                 for (const d of defects) {
                     issues.push({
                         type: "defect",
@@ -115,6 +138,9 @@ export default function ShouldIPay({ projectId, contractValue, currentStage, onN
                 }
             }
 
+            if (checkFailed) {
+                setFetchError(true);
+            }
             setBlockers(issues);
             setLoading(false);
         }
@@ -125,6 +151,35 @@ export default function ShouldIPay({ projectId, contractValue, currentStage, onN
     if (loading) {
         return (
             <div className="animate-pulse h-28 rounded-2xl bg-muted/30" />
+        );
+    }
+
+    // Query failed — refuse to render a verdict because a silent read error
+    // could otherwise show "Safe to Pay" against missing cert/defect data.
+    if (fetchError) {
+        return (
+            <button
+                onClick={() => onNavigateTab("payments")}
+                className="w-full p-5 rounded-2xl border-2 border-amber-300 bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/30 dark:border-amber-800 text-left transition-transform active:scale-[0.99]"
+            >
+                <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-full bg-amber-500 flex items-center justify-center flex-shrink-0">
+                        <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="12" y1="9" x2="12" y2="13" />
+                            <line x1="12" y1="17" x2="12.01" y2="17" />
+                            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-bold text-amber-800 dark:text-amber-300">
+                            Verdict Unavailable
+                        </h3>
+                        <p className="text-sm text-amber-700 dark:text-amber-400 mt-0.5">
+                            Could not verify payment readiness. Refresh to try again — do NOT pay until all checks load.
+                        </p>
+                    </div>
+                </div>
+            </button>
         );
     }
 
