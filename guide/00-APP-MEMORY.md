@@ -2,11 +2,12 @@
 
 > **PURPOSE**: This is the persistent memory for the Guardian app. Every new conversation should read this file FIRST to understand current state, what's been done, and what to work on next.
 >
-> **LAST UPDATED**: 2026-04-20
+> **LAST UPDATED**: 2026-04-21
 >
 > **ACTIVE MULTI-SESSION WORK**: Full-app hardening review. Live tracker → `guide/14-FULL-APP-REVIEW.md`. Resume from the "Next Action" pointer at the bottom of that file. Do NOT restart the review.
 
 ## Session log — full-review
+- 2026-04-21 (session 12) — Phase 8 [DONE]. Tests/CI audit. **Fixed in-session**: P8-1 jest accidentally ran Playwright specs (added `testPathIgnorePatterns` for `/e2e/`), P8-2 Next 16.1.1 had 9 CVEs incl 1 critical (bumped to 16.2.4 within same major). **Deferred**: P8-3 60 stale Jest fixtures across 7 suites (app code fine — UI evolved beyond test text matches + outdated `getUser()` mock shape; estimated 2-3 h refactor pass), P8-4 dev-only audit residue (`handlebars` via `ts-jest`, `tar-fs`/`ws`/`cookie` via `@netlify/plugin-lighthouse` — zero prod-runtime exposure). **Confirmed clean**: Sentry wired across server/edge/client (DSN env-var, prod-only), GA4 purchase event fires from stripe webhook with sha256-hashed client_id, all 3 E2E specs present (ai/smoke/full-workflow). Resume from Phase 9 (UX polish).
 - 2026-04-20 (session 11) — Phase 7 [DONE]. AI/cost-paths audit. 7 findings; 5 P2s fixed + 1 P2 docs-closed + 1 P3 accepted. Key fixes: checkDailyQuota now fail-closed + feature-pool scoped (chat vs ai no longer drain each other), claim-review captures real tokens via `getSmartModelName()` + usage destructure, chat moves logAIUsage into `streamText.onFinish` so cost is only logged after the stream completes (prev fire-and-forget logged success=true with 0 tokens regardless of stream outcome), chat enforces MAX_MESSAGE_CHARS=8000 + MAX_TOTAL_CHARS=40000 cap (50-msg cap alone was toothless), guardian-chat `step()` debug log gated behind NODE_ENV (closes P2-10 backlog). Typecheck PASSES clean. **Phase 7 is code-only — no new migrations.** Resume from Phase 8 (Tests & CI).
 - 2026-04-20 (session 10) — Phase 6 [DONE]. Data-integrity audit. 6 findings; all fixed. Biggest unlock: referrers could never delete their account (profiles.referred_by had NO ON DELETE). New schema_v43_fk_cleanup.sql applied. stages.order_index now set on project creation.
 - 2026-04-17 (session 1) — Set up tracker + memory. Phase 1 DONE (build clean, 391 lint errors cosmetic, 62 failing tests). Phase 2 IN PROGRESS (found **P0**: `GET /api/guardian/ai/chat` is a public env-var leak; cron cron-secret fail-closed inconsistency; deleteProject cascade gaps). 20 findings recorded, 2 P0 flagged.

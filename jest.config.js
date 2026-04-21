@@ -16,6 +16,9 @@ const customJestConfig = {
         '**/__tests__/**/*.[jt]s?(x)',
         '**/?(*.)+(spec|test).[jt]s?(x)',
     ],
+    // e2e/ holds Playwright specs — they import @playwright/test and fail to
+    // load under Jest. Playwright runs them via `npx playwright test`.
+    testPathIgnorePatterns: ['/node_modules/', '/e2e/', '/.next/'],
 };
 
 module.exports = createJestConfig(customJestConfig);
