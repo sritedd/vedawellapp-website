@@ -336,19 +336,31 @@ Routes audited: `describe-defect`, `stage-advice`, `claim-review`, `chat`, `buil
 
 ---
 
-### PHASE 9 — UX Polish [TODO]
+### PHASE 9 — UX Polish [DONE]
 
-- [ ] Empty states on every list view (no defects, no photos, no payments)
-- [ ] Loading skeletons vs spinners consistent
-- [ ] Error toast component used everywhere (not raw `alert()`)
-- [ ] Mobile nav + FAB + modal all usable on <375 px screens
-- [ ] Dark-mode contrast audit (memory flagged this once)
-- [ ] Copy: no "TODO" / "Coming Soon" / placeholder text in production
-- [ ] 404 and 500 pages branded
-- [ ] Favicon / manifest / OG images present for every route
+- [x] Empty states on every list view — 23 components have explicit "No X yet" empty states (defects, payments, photos, variations, activity, notifications, inspections, site visits, etc.). Coverage is proportional to the surface that actually needs it; read-only dashboards don't need an empty state.
+- [x] Loading skeletons vs spinners consistent — 37 components use `animate-spin` or `animate-pulse`; the mix is intentional (spinners for buttons, pulses for card skeletons).
+- [x] Copy: no stray "TODO" / "Coming Soon" / placeholder text — 3 matches confirmed intentional (Panchang "Coming Soon" page per roadmap, `PricingClient` yearly button when `pro_yearly.priceId` unset, `lorem-ipsum-generator` which literally generates Lorem Ipsum).
+- [x] 404 branded — [src/app/not-found.tsx](vedawell-next/src/app/not-found.tsx) (🔍 emoji, Go Home + Browse Tools CTAs).
+- [x] 500 branded — [src/app/error.tsx](vedawell-next/src/app/error.tsx) (⚠️ emoji, Sentry.captureException, dev-only error text, Try Again button). Inline-styled fallback at [src/app/global-error.tsx](vedawell-next/src/app/global-error.tsx).
+- [x] Favicon / manifest / OG images present — `src/app/favicon.ico`, `src/app/opengraph-image.tsx` (edge runtime, branded gradient design), `public/manifest.json` linked via [layout.tsx:50](vedawell-next/src/app/layout.tsx#L50).
+- [ ] Mobile nav / FAB / modal on <375 px — can't verify without browser (deferred to P9-3).
+- [ ] Dark-mode contrast audit — can't verify without browser (deferred to P9-3).
 
 **Phase 9 Findings**
-_(fill in as the phase runs)_
+
+| ID | Sev | File : line | Issue | Status |
+|----|-----|-------------|-------|--------|
+| **P9-1** | P3 | 22 components with 34 total `alert()` calls (full list below) | The app has no Toast component — every user-visible error falls back to `window.alert()`. Works but looks amateur, blocks the user, and can't be styled or stacked. The components.md rule endorses `alert()` as fallback for visibility, but the review checklist calls for a proper toast system. | ⏸️ DEFERRED — implementing a toast context + migrating 34 call sites is a 3-4 h refactor. Callers: `AllowanceTracker` (3), `BuilderEscalation` (1), `BuilderRatings` (1), `CalendarExport` (1), `CertificationGate` (1), `CommunicationLog` (1), `DocumentVault` (3), `ExportCenter` (4), `GuardianChat` (1), `MaterialRegistry` (2), `NotificationPreferences` (1), `PaymentSchedule` (1), `PendingInvitations` (1), `ProjectDefects` (3), `ProjectVariations` (1), `QuestionBank` (1), `SiteDiary` (1), `StageGate` (1), `WeeklyCheckIn` (1), `guardian/profile/page.tsx` (1), `pricing/PricingClient.tsx` (3), `tools/invoice-generator/page.tsx` (1). Does NOT block ship — errors still surface to users. |
+| **P9-2** | P3 | `public/manifest.json` icons | PWA install icons are weak: only `favicon.ico@48x48` + `og-default.png@1200x630`. Proper PWA requires 192×192 + 512×512 maskable icons. Layout also references `https://vedawellapp.com/icon-512.png` (schema.org logo) but no such file exists under `public/`. | ⏸️ DEFERRED — requires generating and committing icon PNGs. Low impact (PWA install is not a primary user path for this app). |
+| **P9-3** | P3 | visual audit items | Mobile <375 px layout + dark-mode contrast require running the dev server + inspecting in a browser. | ⏸️ DEFERRED — visual review out of scope for an offline code-read phase. |
+
+**Not flagged — confirmed clean:**
+
+- `src/app/not-found.tsx`, `src/app/error.tsx`, `src/app/global-error.tsx`, `src/app/loading.tsx`, `src/app/opengraph-image.tsx` — all present, branded, Sentry-wired where needed.
+- `public/manifest.json` — exists, linked from `layout.tsx`, has `name` / `short_name` / `description` / `start_url` / `display: standalone` / `theme_color` / `categories`.
+- Empty-state coverage across Guardian components — satisfactory (23 list components, 37 with loading states).
+- No unintentional placeholder strings in production copy.
 
 ---
 
@@ -367,27 +379,23 @@ Ship P0 first, then P1. P2/P3 become a separate roadmap doc.
 
 ## Next Action (update after every session)
 
-**As of 2026-04-21 (session 12)**: Phases 1 → 8 all DONE. Phase 8 audited tests/CI. **Findings**: P8-1 jest accidentally runs Playwright specs (FIXED — testPathIgnorePatterns), P8-2 Next 16.1.1 had 9 CVEs incl 1 critical (FIXED — bumped to 16.2.4 within same major), P8-3 60 stale Jest test fixtures across 7 suites (DEFERRED — app code is fine, fixtures need refactor pass), P8-4 dev-only audit residue from `@netlify/plugin-lighthouse` + `ts-jest` chain (DEFERRED — zero prod-runtime exposure). Sentry wired across server/edge/client. GA4 purchase event confirmed firing from stripe webhook. E2E coverage adequate (ai + smoke + full-workflow specs all present).
+**As of 2026-04-21 (session 12)**: Phases 1 → 9 all DONE. Phase 9 audited UX polish via code inspection. **Findings**: P9-1 the app has no Toast component (34 raw `alert()` calls across 22 components — DEFERRED as 3-4 h refactor; errors still surface), P9-2 PWA manifest icons weak (DEFERRED — low-impact), P9-3 mobile <375 px + dark-mode audits require a browser (DEFERRED to visual review session). **Confirmed clean**: 404, 500, global-error, loading, OG image, favicon, manifest — all present and branded. Empty-state coverage across 23 list components, loading-state coverage across 37 components. No stray placeholder / TODO / "Coming Soon" copy (3 matches all intentional).
 
-**Migrations pending for deploy** — none for Phase 7 or Phase 8 (code-only). Earlier sessions' migrations all applied:
+**Migrations pending for deploy** — none for Phases 7 / 8 / 9 (code-only). Earlier sessions' migrations all applied:
 - ✅ `supabase/schema_v41_variation_limit.sql` (Phase 3 P3-22)
 - ✅ `supabase/schema_v42_defect_limit.sql` (Phase 5 P5-1)
 - ✅ `supabase/schema_v43_fk_cleanup.sql` (Phase 6 P6-2..P6-5)
 
-First thing next session — **PHASE 9: UX Polish**:
+First thing next session — **PHASE 10: Prioritize & Ship**:
 
 ```bash
 cd c:/Users/sridh/Documents/Github/Ayurveda/vedawell-next
 
-# Per the checklist in the PHASE 9 section below:
-#   1. Empty states on every list view (no defects, no photos, no payments)
-#   2. Loading skeletons vs spinners consistent
-#   3. Error toast component used everywhere (not raw alert())
-#   4. Mobile nav + FAB + modal usable on <375 px screens
-#   5. Dark-mode contrast audit
-#   6. No "TODO" / "Coming Soon" / placeholder text in production
-#   7. 404 and 500 pages branded
-#   8. Favicon / manifest / OG images present for every route
+# Consolidate every finding across Phases 1-9 into a ship plan:
+#   1. Re-group all open findings by severity (P0/P1/P2/P3)
+#   2. Draft a launch/ship doc: what blocks, what ships with, what's post-launch
+#   3. Capture the deferred backlogs (P8-3 test fixtures, P8-4 dev audit, P9-1 toast, P9-2 PWA icons, P9-3 visual review, plus Phase 3-5 P3 carry-overs)
+#   4. Write the user-facing "what's new / what's hardened" changelog
 ```
 
 Also remaining open from earlier phases: **P3-32** (P2: AdminSupportInbox silently swallows reply failure), Phase 4 P3 backlog (P4-2, P4-8, P4-10, P4-11, P4-12, P4-13, P4-14, P4-15, P4-16), carry-over polish (P3-6 payment activity log, P3-7 payment fetch error, P1-5/6/7/8 type-cleanup), and Phase 5 P3 read-only silent-read backlog (SmartDashboard ~8 silent reads, ProjectHealthScore 5 silent reads, PaymentSchedule silent fetchData; InspectionTimeline stage-promotion silent update at line 131-136; PreHandoverChecklist 3 silent updates at lines 335/371/439; StageGate defect-override loop silent updates at lines 278-286; NCC2025Compliance 2 silent deletes at lines 433/439).
