@@ -36,6 +36,7 @@ export default function AdminSupportInbox({ initial }: { initial: Conversation[]
     const [conversations, setConversations] = useState<Conversation[]>(initial);
     const [activeId, setActiveId] = useState<string | null>(null);
     const [reply, setReply] = useState("");
+    const [replyError, setReplyError] = useState<string | null>(null);
     const [isPending, startTransition] = useTransition();
     const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -57,10 +58,16 @@ export default function AdminSupportInbox({ initial }: { initial: Conversation[]
         if (!reply.trim() || !activeId || isPending) return;
         const text = reply.trim();
         setReply("");
+        setReplyError(null);
 
         startTransition(async () => {
             const res = await adminReply(activeId, text);
-            if (res.error) return;
+            if (res.error) {
+                console.error("[AdminSupportInbox] adminReply failed:", res.error);
+                setReplyError(res.error || "Failed to send reply. Please try again.");
+                setReply(text);
+                return;
+            }
             const { conversations: fresh } = await getAdminConversations();
             setConversations(fresh as Conversation[]);
         });
@@ -179,6 +186,18 @@ export default function AdminSupportInbox({ initial }: { initial: Conversation[]
 
                         {/* Reply input */}
                         <div className="border-t border-border px-3 py-2.5">
+                            {replyError && (
+                                <div className="mb-2 px-3 py-2 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 flex items-start justify-between gap-2">
+                                    <span>⚠️ {replyError}</span>
+                                    <button
+                                        onClick={() => setReplyError(null)}
+                                        className="text-red-500 hover:text-red-700 font-bold shrink-0"
+                                        aria-label="Dismiss"
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+                            )}
                             <div className="flex items-end gap-2">
                                 <textarea
                                     value={reply}

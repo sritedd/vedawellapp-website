@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { logActivity } from "@/lib/activity-log";
 import type { Payment } from "@/types/guardian";
 
 interface PaymentScheduleProps {
@@ -13,6 +14,7 @@ export default function PaymentSchedule({ projectId, contractValue }: PaymentSch
     const [payments, setPayments] = useState<Payment[]>([]);
     const [certifications, setCertifications] = useState<{ type: string; status: string }[]>([]);
     const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState<string | null>(null);
     const [showPayConfirm, setShowPayConfirm] = useState<string | null>(null);
 
     useEffect(() => {
@@ -21,19 +23,26 @@ export default function PaymentSchedule({ projectId, contractValue }: PaymentSch
 
     const fetchData = async () => {
         const supabase = createClient();
+        setLoadError(null);
 
-        // Fetch payments from DB
-        const { data: paymentData } = await supabase
+        const { data: paymentData, error: paymentError } = await supabase
             .from("payments")
             .select("*")
             .eq("project_id", projectId)
             .order("percentage", { ascending: true });
 
-        // Fetch certifications to check against payment requirements
-        const { data: certData } = await supabase
+        const { data: certData, error: certError } = await supabase
             .from("certifications")
             .select("type, status")
             .eq("project_id", projectId);
+
+        if (paymentError || certError) {
+            const which = paymentError ? "payment schedule" : "certificates";
+            console.error(`[PaymentSchedule] Failed to load ${which}:`, paymentError?.message || certError?.message);
+            setLoadError(`Couldn't load your ${which}. Refresh the page — do not record payments until this loads.`);
+            setLoading(false);
+            return;
+        }
 
         setPayments(paymentData || []);
         setCertifications(certData || []);
@@ -87,13 +96,36 @@ export default function PaymentSchedule({ projectId, contractValue }: PaymentSch
     // Mark a payment as paid
     const markAsPaid = async (paymentId: string) => {
         const supabase = createClient();
+        const payment = payments.find(p => p.id === paymentId);
+        const paidAmount = payment?.amount || 0;
+        const paidDate = new Date().toISOString().split("T")[0];
+
         const { error } = await supabase.from("payments").update({
             status: "paid",
-            paid_date: new Date().toISOString().split("T")[0],
-            paid_amount: payments.find(p => p.id === paymentId)?.amount || 0,
+            paid_date: paidDate,
+            paid_amount: paidAmount,
         }).eq("id", paymentId);
 
-        if (error) { alert("Failed to update payment. Please try again."); return; }
+        if (error) {
+            console.error("[PaymentSchedule] Mark-as-paid failed:", error.message);
+            alert("Failed to update payment. Please try again.");
+            return;
+        }
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            logActivity(supabase, {
+                projectId,
+                userId: user.id,
+                action: "payment.updated",
+                entityType: "payment",
+                entityId: paymentId,
+                oldValues: { status: payment?.status },
+                newValues: { status: "paid", paid_amount: paidAmount, paid_date: paidDate },
+                metadata: { stage_name: payment?.stage_name, percentage: payment?.percentage },
+            });
+        }
+
         setShowPayConfirm(null);
         fetchData();
     };
@@ -106,6 +138,24 @@ export default function PaymentSchedule({ projectId, contractValue }: PaymentSch
 
     if (loading) {
         return <div className="text-center py-8 text-muted-foreground">Loading payment schedule...</div>;
+    }
+
+    if (loadError) {
+        return (
+            <div className="space-y-4">
+                <h2 className="text-2xl font-bold">💰 Payment Schedule</h2>
+                <div className="p-4 bg-red-50 border border-red-300 rounded-xl">
+                    <h3 className="font-bold text-red-800 mb-1">⚠️ Couldn&apos;t load payment data</h3>
+                    <p className="text-sm text-red-700 mb-3">{loadError}</p>
+                    <button
+                        onClick={() => { setLoading(true); fetchData(); }}
+                        className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700"
+                    >
+                        Retry
+                    </button>
+                </div>
+            </div>
+        );
     }
 
     if (payments.length === 0) {
