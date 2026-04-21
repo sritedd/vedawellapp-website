@@ -32,6 +32,7 @@ export default function ProjectVariations({
     const [selectedVariation, setSelectedVariation] = useState<Variation | null>(null);
     const [tierLimited, setTierLimited] = useState(false);
     const [tierError, setTierError] = useState("");
+    const [fetchError, setFetchError] = useState("");
     const signatureRef = useRef<SignatureCanvas>(null);
 
     const fetchVariations = async () => {
@@ -44,7 +45,11 @@ export default function ProjectVariations({
 
         if (error) {
             console.error("Error fetching variations:", error);
+            // Clear stale data so the UI can't keep showing rows from a previous successful fetch.
+            setVariations([]);
+            setFetchError(`Could not load variations: ${error.message}`);
         } else {
+            setFetchError("");
             setVariations(data || []);
         }
         setLoading(false);
@@ -152,6 +157,18 @@ export default function ProjectVariations({
 
     return (
         <div className="space-y-6">
+            {fetchError && (
+                <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-sm text-red-600 flex items-center justify-between gap-3">
+                    <span>{fetchError}</span>
+                    <button
+                        type="button"
+                        onClick={() => { setLoading(true); fetchVariations(); }}
+                        className="px-3 py-1 rounded bg-red-600 text-white text-xs hover:bg-red-700"
+                    >
+                        Retry
+                    </button>
+                </div>
+            )}
             {warningLevel !== 'none' && (
                 <div
                     className={`p-4 rounded-lg ${warningLevel === 'critical'

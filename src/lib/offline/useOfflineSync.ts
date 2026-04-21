@@ -44,28 +44,6 @@ export function useOfflineSync() {
     }
   }, []);
 
-  // Track online/offline status
-  useEffect(() => {
-    const goOnline = () => {
-      setIsOnline(true);
-      // Auto-sync when coming back online
-      replayQueue();
-    };
-    const goOffline = () => setIsOnline(false);
-
-    window.addEventListener("online", goOnline);
-    window.addEventListener("offline", goOffline);
-
-    // Check pending + failed counts on mount
-    refreshCounts();
-
-    return () => {
-      window.removeEventListener("online", goOnline);
-      window.removeEventListener("offline", goOffline);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   // Replay queued mutations
   const replayQueue = useCallback(async () => {
     if (syncingRef.current) return;
@@ -128,6 +106,26 @@ export function useOfflineSync() {
       setSyncing(false);
     }
   }, [refreshCounts]);
+
+  // Track online/offline status — registered after `replayQueue` exists so
+  // we can include it in the dep list instead of relying on closure capture.
+  useEffect(() => {
+    const goOnline = () => {
+      setIsOnline(true);
+      replayQueue();
+    };
+    const goOffline = () => setIsOnline(false);
+
+    window.addEventListener("online", goOnline);
+    window.addEventListener("offline", goOffline);
+
+    refreshCounts();
+
+    return () => {
+      window.removeEventListener("online", goOnline);
+      window.removeEventListener("offline", goOffline);
+    };
+  }, [replayQueue, refreshCounts]);
 
   /** User-triggered discard of a dead-letter mutation. */
   const discardFailed = useCallback(

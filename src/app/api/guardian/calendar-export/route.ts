@@ -113,10 +113,15 @@ export async function GET(request: NextRequest) {
 
     const icsContent = generateICS(events);
 
+    const safeName = (project.name || "project")
+      .replace(/[^A-Za-z0-9._-]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 64) || "project";
+
     return new Response(icsContent, {
       headers: {
         "Content-Type": "text/calendar; charset=utf-8",
-        "Content-Disposition": `attachment; filename="guardian-${project.name.replace(/\s+/g, "-")}.ics"`,
+        "Content-Disposition": `attachment; filename="guardian-${safeName}.ics"`,
       },
     });
   } catch (err) {

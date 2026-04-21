@@ -86,10 +86,15 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ ok: true, applied: false, reason: "already-referred" });
         }
 
-        await service
+        const { error: attributionErr } = await service
             .from("profiles")
             .update({ referred_by: referrer.id })
             .eq("id", user.id);
+
+        if (attributionErr) {
+            console.error("[apply-referral] Failed to write referred_by attribution:", attributionErr.message);
+            return NextResponse.json({ ok: true, applied: false, reason: "attribution-write-failed" });
+        }
 
         // Invoke the internal referral-reward endpoint with CRON_SECRET
         const origin = req.nextUrl.origin;

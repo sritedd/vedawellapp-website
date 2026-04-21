@@ -560,10 +560,18 @@ export default function PreHandoverChecklist({
 
       if (error) throw error;
 
-      const count = data?.length ?? snags.length;
-      setResultMsg(
-        `${count} defect${count === 1 ? "" : "s"} created successfully.`
-      );
+      const requested = snags.length;
+      const created = data?.length ?? 0;
+
+      if (created < requested) {
+        setResultMsg(
+          `Partial success: only ${created} of ${requested} defect${requested === 1 ? "" : "s"} were created. Please re-check the missing items and try again.`
+        );
+      } else {
+        setResultMsg(
+          `${created} defect${created === 1 ? "" : "s"} created successfully.`
+        );
+      }
       onDefectsCreated?.();
     } catch (err: unknown) {
       const message =

@@ -38,6 +38,13 @@ export async function GET(req: NextRequest) {
     const now = new Date();
     const results = { trial_warnings: 0, defect_reminders: 0, errors: [] as string[] };
 
+    const escapeHtml = (str: string) =>
+        str
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
+
     // 1. Trial expiring within 2 days
     const twoDaysFromNow = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString();
     const { data: expiringTrials } = await supabase
@@ -106,15 +113,16 @@ export async function GET(req: NextRequest) {
             if (!profile?.email) continue;
 
             try {
-                const defectList = info.defects.map(d => `<li>${d}</li>`).join("");
+                const safeProjectName = escapeHtml(info.projectName || "your project");
+                const defectList = info.defects.map(d => `<li>${escapeHtml(d)}</li>`).join("");
                 await resend.emails.send({
                     from: "VedaWell Guardian <notifications@vedawellapp.com>",
                     to: profile.email,
-                    subject: `${info.defects.length} defect(s) need attention — ${info.projectName}`,
+                    subject: `${info.defects.length} defect(s) need attention — ${info.projectName || "your project"}`,
                     html: `
                         <div style="font-family: system-ui, sans-serif; max-width: 560px; margin: 0 auto;">
                             <h2 style="color: #DC2626;">Defects Need Your Attention</h2>
-                            <p>The following defects in <strong>${info.projectName}</strong> haven't been updated in over 7 days:</p>
+                            <p>The following defects in <strong>${safeProjectName}</strong> haven't been updated in over 7 days:</p>
                             <ul>${defectList}</ul>
                             <p>Follow up with your builder to ensure these are being addressed.</p>
                             <a href="https://vedawellapp.com/guardian/dashboard"

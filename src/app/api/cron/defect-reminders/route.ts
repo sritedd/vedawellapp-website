@@ -139,14 +139,19 @@ export async function POST(req: NextRequest) {
                 }),
             });
 
-            // Update escalation tracking
-            await supabase
+            // Update escalation tracking — must persist or the next cron run re-emails the same defect.
+            const { error: escalationErr } = await supabase
                 .from("defects")
                 .update({
                     escalation_level: "reminder_sent",
                     last_escalation_at: now.toISOString(),
                 })
                 .eq("id", defect.id);
+
+            if (escalationErr) {
+                console.error(`[DefectReminders] Escalation tracking write failed for defect ${defect.id}:`, escalationErr.message);
+                errors.push(`${defect.id}: escalation-tracking-failed: ${escalationErr.message}`);
+            }
 
             remindersSent++;
         } catch (err: any) {

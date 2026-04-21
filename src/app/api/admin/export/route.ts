@@ -26,10 +26,10 @@ export async function GET(req: NextRequest) {
     if (type === "users") {
         const { data } = await supabase
             .from("profiles")
-            .select("email, full_name, phone, role, subscription_tier, is_admin, trial_ends_at, last_seen_at, created_at")
+            .select("email, full_name, role, subscription_tier, is_admin, trial_ends_at, last_seen_at, created_at")
             .order("created_at", { ascending: false });
 
-        const csv = toCsv(data ?? [], ["email", "full_name", "phone", "role", "subscription_tier", "is_admin", "trial_ends_at", "last_seen_at", "created_at"]);
+        const csv = toCsv(data ?? [], ["email", "full_name", "role", "subscription_tier", "is_admin", "trial_ends_at", "last_seen_at", "created_at"]);
         return new NextResponse(csv, {
             headers: {
                 "Content-Type": "text/csv",

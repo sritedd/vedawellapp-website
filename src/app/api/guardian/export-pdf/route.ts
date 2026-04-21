@@ -161,12 +161,18 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Check pro access
-    const { data: profile } = await supabase
+    // Check pro access — fail-closed on profile read error so a transient DB glitch
+    // can't drop an authenticated Pro user into the "free" tier and 403 them.
+    const { data: profile, error: profileErr } = await supabase
         .from("profiles")
         .select("subscription_tier, is_admin, trial_ends_at")
         .eq("id", user.id)
         .single();
+
+    if (profileErr) {
+        console.error("[export-pdf] Profile read failed:", profileErr.message);
+        return NextResponse.json({ error: "Could not verify subscription. Please try again." }, { status: 503 });
+    }
 
     const tier = profile?.subscription_tier || "free";
     const isAdmin = profile?.is_admin === true;
@@ -177,13 +183,18 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: "PDF export requires Guardian Pro" }, { status: 403 });
     }
 
-    // Fetch project
-    const { data: project } = await supabase
+    // Fetch project — separate "RLS denied / not found" (404) from "DB read failed" (503).
+    const { data: project, error: projectErr } = await supabase
         .from("projects")
         .select("*")
         .eq("id", projectId)
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
+
+    if (projectErr) {
+        console.error("[export-pdf] Project read failed:", projectErr.message);
+        return NextResponse.json({ error: "Could not load project. Please try again." }, { status: 503 });
+    }
 
     if (!project) {
         return NextResponse.json({ error: "Project not found" }, { status: 404 });

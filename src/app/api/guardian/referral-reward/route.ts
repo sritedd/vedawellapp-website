@@ -108,11 +108,24 @@ export async function POST(req: NextRequest) {
         // If referrer is already Pro, skip — they don't need a trial extension
         if (tier === "guardian_pro") {
             // Atomic increment: use current value as condition to prevent lost updates
-            await supabase
+            const { error: incErr, count: incCount } = await supabase
                 .from("profiles")
                 .update({ referral_count: (profile.referral_count || 0) + 1 }, { count: "exact" })
                 .eq("id", referrerUserId)
                 .eq("referral_count", profile.referral_count || 0);
+
+            if (incErr) {
+                console.error("[ReferralReward] Pro counter update failed:", incErr.message);
+                return NextResponse.json({ error: "Failed to record referral. Please try again." }, { status: 500 });
+            }
+
+            // Lost CAS race — match the trial branch and 409 so the caller can retry on a fresh read.
+            if (incCount === 0) {
+                return NextResponse.json(
+                    { error: "Concurrent update detected, please retry" },
+                    { status: 409 }
+                );
+            }
 
             return NextResponse.json({
                 success: true,

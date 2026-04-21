@@ -120,8 +120,8 @@ export async function POST(request: NextRequest) {
             const otpHash = hashOTP(otp);
             const expiresAt = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000).toISOString();
 
-            // Store OTP hash and update phone
-            await serviceSupabase
+            // Store OTP hash and update phone — fail-closed: if the write fails the OTP cannot be verified later.
+            const { error: otpWriteErr } = await serviceSupabase
                 .from("profiles")
                 .update({
                     phone,
@@ -131,6 +131,14 @@ export async function POST(request: NextRequest) {
                     phone_verified: false,
                 })
                 .eq("id", user.id);
+
+            if (otpWriteErr) {
+                console.error("[Phone OTP] Failed to persist OTP hash:", otpWriteErr.message);
+                return NextResponse.json(
+                    { error: "Could not start verification. Please try again." },
+                    { status: 500 }
+                );
+            }
 
             // --- Send OTP ---
             // MVP: Use email fallback (free, no Twilio needed)
@@ -242,11 +250,20 @@ export async function POST(request: NextRequest) {
                 );
             }
 
-            // Increment attempts
-            await serviceSupabase
+            // Increment attempts — fail-closed: if the throttle write fails, abort verification
+            // so brute-force can't bypass the attempt counter.
+            const { error: incrementErr } = await serviceSupabase
                 .from("profiles")
                 .update({ phone_otp_attempts: (profile.phone_otp_attempts || 0) + 1 })
                 .eq("id", user.id);
+
+            if (incrementErr) {
+                console.error("[Phone OTP] Failed to increment attempt counter:", incrementErr.message);
+                return NextResponse.json(
+                    { error: "Verification temporarily unavailable. Please try again." },
+                    { status: 500 }
+                );
+            }
 
             // Verify OTP
             const codeHash = hashOTP(code);

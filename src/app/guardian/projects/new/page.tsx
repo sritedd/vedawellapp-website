@@ -12,6 +12,8 @@ type WorkflowsType = typeof australianData.workflows;
 type NewBuildType = WorkflowsType["new_build"];
 type StateWorkflow = NewBuildType[keyof NewBuildType] & { stages?: Array<{ id?: string; name: string; checklist?: string[]; certificates?: string[] }> };
 
+const VALID_STATES = ["NSW", "VIC", "QLD", "WA", "SA", "TAS", "ACT", "NT"] as const;
+
 export default function NewProjectPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
@@ -115,6 +117,14 @@ export default function NewProjectPage() {
         e.preventDefault();
         setLoading(true);
         setError(null);
+
+        // Guard against URL/devtools hacks setting an unsupported state code.
+        // Without this, the workflow lookup returns no stages and the project lands in a broken state.
+        if (!VALID_STATES.includes(formData.state as typeof VALID_STATES[number])) {
+            setError(`"${formData.state}" is not a supported state. Choose one of ${VALID_STATES.join(", ")}.`);
+            setLoading(false);
+            return;
+        }
 
         const supabase = createClient();
         const {
