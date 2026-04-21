@@ -386,7 +386,7 @@ These are documented, low-severity, and don't harm the paying user's primary flo
 | ~~P3-7~~ | ~~`PaymentSchedule.fetchData` swallows errors to empty array~~ | ~~20 min~~ | ✅ FIXED 2026-04-21 (commit 1b45e58) — hard-stop banner with Retry button now blocks stale-data payment recording. |
 | ~~P3-9~~ | ~~offline replay errors never surface to UI~~ | ~~45 min~~ | ✅ FIXED 2026-04-21 (commit 3b6df2e) — `failedMutations` exposed from hook + red banner in SiteVisitLog. |
 | ~~P3-32~~ | ~~`AdminSupportInbox.adminReply` silently swallows failure~~ | ~~10 min~~ | ✅ FIXED 2026-04-21 (commit 1b45e58) — surfaces error banner and restores unsent reply text for retry. |
-| P9-1 | 34 `alert()` calls across 22 components — migrate to toast | 3–4 h | UX polish only. Errors still surface; browser dialog just looks amateur. |
+| ~~P9-1~~ | ~~33 `alert()` calls across 19 components — migrate to toast~~ | ~~3–4 h~~ | ✅ FIXED 2026-04-21 (commit 1c7455d) — all calls migrated to `useToast()`; `confirm()` intentionally preserved for destructive prompts. |
 
 **P3 backlog (nice-to-have, queue into a dedicated polish sprint)**
 
@@ -474,7 +474,7 @@ The review has moved from "live tracker" to "reference doc". Post-launch work no
 1. Run the 3 Playwright specs against the prod preview URL
 2. Fire one test-mode Stripe webhook round-trip at the deployed Netlify function
 
-After launch: P2 backlog from Phase 10 §10.2 — P3-3 / P3-6 / P3-7 / P3-9 / P3-32 all closed 2026-04-21 (commits 1b45e58, 3b6df2e). Only P9-1 (alert → toast migration, ~3–4 h UX polish) remains in the P2 queue.
+After launch: **P2 queue fully cleared 2026-04-21** — P3-3, P3-6, P3-7, P3-9, P3-32, P9-1 all closed (commits 1b45e58, 3b6df2e, 1c7455d). Next backlog is the P3 polish sprint (see §10.2 P3 block).
 
 **Migrations**: all three (`v41`, `v42`, `v43`) already applied per `00-APP-MEMORY.md`. Nothing pending.
 
