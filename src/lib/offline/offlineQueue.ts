@@ -9,6 +9,8 @@ const DB_NAME = "vedawell-offline";
 const DB_VERSION = 1;
 const STORE_NAME = "pending_mutations";
 
+export const MAX_RETRIES = 5;
+
 export interface PendingMutation {
   id?: number; // auto-increment key
   table: string;
@@ -16,6 +18,13 @@ export interface PendingMutation {
   data: Record<string, unknown>;
   filter?: { column: string; value: string }; // for update/delete
   createdAt: string;
+  retryCount?: number;
+  lastError?: string;
+  lastAttemptAt?: string;
+}
+
+export function isFailed(mutation: PendingMutation): boolean {
+  return (mutation.retryCount ?? 0) >= MAX_RETRIES;
 }
 
 function openDB(): Promise<IDBDatabase> {
@@ -43,18 +52,35 @@ export async function queueMutation(mutation: PendingMutation): Promise<void> {
   });
 }
 
-/** Get all pending mutations */
+/** Get all mutations still eligible for retry (retryCount < MAX_RETRIES) */
 export async function getPendingMutations(): Promise<PendingMutation[]> {
   const db = await openDB();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, "readonly");
     const request = tx.objectStore(STORE_NAME).getAll();
-    request.onsuccess = () => resolve(request.result);
+    request.onsuccess = () => {
+      const all = request.result as PendingMutation[];
+      resolve(all.filter((m) => !isFailed(m)));
+    };
     request.onerror = () => reject(request.error);
   });
 }
 
-/** Remove a mutation after successful replay */
+/** Get mutations that exceeded MAX_RETRIES and need user action */
+export async function getFailedMutations(): Promise<PendingMutation[]> {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, "readonly");
+    const request = tx.objectStore(STORE_NAME).getAll();
+    request.onsuccess = () => {
+      const all = request.result as PendingMutation[];
+      resolve(all.filter(isFailed));
+    };
+    request.onerror = () => reject(request.error);
+  });
+}
+
+/** Remove a mutation after successful replay (or user-confirmed discard) */
 export async function removeMutation(id: number): Promise<void> {
   const db = await openDB();
   return new Promise((resolve, reject) => {
@@ -65,15 +91,39 @@ export async function removeMutation(id: number): Promise<void> {
   });
 }
 
-/** Get count of pending mutations */
-export async function getPendingCount(): Promise<number> {
+/** Update an existing mutation (used to increment retryCount, record lastError) */
+export async function updateMutation(
+  id: number,
+  updates: Partial<PendingMutation>
+): Promise<void> {
   const db = await openDB();
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, "readonly");
-    const request = tx.objectStore(STORE_NAME).count();
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
+    const tx = db.transaction(STORE_NAME, "readwrite");
+    const store = tx.objectStore(STORE_NAME);
+    const getReq = store.get(id);
+    getReq.onsuccess = () => {
+      const existing = getReq.result as PendingMutation | undefined;
+      if (!existing) {
+        resolve();
+        return;
+      }
+      store.put({ ...existing, ...updates, id });
+    };
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
   });
+}
+
+/** Get count of mutations still eligible for retry */
+export async function getPendingCount(): Promise<number> {
+  const pending = await getPendingMutations();
+  return pending.length;
+}
+
+/** Get count of failed mutations that exceeded MAX_RETRIES */
+export async function getFailedCount(): Promise<number> {
+  const failed = await getFailedMutations();
+  return failed.length;
 }
 
 /** Clear all pending mutations */

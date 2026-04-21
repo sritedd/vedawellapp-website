@@ -38,7 +38,16 @@ export default function SiteVisitLog({ projectId }: SiteVisitLogProps) {
     const [visits, setVisits] = useState<SiteVisit[]>([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
-    const { isOnline, pendingCount, syncing, syncNow, offlineInsert } = useOfflineSync();
+    const {
+        isOnline,
+        pendingCount,
+        syncing,
+        syncNow,
+        offlineInsert,
+        failedMutations,
+        discardFailed,
+        retryFailed,
+    } = useOfflineSync();
 
     const [newVisit, setNewVisit] = useState({
         date: new Date().toISOString().split("T")[0],
@@ -176,6 +185,53 @@ export default function SiteVisitLog({ projectId }: SiteVisitLogProps) {
                     >
                         {syncing ? "Syncing..." : "Sync Now"}
                     </button>
+                </div>
+            )}
+
+            {/* Failed sync banner — mutations that exhausted retries */}
+            {failedMutations.length > 0 && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg dark:bg-red-950/30 dark:border-red-800">
+                    <p className="text-sm font-semibold text-red-800 dark:text-red-300 mb-2">
+                        ⚠️ {failedMutations.length} offline write{failedMutations.length === 1 ? "" : "s"} failed after repeated retries.
+                    </p>
+                    <ul className="space-y-2">
+                        {failedMutations.map((m) => (
+                            <li key={m.id} className="flex items-start justify-between gap-3 text-xs bg-white/60 dark:bg-red-950/40 p-2 rounded">
+                                <div className="flex-1 min-w-0">
+                                    <div className="font-medium text-red-900 dark:text-red-200">
+                                        {m.operation} on {m.table}
+                                    </div>
+                                    {m.lastError && (
+                                        <div className="text-red-700 dark:text-red-400 truncate" title={m.lastError}>
+                                            {m.lastError}
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="flex gap-1 shrink-0">
+                                    {m.id !== undefined && (
+                                        <>
+                                            <button
+                                                onClick={async () => { await retryFailed(m.id!); fetchVisits(); }}
+                                                className="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+                                            >
+                                                Retry
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    if (confirm("Discard this failed write? The data will be lost.")) {
+                                                        discardFailed(m.id!);
+                                                    }
+                                                }}
+                                                className="px-2 py-1 border border-red-300 text-red-700 rounded hover:bg-red-100"
+                                            >
+                                                Discard
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
                 </div>
             )}
 
