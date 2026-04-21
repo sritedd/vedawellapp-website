@@ -381,10 +381,10 @@ These are documented, low-severity, and don't harm the paying user's primary flo
 
 | ID | Area | Effort | Reason it's P2 not P1 |
 |----|------|--------|------------------------|
-| P3-3 | offline sync — unbounded retry on malformed payloads | 1 h | Only bites users who go offline AND hit a permanently-failing write. Add max-retry + dead-letter state. |
+| ~~P3-3~~ | ~~offline sync — unbounded retry on malformed payloads~~ | ~~1 h~~ | ✅ FIXED 2026-04-21 (commit 3b6df2e) — MAX_RETRIES=5 dead-letter + per-item retry/discard UI in SiteVisitLog. |
 | ~~P3-6~~ | ~~`PaymentSchedule.markAsPaid` doesn't write to `activity_log`~~ | ~~15 min~~ | ✅ FIXED 2026-04-21 (commit 1b45e58) — first caller of `logActivity`, establishes the pattern. |
 | ~~P3-7~~ | ~~`PaymentSchedule.fetchData` swallows errors to empty array~~ | ~~20 min~~ | ✅ FIXED 2026-04-21 (commit 1b45e58) — hard-stop banner with Retry button now blocks stale-data payment recording. |
-| P3-9 | offline replay errors never surface to UI | 45 min | Same silent-failure shape as P3-3; expose `failedQueue` state + toast after reconnect. |
+| ~~P3-9~~ | ~~offline replay errors never surface to UI~~ | ~~45 min~~ | ✅ FIXED 2026-04-21 (commit 3b6df2e) — `failedMutations` exposed from hook + red banner in SiteVisitLog. |
 | ~~P3-32~~ | ~~`AdminSupportInbox.adminReply` silently swallows failure~~ | ~~10 min~~ | ✅ FIXED 2026-04-21 (commit 1b45e58) — surfaces error banner and restores unsent reply text for retry. |
 | P9-1 | 34 `alert()` calls across 22 components — migrate to toast | 3–4 h | UX polish only. Errors still surface; browser dialog just looks amateur. |
 
@@ -474,7 +474,7 @@ The review has moved from "live tracker" to "reference doc". Post-launch work no
 1. Run the 3 Playwright specs against the prod preview URL
 2. Fire one test-mode Stripe webhook round-trip at the deployed Netlify function
 
-After launch: grab P2 backlog items from Phase 10 §10.2 in order. P3-6 / P3-7 / P3-32 closed 2026-04-21 (commit 1b45e58). Remaining queue: P3-3 → P3-9 → P9-1. Estimated total burn-down: ~4.5 hours.
+After launch: P2 backlog from Phase 10 §10.2 — P3-3 / P3-6 / P3-7 / P3-9 / P3-32 all closed 2026-04-21 (commits 1b45e58, 3b6df2e). Only P9-1 (alert → toast migration, ~3–4 h UX polish) remains in the P2 queue.
 
 **Migrations**: all three (`v41`, `v42`, `v43`) already applied per `00-APP-MEMORY.md`. Nothing pending.
 
