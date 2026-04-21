@@ -327,51 +327,57 @@ export default function SmartDashboard({ project, currentStage, stageNames, onNa
             const projectId = project.id;
 
             // Fetch stages
-            const { data: stageData } = await supabase
+            const { data: stageData, error: stageErr } = await supabase
                 .from("stages")
                 .select("id, name, status")
                 .eq("project_id", projectId)
                 .order("order_index", { ascending: true });
+            if (stageErr) console.error("[SmartDashboard] stages read failed:", stageErr.message);
             if (stageData) setStages(stageData);
 
             // Count open defects
-            const { count: defectCount } = await supabase
+            const { count: defectCount, error: defectErr } = await supabase
                 .from("defects")
                 .select("id", { count: "exact", head: true })
                 .eq("project_id", projectId)
                 .not("status", "in", "(verified,rectified)");
+            if (defectErr) console.error("[SmartDashboard] defects count failed:", defectErr.message);
             setOpenDefects(defectCount || 0);
 
             // Count pending inspections (not_booked or booked)
-            const { count: inspCount } = await supabase
+            const { count: inspCount, error: inspErr } = await supabase
                 .from("inspections")
                 .select("id", { count: "exact", head: true })
                 .eq("project_id", projectId)
                 .in("result", ["not_booked", "booked"]);
+            if (inspErr) console.error("[SmartDashboard] inspections count failed:", inspErr.message);
             setPendingInspections(inspCount || 0);
 
             // Count pending certificates
-            const { count: certCount } = await supabase
+            const { count: certCount, error: certErr } = await supabase
                 .from("certifications")
                 .select("id", { count: "exact", head: true })
                 .eq("project_id", projectId)
                 .eq("status", "pending");
+            if (certErr) console.error("[SmartDashboard] certifications count failed:", certErr.message);
             setPendingCerts(certCount || 0);
 
             // Count pending/due payments
-            const { count: payCount } = await supabase
+            const { count: payCount, error: payErr } = await supabase
                 .from("payments")
                 .select("id", { count: "exact", head: true })
                 .eq("project_id", projectId)
                 .in("status", ["pending", "due"]);
+            if (payErr) console.error("[SmartDashboard] payments count failed:", payErr.message);
             setPendingPayments(payCount || 0);
 
             // Variations total
-            const { data: varData } = await supabase
+            const { data: varData, error: varErr } = await supabase
                 .from("variations")
                 .select("additional_cost")
                 .eq("project_id", projectId)
                 .eq("status", "approved");
+            if (varErr) console.error("[SmartDashboard] variations read failed:", varErr.message);
             if (varData) {
                 setVariationsTotal(varData.reduce((sum: number, v: { additional_cost: number | null }) => sum + (v.additional_cost || 0), 0));
             }
@@ -379,12 +385,13 @@ export default function SmartDashboard({ project, currentStage, stageNames, onNa
             // Recent activity — last 5 items across tables
             const activities: ActivityItem[] = [];
 
-            const { data: recentDefects } = await supabase
+            const { data: recentDefects, error: recentDefectsErr } = await supabase
                 .from("defects")
                 .select("id, title, status, created_at")
                 .eq("project_id", projectId)
                 .order("created_at", { ascending: false })
                 .limit(3);
+            if (recentDefectsErr) console.error("[SmartDashboard] recent defects read failed:", recentDefectsErr.message);
             if (recentDefects) {
                 for (const d of recentDefects) {
                     activities.push({
@@ -398,12 +405,13 @@ export default function SmartDashboard({ project, currentStage, stageNames, onNa
                 }
             }
 
-            const { data: recentVariations } = await supabase
+            const { data: recentVariations, error: recentVarErr } = await supabase
                 .from("variations")
                 .select("id, title, status, created_at")
                 .eq("project_id", projectId)
                 .order("created_at", { ascending: false })
                 .limit(3);
+            if (recentVarErr) console.error("[SmartDashboard] recent variations read failed:", recentVarErr.message);
             if (recentVariations) {
                 for (const v of recentVariations) {
                     activities.push({
@@ -417,12 +425,13 @@ export default function SmartDashboard({ project, currentStage, stageNames, onNa
                 }
             }
 
-            const { data: recentComms } = await supabase
+            const { data: recentComms, error: recentCommsErr } = await supabase
                 .from("communication_log")
                 .select("id, summary, type, created_at")
                 .eq("project_id", projectId)
                 .order("created_at", { ascending: false })
                 .limit(3);
+            if (recentCommsErr) console.error("[SmartDashboard] recent comms read failed:", recentCommsErr.message);
             if (recentComms) {
                 for (const c of recentComms) {
                     activities.push({

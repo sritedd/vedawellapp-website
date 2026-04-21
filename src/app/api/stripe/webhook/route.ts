@@ -41,12 +41,38 @@ async function trackGA4Purchase(userId: string, amountCents: number, currency: s
     }
 }
 
+/**
+ * Stripe subscription statuses that grant the guardian_pro tier.
+ * Inactive: 'canceled', 'incomplete', 'incomplete_expired', 'past_due', 'unpaid', 'paused'
+ */
+const ACTIVE_SUBSCRIPTION_STATUSES = new Set<Stripe.Subscription.Status>([
+    "active",
+    "trialing",
+]);
+
 function getServiceSupabase() {
     return createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!,
         { cookies: { getAll: () => [], setAll: () => { } } }
     );
+}
+
+/**
+ * Extract the subscription id from an Invoice. Stripe SDK v18+ moved this from
+ * the top-level `invoice.subscription` to `invoice.parent.subscription_details.subscription`
+ * — accessing the legacy field requires an `as any` cast. This helper reads the
+ * canonical path and falls back to the legacy field for older API versions.
+ */
+function getInvoiceSubscriptionId(invoice: Stripe.Invoice): string | null {
+    const sub = invoice.parent?.subscription_details?.subscription;
+    if (typeof sub === "string") return sub;
+    if (sub && typeof sub === "object" && "id" in sub) return sub.id;
+    // Legacy fallback for older Stripe API versions still in flight
+    const legacy = (invoice as unknown as { subscription?: string | { id: string } }).subscription;
+    if (typeof legacy === "string") return legacy;
+    if (legacy && typeof legacy === "object" && "id" in legacy) return legacy.id;
+    return null;
 }
 
 /** Find a profile by stripe_customer_id */
@@ -181,10 +207,7 @@ export async function POST(req: NextRequest) {
             const profile = await findProfileByCustomer(supabase, customerId);
 
             if (profile) {
-                // Active states: 'active', 'trialing'
-                // Inactive states: 'canceled', 'incomplete', 'incomplete_expired',
-                //                  'past_due', 'unpaid', 'paused'
-                const isActive = subscription.status === "active" || subscription.status === "trialing";
+                const isActive = ACTIVE_SUBSCRIPTION_STATUSES.has(subscription.status);
                 const newTier = isActive ? "guardian_pro" : "free";
 
                 await supabase
@@ -212,7 +235,7 @@ export async function POST(req: NextRequest) {
             const customerId = invoice.customer as string;
 
             // Only downgrade on subscription invoices, not one-off charges
-            if ((invoice as any).subscription) {
+            if (getInvoiceSubscriptionId(invoice)) {
                 const profile = await findProfileByCustomer(supabase, customerId);
 
                 if (profile && profile.subscription_tier === "guardian_pro") {
@@ -236,7 +259,7 @@ export async function POST(req: NextRequest) {
             const invoice = event.data.object as Stripe.Invoice;
             const customerId = invoice.customer as string;
 
-            if ((invoice as any).subscription) {
+            if (getInvoiceSubscriptionId(invoice)) {
                 const profile = await findProfileByCustomer(supabase, customerId);
 
                 if (profile && profile.subscription_tier !== "guardian_pro") {

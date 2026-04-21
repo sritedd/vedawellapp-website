@@ -263,11 +263,17 @@ export default function StageGate({ projectId, currentStage, nextStage, onProcee
         const supabase = createClient();
 
         // Get open defects for this stage and mark them as disputed with override reason
-        const { data: defects } = await supabase
+        const { data: defects, error: defectsErr } = await supabase
             .from("defects")
             .select("id, title, stage")
             .eq("project_id", projectId)
             .not("status", "in", '("verified","rectified","disputed","fixed")');
+
+        if (defectsErr) {
+            console.error("[StageGate] override defects read failed:", defectsErr.message);
+            alert("Could not load defects for override. Please try again.");
+            return;
+        }
 
         if (defects) {
             const stageNameLower = currentStage.toLowerCase();
@@ -277,14 +283,22 @@ export default function StageGate({ projectId, currentStage, nextStage, onProcee
                     stageNameLower.includes(d.stage.toLowerCase())
                 )
             );
+            const failedOverrides: string[] = [];
             for (const defect of stageDefects) {
-                await supabase
+                const { error: updErr } = await supabase
                     .from("defects")
                     .update({
                         status: "disputed",
                         override_reason: overrideReason,
                     })
                     .eq("id", defect.id);
+                if (updErr) {
+                    console.error("[StageGate] defect override update failed:", updErr.message);
+                    failedOverrides.push(defect.title);
+                }
+            }
+            if (failedOverrides.length > 0) {
+                alert(`Failed to override ${failedOverrides.length} defect(s). They remain open and may block stage completion.`);
             }
 
             const newLoggedDefects: LoggedDefect[] = stageDefects.map((d: { id: string; title: string }) => ({

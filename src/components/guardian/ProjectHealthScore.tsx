@@ -51,6 +51,12 @@ export default function ProjectHealthScore({ projectId }: ProjectHealthScoreProp
                         ),
                 ]);
 
+            if (defectsRes.error) console.error("[ProjectHealthScore] defects read failed:", defectsRes.error.message);
+            if (stagesRes.error) console.error("[ProjectHealthScore] stages read failed:", stagesRes.error.message);
+            if (inspectionsRes.error) console.error("[ProjectHealthScore] inspections read failed:", inspectionsRes.error.message);
+            if (paymentsRes.error) console.error("[ProjectHealthScore] payments read failed:", paymentsRes.error.message);
+            if (commsRes.error) console.error("[ProjectHealthScore] communication_log read failed:", commsRes.error.message);
+
             const defects = defectsRes.data || [];
             const stages = stagesRes.data || [];
             const inspections = inspectionsRes.data || [];

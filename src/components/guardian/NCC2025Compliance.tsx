@@ -430,23 +430,34 @@ export default function NCC2025Compliance({
 
     if (newStatus === null) {
       // Remove both possible entries
-      await supabase.from("ncc_checklist_items").delete()
+      const { error: clearErr } = await supabase.from("ncc_checklist_items").delete()
         .eq("project_id", projectId)
         .in("item_key", [`${id}:verified`, `${id}:issue`]);
+      if (clearErr) {
+        console.error("[NCC2025Compliance] clear status delete failed:", clearErr.message);
+        toast("Failed to clear status. Please retry.", "error");
+      }
     } else {
       // Remove old status entry if exists, then insert new
       const oldKey = `${id}:${currentStatus === "verified" ? "verified" : "issue"}`;
-      await supabase.from("ncc_checklist_items").delete()
+      const { error: oldDelErr } = await supabase.from("ncc_checklist_items").delete()
         .eq("project_id", projectId)
         .eq("item_key", oldKey);
+      if (oldDelErr) {
+        console.error("[NCC2025Compliance] old status delete failed:", oldDelErr.message);
+      }
 
-      await supabase.from("ncc_checklist_items").upsert({
+      const { error: upsertErr } = await supabase.from("ncc_checklist_items").upsert({
         project_id: projectId,
         user_id: user.id,
         item_key: `${id}:${newStatus}`,
         checked: true,
         checked_at: new Date().toISOString(),
       }, { onConflict: "project_id,item_key" });
+      if (upsertErr) {
+        console.error("[NCC2025Compliance] status upsert failed:", upsertErr.message);
+        toast("Failed to save status. Please retry.", "error");
+      }
     }
   }, [shortcutVerifications, projectId, supabase, toast]);
 

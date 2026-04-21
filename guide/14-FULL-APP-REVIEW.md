@@ -394,9 +394,9 @@ Phase 3 leftovers: ~~P3-8 (state allowlist on URL hack)~~, ~~P3-10 (useOfflineSy
 
 Phase 4 leftovers: P4-2 ($0 claim), ~~P4-8 (phone-verify silent writes)~~, ~~P4-10 (export-pdf .error checks)~~, P4-11 (export-pdf throttle), ~~P4-12 (calendar-export filename CRLF)~~, ~~P4-13 (notifications template XSS in project name)~~, ~~P4-14 (apply-referral silent write)~~, ~~P4-15 (admin/export phone PII)~~, ~~P4-16 (defect-reminders escalation silent)~~ — 7 of 9 FIXED 2026-04-21; P4-2 (biz logic) and P4-11 (throttle design) deferred.
 
-Phase 5 read-only cosmetic backlog: SmartDashboard ~8 silent reads, ProjectHealthScore 5 silent reads, PaymentSchedule `fetchData`, InspectionTimeline stage-promotion silent update at [InspectionTimeline.tsx:131-136](vedawell-next/src/components/guardian/InspectionTimeline.tsx#L131-L136), PreHandoverChecklist 3 silent updates at lines 335/371/439, StageGate defect-override loop silent updates at 278-286, NCC2025Compliance 2 silent deletes at 433/439.
+Phase 5 read-only cosmetic backlog: ~~SmartDashboard ~8 silent reads~~, ~~ProjectHealthScore 5 silent reads~~, PaymentSchedule `fetchData` (already fixed P3-7), ~~InspectionTimeline stage-promotion silent update~~, ~~PreHandoverChecklist 3 silent updates~~, ~~StageGate defect-override loop silent updates~~, ~~NCC2025Compliance 2 silent deletes~~ — all FIXED 2026-04-22 (batch 2).
 
-Phase 2 cosmetic: P2-7 (Stripe invoice typing hack), P2-9 (Stripe status literals → constant).
+Phase 2 cosmetic: ~~P2-7 (Stripe invoice typing hack)~~, ~~P2-9 (Stripe status literals → constant)~~ — FIXED 2026-04-22 (batch 2).
 
 Phase 1 cosmetic: P1-5/6/7/8 (`any` types, unused vars, stale deps, dead `getAnthropic` export), P1-9 (`<img>` vs `next/image` lint — known tradeoff for canvas tools).
 

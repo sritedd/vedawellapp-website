@@ -128,12 +128,15 @@ export default function InspectionTimeline({ projectId, currentStage }: Inspecti
         if (updates.result === "passed" || updates.result === "pass") {
             const insp = inspections.find(i => i.id === id);
             if (insp?.stage) {
-                await supabase
+                const { error: stageErr } = await supabase
                     .from("stages")
                     .update({ status: "in_progress" })
                     .eq("project_id", projectId)
                     .eq("status", "pending")
                     .ilike("name", `%${insp.stage}%`);
+                if (stageErr) {
+                    console.error("[InspectionTimeline] stage promotion failed:", stageErr.message);
+                }
             }
         }
     };

@@ -332,11 +332,14 @@ export default function PreHandoverChecklist({
           }
           if (updates.length > 0) {
             for (const u of updates) {
-              await supabase
+              const { error: migrErr } = await supabase
                 .from("pre_handover_items")
                 .update({ found: u.found, description: u.description, location: u.location, severity: u.severity, photo_note: u.photo_note })
                 .eq("project_id", projectId)
                 .eq("item_key", u.item_key);
+              if (migrErr) {
+                console.error("[PreHandoverChecklist] localStorage migration update failed:", migrErr.message);
+              }
             }
             // Reload after migration
             const { data: refreshed } = await supabase
@@ -368,7 +371,7 @@ export default function PreHandoverChecklist({
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
       saveTimerRef.current = setTimeout(async () => {
         const supabase = createClient();
-        await supabase
+        const { error: persistErr } = await supabase
           .from("pre_handover_items")
           .update({
             found: item.found,
@@ -379,6 +382,9 @@ export default function PreHandoverChecklist({
           })
           .eq("project_id", projectId)
           .eq("item_key", item.item_key);
+        if (persistErr) {
+          console.error("[PreHandoverChecklist] persistItem failed:", persistErr.message);
+        }
       }, 300);
     },
     [projectId]
@@ -429,18 +435,28 @@ export default function PreHandoverChecklist({
     const supabase = createClient();
 
     // Delete custom items
-    await supabase
+    const { error: delErr } = await supabase
       .from("pre_handover_items")
       .delete()
       .eq("project_id", projectId)
       .eq("is_custom", true);
+    if (delErr) {
+      console.error("[PreHandoverChecklist] clearAll delete failed:", delErr.message);
+      alert("Failed to clear custom items. Please try again.");
+      return;
+    }
 
     // Reset default items
-    await supabase
+    const { error: resetErr } = await supabase
       .from("pre_handover_items")
       .update({ found: false, description: "", location: "", severity: "minor", photo_note: "" })
       .eq("project_id", projectId)
       .eq("is_custom", false);
+    if (resetErr) {
+      console.error("[PreHandoverChecklist] clearAll reset failed:", resetErr.message);
+      alert("Failed to reset default items. Please try again.");
+      return;
+    }
 
     // Reload
     const { data } = await supabase
