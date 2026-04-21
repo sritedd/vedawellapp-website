@@ -390,9 +390,9 @@ These are documented, low-severity, and don't harm the paying user's primary flo
 
 **P3 backlog (nice-to-have, queue into a dedicated polish sprint)**
 
-Phase 3 leftovers: P3-8 (state allowlist on URL hack), P3-10 (useOfflineSync stale deps), P3-15 (dead `projectId` param), P3-21 (fetchVariations stale state), P3-24 (PreHandover partial-success count), P3-25 (referral-reward CAS race silent).
+Phase 3 leftovers: ~~P3-8 (state allowlist on URL hack)~~, ~~P3-10 (useOfflineSync stale deps)~~, ~~P3-15 (dead `projectId` param)~~, ~~P3-21 (fetchVariations stale state)~~, ~~P3-24 (PreHandover partial-success count)~~, ~~P3-25 (referral-reward CAS race silent)~~ — all FIXED 2026-04-21 (P3-15 was already wired by P3-12).
 
-Phase 4 leftovers: P4-2 ($0 claim), P4-8 (phone-verify silent writes), P4-10 (export-pdf .error checks), P4-11 (export-pdf throttle), P4-12 (calendar-export filename CRLF), P4-13 (notifications template XSS in project name), P4-14 (apply-referral silent write), P4-15 (admin/export phone PII), P4-16 (defect-reminders escalation silent).
+Phase 4 leftovers: P4-2 ($0 claim), ~~P4-8 (phone-verify silent writes)~~, ~~P4-10 (export-pdf .error checks)~~, P4-11 (export-pdf throttle), ~~P4-12 (calendar-export filename CRLF)~~, ~~P4-13 (notifications template XSS in project name)~~, ~~P4-14 (apply-referral silent write)~~, ~~P4-15 (admin/export phone PII)~~, ~~P4-16 (defect-reminders escalation silent)~~ — 7 of 9 FIXED 2026-04-21; P4-2 (biz logic) and P4-11 (throttle design) deferred.
 
 Phase 5 read-only cosmetic backlog: SmartDashboard ~8 silent reads, ProjectHealthScore 5 silent reads, PaymentSchedule `fetchData`, InspectionTimeline stage-promotion silent update at [InspectionTimeline.tsx:131-136](vedawell-next/src/components/guardian/InspectionTimeline.tsx#L131-L136), PreHandoverChecklist 3 silent updates at lines 335/371/439, StageGate defect-override loop silent updates at 278-286, NCC2025Compliance 2 silent deletes at 433/439.
 
@@ -474,7 +474,7 @@ The review has moved from "live tracker" to "reference doc". Post-launch work no
 1. Run the 3 Playwright specs against the prod preview URL
 2. Fire one test-mode Stripe webhook round-trip at the deployed Netlify function
 
-After launch: **P2 queue fully cleared 2026-04-21** — P3-3, P3-6, P3-7, P3-9, P3-32, P9-1 all closed (commits 1b45e58, 3b6df2e, 1c7455d). Next backlog is the P3 polish sprint (see §10.2 P3 block).
+After launch: **P2 queue fully cleared 2026-04-21** — P3-3, P3-6, P3-7, P3-9, P3-32, P9-1 all closed (commits 1b45e58, 3b6df2e, 1c7455d). **P3 polish sprint largely cleared 2026-04-21** — Phase 3 backlog 6/6 done, Phase 4 backlog 7/9 done (P4-2 + P4-11 deferred for design). Remaining: Phase 5 cosmetic silent reads (~6 components), Phase 1/2 type cleanup, P9-2/P9-3 (PWA icons + mobile <375px), P8-3/P8-4 (Jest fixtures + npm audit upgrade).
 
 **Migrations**: all three (`v41`, `v42`, `v43`) already applied per `00-APP-MEMORY.md`. Nothing pending.
 
