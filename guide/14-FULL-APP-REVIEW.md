@@ -382,10 +382,10 @@ These are documented, low-severity, and don't harm the paying user's primary flo
 | ID | Area | Effort | Reason it's P2 not P1 |
 |----|------|--------|------------------------|
 | P3-3 | offline sync — unbounded retry on malformed payloads | 1 h | Only bites users who go offline AND hit a permanently-failing write. Add max-retry + dead-letter state. |
-| P3-6 | `PaymentSchedule.markAsPaid` doesn't write to `activity_log` | 15 min | Activity log gap — payments aren't in the tribunal timeline. Other mutations (defects / variations) already log. |
-| P3-7 | `PaymentSchedule.fetchData` swallows errors to empty array | 20 min | User sees "no payments" when query actually failed; surface a red banner like InspectionTimeline does. |
+| ~~P3-6~~ | ~~`PaymentSchedule.markAsPaid` doesn't write to `activity_log`~~ | ~~15 min~~ | ✅ FIXED 2026-04-21 (commit 1b45e58) — first caller of `logActivity`, establishes the pattern. |
+| ~~P3-7~~ | ~~`PaymentSchedule.fetchData` swallows errors to empty array~~ | ~~20 min~~ | ✅ FIXED 2026-04-21 (commit 1b45e58) — hard-stop banner with Retry button now blocks stale-data payment recording. |
 | P3-9 | offline replay errors never surface to UI | 45 min | Same silent-failure shape as P3-3; expose `failedQueue` state + toast after reconnect. |
-| P3-32 | `AdminSupportInbox.adminReply` silently swallows failure | 10 min | Admin-only surface, low blast radius, but admin thinks reply sent and it didn't. |
+| ~~P3-32~~ | ~~`AdminSupportInbox.adminReply` silently swallows failure~~ | ~~10 min~~ | ✅ FIXED 2026-04-21 (commit 1b45e58) — surfaces error banner and restores unsent reply text for retry. |
 | P9-1 | 34 `alert()` calls across 22 components — migrate to toast | 3–4 h | UX polish only. Errors still surface; browser dialog just looks amateur. |
 
 **P3 backlog (nice-to-have, queue into a dedicated polish sprint)**
@@ -474,7 +474,7 @@ The review has moved from "live tracker" to "reference doc". Post-launch work no
 1. Run the 3 Playwright specs against the prod preview URL
 2. Fire one test-mode Stripe webhook round-trip at the deployed Netlify function
 
-After launch: grab P2 backlog items from Phase 10 §10.2 in order (P3-3 → P3-6 → P3-7 → P3-9 → P3-32 → P9-1). Estimated total burn-down for the P2 queue: ~5 hours.
+After launch: grab P2 backlog items from Phase 10 §10.2 in order. P3-6 / P3-7 / P3-32 closed 2026-04-21 (commit 1b45e58). Remaining queue: P3-3 → P3-9 → P9-1. Estimated total burn-down: ~4.5 hours.
 
 **Migrations**: all three (`v41`, `v42`, `v43`) already applied per `00-APP-MEMORY.md`. Nothing pending.
 
@@ -520,13 +520,13 @@ After launch: grab P2 backlog items from Phase 10 §10.2 in order (P3-3 → P3-6
 - **P3-16** — ✅ FIXED (2026-04-17 s4) — `InspectionTimeline.tsx` addInspection — silent failure now shows `addError` in the form.
 - **P3-19** — ✅ FIXED (2026-04-17 s4) — `ProjectVariations.tsx` handleSign — silent failure surfaces via `setTierError`.
 - **P3-4** — ✅ FIXED (2026-04-17 s5) — `login/page.tsx` signup now checks `phoneErr` and guards on `data.user?.id`.
-- **P3-6** — OPEN — `PaymentSchedule.tsx` markAsPaid doesn't write to `activity_log`.
-- **P3-7** — OPEN — `PaymentSchedule.tsx` fetchData errors are silenced.
+- **P3-6** — ✅ FIXED 2026-04-21 (commit 1b45e58) — `PaymentSchedule.tsx` markAsPaid now calls `logActivity`.
+- **P3-7** — ✅ FIXED 2026-04-21 (commit 1b45e58) — `PaymentSchedule.tsx` fetchData now surfaces hard-stop error banner.
 - **P3-13** — ✅ FIXED (2026-04-17 s6) — `parse-contract/route.ts` now calls `retrieveKnowledge({ state, category: "contract", limit: 5 })` and appends a REFERENCE DATA block to the prompt (state from `projects.state` when `projectId` provided).
 - **P3-29** — ✅ FIXED (2026-04-18 s7) — `project-members/route.ts DELETE` now checks `.error` on `.delete()`; returns `500 { error: "Failed to remove member" }` on failure.
 - **P3-30** — ✅ FIXED (2026-04-18 s7) — POST normalizes invited email via `.trim().toLowerCase()` + regex validation; consistent with `profiles.email` storage.
 - **P3-31** — ✅ FIXED (2026-04-18 s7) — soft rate limit (max 10 pending invites per project) before insert; returns 429.
-- **P3-32** — OPEN P2 — `src/components/guardian/AdminSupportInbox.tsx:63` — `adminReply` failure is silently swallowed (`if (res.error) return;`); admin thinks reply sent but it didn't.
+- **P3-32** — ✅ FIXED 2026-04-21 (commit 1b45e58) — `AdminSupportInbox.tsx` now shows red banner + restores unsent text on `adminReply` failure.
 - **P1-5 / P1-6 / P1-7 / P1-8** — `any` types across Supabase wrappers, unused vars, stale useEffect deps, dead `getAnthropic` export. _(deferred to next polish pass — not blocking)_
 - **P2-6** — ✅ FIXED (2026-04-17 s2) — Realtime hook now uses `"postgres_changes"` literal with `as never` instead of `as any`.
 - **P2-7** — Stripe webhook `(invoice as any).subscription` typing hack. _(deferred — Stripe API version stable, low risk)_
