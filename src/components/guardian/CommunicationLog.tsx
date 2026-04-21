@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useToast } from "@/components/guardian/Toast";
 
 interface CommunicationEntry {
     id: string;
@@ -29,6 +30,7 @@ const COMM_TYPES = [
 ];
 
 export default function CommunicationLog({ projectId }: CommunicationLogProps) {
+    const { toast } = useToast();
     const [entries, setEntries] = useState<CommunicationEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
@@ -74,7 +76,7 @@ export default function CommunicationLog({ projectId }: CommunicationLogProps) {
         });
 
         if (error) {
-            alert(`Failed to save communication entry: ${error.message}`);
+            toast(`Failed to save communication entry: ${error.message}`, "error");
             return;
         }
         setShowForm(false);

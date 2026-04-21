@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useToast } from "@/components/guardian/Toast";
 
 interface SiteDiaryProps {
   projectId: string;
@@ -21,6 +22,7 @@ const TRADE_TAGS = [
 ];
 
 export default function SiteDiary({ projectId, onSaved }: SiteDiaryProps) {
+  const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [gpsStatus, setGpsStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
@@ -135,7 +137,7 @@ export default function SiteDiary({ projectId, onSaved }: SiteDiaryProps) {
 
     setSaving(false);
     if (error) {
-      alert(`Failed to save site visit: ${error.message}`);
+      toast(`Failed to save site visit: ${error.message}`, "error");
       return;
     }
     setSaved(true);

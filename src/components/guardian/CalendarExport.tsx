@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useToast } from "@/components/guardian/Toast";
 
 export default function CalendarExport({ projectId }: { projectId: string }) {
+  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [include, setInclude] = useState({
     inspections: true,
@@ -35,7 +37,7 @@ export default function CalendarExport({ projectId }: { projectId: string }) {
       URL.revokeObjectURL(url);
     } catch (err) {
       console.error("[CalendarExport]", err);
-      alert("Failed to export calendar. Please try again.");
+      toast("Failed to export calendar. Please try again.", "error");
     } finally {
       setLoading(false);
     }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useToast } from "@/components/guardian/Toast";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -133,6 +134,7 @@ export default function BuilderRatings({
   builderLicense,
   stateCode,
 }: BuilderRatingsProps) {
+  const { toast } = useToast();
   /* ---- state ---- */
   const [overall, setOverall] = useState<number>(0);
   const [categories, setCategories] = useState<CategoryRating[]>(
@@ -256,7 +258,7 @@ export default function BuilderRatings({
     );
 
     if (error) {
-      alert("Failed to save review. Please try again.");
+      toast("Failed to save review. Please try again.", "error");
       return;
     }
 

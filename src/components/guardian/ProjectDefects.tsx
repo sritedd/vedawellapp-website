@@ -10,6 +10,7 @@ import {
 } from "@/lib/guardian/calculations";
 import AIDefectAssist from "@/components/guardian/AIDefectAssist";
 import DefectAgingBadge from "@/components/guardian/DefectAgingBadge";
+import { useToast } from "@/components/guardian/Toast";
 import type { DefectAnalysis } from "@/lib/ai/prompts";
 
 interface Defect {
@@ -69,6 +70,7 @@ const LOCATIONS = [
 const DEFAULT_STAGES = ["Base/Slab", "Frame", "Lockup", "Fixing", "Practical Completion", "Post-Handover"];
 
 export default function ProjectDefects({ projectId, stages, builderEmail, onDataChanged }: ProjectDefectsProps) {
+    const { toast } = useToast();
     const [defects, setDefects] = useState<Defect[]>([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -252,7 +254,7 @@ export default function ProjectDefects({ projectId, stages, builderEmail, onData
 
         const newCount = defect.reminder_count + 1;
         const { error } = await supabase.from("defects").update({ reminder_count: newCount }).eq("id", id);
-        if (error) { alert("Failed to update reminder count."); return; }
+        if (error) { toast("Failed to update reminder count.", "error"); return; }
         setDefects(defects.map(d =>
             d.id === id ? { ...d, reminder_count: newCount } : d
         ));
@@ -367,7 +369,7 @@ export default function ProjectDefects({ projectId, stages, builderEmail, onData
         }
 
         const { error: delErr } = await supabase.from("defects").delete().eq("id", id);
-        if (delErr) { alert("Failed to delete defect."); return; }
+        if (delErr) { toast("Failed to delete defect.", "error"); return; }
         setDefects(defects.filter(d => d.id !== id));
         onDataChanged?.();
     };
@@ -395,7 +397,7 @@ export default function ProjectDefects({ projectId, stages, builderEmail, onData
 
     const copyList = async () => {
         await navigator.clipboard.writeText(generateExportList());
-        alert("Defect list copied to clipboard!");
+        toast("Defect list copied to clipboard!", "success");
     };
 
     const emailList = () => {

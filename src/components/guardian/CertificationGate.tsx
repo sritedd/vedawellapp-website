@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useToast } from "@/components/guardian/Toast";
 import australianData from "@/data/australian-build-workflows.json";
 
 interface Certification {
@@ -28,6 +29,7 @@ export default function CertificationGate({
     stateCode = "NSW",
     onPaymentBlocked,
 }: CertificationGateProps) {
+    const { toast } = useToast();
     const [certifications, setCertifications] = useState<Certification[]>([]);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState<string | null>(null);
@@ -134,7 +136,7 @@ export default function CertificationGate({
             if (uploadedFileName) {
                 await supabase.storage.from("certificates").remove([uploadedFileName]);
             }
-            alert("Failed to upload certificate.");
+            toast("Failed to upload certificate.", "error");
         } finally {
             setUploading(null);
         }

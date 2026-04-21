@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useToast } from "@/components/guardian/Toast";
 
 // Price IDs from Stripe Dashboard (Products > Price > copy the price_xxx ID)
 const PLANS = {
@@ -64,6 +65,7 @@ const PLANS = {
 };
 
 export default function PricingClient() {
+    const { toast } = useToast();
     const [loading, setLoading] = useState(false);
     const [trialLoading, setTrialLoading] = useState(false);
     const [trialMessage, setTrialMessage] = useState("");
@@ -104,7 +106,7 @@ export default function PricingClient() {
 
     const handleCheckout = async (priceId: string) => {
         if (!priceId) {
-            alert("This plan is coming soon. Please choose the monthly plan for now.");
+            toast("This plan is coming soon. Please choose the monthly plan for now.", "info");
             return;
         }
 
@@ -123,10 +125,10 @@ export default function PricingClient() {
             } else if (res.status === 401) {
                 window.location.href = "/guardian/login?returnTo=/guardian/pricing";
             } else {
-                alert(data.error || "Something went wrong. Please try again.");
+                toast(data.error || "Something went wrong. Please try again.", "error");
             }
         } catch {
-            alert("Network error. Please check your connection and try again.");
+            toast("Network error. Please check your connection and try again.", "error");
         } finally {
             setLoading(false);
         }

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import checklistData from "@/data/homeowner-checklists.json";
+import { useToast } from "@/components/guardian/Toast";
 
 interface QuestionBankProps {
     currentStage?: string;
@@ -18,6 +19,7 @@ const STAGES = [
 ];
 
 export default function QuestionBank({ currentStage }: QuestionBankProps) {
+    const { toast } = useToast();
     const [selectedStage, setSelectedStage] = useState(currentStage || "pre-construction");
     const [askedQuestions, setAskedQuestions] = useState<Set<string>>(new Set());
 
@@ -36,7 +38,7 @@ export default function QuestionBank({ currentStage }: QuestionBankProps) {
     const copyAllQuestions = () => {
         const text = questions.join("\n• ");
         navigator.clipboard.writeText(`Questions to ask your builder:\n\n• ${text}`);
-        alert("Questions copied to clipboard!");
+        toast("Questions copied to clipboard!", "success");
     };
 
     return (

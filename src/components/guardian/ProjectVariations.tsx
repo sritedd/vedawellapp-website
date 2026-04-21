@@ -11,6 +11,7 @@ import {
     getVariationWarningLevel,
     type Variation as CalcVariation,
 } from "@/lib/guardian/calculations";
+import { useToast } from "@/components/guardian/Toast";
 import type { Variation } from "@/types/guardian";
 
 const FREE_VARIATION_LIMIT = 2;
@@ -24,6 +25,7 @@ export default function ProjectVariations({
     contractValue?: number;
     onDataChanged?: () => void;
 }) {
+    const { toast } = useToast();
     const [variations, setVariations] = useState<Variation[]>([]);
     const [loading, setLoading] = useState(true);
     const [showAddForm, setShowAddForm] = useState(false);
@@ -249,7 +251,7 @@ export default function ProjectVariations({
                         } else if (error.message?.includes("FREE_TIER_VARIATION_LIMIT")) {
                             setTierError(`Free plan allows ${FREE_VARIATION_LIMIT} variations. Upgrade to Guardian Pro for unlimited.`);
                         } else {
-                            alert("Failed to add variation. Please try again.");
+                            toast("Failed to add variation. Please try again.", "error");
                         }
                     }}
                     className="p-6 bg-card border border-border rounded-xl space-y-4"

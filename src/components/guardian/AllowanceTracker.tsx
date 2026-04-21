@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useToast } from "@/components/guardian/Toast";
 
 interface Allowance {
   id: string;
@@ -22,6 +23,7 @@ const CATEGORIES = [
 ];
 
 export default function AllowanceTracker({ projectId }: { projectId: string }) {
+  const { toast } = useToast();
   const [allowances, setAllowances] = useState<Allowance[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -72,7 +74,7 @@ export default function AllowanceTracker({ projectId }: { projectId: string }) {
       status: form.status,
     });
 
-    if (error) { alert("Failed to save allowance. Please try again."); setSaving(false); return; }
+    if (error) { toast("Failed to save allowance. Please try again.", "error"); setSaving(false); return; }
 
     setForm({ category: "Kitchen Appliances", itemName: "", allowanceType: "pc", contractAmount: "", actualAmount: "", supplier: "", notes: "", status: "pending" });
     setShowForm(false);
@@ -85,14 +87,14 @@ export default function AllowanceTracker({ projectId }: { projectId: string }) {
       actual_amount: actual ? parseFloat(actual) : null,
       status: actual ? "selected" : "pending",
     }).eq("id", id);
-    if (error) { alert("Failed to update. Please try again."); return; }
+    if (error) { toast("Failed to update. Please try again.", "error"); return; }
     fetchAllowances();
   };
 
   const deleteAllowance = async (id: string) => {
     if (!confirm("Delete this allowance?")) return;
     const { error } = await supabase.from("allowances").delete().eq("id", id);
-    if (error) { alert("Failed to delete. Please try again."); return; }
+    if (error) { toast("Failed to delete. Please try again.", "error"); return; }
     fetchAllowances();
   };
 

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useToast } from "@/components/guardian/Toast";
 import {
     generateProjectSummaryPDF,
     generateDefectListPDF,
@@ -67,6 +68,7 @@ const STAGE_PAYMENT_SCHEDULE = [
 ];
 
 export default function ExportCenter({ projectId, projectName, builderName, contractValue }: ExportCenterProps) {
+    const { toast } = useToast();
     const [selectedExport, setSelectedExport] = useState<string | null>(null);
     const [previewContent, setPreviewContent] = useState<string>("");
     const [showPreview, setShowPreview] = useState(false);
@@ -229,7 +231,7 @@ export default function ExportCenter({ projectId, projectName, builderName, cont
                 try {
                     const res = await fetch(`/api/guardian/export-pdf?projectId=${projectId}&type=${pdfType}`);
                     if (res.status === 403) {
-                        alert("PDF export requires Guardian Pro. Upgrade at /guardian/pricing");
+                        toast("PDF export requires Guardian Pro. Upgrade at /guardian/pricing", "info");
                         return;
                     }
                     if (!res.ok) throw new Error("Export failed");
@@ -241,7 +243,7 @@ export default function ExportCenter({ projectId, projectName, builderName, cont
                     a.click();
                     URL.revokeObjectURL(url);
                 } catch {
-                    alert("Failed to generate PDF. Please try again.");
+                    toast("Failed to generate PDF. Please try again.", "error");
                 } finally {
                     setLoading(false);
                 }
@@ -416,7 +418,7 @@ export default function ExportCenter({ projectId, projectName, builderName, cont
                             try {
                                 const res = await fetch(`/api/guardian/export-pdf?projectId=${projectId}&type=full`);
                                 if (res.status === 403) {
-                                    alert("PDF export requires Guardian Pro. Upgrade at /guardian/pricing");
+                                    toast("PDF export requires Guardian Pro. Upgrade at /guardian/pricing", "info");
                                     return;
                                 }
                                 if (!res.ok) throw new Error("Export failed");
@@ -428,7 +430,7 @@ export default function ExportCenter({ projectId, projectName, builderName, cont
                                 a.click();
                                 URL.revokeObjectURL(url);
                             } catch {
-                                alert("Failed to generate PDF. Please try again.");
+                                toast("Failed to generate PDF. Please try again.", "error");
                             } finally {
                                 setLoading(false);
                             }

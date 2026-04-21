@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { validateUploadFile } from "@/lib/guardian/upload-validation";
+import { useToast } from "@/components/guardian/Toast";
 
 interface Document {
     id: string;
@@ -33,6 +34,7 @@ const DOCUMENT_TYPES = [
 ];
 
 export default function DocumentVault({ projectId }: DocumentVaultProps) {
+    const { toast } = useToast();
     const [documents, setDocuments] = useState<Document[]>([]);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
@@ -83,7 +85,7 @@ export default function DocumentVault({ projectId }: DocumentVaultProps) {
         // Validate file type and size before uploading
         const validation = validateUploadFile(file);
         if (!validation.valid) {
-            alert(validation.error);
+            toast(validation.error || "Invalid file.", "error");
             e.target.value = "";
             return;
         }
@@ -130,7 +132,7 @@ export default function DocumentVault({ projectId }: DocumentVaultProps) {
             setCustomName("");
         } catch (err) {
             console.error("Upload error:", err);
-            alert("Failed to upload document. Please try again.");
+            toast("Failed to upload document. Please try again.", "error");
         } finally {
             setUploading(false);
         }
@@ -153,7 +155,7 @@ export default function DocumentVault({ projectId }: DocumentVaultProps) {
             .eq("project_id", projectId);
 
         if (error) {
-            alert(`Failed to delete document: ${error.message}`);
+            toast(`Failed to delete document: ${error.message}`, "error");
             return;
         }
 

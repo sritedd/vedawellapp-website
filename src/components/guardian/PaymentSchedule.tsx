@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { logActivity } from "@/lib/activity-log";
+import { useToast } from "@/components/guardian/Toast";
 import type { Payment } from "@/types/guardian";
 
 interface PaymentScheduleProps {
@@ -11,6 +12,7 @@ interface PaymentScheduleProps {
 }
 
 export default function PaymentSchedule({ projectId, contractValue }: PaymentScheduleProps) {
+    const { toast } = useToast();
     const [payments, setPayments] = useState<Payment[]>([]);
     const [certifications, setCertifications] = useState<{ type: string; status: string }[]>([]);
     const [loading, setLoading] = useState(true);
@@ -108,7 +110,7 @@ export default function PaymentSchedule({ projectId, contractValue }: PaymentSch
 
         if (error) {
             console.error("[PaymentSchedule] Mark-as-paid failed:", error.message);
-            alert("Failed to update payment. Please try again.");
+            toast("Failed to update payment. Please try again.", "error");
             return;
         }
 

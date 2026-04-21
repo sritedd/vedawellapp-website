@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useToast } from "@/components/guardian/Toast";
 
 interface Prefs {
   defect_reminders: boolean;
@@ -31,6 +32,7 @@ const DEFAULTS: Prefs = {
 };
 
 export default function NotificationPreferences() {
+  const { toast } = useToast();
   const [prefs, setPrefs] = useState<Prefs>(DEFAULTS);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -82,7 +84,7 @@ export default function NotificationPreferences() {
 
     setSaving(false);
     if (error) {
-      alert("Failed to save preferences. Please try again.");
+      toast("Failed to save preferences. Please try again.", "error");
     } else {
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);

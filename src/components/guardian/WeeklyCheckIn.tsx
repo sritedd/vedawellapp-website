@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useToast } from "@/components/guardian/Toast";
 
 interface CheckIn {
     id: string;
@@ -38,6 +39,7 @@ const COMMON_ISSUES = [
 ];
 
 export default function WeeklyCheckIn({ projectId }: WeeklyCheckInProps) {
+    const { toast } = useToast();
     const [checkIns, setCheckIns] = useState<CheckIn[]>([]);
     const [showForm, setShowForm] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -99,7 +101,7 @@ export default function WeeklyCheckIn({ projectId }: WeeklyCheckInProps) {
         });
 
         if (error) {
-            alert(`Failed to save check-in: ${error.message}`);
+            toast(`Failed to save check-in: ${error.message}`, "error");
             return;
         }
         setShowForm(false);

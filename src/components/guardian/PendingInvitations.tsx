@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useToast } from "@/components/guardian/Toast";
 
 interface PendingInvite {
   id: string;
@@ -13,6 +14,7 @@ interface PendingInvite {
 }
 
 export default function PendingInvitations() {
+  const { toast } = useToast();
   const [invites, setInvites] = useState<PendingInvite[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -56,7 +58,7 @@ export default function PendingInvitations() {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        alert(data?.error || "Could not update invitation.");
+        toast(data?.error || "Could not update invitation.", "error");
         return;
       }
       setInvites((prev) => prev.filter((i) => i.id !== memberId));

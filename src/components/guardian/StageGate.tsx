@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useToast } from "@/components/guardian/Toast";
 import {
     getBlockingItems,
     getOverridableItems,
@@ -39,6 +40,7 @@ interface StageGateProps {
 }
 
 export default function StageGate({ projectId, currentStage, nextStage, onProceed }: StageGateProps) {
+    const { toast } = useToast();
     const [requirements, setRequirements] = useState<StageRequirement[]>([]);
     const [loading, setLoading] = useState(true);
     const [showConfirmation, setShowConfirmation] = useState(false);
@@ -331,7 +333,7 @@ export default function StageGate({ projectId, currentStage, nextStage, onProcee
         // while DB still flags the stage as in_progress, and the next gate
         // check would whiplash them back.
         if (updateError && fallbackError) {
-            alert(`Could not mark stage complete: ${fallbackError.message}. Please try again.`);
+            toast(`Could not mark stage complete: ${fallbackError.message}. Please try again.`, "error");
             return;
         }
 

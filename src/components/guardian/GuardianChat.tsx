@@ -4,6 +4,7 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { useRef, useEffect, useState, useMemo, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useToast } from "@/components/guardian/Toast";
 import { Bot, X, Send, History, Trash2, PlusCircle, AlertCircle, ChevronDown } from "lucide-react";
 
 interface Conversation {
@@ -22,6 +23,7 @@ export default function GuardianChat({
   projectId,
   projectName,
 }: GuardianChatProps) {
+  const { toast } = useToast();
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   
@@ -202,7 +204,7 @@ export default function GuardianChat({
     const supabase = createClient();
     const { error: delErr } = await supabase.from("ai_conversations").delete().eq("id", convId);
     if (delErr) {
-      alert(`Failed to delete conversation: ${delErr.message}`);
+      toast(`Failed to delete conversation: ${delErr.message}`, "error");
       return;
     }
     setConversations((prev) => prev.filter((c) => c.id !== convId));

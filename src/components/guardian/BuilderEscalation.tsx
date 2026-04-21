@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useToast } from "@/components/guardian/Toast";
 import {
   ESCALATION_LEVELS,
   type TemplateParams,
@@ -46,6 +47,7 @@ const LEVEL_BG: Record<number, string> = {
 };
 
 export default function BuilderEscalation({ projectId }: { projectId: string }) {
+  const { toast } = useToast();
   const [escalations, setEscalations] = useState<Escalation[]>([]);
   const [defects, setDefects] = useState<Defect[]>([]);
   const [selectedDefect, setSelectedDefect] = useState("");
@@ -107,7 +109,7 @@ export default function BuilderEscalation({ projectId }: { projectId: string }) 
     });
 
     if (error) {
-      alert(`Could not start escalation: ${error.message}`);
+      toast(`Could not start escalation: ${error.message}`, "error");
       return;
     }
     // Generate letter

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import TwoFactorSetup from "@/components/guardian/TwoFactorSetup";
 import NotificationPreferences from "@/components/guardian/NotificationPreferences";
+import { useToast } from "@/components/guardian/Toast";
 
 interface Profile {
     id: string;
@@ -16,6 +17,7 @@ interface Profile {
 }
 
 export default function ProfilePage() {
+    const { toast } = useToast();
     const [profile, setProfile] = useState<Profile | null>(null);
     const [fullName, setFullName] = useState("");
     const [phone, setPhone] = useState("");
@@ -206,7 +208,7 @@ export default function ProfilePage() {
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         } catch {
-            alert("Failed to export data. Please try again.");
+            toast("Failed to export data. Please try again.", "error");
         } finally {
             setExporting(false);
         }
