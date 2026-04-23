@@ -3,6 +3,34 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { PDFDocument, rgb, StandardFonts, PDFFont, PDFPage } from "pdf-lib";
 
+/**
+ * Per-user PDF generation throttle. Caps spam that could inflate Netlify
+ * function minutes — a legit user never needs more than a handful of exports
+ * in a short window. Per-instance Map is sufficient deterrence; a determined
+ * attacker would need to coordinate across warm Netlify instances to break out.
+ */
+const THROTTLE_WINDOW_MS = 5 * 60 * 1000; // 5 min rolling window
+const THROTTLE_MAX_REQUESTS = 10;
+const pdfThrottleBuckets = new Map<string, number[]>();
+
+function checkPdfThrottle(userId: string): { ok: true } | { ok: false; retryAfter: number } {
+    const now = Date.now();
+    const windowStart = now - THROTTLE_WINDOW_MS;
+    const existing = pdfThrottleBuckets.get(userId) || [];
+    const recent = existing.filter((t) => t > windowStart);
+
+    if (recent.length >= THROTTLE_MAX_REQUESTS) {
+        const oldest = recent[0];
+        const retryAfter = Math.ceil((oldest + THROTTLE_WINDOW_MS - now) / 1000);
+        pdfThrottleBuckets.set(userId, recent);
+        return { ok: false, retryAfter };
+    }
+
+    recent.push(now);
+    pdfThrottleBuckets.set(userId, recent);
+    return { ok: true };
+}
+
 async function getSupabase() {
     const cookieStore = await cookies();
     return createServerClient(
@@ -159,6 +187,16 @@ export async function GET(req: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Per-user throttle: 10 PDFs / 5 min rolling window. Deters a Pro user
+    // from scripting the endpoint to inflate Netlify function cost.
+    const throttle = checkPdfThrottle(user.id);
+    if (!throttle.ok) {
+        return NextResponse.json(
+            { error: `Too many PDF exports. Try again in ${throttle.retryAfter}s.` },
+            { status: 429, headers: { "Retry-After": String(throttle.retryAfter) } }
+        );
     }
 
     // Check pro access — fail-closed on profile read error so a transient DB glitch

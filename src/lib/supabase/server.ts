@@ -1,8 +1,9 @@
 import { createServerClient } from '@supabase/ssr'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { MockSupabaseClient } from './mock'
 
-export async function createClient() {
+export async function createClient(): Promise<SupabaseClient> {
     const cookieStore = await cookies()
 
     // SECURITY: Dev mode only works in development environment
@@ -11,7 +12,8 @@ export async function createClient() {
 
     if (isDev && hasDevCookie) {
         console.warn('[Security] Using MockSupabaseClient - dev mode only');
-        return new MockSupabaseClient() as any;
+        // Cast bounded to the dev-only branch; production path returns the real client.
+        return new MockSupabaseClient() as unknown as SupabaseClient;
     }
 
     return createServerClient(

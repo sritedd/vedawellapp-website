@@ -188,20 +188,6 @@ export function sendEmailNotification(notification: EmailNotification): void {
     window.open(mailtoUrl, "_blank");
 }
 
-/**
- * Schedule notification check (to be called on app load)
- */
-export function checkPendingNotifications(
-    projectId: string,
-    preferences: NotificationPreferences
-): EmailNotification[] {
-    const notifications: EmailNotification[] = [];
-
-    // This would normally check against real data
-    // For now, returning empty array - real implementation would query DB
-
-    return notifications;
-}
 
 /**
  * Generate defect reminder email

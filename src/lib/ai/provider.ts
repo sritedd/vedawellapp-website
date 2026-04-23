@@ -1,4 +1,3 @@
-import { createAnthropic } from "@ai-sdk/anthropic";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createGroq } from "@ai-sdk/groq";
 import { createOpenAI } from "@ai-sdk/openai";
@@ -7,25 +6,16 @@ import { createOpenAI } from "@ai-sdk/openai";
  * AI Provider Configuration.
  *
  * Strategy (priority order):
- * 1. Claude Sonnet (paid, ANTHROPIC_API_KEY)
- * 2. Google Gemini 2.5 Flash (free, GOOGLE_AI_API_KEY / GOOGLE_GENERATIVE_AI_API_KEY / GEMINI_API_KEY)
- * 3. Groq Llama (free, GROQ_API_KEY — get a free key at console.groq.com)
+ * 1. Google Gemini 2.5 Flash (free, GOOGLE_AI_API_KEY / GOOGLE_GENERATIVE_AI_API_KEY / GEMINI_API_KEY)
+ * 2. Groq Llama (free, GROQ_API_KEY — get a free key at console.groq.com)
  *
- * Minimum setup: set at least ONE of the above API keys.
+ * Anthropic path is intentionally retired — key rotated out; re-enable here if
+ * ever needed by importing `createAnthropic` and restoring the lazy getter.
  */
 
-let _anthropic: ReturnType<typeof createAnthropic> | null = null;
 let _google: ReturnType<typeof createGoogleGenerativeAI> | null = null;
 let _groq: ReturnType<typeof createGroq> | null = null;
 let _openai: ReturnType<typeof createOpenAI> | null = null;
-
-function getAnthropic() {
-    if (!_anthropic) {
-        if (!process.env.ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY not configured");
-        _anthropic = createAnthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-    }
-    return _anthropic;
-}
 
 function getGoogleApiKey(): string | null {
     return process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GOOGLE_AI_API_KEY || process.env.GEMINI_API_KEY || null;
@@ -63,13 +53,8 @@ export function getCheapModel() {
     throw new Error("No AI provider configured. Set GOOGLE_AI_API_KEY or GROQ_API_KEY.");
 }
 
-/** Smart model for complex reasoning (chat, contract analysis).
- *  Priority: Gemini 2.5 Flash → Groq Llama
- *  Note: Claude/Anthropic disabled — API key may no longer be valid */
+/** Smart model for complex reasoning (chat, contract analysis). */
 export function getSmartModel() {
-    // if (process.env.ANTHROPIC_API_KEY) {
-    //     return getAnthropic()("claude-haiku-4-5-20251001");
-    // }
     if (getGoogleApiKey()) {
         return getGoogle()("gemini-2.5-flash");
     }
@@ -81,7 +66,6 @@ export function getSmartModel() {
 
 /** Returns the name of the active smart model for telemetry */
 export function getSmartModelName(): string {
-    // if (process.env.ANTHROPIC_API_KEY) return "claude-haiku-4-5";
     if (getGoogleApiKey()) return "gemini-2.5-flash";
     if (process.env.GROQ_API_KEY) return "llama-3.3-70b-versatile";
     return "unknown";

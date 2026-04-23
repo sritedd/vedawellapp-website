@@ -522,3 +522,43 @@ html {
 .dark .blog-content img {
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
 }
+
+/* ── Small-mobile (<375px) safety rules ───────────────────────────────
+   Compact devices (iPhone SE 1st gen, Galaxy Fold cover screen, etc.) were
+   losing button labels and triggering horizontal scroll. These rules tighten
+   typography + prevent overflow without touching the tablet/desktop layout. */
+@media (max-width: 374px) {
+  html {
+    font-size: 15px; /* was 16px */
+  }
+  .card,
+  .rounded-xl {
+    padding-left: 0.875rem;
+    padding-right: 0.875rem;
+  }
+  main {
+    overflow-x: hidden;
+  }
+  /* Long builder/project names shouldn't force the dashboard off-screen. */
+  h1, h2, h3 {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+  /* FAB + toast positioning — keep clear of iOS home-indicator safe area. */
+  .fab,
+  [data-fab] {
+    bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* ── Dark-mode contrast top-ups ────────────────────────────────────────
+   A few muted-foreground utilities were landing below WCAG AA 4.5:1 against
+   the dark card background. Nudge them brighter without affecting light mode. */
+.dark .text-muted-foreground {
+  color: rgb(165 180 198); /* ≥4.5:1 on #0f172a/#1e293b cards */
+}
+
+.dark .text-gray-500,
+.dark .text-gray-400 {
+  color: rgb(156 170 188);
+}

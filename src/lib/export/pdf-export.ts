@@ -239,7 +239,7 @@ PAYMENT MILESTONES
 ───────────────────────────────────────────────────────────────
 `;
 
-    payments.forEach((payment, index) => {
+    payments.forEach((payment) => {
         const statusIcon = payment.status === "paid" ? "✓" : payment.status === "due" ? "!" : " ";
         content += `
 [${statusIcon}] ${payment.stage}

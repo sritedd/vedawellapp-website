@@ -392,17 +392,17 @@ These are documented, low-severity, and don't harm the paying user's primary flo
 
 Phase 3 leftovers: ~~P3-8 (state allowlist on URL hack)~~, ~~P3-10 (useOfflineSync stale deps)~~, ~~P3-15 (dead `projectId` param)~~, ~~P3-21 (fetchVariations stale state)~~, ~~P3-24 (PreHandover partial-success count)~~, ~~P3-25 (referral-reward CAS race silent)~~ — all FIXED 2026-04-21 (P3-15 was already wired by P3-12).
 
-Phase 4 leftovers: P4-2 ($0 claim), ~~P4-8 (phone-verify silent writes)~~, ~~P4-10 (export-pdf .error checks)~~, P4-11 (export-pdf throttle), ~~P4-12 (calendar-export filename CRLF)~~, ~~P4-13 (notifications template XSS in project name)~~, ~~P4-14 (apply-referral silent write)~~, ~~P4-15 (admin/export phone PII)~~, ~~P4-16 (defect-reminders escalation silent)~~ — 7 of 9 FIXED 2026-04-21; P4-2 (biz logic) and P4-11 (throttle design) deferred.
+Phase 4 leftovers: ~~P4-2 ($0 claim)~~, ~~P4-8 (phone-verify silent writes)~~, ~~P4-10 (export-pdf .error checks)~~, ~~P4-11 (export-pdf throttle)~~, ~~P4-12 (calendar-export filename CRLF)~~, ~~P4-13 (notifications template XSS in project name)~~, ~~P4-14 (apply-referral silent write)~~, ~~P4-15 (admin/export phone PII)~~, ~~P4-16 (defect-reminders escalation silent)~~ — 9/9 DONE (P4-2 + P4-11 closed batch 3 2026-04-22).
 
 Phase 5 read-only cosmetic backlog: ~~SmartDashboard ~8 silent reads~~, ~~ProjectHealthScore 5 silent reads~~, PaymentSchedule `fetchData` (already fixed P3-7), ~~InspectionTimeline stage-promotion silent update~~, ~~PreHandoverChecklist 3 silent updates~~, ~~StageGate defect-override loop silent updates~~, ~~NCC2025Compliance 2 silent deletes~~ — all FIXED 2026-04-22 (batch 2).
 
 Phase 2 cosmetic: ~~P2-7 (Stripe invoice typing hack)~~, ~~P2-9 (Stripe status literals → constant)~~ — FIXED 2026-04-22 (batch 2).
 
-Phase 1 cosmetic: P1-5/6/7/8 (`any` types, unused vars, stale deps, dead `getAnthropic` export), P1-9 (`<img>` vs `next/image` lint — known tradeoff for canvas tools).
+Phase 1 cosmetic: ~~P1-5 (`any` types in Supabase wrappers)~~, ~~P1-6 (unused vars)~~, ~~P1-7 (stale deps)~~, ~~P1-8 (dead `getAnthropic` export)~~ — all CLOSED batch 3 2026-04-22. P1-9 (`<img>` vs `next/image` lint — known tradeoff for canvas tools) deferred indefinitely.
 
-Phase 8 deferred: P8-3 (60 stale Jest fixtures — ~2-3 h refactor, app code is fine), P8-4 (dev-only npm audit — `handlebars` via `ts-jest`, `puppeteer-core` via `@netlify/plugin-lighthouse`; zero prod exposure; revisit build-system upgrade dedicated session).
+Phase 8: ~~P8-4 (npm audit)~~ — `npm audit fix` ran clean batch 3 2026-04-22, dropped 16 vulns → 7 (handlebars critical eliminated; remaining 7 all dev-only via `@netlify/plugin-lighthouse`/`puppeteer-core`/`@sentry/node` chain — production deps `npm audit --omit=dev` reports 0). P8-3 (60 stale Jest fixtures — ~2-3 h test refactor, app code is fine) still deferred — does not block production.
 
-Phase 9 deferred: P9-2 (PWA 192/512 icons — needs PNG generation), P9-3 (mobile <375px + dark-mode contrast — needs browser inspection session).
+Phase 9: ~~P9-2 (PWA icons)~~ — dynamic `app/icon-192.png/route.tsx` + `app/icon-512.png/route.tsx` generated via `next/og` ImageResponse, manifest.json updated with `purpose: "any maskable"`, layout's schema.org `logo` URL now resolves. ~~P9-3 (mobile <375px + dark-mode contrast)~~ — viewport metadata added to layout, `<375px` CSS safety rules added to globals (font-size, padding, overflow-x:hidden, FAB safe-area), dark-mode `text-muted-foreground` brightened to ≥4.5:1 contrast.
 
 #### 10.3 Day-0 launch checklist
 

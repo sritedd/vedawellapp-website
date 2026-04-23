@@ -33,9 +33,11 @@ type InsertThenable = {
   then: (
     onFulfilled?: (value: { error: unknown }) => unknown,
     onRejected?: (reason: unknown) => unknown
-  ) => Promise<unknown>;
+  ) => PromiseLike<unknown>;
 };
 
+// Structural — accepts both the real `SupabaseClient` and the dev mock. Avoids
+// importing the heavy generic from @supabase/supabase-js for a single insert call.
 type SupabaseInsertable = {
   from: (table: string) => {
     insert: (row: Record<string, unknown>) => InsertThenable;

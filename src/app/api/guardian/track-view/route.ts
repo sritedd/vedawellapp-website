@@ -35,11 +35,14 @@ export async function POST(req: NextRequest) {
     }
 
     // Update profile last_page_view_at (fire-and-forget, throttled to 1 min)
-    await supabase
-        .from("profiles")
-        .update({ last_page_view_at: new Date().toISOString() })
-        .eq("id", user.id)
-        .catch(() => {});
+    try {
+        await supabase
+            .from("profiles")
+            .update({ last_page_view_at: new Date().toISOString() })
+            .eq("id", user.id);
+    } catch {
+        // Non-critical — page view tracking is best-effort
+    }
 
     return NextResponse.json({ ok: true });
 }

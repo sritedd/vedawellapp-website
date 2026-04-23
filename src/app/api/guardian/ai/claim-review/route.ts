@@ -57,8 +57,12 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { projectId, claimAmount, claimStage, claimDescription } = body;
 
-    if (!projectId || !claimAmount || !claimStage) {
-      return NextResponse.json({ error: "projectId, claimAmount, and claimStage are required" }, { status: 400 });
+    // Allow $0 claims (e.g. variation-only claims or zero-progress checks) — a
+    // legitimately-zero amount should not 400. Only reject undefined/null, NaN,
+    // and negative values.
+    const claimAmountValid = typeof claimAmount === "number" && Number.isFinite(claimAmount) && claimAmount >= 0;
+    if (!projectId || !claimAmountValid || !claimStage) {
+      return NextResponse.json({ error: "projectId, claimAmount (non-negative number), and claimStage are required" }, { status: 400 });
     }
 
     // Verify ownership and fetch project data. NOTE: current_stage is NOT a
