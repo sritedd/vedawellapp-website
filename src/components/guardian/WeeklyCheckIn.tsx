@@ -24,7 +24,7 @@ interface WeeklyCheckInProps {
 const STATUS_OPTIONS = [
     { value: "on_track", label: "On Track", color: "bg-green-500", icon: "✅" },
     { value: "minor_delay", label: "Minor Delay", color: "bg-yellow-500", icon: "⚠️" },
-    { value: "major_delay", label: "Major Delay", color: "bg-orange-500", icon: "🚨" },
+    { value: "major_delay", label: "Major Delay", color: "bg-amber-500", icon: "🚨" },
     { value: "blocked", label: "Blocked", color: "bg-red-500", icon: "🛑" },
 ];
 
@@ -164,11 +164,11 @@ export default function WeeklyCheckIn({ projectId }: WeeklyCheckInProps) {
                     <div className="text-3xl font-bold text-blue-600">{checkIns.length}</div>
                     <div className="text-sm text-blue-700">Total Check-Ins</div>
                 </div>
-                <div className="p-4 bg-purple-50 border border-purple-200 rounded-xl text-center">
-                    <div className="text-3xl font-bold text-purple-600">
+                <div className="p-4 bg-teal-50 border border-teal-200 rounded-xl text-center">
+                    <div className="text-3xl font-bold text-teal-600">
                         {checkIns.reduce((acc, c) => acc + c.photos_count, 0)}
                     </div>
-                    <div className="text-sm text-purple-700">Photos Logged</div>
+                    <div className="text-sm text-teal-700">Photos Logged</div>
                 </div>
             </div>
 

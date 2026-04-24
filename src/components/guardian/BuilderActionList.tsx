@@ -25,7 +25,7 @@ interface BuilderActionListProps {
 
 const PRIORITY_CONFIG = {
     critical: { label: "Critical", color: "bg-red-500", bgLight: "bg-red-50", border: "border-red-300" },
-    high: { label: "High", color: "bg-orange-500", bgLight: "bg-orange-50", border: "border-orange-300" },
+    high: { label: "High", color: "bg-amber-500", bgLight: "bg-amber-50", border: "border-amber-300" },
     medium: { label: "Medium", color: "bg-yellow-500", bgLight: "bg-yellow-50", border: "border-yellow-300" },
     low: { label: "Low", color: "bg-blue-500", bgLight: "bg-blue-50", border: "border-blue-300" },
 };
@@ -359,11 +359,11 @@ export default function BuilderActionList({ projectId, projectName, builderName,
                     <div className="text-2xl font-bold text-red-600">{criticalCount}</div>
                     <div className="text-xs text-red-700">Critical</div>
                 </div>
-                <div className="p-4 bg-orange-50 border border-orange-200 rounded-xl text-center">
-                    <div className="text-2xl font-bold text-orange-600">
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-center">
+                    <div className="text-2xl font-bold text-amber-600">
                         {actions.filter(a => a.priority === "high" && a.status !== "completed").length}
                     </div>
-                    <div className="text-xs text-orange-700">High</div>
+                    <div className="text-xs text-amber-700">High</div>
                 </div>
                 <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl text-center">
                     <div className="text-2xl font-bold text-blue-600">{pendingCount}</div>
@@ -379,7 +379,7 @@ export default function BuilderActionList({ projectId, projectName, builderName,
 
             {/* Share Actions — only show if there are pending items */}
             {pendingCount > 0 && (
-                <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+                <div className="p-4 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl border border-blue-200">
                     <h3 className="font-bold mb-3">Share Action List with Builder</h3>
                     <div className="flex flex-wrap gap-3">
                         <button

@@ -71,7 +71,7 @@ export default function LoginPage() {
         if (/[A-Z]/.test(pw)) score++;
         if (/[0-9]/.test(pw)) score++;
         if (/[^A-Za-z0-9]/.test(pw)) score++;
-        if (score <= 1) return { label: "Weak", color: "bg-orange-500", width: "40%" };
+        if (score <= 1) return { label: "Weak", color: "bg-amber-500", width: "40%" };
         if (score <= 3) return { label: "Good", color: "bg-yellow-500", width: "70%" };
         return { label: "Strong", color: "bg-green-500", width: "100%" };
     };

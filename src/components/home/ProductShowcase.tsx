@@ -11,7 +11,7 @@ const features = [
         title: "Track Every Build Stage",
         description: "From slab pour to handover — never miss a critical inspection. Guardian follows the 7 construction stages defined by Australian building standards and alerts you when action is needed.",
         highlights: ["Pre-Drywall Checklist", "NCC 2025 Compliance", "Certification Gates", "Stage-by-stage progress"],
-        color: "from-teal-500 to-cyan-500",
+        color: "from-teal-500 to-teal-700",
     },
     {
         id: "defects",
@@ -20,7 +20,7 @@ const features = [
         title: "Document Everything",
         description: "Timestamped, geotagged photo evidence that holds up at NCAT and Fair Trading. Every defect is catalogued with severity, location, and builder response — building your legal case automatically.",
         highlights: ["Photo + timestamp evidence", "Severity classification", "Builder response tracking", "PDF export for tribunals"],
-        color: "from-red-500 to-orange-500",
+        color: "from-red-500 to-amber-500",
     },
     {
         id: "alerts",
@@ -38,7 +38,7 @@ const features = [
         title: "Tribunal-Ready Documentation",
         description: "One click generates a comprehensive PDF with all defects, variations, photos, and timeline — formatted for NCAT, Fair Trading, and Building Commission submissions.",
         highlights: ["Professional PDF reports", "Complete evidence chain", "Variation cost tracking", "Certification audit trail"],
-        color: "from-indigo-500 to-purple-500",
+        color: "from-teal-600 to-teal-800",
     },
 ];
 

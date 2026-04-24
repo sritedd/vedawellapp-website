@@ -46,17 +46,17 @@ const FREE_DEFECT_LIMIT = 3;
 
 const SEVERITY_CONFIG = {
     critical: { label: "Critical", color: "bg-red-500", bgLight: "bg-red-50", border: "border-red-300", description: "Safety or structural issue" },
-    major: { label: "Major", color: "bg-orange-500", bgLight: "bg-orange-50", border: "border-orange-300", description: "Affects functionality" },
+    major: { label: "Major", color: "bg-amber-500", bgLight: "bg-amber-50", border: "border-amber-300", description: "Affects functionality" },
     minor: { label: "Minor", color: "bg-yellow-500", bgLight: "bg-yellow-50", border: "border-yellow-300", description: "Visible but not functional" },
     cosmetic: { label: "Cosmetic", color: "bg-blue-500", bgLight: "bg-blue-50", border: "border-blue-300", description: "Aesthetic only" },
 };
 
 const STATUS_CONFIG = {
     open: { label: "Open", color: "text-red-700 bg-red-100" },
-    reported: { label: "Reported to Builder", color: "text-orange-700 bg-orange-100" },
+    reported: { label: "Reported to Builder", color: "text-amber-700 bg-amber-100" },
     in_progress: { label: "In Progress", color: "text-blue-700 bg-blue-100" },
     fixed: { label: "Fixed", color: "text-teal-700 bg-teal-100" },
-    rectified: { label: "Rectified", color: "text-purple-700 bg-purple-100" },
+    rectified: { label: "Rectified", color: "text-teal-700 bg-teal-100" },
     verified: { label: "Verified Fixed", color: "text-green-700 bg-green-100" },
     disputed: { label: "Disputed", color: "text-red-700 bg-red-200" },
 };
@@ -456,9 +456,9 @@ export default function ProjectDefects({ projectId, stages, builderEmail, onData
                     <div className="text-2xl font-bold text-red-600">{openCount}</div>
                     <div className="text-xs text-red-700">Open</div>
                 </div>
-                <div className="p-4 bg-orange-50 border border-orange-200 rounded-xl text-center">
-                    <div className="text-2xl font-bold text-orange-600">{criticalCount}</div>
-                    <div className="text-xs text-orange-700">Critical</div>
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-center">
+                    <div className="text-2xl font-bold text-amber-600">{criticalCount}</div>
+                    <div className="text-xs text-amber-700">Critical</div>
                 </div>
                 <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-center">
                     <div className="text-2xl font-bold text-amber-600">{overdueCount}</div>
@@ -684,7 +684,7 @@ export default function ProjectDefects({ projectId, stages, builderEmail, onData
                                         <span>Due: {new Date(defect.due_date).toLocaleDateString("en-AU")}</span>
                                     )}
                                     {defect.reminder_count > 0 && (
-                                        <span className="text-orange-600">{defect.reminder_count} reminder{defect.reminder_count !== 1 ? "s" : ""}</span>
+                                        <span className="text-amber-600">{defect.reminder_count} reminder{defect.reminder_count !== 1 ? "s" : ""}</span>
                                     )}
                                 </div>
 
@@ -705,7 +705,7 @@ export default function ProjectDefects({ projectId, stages, builderEmail, onData
                                         <>
                                             <button
                                                 onClick={() => updateStatus(defect.id, "reported")}
-                                                className="px-3 py-1.5 bg-orange-100 text-orange-700 rounded text-sm"
+                                                className="px-3 py-1.5 bg-amber-100 text-amber-700 rounded text-sm"
                                             >
                                                 Mark Reported
                                             </button>
@@ -743,7 +743,7 @@ export default function ProjectDefects({ projectId, stages, builderEmail, onData
                                         <>
                                             <button
                                                 onClick={() => updateStatus(defect.id, "rectified")}
-                                                className="px-3 py-1.5 bg-purple-100 text-purple-700 rounded text-sm"
+                                                className="px-3 py-1.5 bg-teal-100 text-teal-700 rounded text-sm"
                                             >
                                                 Mark Rectified
                                             </button>
@@ -793,7 +793,7 @@ export default function ProjectDefects({ projectId, stages, builderEmail, onData
                                             </button>
                                             <button
                                                 onClick={() => updateStatus(defect.id, "reported")}
-                                                className="px-3 py-1.5 bg-orange-100 text-orange-700 rounded text-sm"
+                                                className="px-3 py-1.5 bg-amber-100 text-amber-700 rounded text-sm"
                                             >
                                                 Re-report
                                             </button>

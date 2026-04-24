@@ -640,7 +640,7 @@ export default function PreHandoverChecklist({
       case "critical":
         return "text-red-700";
       case "major":
-        return "text-orange-700";
+        return "text-amber-700";
       case "minor":
         return "text-yellow-700";
       case "cosmetic":
@@ -653,7 +653,7 @@ export default function PreHandoverChecklist({
       case "critical":
         return "bg-red-100 text-red-800";
       case "major":
-        return "bg-orange-100 text-orange-800";
+        return "bg-amber-100 text-amber-800";
       case "minor":
         return "bg-yellow-100 text-yellow-800";
       case "cosmetic":
@@ -724,7 +724,7 @@ export default function PreHandoverChecklist({
               Critical:{" "}
               {items.filter((i) => i.found && i.severity === "critical").length}
             </span>
-            <span className="text-orange-700 dark:text-orange-400">
+            <span className="text-amber-700 dark:text-amber-400">
               Major:{" "}
               {items.filter((i) => i.found && i.severity === "major").length}
             </span>

@@ -50,9 +50,9 @@ const SEVERITY_CONFIG: Record<
   },
   major: {
     label: "Major",
-    color: "bg-orange-500 text-white",
-    border: "border-orange-500",
-    bg: "bg-orange-50",
+    color: "bg-amber-500 text-white",
+    border: "border-amber-500",
+    bg: "bg-amber-50",
   },
   minor: {
     label: "Minor",
@@ -456,7 +456,7 @@ export default function MobilePhotoCapture({
           {!previewUrl ? (
             /* Capture prompt */
             <div className="flex flex-col items-center justify-center px-6 py-12 gap-6">
-              <div className="w-24 h-24 rounded-full bg-emerald-600 flex items-center justify-center shadow-lg">
+              <div className="w-24 h-24 rounded-full bg-green-600 flex items-center justify-center shadow-lg">
                 <CameraIcon className="w-12 h-12 text-white" />
               </div>
               <p className="text-gray-300 text-center text-base max-w-xs">
@@ -464,15 +464,15 @@ export default function MobilePhotoCapture({
               </p>
               <button
                 onClick={openCamera}
-                className="w-full max-w-xs py-4 rounded-xl bg-emerald-600 text-white font-semibold text-lg
-                           active:bg-emerald-700 transition-colors shadow-lg"
+                className="w-full max-w-xs py-4 rounded-xl bg-green-600 text-white font-semibold text-lg
+                           active:bg-green-700 transition-colors shadow-lg"
                 style={{ minHeight: "56px" }}
               >
                 Open Camera
               </button>
               <button
                 onClick={openCamera}
-                className="text-emerald-400 underline text-sm"
+                className="text-green-400 underline text-sm"
               >
                 or choose from gallery
               </button>
@@ -518,7 +518,7 @@ export default function MobilePhotoCapture({
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
                     className="w-full bg-gray-800 text-white border border-gray-600 rounded-xl px-4 py-3 text-base
-                               focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 appearance-none"
+                               focus:ring-2 focus:ring-green-500 focus:border-green-500 appearance-none"
                     style={{ minHeight: "48px" }}
                   >
                     {LOCATIONS.map((loc) => (
@@ -534,8 +534,8 @@ export default function MobilePhotoCapture({
                       onChange={(e) => setOtherLocation(e.target.value)}
                       placeholder="Specify location..."
                       className="mt-2 w-full bg-gray-800 text-white border border-gray-600 rounded-xl px-4 py-3
-                                 text-base placeholder-gray-500 focus:ring-2 focus:ring-emerald-500
-                                 focus:border-emerald-500"
+                                 text-base placeholder-gray-500 focus:ring-2 focus:ring-green-500
+                                 focus:border-green-500"
                       style={{ minHeight: "48px" }}
                     />
                   )}
@@ -577,7 +577,7 @@ export default function MobilePhotoCapture({
                       value={selectedStage}
                       onChange={(e) => setSelectedStage(e.target.value)}
                       className="w-full bg-gray-800 text-white border border-gray-600 rounded-xl px-4 py-3 text-base
-                                 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 appearance-none"
+                                 focus:ring-2 focus:ring-green-500 focus:border-green-500 appearance-none"
                       style={{ minHeight: "48px" }}
                     >
                       {DEFAULT_STAGES.map((s) => (
@@ -600,8 +600,8 @@ export default function MobilePhotoCapture({
                     placeholder="Describe what you see..."
                     rows={3}
                     className="w-full bg-gray-800 text-white border border-gray-600 rounded-xl px-4 py-3 text-base
-                               placeholder-gray-500 resize-none focus:ring-2 focus:ring-emerald-500
-                               focus:border-emerald-500"
+                               placeholder-gray-500 resize-none focus:ring-2 focus:ring-green-500
+                               focus:border-green-500"
                     style={{ minHeight: "80px" }}
                   />
                 </div>
@@ -619,11 +619,11 @@ export default function MobilePhotoCapture({
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-gray-400">Uploading...</span>
-                      <span className="text-emerald-400 font-medium">{uploadProgress}%</span>
+                      <span className="text-green-400 font-medium">{uploadProgress}%</span>
                     </div>
                     <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-emerald-500 rounded-full transition-all duration-300"
+                        className="h-full bg-green-500 rounded-full transition-all duration-300"
                         style={{ width: `${uploadProgress}%` }}
                       />
                     </div>
@@ -632,9 +632,9 @@ export default function MobilePhotoCapture({
 
                 {/* Success message */}
                 {saved && (
-                  <div className="flex items-center gap-2 p-3 bg-emerald-900/50 border border-emerald-700 rounded-xl">
-                    <CheckIcon className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-                    <p className="text-emerald-300 text-sm">Photo saved successfully</p>
+                  <div className="flex items-center gap-2 p-3 bg-green-900/50 border border-green-700 rounded-xl">
+                    <CheckIcon className="w-5 h-5 text-green-400 flex-shrink-0" />
+                    <p className="text-green-300 text-sm">Photo saved successfully</p>
                   </div>
                 )}
 
@@ -659,10 +659,10 @@ export default function MobilePhotoCapture({
                 className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl font-semibold text-base
                            transition-colors ${
                              saved
-                               ? "bg-emerald-800 text-emerald-200 cursor-default"
+                               ? "bg-green-800 text-green-200 cursor-default"
                                : uploading
                                ? "bg-gray-700 text-gray-400 cursor-wait"
-                               : "bg-emerald-600 text-white active:bg-emerald-700"
+                               : "bg-green-600 text-white active:bg-green-700"
                            }`}
                 style={{ minHeight: "52px" }}
               >
@@ -731,7 +731,7 @@ export function PhotoFAB({ onClick }: { onClick: () => void }) {
         <div className="absolute bottom-16 right-0 flex flex-col items-end gap-2 mb-2 animate-in fade-in slide-in-from-bottom-2 duration-150">
           <button
             onClick={() => { setExpanded(false); onClick(); }}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-emerald-600 text-white shadow-lg text-sm font-medium whitespace-nowrap hover:bg-emerald-500 active:scale-95 transition-all"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-green-600 text-white shadow-lg text-sm font-medium whitespace-nowrap hover:bg-green-500 active:scale-95 transition-all"
           >
             <CameraIcon className="w-5 h-5" />
             Report Defect
@@ -749,9 +749,9 @@ export function PhotoFAB({ onClick }: { onClick: () => void }) {
       <button
         onClick={() => setExpanded(!expanded)}
         className={`w-14 h-14 rounded-full text-white
-                   shadow-lg shadow-emerald-900/40 flex items-center justify-center
-                   hover:bg-emerald-500 active:scale-95
-                   transition-all duration-150 ${expanded ? "bg-gray-700 rotate-45" : "bg-emerald-600"}`}
+                   shadow-lg shadow-green-900/40 flex items-center justify-center
+                   hover:bg-green-500 active:scale-95
+                   transition-all duration-150 ${expanded ? "bg-gray-700 rotate-45" : "bg-green-600"}`}
         aria-label={expanded ? "Close menu" : "Capture photo or report defect"}
       >
         {expanded ? (

@@ -206,9 +206,9 @@ export default function NotificationCenter({ projectId, projectName, builderEmai
             case "checkin":
                 return { icon: "📅", color: "bg-green-50 border-green-200", label: "Check-in" };
             case "warranty":
-                return { icon: "🛡️", color: "bg-purple-50 border-purple-200", label: "Warranty" };
+                return { icon: "🛡️", color: "bg-teal-50 border-teal-200", label: "Warranty" };
             case "followup":
-                return { icon: "📞", color: "bg-cyan-50 border-cyan-200", label: "Follow-up" };
+                return { icon: "📞", color: "bg-teal-50 border-teal-200", label: "Follow-up" };
         }
     };
 

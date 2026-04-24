@@ -235,7 +235,7 @@ export default function CertificationGate({
                                 key={certName}
                                 className={`p-4 rounded-xl border ${cert && cert.status !== "pending"
                                         ? "border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/30"
-                                        : "border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950/30"
+                                        : "border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30"
                                     }`}
                             >
                                 <div className="flex justify-between items-start">
@@ -267,7 +267,7 @@ export default function CertificationGate({
                                                 )}
                                             </div>
                                         ) : (
-                                            <p className="text-sm text-orange-600 dark:text-orange-400 mt-1">
+                                            <p className="text-sm text-amber-600 dark:text-amber-400 mt-1">
                                                 Required before payment
                                             </p>
                                         )}

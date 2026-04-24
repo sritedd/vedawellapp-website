@@ -26,7 +26,7 @@ interface ParseResult {
 
 const SEVERITY_COLORS: Record<string, string> = {
   critical: "bg-red-500/10 text-red-700 border-red-500/20",
-  major: "bg-orange-500/10 text-orange-700 border-orange-500/20",
+  major: "bg-amber-500/10 text-amber-700 border-amber-500/20",
   minor: "bg-yellow-500/10 text-yellow-700 border-yellow-500/20",
   cosmetic: "bg-blue-500/10 text-blue-700 border-blue-500/20",
 };

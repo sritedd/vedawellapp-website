@@ -106,18 +106,18 @@ export default function AIStageAdvice({
   if (!advice) return null;
 
   return (
-    <div className="rounded-xl border border-indigo-200 dark:border-indigo-800 bg-white dark:bg-gray-800 overflow-hidden">
+    <div className="rounded-xl border border-teal-200 dark:border-teal-800 bg-white dark:bg-gray-800 overflow-hidden">
       {/* Toggle button */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center justify-between px-5 py-3.5 text-left hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"
+        className="w-full flex items-center justify-between px-5 py-3.5 text-left hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors"
       >
         <div className="flex items-center gap-2">
           <span className="text-xl">&#x1F4A1;</span>
           <span className="font-semibold text-gray-900 dark:text-gray-100">
             AI Stage Advisor
           </span>
-          <span className="text-xs font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-900/40 px-2 py-0.5 rounded-full">
+          <span className="text-xs font-medium text-teal-600 dark:text-teal-400 bg-teal-100 dark:bg-teal-900/40 px-2 py-0.5 rounded-full">
             {stage}
           </span>
         </div>
@@ -128,7 +128,7 @@ export default function AIStageAdvice({
 
       {/* Content */}
       {expanded && (
-        <div className="px-5 pb-5 border-t border-indigo-100 dark:border-indigo-800/50 space-y-5 pt-4">
+        <div className="px-5 pb-5 border-t border-teal-100 dark:border-teal-800/50 space-y-5 pt-4">
           {/* Advice paragraphs */}
           <div className="prose prose-sm dark:prose-invert max-w-none">
             {advice.advice.split("\n\n").map((paragraph, i) => (
@@ -172,7 +172,7 @@ export default function AIStageAdvice({
                     key={i}
                     className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300"
                   >
-                    <span className="text-indigo-500 dark:text-indigo-400 mt-1 flex-shrink-0">
+                    <span className="text-teal-500 dark:text-teal-400 mt-1 flex-shrink-0">
                       &#x2022;
                     </span>
                     {doc}
@@ -204,11 +204,11 @@ export default function AIStageAdvice({
 
           {/* Payment advice */}
           {advice.paymentAdvice && (
-            <div className="rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 p-3.5">
-              <h4 className="text-sm font-semibold text-emerald-800 dark:text-emerald-300 mb-1.5 flex items-center gap-1.5">
+            <div className="rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 p-3.5">
+              <h4 className="text-sm font-semibold text-green-800 dark:text-green-300 mb-1.5 flex items-center gap-1.5">
                 <span>&#x1F4B0;</span> Payment Guidance
               </h4>
-              <p className="text-sm text-emerald-800 dark:text-emerald-300 leading-relaxed">
+              <p className="text-sm text-green-800 dark:text-green-300 leading-relaxed">
                 {advice.paymentAdvice}
               </p>
             </div>

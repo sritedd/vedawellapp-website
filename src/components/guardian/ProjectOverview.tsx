@@ -195,7 +195,7 @@ export default function ProjectOverview({ project }: ProjectOverviewProps) {
                 <div className="bg-card border border-border rounded-xl p-5">
                     <div className="text-muted text-sm mb-1">Approved Variations</div>
                     <div
-                        className={`text-2xl font-bold ${variationsTotal > 0 ? "text-orange-500" : ""}`}
+                        className={`text-2xl font-bold ${variationsTotal > 0 ? "text-amber-500" : ""}`}
                     >
                         {variationsTotal > 0 ? "+" : ""}
                         {formatMoney(variationsTotal)}

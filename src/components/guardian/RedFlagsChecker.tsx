@@ -17,7 +17,7 @@ export default function RedFlagsChecker({ phase }: RedFlagsCheckerProps) {
 
     const severityStyles = {
         critical: "bg-red-100 border-red-300 text-red-800",
-        high: "bg-orange-100 border-orange-300 text-orange-800",
+        high: "bg-amber-100 border-amber-300 text-amber-800",
         medium: "bg-amber-100 border-amber-300 text-amber-800",
     };
 

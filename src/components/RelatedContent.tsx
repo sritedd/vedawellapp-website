@@ -80,7 +80,7 @@ export function RelatedContent({ toolSlug }: { toolSlug: string }) {
                     >
                         <span className="text-2xl">{item.icon}</span>
                         <div>
-                            <span className="font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">
+                            <span className="font-semibold text-gray-900 group-hover:text-teal-600 transition-colors">
                                 {item.title}
                             </span>
                             <p className="text-sm text-gray-500">{item.description}</p>

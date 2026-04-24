@@ -94,7 +94,7 @@ export default function AdminAnnouncementManager() {
                 <button
                     onClick={handleCleanupTrials}
                     disabled={loading}
-                    className="px-4 py-2 text-sm font-medium rounded-lg bg-orange-600 text-white hover:bg-orange-700 disabled:opacity-50 transition-colors"
+                    className="px-4 py-2 text-sm font-medium rounded-lg bg-amber-600 text-white hover:bg-amber-700 disabled:opacity-50 transition-colors"
                 >
                     Cleanup Expired Trials
                 </button>

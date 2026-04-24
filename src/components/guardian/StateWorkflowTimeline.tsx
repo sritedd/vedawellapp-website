@@ -42,7 +42,7 @@ export default function StateWorkflowTimeline({
                             key={pathway.id}
                             className={`p-4 rounded-xl border-2 ${pathway.id === "cdc"
                                     ? "border-green-200 bg-green-50"
-                                    : "border-orange-200 bg-orange-50"
+                                    : "border-amber-200 bg-amber-50"
                                 }`}
                         >
                             <div className="flex items-center justify-between mb-2">
@@ -50,7 +50,7 @@ export default function StateWorkflowTimeline({
                                 <span
                                     className={`text-sm px-2 py-0.5 rounded ${pathway.id === "cdc"
                                             ? "bg-green-100 text-green-700"
-                                            : "bg-orange-100 text-orange-700"
+                                            : "bg-amber-100 text-amber-700"
                                         }`}
                                 >
                                     {pathway.avgDays}
@@ -63,7 +63,7 @@ export default function StateWorkflowTimeline({
                                     <ul className="text-xs mt-1 space-y-0.5">
                                         {pathway.requirements.slice(0, 4).map((req: string, i: number) => (
                                             <li key={i} className="flex items-start gap-1">
-                                                <span className={pathway.id === "cdc" ? "text-green-600" : "text-orange-600"}>
+                                                <span className={pathway.id === "cdc" ? "text-green-600" : "text-amber-600"}>
                                                     •
                                                 </span>
                                                 {req}

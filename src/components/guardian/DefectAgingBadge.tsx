@@ -28,7 +28,7 @@ export default function DefectAgingBadge({ reportedAt, status, escalationLevel }
     } else if (daysOpen < 14) {
         colorClasses = "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-400";
     } else if (daysOpen < 30) {
-        colorClasses = "bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-400";
+        colorClasses = "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-400";
     } else {
         colorClasses = "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400";
     }

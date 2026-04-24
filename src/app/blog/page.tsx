@@ -20,11 +20,11 @@ export const metadata: Metadata = {
 const CATEGORY_COLORS: Record<string, { bg: string; text: string; darkBg: string; darkText: string }> = {
     "HomeOwner Guardian": { bg: "bg-teal-50", text: "text-teal-700", darkBg: "dark:bg-teal-900/30", darkText: "dark:text-teal-300" },
     "Construction": { bg: "bg-amber-50", text: "text-amber-700", darkBg: "dark:bg-amber-900/30", darkText: "dark:text-amber-300" },
-    "Productivity": { bg: "bg-indigo-50", text: "text-indigo-700", darkBg: "dark:bg-indigo-900/30", darkText: "dark:text-indigo-300" },
+    "Productivity": { bg: "bg-teal-50", text: "text-teal-700", darkBg: "dark:bg-teal-900/30", darkText: "dark:text-teal-300" },
     "SEO": { bg: "bg-green-50", text: "text-green-700", darkBg: "dark:bg-green-900/30", darkText: "dark:text-green-300" },
-    "Development": { bg: "bg-purple-50", text: "text-purple-700", darkBg: "dark:bg-purple-900/30", darkText: "dark:text-purple-300" },
+    "Development": { bg: "bg-teal-50", text: "text-teal-700", darkBg: "dark:bg-teal-900/30", darkText: "dark:text-teal-300" },
     "Security": { bg: "bg-red-50", text: "text-red-700", darkBg: "dark:bg-red-900/30", darkText: "dark:text-red-300" },
-    "Design": { bg: "bg-pink-50", text: "text-pink-700", darkBg: "dark:bg-pink-900/30", darkText: "dark:text-pink-300" },
+    "Design": { bg: "bg-red-50", text: "text-red-700", darkBg: "dark:bg-red-900/30", darkText: "dark:text-red-300" },
 };
 
 function getCategoryStyle(category: string) {
@@ -39,14 +39,14 @@ export default function BlogPage() {
     return (
         <>
         <BreadcrumbJsonLd items={[{ name: "Home", href: "/" }, { name: "Blog", href: "/blog" }]} />
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 selection:bg-indigo-500/30">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 selection:bg-teal-500/30">
             {/* Hero Section */}
             <header className="relative overflow-hidden bg-slate-950 dark:bg-slate-900 text-white pt-24 pb-20 lg:pt-32 lg:pb-28">
                 {/* Decorative background gradients */}
                 <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                    <div className="absolute -top-1/2 -left-1/4 w-[1000px] h-[1000px] bg-indigo-600/20 rounded-full blur-[120px] mix-blend-screen" />
+                    <div className="absolute -top-1/2 -left-1/4 w-[1000px] h-[1000px] bg-teal-600/20 rounded-full blur-[120px] mix-blend-screen" />
                     <div className="absolute -bottom-1/2 -right-1/4 w-[800px] h-[800px] bg-teal-500/20 rounded-full blur-[100px] mix-blend-screen" />
-                    <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-[80px]" />
+                    <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-teal-600/10 rounded-full blur-[80px]" />
                 </div>
 
                 <div className="relative z-10 max-w-6xl mx-auto px-6 text-center">
@@ -56,7 +56,7 @@ export default function BlogPage() {
                     </div>
                     <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 leading-[1.1]">
                         Build Smarter. <br className="hidden md:block" />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-300 via-teal-400 to-indigo-400">
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-300 via-teal-400 to-teal-400">
                             Protect Your Investment.
                         </span>
                     </h1>
@@ -80,7 +80,7 @@ export default function BlogPage() {
 
             <main className="max-w-6xl mx-auto px-6 py-16 lg:py-24 space-y-24">
                 {/* HomeOwner Guardian Highlight */}
-                <section className="relative overflow-hidden bg-gradient-to-r from-teal-500 to-indigo-600 rounded-3xl shadow-xl border border-teal-400">
+                <section className="relative overflow-hidden bg-gradient-to-r from-teal-500 to-teal-600 rounded-3xl shadow-xl border border-teal-400">
                     <div className="relative z-10 px-6 py-10 sm:py-12 max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
                         <div className="text-left md:max-w-xl">
                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 border border-white/30 text-white text-xs font-bold uppercase tracking-wider mb-4">
@@ -113,14 +113,14 @@ export default function BlogPage() {
                     </div>
                     
                     <Link href={`/blog/${featured.slug}`} className="group block outline-none">
-                        <article className="relative bg-white dark:bg-slate-900 rounded-3xl p-8 lg:p-10 shadow-sm border border-slate-200 dark:border-slate-800 hover:shadow-2xl hover:border-indigo-500/30 transition-all duration-500 overflow-hidden transform group-hover:-translate-y-1 flex flex-col md:flex-row gap-8 lg:gap-12 items-center">
+                        <article className="relative bg-white dark:bg-slate-900 rounded-3xl p-8 lg:p-10 shadow-sm border border-slate-200 dark:border-slate-800 hover:shadow-2xl hover:border-teal-500/30 transition-all duration-500 overflow-hidden transform group-hover:-translate-y-1 flex flex-col md:flex-row gap-8 lg:gap-12 items-center">
                             {/* Image side */}
                             <div className="w-full md:w-1/2 overflow-hidden rounded-2xl shrink-0 shadow-lg relative z-20 bg-slate-100 dark:bg-slate-800">
                                 <FallbackImage src={featured.image} alt={featured.title} className="w-full h-full md:h-[350px] object-cover transform group-hover:scale-105 transition-transform duration-700" />
                             </div>
                             
                             {/* Accent Glow */}
-                            <div className="absolute top-0 right-0 p-32 bg-indigo-500/10 dark:bg-indigo-500/5 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none z-0"></div>
+                            <div className="absolute top-0 right-0 p-32 bg-teal-500/10 dark:bg-teal-500/5 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none z-0"></div>
                             
                             <div className="relative z-10 w-full md:w-1/2">
                                 <div className="flex items-center gap-4 mb-6 relative">
@@ -137,13 +137,13 @@ export default function BlogPage() {
                                         {featured.readTime}
                                     </span>
                                 </div>
-                                <h3 className="text-4xl lg:text-5xl font-extrabold text-slate-900 dark:text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-indigo-600 group-hover:to-teal-500 dark:group-hover:from-indigo-400 dark:group-hover:to-teal-300 transition-all duration-300 mb-6 leading-[1.15]">
+                                <h3 className="text-4xl lg:text-5xl font-extrabold text-slate-900 dark:text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-teal-600 group-hover:to-teal-500 dark:group-hover:from-teal-400 dark:group-hover:to-teal-300 transition-all duration-300 mb-6 leading-[1.15]">
                                     {featured.title}
                                 </h3>
                                 <p className="text-xl text-slate-600 dark:text-slate-400 leading-relaxed max-w-2xl mb-8">
                                     {featured.description}
                                 </p>
-                                <div className="inline-flex items-center gap-2 font-semibold text-indigo-600 dark:text-indigo-400 group-hover:gap-3 transition-all bg-indigo-50 dark:bg-indigo-500/10 px-6 py-3 rounded-full">
+                                <div className="inline-flex items-center gap-2 font-semibold text-teal-600 dark:text-teal-400 group-hover:gap-3 transition-all bg-teal-50 dark:bg-teal-500/10 px-6 py-3 rounded-full">
                                     Read Article
                                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
                                 </div>
@@ -164,8 +164,8 @@ export default function BlogPage() {
                             const style = getCategoryStyle(post.category);
                             return (
                                 <Link key={post.slug} href={`/blog/${post.slug}`} className="group h-full outline-none">
-                                    <article className="flex flex-col h-full bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 hover:shadow-xl hover:border-indigo-500/30 transition-all duration-300 transform group-hover:-translate-y-1 relative overflow-hidden">
-                                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 to-teal-400 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out z-10"></div>
+                                    <article className="flex flex-col h-full bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 hover:shadow-xl hover:border-teal-500/30 transition-all duration-300 transform group-hover:-translate-y-1 relative overflow-hidden">
+                                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-500 to-teal-400 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out z-10"></div>
                                         
                                         <div className="w-full h-52 overflow-hidden bg-slate-100 dark:bg-slate-800">
                                             <FallbackImage src={post.image} alt={post.title} className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" loading="lazy" />
@@ -182,7 +182,7 @@ export default function BlogPage() {
                                             </span>
                                         </div>
                                         
-                                        <h3 className="text-xl font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors mb-3 leading-snug">
+                                        <h3 className="text-xl font-bold text-slate-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors mb-3 leading-snug">
                                             {post.title}
                                         </h3>
                                         
@@ -195,7 +195,7 @@ export default function BlogPage() {
                                                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                                                 {new Date(post.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                                             </time>
-                                            <div className="text-indigo-600 dark:text-indigo-400 text-sm font-semibold flex items-center gap-1 group-hover:gap-2 transition-all">
+                                            <div className="text-teal-600 dark:text-teal-400 text-sm font-semibold flex items-center gap-1 group-hover:gap-2 transition-all">
                                                 Read <span aria-hidden="true">&rarr;</span>
                                             </div>
                                         </div>

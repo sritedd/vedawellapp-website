@@ -35,14 +35,14 @@ interface Defect {
 const LEVEL_COLORS: Record<number, string> = {
   1: "bg-blue-500",
   2: "bg-yellow-500",
-  3: "bg-orange-500",
+  3: "bg-amber-500",
   4: "bg-red-500",
 };
 
 const LEVEL_BG: Record<number, string> = {
   1: "bg-blue-500/10 border-blue-500/20 text-blue-700",
   2: "bg-yellow-500/10 border-yellow-500/20 text-yellow-700",
-  3: "bg-orange-500/10 border-orange-500/20 text-orange-700",
+  3: "bg-amber-500/10 border-amber-500/20 text-amber-700",
   4: "bg-red-500/10 border-red-500/20 text-red-700",
 };
 

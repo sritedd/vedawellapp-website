@@ -260,7 +260,7 @@ export default function DocumentVault({ projectId }: DocumentVaultProps) {
                             className={`p-4 rounded-xl border ${hasDoc
                                     ? "border-green-200 bg-green-50"
                                     : type.required
-                                        ? "border-orange-200 bg-orange-50"
+                                        ? "border-amber-200 bg-amber-50"
                                         : "border-border bg-card"
                                 }`}
                         >
@@ -270,7 +270,7 @@ export default function DocumentVault({ projectId }: DocumentVaultProps) {
                                     <div>
                                         <h4 className="font-bold text-sm">{type.label}</h4>
                                         {type.required && !hasDoc && (
-                                            <span className="text-xs text-orange-600">Required</span>
+                                            <span className="text-xs text-amber-600">Required</span>
                                         )}
                                         {hasDoc && (
                                             <span className="text-xs text-green-600">✓ Uploaded</span>

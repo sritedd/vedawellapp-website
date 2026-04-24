@@ -207,7 +207,7 @@ export default function ProjectVariations({
                 </div>
                 <div className="bg-card border border-border rounded-xl p-4">
                     <div className="text-sm text-muted-foreground">Total Variations</div>
-                    <div className={`text-2xl font-bold ${totalVariations > 0 ? "text-orange-500" : ""}`}>
+                    <div className={`text-2xl font-bold ${totalVariations > 0 ? "text-amber-500" : ""}`}>
                         +{formatMoney(totalVariations)}
                     </div>
                     <div className="text-xs text-muted-foreground mt-1">
@@ -445,7 +445,7 @@ export default function ProjectVariations({
                             <td colSpan={3} className="px-6 py-4 text-right">
                                 Approved Extra Costs
                             </td>
-                            <td className="px-6 py-4 text-right font-extrabold text-orange-600">
+                            <td className="px-6 py-4 text-right font-extrabold text-amber-600">
                                 {formatMoney(approvedTotal)}
                             </td>
                             <td colSpan={2}></td>
@@ -471,7 +471,7 @@ export default function ProjectVariations({
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Cost:</span>
-                                    <span className="font-bold text-orange-600">
+                                    <span className="font-bold text-amber-600">
                                         {formatMoney(selectedVariation.additional_cost)}
                                     </span>
                                 </div>

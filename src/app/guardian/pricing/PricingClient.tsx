@@ -158,7 +158,7 @@ export default function PricingClient() {
                 )}
 
                 {/* Trial Banner */}
-                <div className="max-w-lg mx-auto mb-10 p-6 bg-gradient-to-r from-teal-50 to-emerald-50 dark:from-teal-950/30 dark:to-emerald-950/30 border border-teal-200 dark:border-teal-800 rounded-2xl text-center">
+                <div className="max-w-lg mx-auto mb-10 p-6 bg-gradient-to-r from-teal-50 to-green-50 dark:from-teal-950/30 dark:to-green-950/30 border border-teal-200 dark:border-teal-800 rounded-2xl text-center">
                     <p className="text-sm font-semibold text-teal-700 dark:text-teal-300 mb-1">Not ready to commit?</p>
                     <h3 className="text-xl font-bold mb-2">Try Guardian Pro Free for 7 Days</h3>
                     <p className="text-sm text-muted mb-4">Full access to all Pro features. No credit card required.</p>

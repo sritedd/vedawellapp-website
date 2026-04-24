@@ -49,13 +49,13 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 selection:bg-indigo-500/30 font-sans">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 selection:bg-teal-500/30 font-sans">
             <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
             {/* Premium Header */}
             <header className="relative pt-24 pb-16 lg:pt-32 lg:pb-24 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden">
                 {/* Background ambient light */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-64 bg-indigo-500/5 dark:bg-indigo-500/10 blur-[100px] rounded-full pointer-events-none" />
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-64 bg-teal-500/5 dark:bg-teal-500/10 blur-[100px] rounded-full pointer-events-none" />
                 
                 <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
                     <Link href="/blog" className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-sm font-semibold mb-10 group">
@@ -64,7 +64,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                     </Link>
 
                     <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-sm font-medium mb-8">
-                        <span className="px-3 py-1 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 rounded-lg uppercase tracking-wider text-xs font-bold border border-indigo-100 dark:border-indigo-500/20">
+                        <span className="px-3 py-1 bg-teal-50 dark:bg-teal-500/10 text-teal-700 dark:text-teal-400 rounded-lg uppercase tracking-wider text-xs font-bold border border-teal-100 dark:border-teal-500/20">
                             {post.category}
                         </span>
                         <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
@@ -133,17 +133,17 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
                 {/* Related Tools */}
                 {post.relatedTools.length > 0 && (
-                    <div className="mb-16 p-8 bg-indigo-50/50 dark:bg-indigo-500/5 rounded-3xl border border-indigo-100 dark:border-indigo-500/10">
+                    <div className="mb-16 p-8 bg-teal-50/50 dark:bg-teal-500/5 rounded-3xl border border-teal-100 dark:border-teal-500/10">
                         <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Explore Free Tools</h3>
                         <div className="flex flex-wrap gap-3">
                             {post.relatedTools.map((tool) => (
                                 <Link
                                     key={tool}
                                     href={`/tools/${tool}`}
-                                    className="px-5 py-3 bg-white dark:bg-slate-800 text-indigo-700 dark:text-indigo-400 rounded-xl shadow-sm hover:shadow-md transition-all font-semibold border border-slate-200 dark:border-slate-700 flex items-center gap-2 group"
+                                    className="px-5 py-3 bg-white dark:bg-slate-800 text-teal-700 dark:text-teal-400 rounded-xl shadow-sm hover:shadow-md transition-all font-semibold border border-slate-200 dark:border-slate-700 flex items-center gap-2 group"
                                 >
                                     {tool.split("-").map(w => w[0].toUpperCase() + w.slice(1)).join(" ")}
-                                    <span className="transform group-hover:translate-x-1 transition-transform border border-indigo-200 dark:border-indigo-800 rounded-full w-6 h-6 flex items-center justify-center text-xs bg-indigo-50 dark:bg-indigo-900/50">&rarr;</span>
+                                    <span className="transform group-hover:translate-x-1 transition-transform border border-teal-200 dark:border-teal-800 rounded-full w-6 h-6 flex items-center justify-center text-xs bg-teal-50 dark:bg-teal-900/50">&rarr;</span>
                                 </Link>
                             ))}
                         </div>
@@ -153,23 +153,23 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                 {/* Prev/Next Navigation */}
                 <div className="grid sm:grid-cols-2 gap-6">
                     {prevPost ? (
-                        <Link href={`/blog/${prevPost.slug}`} className="group p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-500 transition-all hover:shadow-lg flex flex-col items-start text-left">
-                            <span className="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider mb-2 flex items-center gap-1 group-hover:text-indigo-500 transition-colors">
+                        <Link href={`/blog/${prevPost.slug}`} className="group p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-teal-400 dark:hover:border-teal-500 transition-all hover:shadow-lg flex flex-col items-start text-left">
+                            <span className="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider mb-2 flex items-center gap-1 group-hover:text-teal-500 transition-colors">
                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                                 Previous
                             </span>
-                            <span className="text-lg font-bold text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-2 leading-snug">
+                            <span className="text-lg font-bold text-slate-800 dark:text-slate-200 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors line-clamp-2 leading-snug">
                                 {prevPost.title}
                             </span>
                         </Link>
                     ) : <div />}
                     {nextPost && (
-                        <Link href={`/blog/${nextPost.slug}`} className="group p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-500 transition-all hover:shadow-lg flex flex-col items-end text-right">
-                            <span className="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider mb-2 flex items-center gap-1 group-hover:text-indigo-500 transition-colors">
+                        <Link href={`/blog/${nextPost.slug}`} className="group p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-teal-400 dark:hover:border-teal-500 transition-all hover:shadow-lg flex flex-col items-end text-right">
+                            <span className="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider mb-2 flex items-center gap-1 group-hover:text-teal-500 transition-colors">
                                 Next
                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                             </span>
-                            <span className="text-lg font-bold text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-2 leading-snug">
+                            <span className="text-lg font-bold text-slate-800 dark:text-slate-200 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors line-clamp-2 leading-snug">
                                 {nextPost.title}
                             </span>
                         </Link>

@@ -258,9 +258,9 @@ export default function SiteVisitLog({ projectId }: SiteVisitLogProps) {
                     <div className="text-2xl font-bold text-blue-600">{totalVisits}</div>
                     <div className="text-xs text-blue-700">Total Visits</div>
                 </div>
-                <div className="p-4 bg-purple-50 border border-purple-200 rounded-xl text-center">
-                    <div className="text-2xl font-bold text-purple-600">{totalPhotos}</div>
-                    <div className="text-xs text-purple-700">Photos Taken</div>
+                <div className="p-4 bg-teal-50 border border-teal-200 rounded-xl text-center">
+                    <div className="text-2xl font-bold text-teal-600">{totalPhotos}</div>
+                    <div className="text-xs text-teal-700">Photos Taken</div>
                 </div>
                 <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-center">
                     <div className="text-2xl font-bold text-amber-600">{openConcerns}</div>

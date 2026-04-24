@@ -576,7 +576,7 @@ export default function SmartDashboard({ project, currentStage, stageNames, onNa
             {celebrations.length > 0 && (
                 <div className="space-y-2">
                     {celebrations.map((c, i) => (
-                        <div key={i} className="p-4 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border border-green-200 dark:border-green-800 flex items-center gap-3">
+                        <div key={i} className="p-4 rounded-xl bg-gradient-to-r from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/30 border border-green-200 dark:border-green-800 flex items-center gap-3">
                             <span className="text-2xl">{c.icon}</span>
                             <span className="font-semibold text-green-800 dark:text-green-300">{c.text}</span>
                         </div>
@@ -652,7 +652,7 @@ export default function SmartDashboard({ project, currentStage, stageNames, onNa
                 </div>
                 <div className="bg-card border border-border rounded-xl p-5">
                     <div className="text-muted text-sm mb-1">Approved Variations</div>
-                    <div className={`text-2xl font-bold ${variationsTotal > 0 ? "text-orange-500" : ""}`}>
+                    <div className={`text-2xl font-bold ${variationsTotal > 0 ? "text-amber-500" : ""}`}>
                         {variationsTotal > 0 ? "+" : ""}{formatMoney(variationsTotal)}
                     </div>
                 </div>

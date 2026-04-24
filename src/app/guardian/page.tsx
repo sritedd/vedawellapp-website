@@ -273,7 +273,7 @@ export default async function GuardianPage() {
             <section className="bg-slate-900 border-y border-white/10 py-6 px-6">
                 <div className="max-w-5xl mx-auto flex flex-wrap justify-center gap-x-10 gap-y-3 text-sm text-slate-300">
                     <span className="flex items-center gap-2">
-                        <svg className="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+                        <svg className="w-4 h-4 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
                         Bank-grade encryption
                     </span>
                     <span className="flex items-center gap-2">
@@ -289,7 +289,7 @@ export default async function GuardianPage() {
                         Works on any device
                     </span>
                     <span className="flex items-center gap-2">
-                        <svg className="w-4 h-4 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 2a4 4 0 0 1 4 4v2H8V6a4 4 0 0 1 4-4z" /><rect x="4" y="8" width="16" height="14" rx="2" /><circle cx="12" cy="16" r="2" /></svg>
+                        <svg className="w-4 h-4 text-teal-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 2a4 4 0 0 1 4 4v2H8V6a4 4 0 0 1 4-4z" /><rect x="4" y="8" width="16" height="14" rx="2" /><circle cx="12" cy="16" r="2" /></svg>
                         AI-powered insights
                     </span>
                 </div>
@@ -338,11 +338,11 @@ export default async function GuardianPage() {
                         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
                             {[
                                 {
-                                    icon: "&#x2728;", title: "Defect AI", gradient: "from-cyan-500 to-blue-600",
+                                    icon: "&#x2728;", title: "Defect AI", gradient: "from-teal-500 to-blue-600",
                                     desc: "Describe a defect in plain English. AI returns a professional report with severity, Australian Standard references, and recommended actions.",
                                 },
                                 {
-                                    icon: "&#x1F4A1;", title: "Stage Advisor", gradient: "from-indigo-500 to-purple-600",
+                                    icon: "&#x1F4A1;", title: "Stage Advisor", gradient: "from-teal-500 to-teal-600",
                                     desc: "Get state-specific checklists, mandatory inspections, documents to demand, and payment advice for every construction stage.",
                                 },
                                 {
@@ -350,7 +350,7 @@ export default async function GuardianPage() {
                                     desc: "Enter your builder's name. AI assesses risk based on ABN status, license data, and reviews — before you sign the contract.",
                                 },
                                 {
-                                    icon: "&#x1F4AC;", title: "Guardian Chat", gradient: "from-emerald-500 to-teal-600",
+                                    icon: "&#x1F4AC;", title: "Guardian Chat", gradient: "from-green-500 to-teal-600",
                                     desc: "Ask anything about your build. AI knows your project's stage, defects, and state regulations — like having an inspector on call.",
                                 },
                             ].map((f, i) => (
@@ -434,23 +434,23 @@ export default async function GuardianPage() {
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {[
                                 {
-                                    icon: "&#x1F6D1;", title: "\"Should I Pay?\" Button", gradient: "from-red-500 to-rose-600",
+                                    icon: "&#x1F6D1;", title: "\"Should I Pay?\" Button", gradient: "from-red-500 to-red-600",
                                     desc: "One-glance green/red verdict. Checks certificates, inspections, and defects before every payment milestone. Red = DO NOT PAY.",
                                 },
                                 {
-                                    icon: "&#x1F4F8;", title: "Camera-First Defects", gradient: "from-emerald-500 to-teal-500",
+                                    icon: "&#x1F4F8;", title: "Camera-First Defects", gradient: "from-green-500 to-teal-500",
                                     desc: "Tap the floating camera button, snap a photo, and a defect report is created instantly. Speed-dial for photos or defect reports.",
                                 },
                                 {
-                                    icon: "&#x23F1;&#xFE0F;", title: "Builder Speed Check", gradient: "from-blue-500 to-indigo-500",
+                                    icon: "&#x23F1;&#xFE0F;", title: "Builder Speed Check", gradient: "from-blue-500 to-teal-500",
                                     desc: "Compare your builder's pace against industry averages. Stage-by-stage dual bar charts show if they're ahead or behind schedule.",
                                 },
                                 {
-                                    icon: "&#x2696;&#xFE0F;", title: "Tribunal Evidence Pack", gradient: "from-purple-500 to-violet-600",
+                                    icon: "&#x2696;&#xFE0F;", title: "Tribunal Evidence Pack", gradient: "from-teal-500 to-teal-600",
                                     desc: "One tap generates a 10-section evidence package with defects, variations, inspections, payments, photos, and state-specific tribunal contacts.",
                                 },
                                 {
-                                    icon: "&#x1F512;", title: "Certification Gates", gradient: "from-indigo-500 to-purple-500",
+                                    icon: "&#x1F512;", title: "Certification Gates", gradient: "from-teal-500 to-teal-700",
                                     desc: "Payment milestones blocked until EICC, plumbing certs, and compliance docs are uploaded. No cert = no payment.",
                                 },
                                 {

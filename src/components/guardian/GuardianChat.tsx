@@ -250,7 +250,7 @@ export default function GuardianChat({
         {!isOpen && (
           <button
             onClick={() => setIsOpen(true)}
-            className="group relative flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:scale-105 transition-all duration-300 ease-out border border-white/10"
+            className="group relative flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-full bg-gradient-to-tr from-blue-600 to-teal-500 shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:scale-105 transition-all duration-300 ease-out border border-white/10"
             aria-label="Open AI Chat"
           >
             <div className="absolute inset-0 rounded-full bg-white/20 animate-ping opacity-75 [animation-duration:3s]" />
@@ -364,7 +364,7 @@ export default function GuardianChat({
             <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-6 md:px-6 space-y-6 scroll-smooth">
               {messages.length === 0 && (
                 <div className="flex flex-col items-center justify-center h-full text-center animate-in fade-in slide-in-from-bottom-4 duration-500 pb-10">
-                  <div className="w-20 h-20 mb-6 rounded-[24px] bg-gradient-to-tr from-blue-500 to-indigo-500 text-white flex items-center justify-center shadow-lg shadow-blue-500/20">
+                  <div className="w-20 h-20 mb-6 rounded-[24px] bg-gradient-to-tr from-blue-500 to-teal-500 text-white flex items-center justify-center shadow-lg shadow-blue-500/20">
                      <Bot className="w-10 h-10" />
                   </div>
                   <h4 className="text-xl font-bold mb-2 dark:text-white tracking-tight">How can I help you?</h4>
@@ -380,14 +380,14 @@ export default function GuardianChat({
                   className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   {message.role === "assistant" && (
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-blue-500 flex items-center justify-center mr-3 flex-shrink-0 mt-auto mb-1 shadow-md shadow-blue-500/20">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-teal-500 to-blue-500 flex items-center justify-center mr-3 flex-shrink-0 mt-auto mb-1 shadow-md shadow-blue-500/20">
                         <Bot className="w-4 h-4 text-white" />
                     </div>
                   )}
                   <div
                     className={`max-w-[75%] px-5 py-3.5 text-[14px] leading-relaxed shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-300 ${
                       message.role === "user"
-                        ? "bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rounded-[24px] rounded-br-[4px]"
+                        ? "bg-gradient-to-tr from-blue-600 to-teal-600 text-white rounded-[24px] rounded-br-[4px]"
                         : "bg-white dark:bg-gray-800/90 text-gray-800 dark:text-gray-100 border border-gray-100/50 dark:border-gray-700/30 rounded-[24px] rounded-bl-[4px]"
                     }`}
                   >
@@ -402,14 +402,14 @@ export default function GuardianChat({
 
               {isLoading && messages[messages.length - 1]?.role === "user" && (
                 <div className="flex justify-start items-end gap-3 animate-in fade-in">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-blue-500 flex items-center justify-center flex-shrink-0 shadow-md shadow-blue-500/20">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-teal-500 to-blue-500 flex items-center justify-center flex-shrink-0 shadow-md shadow-blue-500/20">
                         <Bot className="w-4 h-4 text-white" />
                   </div>
                   <div className="bg-white dark:bg-gray-800/90 rounded-[24px] rounded-bl-[4px] px-5 py-4 shadow-sm border border-gray-100/50 dark:border-gray-700/30">
                     <div className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce [animation-delay:0ms]" />
-                      <span className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce [animation-delay:150ms]" />
-                      <span className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce [animation-delay:300ms]" />
+                      <span className="w-2 h-2 bg-teal-500 rounded-full animate-bounce [animation-delay:0ms]" />
+                      <span className="w-2 h-2 bg-teal-500 rounded-full animate-bounce [animation-delay:150ms]" />
+                      <span className="w-2 h-2 bg-teal-500 rounded-full animate-bounce [animation-delay:300ms]" />
                     </div>
                   </div>
                 </div>
@@ -450,7 +450,7 @@ export default function GuardianChat({
                 <button
                   type="submit"
                   disabled={isLoading || !inputValue.trim()}
-                  className="absolute right-2 bottom-2 w-9 h-9 flex items-center justify-center rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-200 disabled:to-gray-200 dark:disabled:from-gray-800 dark:disabled:to-gray-800 disabled:text-gray-400 text-white shadow-md transition-all disabled:opacity-50"
+                  className="absolute right-2 bottom-2 w-9 h-9 flex items-center justify-center rounded-full bg-gradient-to-tr from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 disabled:from-gray-200 disabled:to-gray-200 dark:disabled:from-gray-800 dark:disabled:to-gray-800 disabled:text-gray-400 text-white shadow-md transition-all disabled:opacity-50"
                 >
                   <Send className="w-4 h-4 ml-[1px]" />
                 </button>

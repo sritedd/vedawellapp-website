@@ -180,8 +180,8 @@ export default async function AdminPage() {
 
         const funnelSteps = [
             { label: "Email Subscribers", value: emailSubs, color: "bg-blue-500" },
-            { label: "Registered Users", value: totalUsers, color: "bg-indigo-500" },
-            { label: "Created Project", value: uniqueProjectUserCount, color: "bg-purple-500" },
+            { label: "Registered Users", value: totalUsers, color: "bg-teal-500" },
+            { label: "Created Project", value: uniqueProjectUserCount, color: "bg-teal-500" },
             { label: "Guardian Pro", value: proUsers + trialUsers, color: "bg-green-500" },
         ];
         const funnelMax = Math.max(...funnelSteps.map(s => s.value), 1);
@@ -357,14 +357,14 @@ export default async function AdminPage() {
                                             <div key={severity} className="flex items-center justify-between">
                                                 <span className={`text-sm capitalize font-medium ${
                                                     severity === "critical" ? "text-red-600" :
-                                                    severity === "major" ? "text-orange-600" : "text-yellow-600"
+                                                    severity === "major" ? "text-amber-600" : "text-yellow-600"
                                                 }`}>{severity}</span>
                                                 <div className="flex items-center gap-2">
                                                     <span className="text-sm font-bold">{sevCounts[severity]}</span>
                                                     <div className="w-20">
                                                         <MiniBar value={sevCounts[severity]} max={openDefects || 1} color={
                                                             severity === "critical" ? "bg-red-500" :
-                                                            severity === "major" ? "bg-orange-500" : "bg-yellow-500"
+                                                            severity === "major" ? "bg-amber-500" : "bg-yellow-500"
                                                         } />
                                                     </div>
                                                 </div>
@@ -529,7 +529,7 @@ export default async function AdminPage() {
                                                     </td>
                                                     <td className="px-4 py-3 text-muted whitespace-nowrap">{fmt(u.last_seen_at)}</td>
                                                     <td className="px-4 py-3">
-                                                        <span className={`font-bold ${daysIdle >= 14 ? "text-red-600" : daysIdle >= 7 ? "text-orange-500" : ""}`}>
+                                                        <span className={`font-bold ${daysIdle >= 14 ? "text-red-600" : daysIdle >= 7 ? "text-amber-500" : ""}`}>
                                                             {daysIdle}d
                                                         </span>
                                                     </td>
@@ -561,7 +561,7 @@ export default async function AdminPage() {
                                         {socialHistory.map((s: any) => (
                                             <tr key={s.id} className="hover:bg-muted/5">
                                                 <td className="px-4 py-3">
-                                                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.platform === "bluesky" ? "bg-blue-500/10 text-blue-600" : s.platform === "facebook" ? "bg-indigo-500/10 text-indigo-600" : s.platform === "linkedin" ? "bg-sky-500/10 text-sky-600" : "bg-muted text-muted-foreground"}`}>
+                                                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.platform === "bluesky" ? "bg-blue-500/10 text-blue-600" : s.platform === "facebook" ? "bg-teal-500/10 text-teal-600" : s.platform === "linkedin" ? "bg-blue-500/10 text-blue-600" : "bg-muted text-muted-foreground"}`}>
                                                         {s.platform}
                                                     </span>
                                                 </td>

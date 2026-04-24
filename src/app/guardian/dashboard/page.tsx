@@ -194,7 +194,7 @@ export default async function DashboardPage() {
                         )}
                         <Link href={projectId ? `/guardian/projects/${projectId}?tab=variations` : "/guardian/projects"} className="card hover:border-primary transition-colors">
                             <div className="text-muted text-sm mb-1">Total Variations</div>
-                            <div className={`text-2xl font-bold ${totalVariations > 0 ? 'text-orange-500' : ''}`}>
+                            <div className={`text-2xl font-bold ${totalVariations > 0 ? 'text-amber-500' : ''}`}>
                                 {totalVariations > 0 ? '+' : ''}{formatMoney(totalVariations)}
                             </div>
                             <div className="text-sm text-muted">{totalVariationsCount} variation(s)</div>

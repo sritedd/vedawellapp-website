@@ -146,23 +146,23 @@ export default function HomePage() {
                 SECTION: AI LAUNCH ANNOUNCEMENT
                ========================================== */}
             <ScrollReveal>
-            <section className="py-16 px-6 bg-gradient-to-r from-cyan-600 to-indigo-700 text-white">
+            <section className="py-16 px-6 bg-gradient-to-r from-teal-600 to-teal-700 text-white">
                 <div className="max-w-5xl mx-auto">
                     <div className="grid lg:grid-cols-[1.3fr_1fr] gap-8 items-center">
                         <div>
-                            <p className="text-cyan-100 font-semibold uppercase tracking-wider text-xs mb-3">
+                            <p className="text-teal-100 font-semibold uppercase tracking-wider text-xs mb-3">
                                 Just Launched
                             </p>
                             <h2 className="text-3xl sm:text-4xl font-extrabold mb-4 leading-tight">
                                 HomeOwner Guardian AI is now inside your build workflow
                             </h2>
-                            <p className="text-cyan-100 text-lg leading-relaxed">
+                            <p className="text-teal-100 text-lg leading-relaxed">
                                 Your new AI copilot helps write defect reports, gives stage-by-stage advice, checks builder risk signals, and answers construction questions in plain English.
                             </p>
                             <div className="flex flex-col sm:flex-row gap-3 mt-6">
                                 <Link
                                     href="/guardian/login?view=sign-up"
-                                    className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-white text-indigo-700 font-bold hover:bg-cyan-50 transition-colors"
+                                    className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-white text-teal-700 font-bold hover:bg-teal-50 transition-colors"
                                 >
                                     Start Using Guardian AI
                                 </Link>
@@ -176,7 +176,7 @@ export default function HomePage() {
                         </div>
                         <div className="rounded-2xl border border-white/30 bg-white/10 backdrop-blur-sm p-6">
                             <h3 className="font-bold text-lg mb-4">AI-enabled features</h3>
-                            <ul className="space-y-3 text-cyan-50 text-sm">
+                            <ul className="space-y-3 text-teal-50 text-sm">
                                 <li>AI Defect Assist: turn rough notes into clear, evidence-ready defect logs.</li>
                                 <li>AI Stage Advice: get stage-specific checks and key documents to demand.</li>
                                 <li>Builder Check AI: spot red flags from licensing and public reputation signals.</li>
@@ -350,7 +350,7 @@ export default function HomePage() {
                         {/* Tools card */}
                         <div className="card group hover:border-primary/30 transition-colors">
                             <div className="flex items-center gap-4 mb-4">
-                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
+                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-teal-600 flex items-center justify-center shadow-lg">
                                     <span className="text-2xl">🧰</span>
                                 </div>
                                 <div>
@@ -371,7 +371,7 @@ export default function HomePage() {
                         {/* Games card */}
                         <div className="card group hover:border-primary/30 transition-colors">
                             <div className="flex items-center gap-4 mb-4">
-                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-lg">
+                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500 to-red-600 flex items-center justify-center shadow-lg">
                                     <span className="text-2xl">🎮</span>
                                 </div>
                                 <div>
@@ -381,7 +381,7 @@ export default function HomePage() {
                             </div>
                             <div className="flex flex-wrap gap-2 mb-5">
                                 {["Chess", "Sudoku", "2048", "Snake", "Tetris", "Solitaire", "Minesweeper", "Wordle"].map((g) => (
-                                    <span key={g} className="px-2.5 py-1 bg-purple-500/10 text-purple-500 text-xs font-medium rounded-full">{g}</span>
+                                    <span key={g} className="px-2.5 py-1 bg-teal-500/10 text-teal-500 text-xs font-medium rounded-full">{g}</span>
                                 ))}
                             </div>
                             <Link href="/games" className="btn-secondary inline-flex items-center gap-2 text-sm">

@@ -189,7 +189,7 @@ export default function ShouldIPay({ projectId, contractValue, currentStage, onN
         return (
             <button
                 onClick={() => onNavigateTab("payments")}
-                className="w-full p-5 rounded-2xl border-2 border-green-300 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 dark:border-green-800 text-left transition-transform active:scale-[0.99]"
+                className="w-full p-5 rounded-2xl border-2 border-green-300 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/30 dark:border-green-800 text-left transition-transform active:scale-[0.99]"
             >
                 <div className="flex items-center gap-4">
                     <div className="w-14 h-14 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
@@ -221,8 +221,8 @@ export default function ShouldIPay({ projectId, contractValue, currentStage, onN
                 onClick={() => onNavigateTab("payments")}
                 className={`w-full p-5 rounded-2xl border-2 text-left transition-all active:scale-[0.99] ${
                     isSafe
-                        ? "border-green-300 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 dark:border-green-800"
-                        : "border-red-300 bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950/30 dark:to-orange-950/30 dark:border-red-800"
+                        ? "border-green-300 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/30 dark:border-green-800"
+                        : "border-red-300 bg-gradient-to-r from-red-50 to-amber-50 dark:from-red-950/30 dark:to-amber-950/30 dark:border-red-800"
                 }`}
             >
                 <div className="flex items-center gap-4">
