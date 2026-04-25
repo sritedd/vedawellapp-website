@@ -40,6 +40,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
         { url: `${BASE_URL}/games`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
         // { url: `${BASE_URL}/panchang`, lastModified: new Date(), changeFrequency: "daily", priority: 0.5 }, // disabled — rebuilding with accurate calculations
         { url: `${BASE_URL}/guardian`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
+        { url: `${BASE_URL}/red-flags`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.9 },
         { url: `${BASE_URL}/guardian/pricing`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
         { url: `${BASE_URL}/guardian/faq`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
         { url: `${BASE_URL}/guardian/login`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },

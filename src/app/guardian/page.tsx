@@ -250,6 +250,9 @@ export default async function GuardianPage() {
                             </Link>
                         </div>
                         <p className="text-slate-500 text-sm">Free plan available forever. Cancel anytime.</p>
+                        <p className="text-slate-400 text-sm mt-6">
+                            Not ready to sign up? <Link href="/red-flags" className="text-teal-400 underline hover:text-teal-300 font-medium">Grab the free PDF — &ldquo;30 Red Flags Your Builder Is Dodgy&rdquo;</Link>
+                        </p>
                     </div>
                 </div>
 
