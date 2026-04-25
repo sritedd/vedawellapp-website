@@ -40,6 +40,9 @@ export default function Footer() {
                         © {new Date().getFullYear()} VedaWell Tools. Free &amp; Open Source.
                     </p>
                     <div className="flex items-center gap-4 text-sm flex-wrap justify-center">
+                        <Link href="/red-flags" className="text-primary hover:text-primary/80 font-medium transition-colors">
+                            Free Builder Red Flags PDF
+                        </Link>
                         <Link href="/about" className="text-muted hover:text-foreground transition-colors">About</Link>
                         <Link href="/privacy" className="text-muted hover:text-foreground transition-colors">Privacy</Link>
                         <a

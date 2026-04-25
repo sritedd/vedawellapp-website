@@ -105,6 +105,24 @@ export default function BlogPage() {
                     </div>
                 </section>
 
+                {/* Free PDF lead magnet banner */}
+                <section className="relative overflow-hidden bg-card border-2 border-dashed border-teal-500/40 rounded-2xl">
+                    <div className="px-6 py-8 max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+                        <div className="text-left">
+                            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-teal-500/10 text-teal-700 dark:text-teal-300 text-xs font-bold uppercase tracking-wider mb-3">
+                                Free PDF · Instant Download
+                            </div>
+                            <h3 className="text-2xl font-bold text-foreground mb-1.5">30 Red Flags Your Builder Is Dodgy</h3>
+                            <p className="text-muted-foreground text-sm leading-relaxed max-w-xl">
+                                Field guide for anyone currently building. Every common warning sign — by stage — with the exact action to take. Email me a free copy.
+                            </p>
+                        </div>
+                        <Link href="/red-flags" className="px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-bold text-center transition-all whitespace-nowrap shadow-md">
+                            Get the PDF &rarr;
+                        </Link>
+                    </div>
+                </section>
+
                 {/* Featured Post */}
                 <section>
                     <div className="flex items-center gap-3 mb-8">

@@ -167,7 +167,7 @@ export default function Navbar() {
                         {theme === "light" ? "Light Mode" : theme === "dark" ? "Dark Mode" : "System Theme"}
                     </button>
 
-                    <div className="pt-3 border-t border-border">
+                    <div className="pt-3 border-t border-border space-y-2">
                         {user ? (
                             <Link
                                 href="/guardian/dashboard"
@@ -187,6 +187,13 @@ export default function Navbar() {
                                 Get HomeOwner Guardian
                             </Link>
                         )}
+                        <Link
+                            href="/red-flags"
+                            onClick={() => setMobileOpen(false)}
+                            className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg border border-primary/30 text-primary text-sm font-medium hover:bg-primary/5"
+                        >
+                            Free PDF: 30 Builder Red Flags
+                        </Link>
                     </div>
                 </div>
             )}

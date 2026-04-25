@@ -14,6 +14,204 @@ export interface BlogPost {
 
 export const BLOG_POSTS: BlogPost[] = [
     {
+        slug: "30-red-flags-your-builder-is-dodgy",
+        title: "30 Red Flags Your Builder Is Dodgy — A Field Guide for Australian Homeowners",
+        description: "The 30 most common signs your Australian builder is cutting corners, organised by build stage from pre-construction through warranty. Free PDF download.",
+        date: "2026-04-25",
+        author: "VedaWell Team",
+        readTime: "9 min read",
+        keywords: ["dodgy builder Australia", "builder red flags", "new home build warning signs", "construction defects Australia", "builder dispute NSW VIC QLD", "HBCF claim"],
+        category: "HomeOwner Guardian",
+        relatedTools: [],
+        image: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=800&q=80",
+        content: `
+<p>Every year thousands of Australian families lose money, months, and sleep to builders who cut corners, substitute materials, or quietly disappear mid-build. According to ASIC, more than one in fifty Australian residential builders went insolvent last year — and the figure is rising.</p>
+
+<p>The hardest part is that the warning signs are almost always there before the damage is done. Homeowners just don't know what to look for. By the time they do, the concrete has been poured, the plasterboard is up, and the leverage is gone.</p>
+
+<p>This guide catalogues the 30 most common red flags we see across Australian residential builds, organised by stage. Each one tells you what it looks like, why it matters, and the exact action to take.</p>
+
+<p><a href="/red-flags" style="display:inline-block;padding:12px 20px;background:#0d6e6e;color:#fff;text-decoration:none;border-radius:8px;font-weight:600;margin:8px 0;">Get the full PDF — free instant download &rarr;</a></p>
+
+<h2>Why builders try to rush you (and how to slow them down)</h2>
+
+<p>Most Australian builders are honest professionals doing difficult work under tight margins. The minority who aren't follow a predictable playbook:</p>
+
+<ol>
+<li>They price low to win the contract, using generous "provisional sums" to absorb overruns later.</li>
+<li>They rush through early stages before you notice. Concrete covers reinforcement. Plasterboard hides insulation. Cladding hides frame quality.</li>
+<li>They delay paperwork — certificates, compliance documents, variation orders — because paperwork is evidence, and evidence is what you need to dispute them later.</li>
+<li>They wear you down. Every rectification becomes a negotiation. Most homeowners give up eventually — and that's the point.</li>
+</ol>
+
+<p>Recognise the playbook and you rewrite the script. Here are the warning signs at each stage.</p>
+
+<h2>Stage 1 — Pre-construction (before you sign)</h2>
+
+<h3>1. Builder pressures you to sign same-day</h3>
+<p>The contract lands and the sales rep insists you sign before "the price jumps". You have a cooling-off period for a reason — pressure tactics hide terms you'd renegotiate.</p>
+<p><strong>Action:</strong> Never sign without a 48-hour review. Pay $500-800 for an independent building lawyer to read the contract.</p>
+
+<h3>2. No HBCF / home warranty insurance certificate</h3>
+<p>NSW, VIC, WA, SA and TAS require home warranty insurance for contracts above a threshold. Without the certificate in your hands, you have zero recourse if the builder goes broke mid-build.</p>
+<p><strong>Action:</strong> Demand the certificate before paying any deposit. Verify it on iCare (NSW), VBA (VIC) or your state regulator's portal.</p>
+
+<h3>3. Cash discount offered</h3>
+<p>"Pay 10% in cash and we'll knock $5K off." Cash payments aren't covered by your home warranty insurance. If the builder disappears, that money is gone permanently.</p>
+<p><strong>Action:</strong> Every payment must be invoiced, receipted, and paid by bank transfer. No exceptions.</p>
+
+<h3>4. Provisional sums for 30%+ of contract value</h3>
+<p>Large chunks of work priced as "provisional" or "PC allowance" almost always blow out. Builders use them to show a low headline price knowing you'll overspend later.</p>
+<p><strong>Action:</strong> Demand fixed prices on everything above $3,000. If a supplier can't quote, the builder is rushing you to contract.</p>
+
+<h3>5. Contract references plans you haven't approved</h3>
+<p>Final construction drawings attached to the contract differ from the design plans you signed off during design. The contract governs the build — if plans differ, the builder builds the attached version.</p>
+<p><strong>Action:</strong> Compare every page of construction drawings against your approved design plans. Refuse to sign if they differ.</p>
+
+<h2>Stage 2 — Slab and site start</h2>
+
+<h3>6. Concrete poured before footing inspection</h3>
+<p>You drive past the site and the slab is done — but no inspection was booked. Footing inspection is your one chance to verify reinforcement steel placement before concrete covers it forever.</p>
+<p><strong>Action:</strong> Log a formal defect notice immediately. Demand pre-pour photographs. Stop the next stage payment.</p>
+
+<h3>7. Plumbing rough-in skipped under slab</h3>
+<p>No plumbing tradie on site, yet builder insists slab is ready to pour. Plumbing rough-in must be installed and pressure-tested before pour. Retrofitting through a slab is a $20,000+ disaster.</p>
+<p><strong>Action:</strong> Verify with photographs that drain lines, stormwater, and under-slab services are installed. Get the plumber's compliance certificate.</p>
+
+<h3>8. Soil test contradicts the quote</h3>
+<p>Quote assumed Class M soil; actual soil report returns Class H or P (reactive). Reactive sites need deeper footings — builders may absorb cost by using thinner concrete or less steel.</p>
+<p><strong>Action:</strong> Get the soil report yourself. Confirm engineering specs match the tested classification, in writing, before pour.</p>
+
+<h2>Stage 3 — Frame</h2>
+
+<h3>9. Twisted or split timber in frame</h3>
+<p>Visible bows, splits, or warping in wall studs and roof trusses cause cracked plasterboard, sticking doors, and roof sag for years. Once cladding goes on, these faults are hidden.</p>
+<p><strong>Action:</strong> Photograph every defective piece. Refuse frame-stage sign-off until replaced. Pay $400-600 for an independent frame inspection.</p>
+
+<h3>10. Window and door openings don't match plans</h3>
+<p>Rough openings are 100mm+ off position or the wrong size. The builder may plan to "make it work" with undersized fixtures or ask you to accept the change.</p>
+<p><strong>Action:</strong> Measure every opening against the plan during frame stage. Flag discrepancies in writing within 48 hours.</p>
+
+<h3>11. Insulation missing or substituted</h3>
+<p>R4.0 batts specified; builder installs R2.5 or none in places. Hidden under plasterboard — you'll discover it when your power bills are 40% higher than the energy rating promised.</p>
+<p><strong>Action:</strong> Photograph every wall and ceiling cavity with a ruler for scale before gyprock. Confirm batch numbers match order records.</p>
+
+<h2>Stage 4 — Lockup</h2>
+
+<h3>12. EICC certificate not provided before payment</h3>
+<p>Builder requests lockup stage payment but won't produce the Electrical Installation Compliance Certificate. Pay without it and you can be held liable for unsafe electrical work — and your insurance can deny future claims.</p>
+<p><strong>Action:</strong> No EICC, no payment. Verify the electrician's license on your state regulator's public register.</p>
+
+<h3>13. Waterproofing membrane not shown pre-tile</h3>
+<p>Tiles go on wet-area floors without a visible membrane layer. Tiling over un-waterproofed substrate means water rotting your floor joists within two years. Builder saves $800; you face $30,000 in rectification.</p>
+<p><strong>Action:</strong> Photograph the membrane application. Demand a waterproofing compliance certificate signed by the tradesperson before tiles.</p>
+
+<h3>14. Termite barrier missing or damaged</h3>
+<p>You can't see an installed termite shield or chemical barrier at the base of wall plates. In termite zones — most of Australia — this is code. Without it, your warranty is void.</p>
+<p><strong>Action:</strong> Demand both Part 1 and Part 2 termite certificates. Photograph the barrier during frame stage before it's covered.</p>
+
+<h2>Stage 5 — Fixing and internal</h2>
+
+<h3>15. Appliance or fixture brand substituted</h3>
+<p>Contract specified Bosch or Fisher &amp; Paykel; site install shows a generic brand. Builder pockets the difference. You discover it at handover when it's "too late to change".</p>
+<p><strong>Action:</strong> Keep a spreadsheet of every specified brand and model. Inspect installed items against the list before accepting each stage.</p>
+
+<h3>16. Tile lippage or uneven grout</h3>
+<p>Tiles don't sit flat against neighbours; grout lines vary in width or colour. Australian standards allow up to 2mm lippage. Anything more is a defect.</p>
+<p><strong>Action:</strong> Reject the work in writing under your contract's workmanship clause within 7 days. Don't accept verbal "we'll fix it later".</p>
+
+<h3>17. Cabinet doors misaligned, soft-close missing</h3>
+<p>Joinery quality is your single best indicator of overall build quality. If cabinets are sloppy, what's hidden behind walls will be worse.</p>
+<p><strong>Action:</strong> Operate every drawer and door at fixing stage. Test every soft-close hinge. Log defects in writing — they must be fixed before handover.</p>
+
+<h2>Stage 6 — Handover</h2>
+
+<h3>18. Builder rushes the final walk-through</h3>
+<p>Walk-through scheduled for 30 minutes. Builder discourages note-taking. This is your one chance to list defects — builders who rush you do so deliberately.</p>
+<p><strong>Action:</strong> Book 2 hours minimum. Bring a second person with a camera. Use a pre-handover checklist of 80-100 items. Don't sign off the same day.</p>
+
+<h3>19. Occupation Certificate not yet issued</h3>
+<p>Builder pushes for final payment but council or private certifier hasn't issued the OC. Without it, you can't legally occupy the home — your insurance won't cover you, utilities can refuse connection.</p>
+<p><strong>Action:</strong> Final payment is contractually contingent on OC. Standard in most state building contracts. Do not release until issued.</p>
+
+<h3>20. Defects list "lost" or "forgotten"</h3>
+<p>You email 47 defects; builder responds with rectifications for 12. Classic dodgy-builder tactic — split the list, hope you forget.</p>
+<p><strong>Action:</strong> Keep a dated, numbered master list. Email it with every correspondence. Refer to item numbers explicitly.</p>
+
+<h2>Stage 7 — Post-handover and warranty</h2>
+
+<h3>21. Builder stops returning calls in warranty period</h3>
+<p>You report cracks at month 6; three months of voicemails go unanswered. Most states give you a 6-7 year structural warranty. Silence is the builder betting you give up.</p>
+<p><strong>Action:</strong> Escalate in writing with deadlines. After 21 days, lodge with state Fair Trading or Consumer Affairs. Don't let them run out the clock.</p>
+
+<h3>22. "Normal settlement cracks" excuse for structural issues</h3>
+<p>Diagonal crack in gyprock; 8mm gap under skirting; door sticks when opening. Real settlement cracks are hairline and horizontal. Anything diagonal, stepped, or widening is structural.</p>
+<p><strong>Action:</strong> Get an independent structural engineer's report ($600-1,200). That report is your ammunition for tribunal or HBCF claim.</p>
+
+<h3>23. Variations you never signed appearing on final invoice</h3>
+<p>Final bill includes $12,000 of "agreed variations" you have no written record of. Under state law, variations are invalid without written consent.</p>
+<p><strong>Action:</strong> Refuse to pay unsigned variations. Cite your state's Home Building Act. Request the signed variation documents in writing.</p>
+
+<h2>Throughout — General red flags at every stage</h2>
+
+<h3>24. Builder refuses inspection access</h3>
+<p>Site manager says "you can't come on site without a supervisor", then never schedules one. You have a contractual right to inspect your own build with reasonable notice.</p>
+<p><strong>Action:</strong> Send written notice 48 hours before each visit. Keep email evidence. Two refusals equals a defect dispute.</p>
+
+<h3>25. Generic invoices without proof of completion</h3>
+<p>Payment demand says "progress payment $45,000" without proof the stage is complete. Legally, you only owe payment when the stage is genuinely complete.</p>
+<p><strong>Action:</strong> Each payment demand must attach photos of stage completion, required certificates, and a written statement of completion.</p>
+
+<h3>26. Site rubbish, unsafe access, tripping hazards</h3>
+<p>Protruding rebar, unlidded holes, cables across paths, no fencing. You're liable if a neighbour is injured — and sloppy safety signals sloppy quality.</p>
+<p><strong>Action:</strong> Photograph unsafe conditions weekly. Report to WorkSafe / SafeWork if dangerous. Use as evidence in any defect claim.</p>
+
+<h3>27. Builder uses their own private certifier</h3>
+<p>Private certifier signs off stages without ever meeting you. Their incentive is to keep the builder happy, not to catch your problems.</p>
+<p><strong>Action:</strong> Engage your own independent building inspector for 3-4 key stages: frame, pre-plaster, final. About $1,500 total — cheapest insurance you'll buy.</p>
+
+<h3>28. Schedule of works stops being updated</h3>
+<p>First month had weekly progress emails. Now silence for 6 weeks. Silence usually means delay or your crew has been diverted to another site.</p>
+<p><strong>Action:</strong> Request a written updated schedule monthly. Two weeks without response, escalate formally.</p>
+
+<h3>29. Big payment, no trades on site</h3>
+<p>You paid frame stage 3 weeks ago; no trades have been on site for 10 days. Builder may be using your money to pay debts on other sites.</p>
+<p><strong>Action:</strong> Request weekly progress photos and tradesperson attendance. If no activity for 14+ days, formally notify suspension concerns.</p>
+
+<h3>30. Contract clauses you don't understand</h3>
+<p>"Prime cost items", "latent conditions", "time-bar clauses", "extension of time" — builder waves them off. These are exactly the clauses dodgy builders use to charge extras and avoid liability.</p>
+<p><strong>Action:</strong> Get an independent building lawyer to review the contract before signing. $500-800 saves you tens of thousands.</p>
+
+<h2>What to do when a red flag appears</h2>
+
+<p>The fastest way to build your case is to document everything immediately, in a system designed to hold up at NCAT, VCAT, QCAT, Fair Trading, or your state's Building Commission.</p>
+
+<p>The single most useful habit during a build is keeping a numbered defect log. Not a Word doc that gets lost. Not photos buried in your phone. A proper numbered list, each entry dated and timestamped, each photo tagged. When (if) you ever need to escalate, that log is your case.</p>
+
+<p>HomeGuardian is the tool we built to make this bulletproof — photo-based defect logging with timestamp and geotag (holds up as evidence), AI that reads contracts and flags dodgy clauses, one-click tribunal export, and state-specific escalation templates for all 8 Australian states. <a href="/guardian/pricing">Try it free for 7 days</a> — no credit card required.</p>
+
+<h2>Get the full PDF</h2>
+
+<p>This article covers the 30 red flags in summary. The free PDF includes:</p>
+
+<ul>
+<li>The full action steps in checklist format you can pull up on your phone during inspections</li>
+<li>State-specific variations (NSW, VIC, QLD, WA, SA, TAS, ACT, NT)</li>
+<li>The pre-handover walk-through checklist (80-100 items)</li>
+<li>The contract clauses to demand, modify, or remove before signing</li>
+</ul>
+
+<p style="text-align:center;margin:32px 0;">
+<a href="/red-flags" style="display:inline-block;padding:14px 28px;background:#0d6e6e;color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:16px;">&#x2192; Email me the free PDF</a>
+</p>
+
+<p style="font-size:14px;color:#64748b;text-align:center;">No credit card. No catch. One-click unsubscribe.</p>
+
+<p>Stay sharp out there.</p>
+`,
+    },
+
+    {
         slug: "financial-protection-should-i-pay",
         title: "The 'Should I Pay?' Button: Your Financial Shield Against Construction Risks",
         description: "Stop guessing if your builder's invoice is safe to pay. Our new automated check verifies certificates, inspections, and defects before you send a single cent.",
