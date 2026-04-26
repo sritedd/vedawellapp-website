@@ -12,9 +12,41 @@ function getServiceSupabase() {
 }
 
 const VALID_STATES = new Set(["NSW", "VIC", "QLD", "WA", "SA", "TAS", "ACT", "NT"]);
+const UTM_FIELD_MAX = 120;
+const REFERRER_FIELD_MAX = 500;
 
 const escapeHtml = (str: string) =>
     str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+/** Extract + sanitise UTM/referrer attribution from request body. */
+function parseAttribution(raw: unknown): {
+    utm_source: string | null;
+    utm_medium: string | null;
+    utm_campaign: string | null;
+    utm_content: string | null;
+    utm_term: string | null;
+    referrer_url: string | null;
+} {
+    const empty = {
+        utm_source: null, utm_medium: null, utm_campaign: null,
+        utm_content: null, utm_term: null, referrer_url: null,
+    };
+    if (!raw || typeof raw !== "object") return empty;
+    const a = raw as Record<string, unknown>;
+    const clean = (v: unknown, max: number): string | null => {
+        if (typeof v !== "string") return null;
+        const trimmed = v.trim().slice(0, max);
+        return trimmed || null;
+    };
+    return {
+        utm_source: clean(a.utm_source, UTM_FIELD_MAX),
+        utm_medium: clean(a.utm_medium, UTM_FIELD_MAX),
+        utm_campaign: clean(a.utm_campaign, UTM_FIELD_MAX),
+        utm_content: clean(a.utm_content, UTM_FIELD_MAX),
+        utm_term: clean(a.utm_term, UTM_FIELD_MAX),
+        referrer_url: clean(a.referrer_url, REFERRER_FIELD_MAX),
+    };
+}
 
 /**
  * POST /api/red-flags/signup
@@ -27,7 +59,7 @@ const escapeHtml = (str: string) =>
  * shut out from the document they came for.
  */
 export async function POST(req: NextRequest) {
-    let body: { email?: unknown; firstName?: unknown; state?: unknown };
+    let body: { email?: unknown; firstName?: unknown; state?: unknown; attribution?: unknown };
     try {
         body = await req.json();
     } catch {
@@ -38,6 +70,7 @@ export async function POST(req: NextRequest) {
     const firstName = typeof body.firstName === "string" ? body.firstName.trim().slice(0, 60) : null;
     const stateInput = typeof body.state === "string" ? body.state.toUpperCase().trim() : null;
     const state = stateInput && VALID_STATES.has(stateInput) ? stateInput : null;
+    const attribution = parseAttribution(body.attribution);
 
     if (!email || !email.includes("@") || email.length > 200) {
         return NextResponse.json({ error: "Valid email address required." }, { status: 400 });
@@ -72,6 +105,18 @@ export async function POST(req: NextRequest) {
         status: "active",
     };
     if (firstName) upsertPayload.first_name = firstName;
+
+    // First-touch attribution: only set UTM/referrer if the row is new.
+    // Existing rows keep their original attribution so we don't credit a
+    // returning visitor's last-click over the channel that originally found them.
+    if (!existing) {
+        if (attribution.utm_source) upsertPayload.utm_source = attribution.utm_source;
+        if (attribution.utm_medium) upsertPayload.utm_medium = attribution.utm_medium;
+        if (attribution.utm_campaign) upsertPayload.utm_campaign = attribution.utm_campaign;
+        if (attribution.utm_content) upsertPayload.utm_content = attribution.utm_content;
+        if (attribution.utm_term) upsertPayload.utm_term = attribution.utm_term;
+        if (attribution.referrer_url) upsertPayload.referrer_url = attribution.referrer_url;
+    }
 
     const { error: upsertErr } = await supabase
         .from("email_subscribers")

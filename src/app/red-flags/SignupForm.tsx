@@ -1,8 +1,56 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 type Status = "idle" | "submitting" | "success" | "error";
+
+interface AttributionPayload {
+    utm_source?: string | null;
+    utm_medium?: string | null;
+    utm_campaign?: string | null;
+    utm_content?: string | null;
+    utm_term?: string | null;
+    referrer_url?: string | null;
+}
+
+const UTM_KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"] as const;
+const ATTRIBUTION_STORAGE_KEY = "vw_attrib_v1";
+
+/**
+ * First-touch attribution. We capture UTM params on first visit and persist
+ * them to sessionStorage so a user who lands on /red-flags?utm_source=tiktok,
+ * browses the blog, then comes back and signs up still gets credited to
+ * tiktok rather than '(direct)'. Cleared after successful submit.
+ */
+function readAttribution(): AttributionPayload {
+    if (typeof window === "undefined") return {};
+
+    try {
+        const cached = sessionStorage.getItem(ATTRIBUTION_STORAGE_KEY);
+        if (cached) return JSON.parse(cached) as AttributionPayload;
+    } catch {
+        // sessionStorage may be unavailable
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const payload: AttributionPayload = {};
+    for (const key of UTM_KEYS) {
+        const value = params.get(key);
+        if (value) payload[key] = value.slice(0, 120); // cap defends against URL stuffing
+    }
+    if (document.referrer && !document.referrer.startsWith(window.location.origin)) {
+        payload.referrer_url = document.referrer.slice(0, 500);
+    }
+
+    if (Object.keys(payload).length > 0) {
+        try {
+            sessionStorage.setItem(ATTRIBUTION_STORAGE_KEY, JSON.stringify(payload));
+        } catch {
+            // best-effort
+        }
+    }
+    return payload;
+}
 
 export default function RedFlagsSignupForm() {
     const [firstName, setFirstName] = useState("");
@@ -10,6 +58,11 @@ export default function RedFlagsSignupForm() {
     const [state, setState] = useState("");
     const [status, setStatus] = useState<Status>("idle");
     const [message, setMessage] = useState("");
+    const attributionRef = useRef<AttributionPayload>({});
+
+    useEffect(() => {
+        attributionRef.current = readAttribution();
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -30,6 +83,7 @@ export default function RedFlagsSignupForm() {
                     email: email.trim().toLowerCase(),
                     firstName: firstName.trim() || null,
                     state: state || null,
+                    attribution: attributionRef.current,
                 }),
             });
 
@@ -49,6 +103,11 @@ export default function RedFlagsSignupForm() {
             setEmail("");
             setFirstName("");
             setState("");
+            try {
+                sessionStorage.removeItem(ATTRIBUTION_STORAGE_KEY);
+            } catch {
+                // best-effort
+            }
         } catch {
             setStatus("error");
             setMessage("Network error. Please try again.");
