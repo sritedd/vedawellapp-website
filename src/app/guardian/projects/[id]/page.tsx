@@ -35,6 +35,7 @@ import PreHandoverChecklist from "@/components/guardian/PreHandoverChecklist";
 import AccountabilityScore from "@/components/guardian/AccountabilityScore";
 import NCC2025Compliance from "@/components/guardian/NCC2025Compliance";
 import GuidedOnboarding, { shouldShowOnboarding } from "@/components/guardian/GuidedOnboarding";
+import PhoneVerificationBanner from "@/components/guardian/PhoneVerificationBanner";
 import MobilePhotoCapture, { PhotoFAB } from "@/components/guardian/MobilePhotoCapture";
 import PushNotificationSetup from "@/components/guardian/PushNotificationSetup";
 import CostBenchmarking from "@/components/guardian/CostBenchmarking";
@@ -489,6 +490,9 @@ export default function ProjectDetailPage() {
                             )}
                         </div>
                     </div>
+
+                    {/* Phone verification soft prompt — replaces the hard pre-creation gate */}
+                    <PhoneVerificationBanner />
 
                     {/* Payment Blocked Warning */}
                     {paymentBlocked && (

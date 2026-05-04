@@ -87,6 +87,39 @@ export async function checkDailyQuota(
 }
 
 /**
+ * Free-tier lifetime AI chat preview allowance.
+ *
+ * Free users get a single chat exchange ever — enough to feel the value of
+ * the AI Site Supervisor before the paywall hits. The count comes from the
+ * existing ai_usage_log table so there's no new schema needed.
+ *
+ * Fail-closed: a DB error returns `allowed: false` rather than handing out
+ * unlimited free chat on a transient glitch.
+ */
+export const FREE_LIFETIME_CHAT_ALLOWANCE = 1;
+
+export async function checkFreeChatAllowance(
+    supabase: { from: (table: string) => any },
+    userId: string
+): Promise<{ allowed: boolean; used: number; limit: number }> {
+    const limit = FREE_LIFETIME_CHAT_ALLOWANCE;
+
+    const { count, error } = await supabase
+        .from("ai_usage_log")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .eq("feature", "chat");
+
+    if (error) {
+        console.error("[checkFreeChatAllowance] usage log query failed:", error.message);
+        return { allowed: false, used: limit, limit };
+    }
+
+    const used = count ?? 0;
+    return { allowed: used < limit, used, limit };
+}
+
+/**
  * Check if a user has a Pro subscription.
  * Returns the subscription_tier string, or null if lookup fails.
  */

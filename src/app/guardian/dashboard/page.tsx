@@ -162,6 +162,53 @@ export default async function DashboardPage() {
                         <PendingInvitations />
                     </div>
 
+                    {/* Empty-state hero — always visible when user has no projects, even if wizard dismissed */}
+                    {(!projects || projects.length === 0) && (
+                        <div className="mb-8 rounded-2xl bg-gradient-to-br from-primary/10 via-teal-500/5 to-blue-500/10 border border-primary/20 p-8 md:p-10">
+                            <div className="flex flex-col md:flex-row md:items-center gap-6">
+                                <div className="flex-1">
+                                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider mb-3">
+                                        Get Started
+                                    </div>
+                                    <h2 className="text-2xl md:text-3xl font-extrabold text-foreground mb-2 leading-tight">
+                                        Set up your build in 3 minutes
+                                    </h2>
+                                    <p className="text-muted-foreground text-base leading-relaxed mb-4 max-w-2xl">
+                                        Add your project details, builder info, and contract value. Guardian will pre-load your state&apos;s build stages, payment milestones, and required certificates automatically.
+                                    </p>
+                                    <ul className="grid sm:grid-cols-2 gap-2 mb-5 text-sm">
+                                        <li className="flex items-center gap-2 text-foreground/80">
+                                            <span className="text-primary font-bold">✓</span> Stage-by-stage construction tracking
+                                        </li>
+                                        <li className="flex items-center gap-2 text-foreground/80">
+                                            <span className="text-primary font-bold">✓</span> Defect log with photo evidence
+                                        </li>
+                                        <li className="flex items-center gap-2 text-foreground/80">
+                                            <span className="text-primary font-bold">✓</span> AI Site Supervisor (1 free preview)
+                                        </li>
+                                        <li className="flex items-center gap-2 text-foreground/80">
+                                            <span className="text-primary font-bold">✓</span> &quot;Should I Pay?&quot; verdict on every claim
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div className="flex flex-col gap-3 md:min-w-[200px]">
+                                    <Link
+                                        href="/guardian/projects/new"
+                                        className="px-6 py-4 rounded-xl bg-gradient-to-r from-primary to-teal-500 text-white font-bold text-center shadow-lg shadow-primary/30 hover:shadow-xl hover:scale-[1.02] transition-all"
+                                    >
+                                        Start your first project →
+                                    </Link>
+                                    <Link
+                                        href="/guardian/journey"
+                                        className="px-6 py-3 rounded-xl border border-border text-foreground font-medium text-center hover:bg-card transition-colors"
+                                    >
+                                        Or learn more first
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Upgrade banner for free users */}
                     {isFree && (
                         <Link href="/guardian/pricing" className="block mb-6 p-4 rounded-lg bg-gradient-to-r from-primary/10 to-blue-500/10 border border-primary/20 hover:border-primary/40 transition-colors">

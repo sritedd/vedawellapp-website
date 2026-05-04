@@ -4,7 +4,7 @@ import { createServerClient } from "@supabase/ssr";
 import { streamText, UIMessage, convertToModelMessages } from "ai";
 import { getSmartModel, getSmartModelName, isAIAvailable, isCheapAIAvailable } from "@/lib/ai/provider";
 import { buildChatSystemPrompt } from "@/lib/ai/prompts";
-import { checkRateLimit, checkProAccess, checkDailyQuota } from "@/lib/ai/rate-limit";
+import { checkRateLimit, checkProAccess, checkDailyQuota, checkFreeChatAllowance, FREE_LIFETIME_CHAT_ALLOWANCE } from "@/lib/ai/rate-limit";
 import { logAIUsage, retrieveKnowledge } from "@/lib/ai/cache";
 import { createClient } from "@/lib/supabase/server";
 import { isAdminEmail } from "@/lib/admin";
@@ -192,14 +192,25 @@ export async function POST(request: NextRequest) {
       isAdmin = profile?.is_admin === true;
     }
 
-    // Step 3: Tier gating — chat is Pro-only
+    // Step 3: Tier gating — chat is Pro-only by default, with one lifetime
+    // free preview so non-paying users can taste the value before the paywall.
     const { allowed, tier } = await checkProAccess(supabase, user.id);
     step("tier_check", { allowed, tier });
+    let isFreePreview = false;
     if (!allowed) {
-      return NextResponse.json(
-        scrubDebug({ error: "AI Chat is available on the Pro plan. Upgrade to unlock.", debug }, isAdmin),
-        { status: 403 }
-      );
+      const preview = await checkFreeChatAllowance(supabase, user.id);
+      step("free_preview_check", { allowed: preview.allowed, used: preview.used });
+      if (!preview.allowed) {
+        return NextResponse.json(
+          scrubDebug({
+            error: `You've used your free AI Chat preview (${FREE_LIFETIME_CHAT_ALLOWANCE} message). Upgrade to Pro for unlimited chat.`,
+            debug,
+            upgradeRequired: true,
+          }, isAdmin),
+          { status: 403 }
+        );
+      }
+      isFreePreview = true;
     }
 
     // Step 4: Rate limiting (3-second window for chat)
@@ -212,14 +223,17 @@ export async function POST(request: NextRequest) {
     }
     step("rate_limit_ok");
 
-    // Step 5: Daily quota check
-    const quota = await checkDailyQuota(supabase, user.id, tier, "chat");
-    step("quota_check", { allowed: quota.allowed, used: quota.used, limit: quota.limit });
-    if (!quota.allowed) {
-      return NextResponse.json(
-        scrubDebug({ error: `Daily chat limit reached (${quota.used}/${quota.limit}).`, debug }, isAdmin),
-        { status: 429 }
-      );
+    // Step 5: Daily quota check (skipped for free preview — the lifetime
+    // allowance IS the limit, no need to layer a daily cap on top).
+    if (!isFreePreview) {
+      const quota = await checkDailyQuota(supabase, user.id, tier, "chat");
+      step("quota_check", { allowed: quota.allowed, used: quota.used, limit: quota.limit });
+      if (!quota.allowed) {
+        return NextResponse.json(
+          scrubDebug({ error: `Daily chat limit reached (${quota.used}/${quota.limit}).`, debug }, isAdmin),
+          { status: 429 }
+        );
+      }
     }
 
     // Step 6: Parse and validate body

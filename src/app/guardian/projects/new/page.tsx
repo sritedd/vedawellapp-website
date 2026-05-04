@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import BuildTypeSelector from "@/components/guardian/BuildTypeSelector";
-import PhoneVerificationGate from "@/components/guardian/PhoneVerificationGate";
 import australianData from "@/data/australian-build-workflows.json";
 
 type WorkflowsType = typeof australianData.workflows;
@@ -19,7 +18,6 @@ export default function NewProjectPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [step, setStep] = useState(1);
-    const [phoneVerified, setPhoneVerified] = useState(false);
     const [emailVerified, setEmailVerified] = useState<boolean | null>(null); // null = loading
     const [resendingEmail, setResendingEmail] = useState(false);
     const [resendSuccess, setResendSuccess] = useState(false);
@@ -343,8 +341,6 @@ export default function NewProjectPage() {
                         <p className="text-muted">
                             {emailVerified === false
                                 ? "Verify your email address to get started"
-                                : !phoneVerified
-                                ? "Verify your phone number to get started"
                                 : `Step ${step} of 2 — Start tracking your home construction journey.`}
                         </p>
                     </header>
@@ -401,13 +397,12 @@ export default function NewProjectPage() {
                         </div>
                     )}
 
-                    {/* Phone verification gate — must verify before creating project */}
-                    {emailVerified === true && !phoneVerified && (
-                        <PhoneVerificationGate onVerified={() => setPhoneVerified(true)} />
-                    )}
+                    {/* Phone verification moved to a soft banner inside the project page
+                        (see PhoneVerificationBanner). Trial-abuse defence now relies on
+                        existing tier + AI rate limits rather than blocking signup. */}
 
-                    {/* Progress — only show after both email + phone verification */}
-                    {emailVerified === true && phoneVerified && <>
+                    {/* Progress — only show after email verification */}
+                    {emailVerified === true && <>
                     <div className="flex gap-2 mb-8">
                         <div className={`flex-1 h-2 rounded ${step >= 1 ? "bg-primary" : "bg-border"}`} />
                         <div className={`flex-1 h-2 rounded ${step >= 2 ? "bg-primary" : "bg-border"}`} />
