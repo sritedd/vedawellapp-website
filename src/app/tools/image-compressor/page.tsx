@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import Link from "next/link";
 import ToolFAQ from "@/components/tools/ToolFAQ";
+import { readAsDataURL, loadImage, validateImageFile, friendlyError } from "@/lib/tools/safety";
 
 export default function ImageCompressor() {
     const [image, setImage] = useState<string | null>(null);
@@ -11,33 +12,45 @@ export default function ImageCompressor() {
     const [originalSize, setOriginalSize] = useState(0);
     const [compressedSize, setCompressedSize] = useState(0);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [error, setError] = useState("");
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
-    const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-        setOriginalSize(file.size);
-        const reader = new FileReader();
-        reader.onload = (ev) => { setImage(ev.target?.result as string); setCompressed(null); };
-        reader.readAsDataURL(file);
+        setError("");
+        try {
+            validateImageFile(file);
+            const dataUrl = await readAsDataURL(file);
+            setOriginalSize(file.size);
+            setImage(dataUrl);
+            setCompressed(null);
+        } catch (err) {
+            setError(friendlyError(err, "Could not read that image."));
+        }
+        e.target.value = "";
     };
 
-    const compress = () => {
+    const compress = async () => {
         if (!image || !canvasRef.current) return;
         setIsProcessing(true);
-        const img = new Image();
-        img.onload = () => {
-            const canvas = canvasRef.current!;
-            canvas.width = img.width;
-            canvas.height = img.height;
-            const ctx = canvas.getContext("2d")!;
+        setError("");
+        try {
+            const img = await loadImage(image);
+            const canvas = canvasRef.current;
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) throw new Error("Canvas unavailable in this browser");
             ctx.drawImage(img, 0, 0);
             const dataUrl = canvas.toDataURL("image/jpeg", quality / 100);
             setCompressed(dataUrl);
             setCompressedSize(Math.round((dataUrl.length - "data:image/jpeg;base64,".length) * 0.75));
+        } catch (err) {
+            setError(friendlyError(err, "Compression failed."));
+        } finally {
             setIsProcessing(false);
-        };
-        img.src = image;
+        }
     };
 
     const download = () => {
@@ -66,6 +79,9 @@ export default function ImageCompressor() {
                     <label htmlFor="upload" className="block p-8 border-2 border-dashed border-pink-700 rounded-lg text-center cursor-pointer hover:bg-slate-700/30">
                         {image ? "Click to upload a different image" : "📁 Click to upload an image"}
                     </label>
+                    {error && (
+                        <p role="alert" className="mt-3 text-sm text-red-300 bg-red-950/40 border border-red-800/50 rounded-lg px-3 py-2">{error}</p>
+                    )}
                 </div>
                 {image && (
                     <>

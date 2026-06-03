@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
+import { readAsDataURL, loadImage, validateImageFile, friendlyError } from "@/lib/tools/safety";
 
 export default function ImageResizer() {
     const [image, setImage] = useState<string | null>(null);
@@ -11,25 +12,27 @@ export default function ImageResizer() {
     const [height, setHeight] = useState(0);
     const [maintainAspect, setMaintainAspect] = useState(true);
     const [result, setResult] = useState<string | null>(null);
+    const [error, setError] = useState("");
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
-    const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-            const img = new Image();
-            img.onload = () => {
-                setOriginalWidth(img.width);
-                setOriginalHeight(img.height);
-                setWidth(img.width);
-                setHeight(img.height);
-                setImage(ev.target?.result as string);
-                setResult(null);
-            };
-            img.src = ev.target?.result as string;
-        };
-        reader.readAsDataURL(file);
+        setError("");
+        try {
+            validateImageFile(file);
+            const dataUrl = await readAsDataURL(file);
+            const img = await loadImage(dataUrl);
+            setOriginalWidth(img.naturalWidth);
+            setOriginalHeight(img.naturalHeight);
+            setWidth(img.naturalWidth);
+            setHeight(img.naturalHeight);
+            setImage(dataUrl);
+            setResult(null);
+        } catch (err) {
+            setError(friendlyError(err, "Could not load that image."));
+        }
+        e.target.value = "";
     };
 
     const updateWidth = (newWidth: number) => {
@@ -46,18 +49,21 @@ export default function ImageResizer() {
         }
     };
 
-    const resize = () => {
+    const resize = async () => {
         if (!image || !canvasRef.current) return;
-        const canvas = canvasRef.current;
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext("2d")!;
-        const img = new Image();
-        img.onload = () => {
+        setError("");
+        try {
+            const img = await loadImage(image);
+            const canvas = canvasRef.current;
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) throw new Error("Canvas unavailable in this browser");
             ctx.drawImage(img, 0, 0, width, height);
             setResult(canvas.toDataURL("image/png"));
-        };
-        img.src = image;
+        } catch (err) {
+            setError(friendlyError(err, "Resize failed."));
+        }
     };
 
     const download = () => {
@@ -92,6 +98,9 @@ export default function ImageResizer() {
                     <label htmlFor="upload" className="block p-8 border-2 border-dashed border-cyan-700 rounded-lg text-center cursor-pointer hover:bg-slate-700/30">
                         {image ? <img src={image} alt="Original" className="max-h-32 mx-auto" /> : "📁 Upload Image"}
                     </label>
+                    {error && (
+                        <p role="alert" className="mt-3 text-sm text-red-300 bg-red-950/40 border border-red-800/50 rounded-lg px-3 py-2">{error}</p>
+                    )}
                 </div>
                 {image && (
                     <div className="grid md:grid-cols-2 gap-6">
