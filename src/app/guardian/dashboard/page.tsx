@@ -191,7 +191,7 @@ export default async function DashboardPage() {
                                         </li>
                                     </ul>
                                 </div>
-                                <div className="flex flex-col gap-3 md:min-w-[200px]">
+                                <div className="flex flex-col gap-3 md:min-w-[220px]">
                                     <Link
                                         href="/guardian/projects/new"
                                         className="px-6 py-4 rounded-xl bg-gradient-to-r from-primary to-teal-500 text-white font-bold text-center shadow-lg shadow-primary/30 hover:shadow-xl hover:scale-[1.02] transition-all"
@@ -199,8 +199,14 @@ export default async function DashboardPage() {
                                         Start your first project →
                                     </Link>
                                     <Link
+                                        href="/guardian/try-ai"
+                                        className="px-6 py-3 rounded-xl border-2 border-primary/40 text-primary font-semibold text-center hover:bg-primary/5 transition-colors"
+                                    >
+                                        Try the AI first (free)
+                                    </Link>
+                                    <Link
                                         href="/guardian/journey"
-                                        className="px-6 py-3 rounded-xl border border-border text-foreground font-medium text-center hover:bg-card transition-colors"
+                                        className="px-6 py-2.5 rounded-xl text-muted-foreground text-sm text-center hover:text-foreground transition-colors"
                                     >
                                         Or learn more first
                                     </Link>

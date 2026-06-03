@@ -69,9 +69,31 @@ export function shouldShowOnboarding(projectId: string): boolean {
 
 /* ─── Steps definition ─── */
 
+// Step order optimised for time-to-aha. Step 1 uses the free describe-defect
+// AI route to deliver value in the first 60 seconds \u2014 most onboarding flows
+// frontload data entry, which kills momentum. AI defect description is the
+// fastest way to demonstrate Guardian's intelligence to a new user.
 const STEPS: OnboardingStep[] = [
   {
     id: 1,
+    title: "Try the AI Defect Helper (free, 60 seconds)",
+    description:
+      "Describe anything you've noticed on site \u2014 even a small concern. Guardian's AI suggests severity, related red flags, and what to do next. No credit card. No commitment.",
+    actionLabel: "Try AI Defect Assist",
+    actionType: "tab",
+    actionTarget: "defects",
+  },
+  {
+    id: 2,
+    title: "Check Your Builder\u2019s License",
+    description:
+      "Verify your builder is properly licensed in your state \u2014 it takes 30 seconds and protects against unlicensed-builder disputes",
+    actionLabel: "Verify License",
+    actionType: "external",
+    actionTarget: "", // resolved at render time from project state
+  },
+  {
+    id: 3,
     title: "Review Your Project Details",
     description:
       "Make sure your builder name, license number, ABN, and insurance details are correct",
@@ -80,31 +102,13 @@ const STEPS: OnboardingStep[] = [
     actionTarget: "settings",
   },
   {
-    id: 2,
+    id: 4,
     title: "Upload Your Building Contract",
     description:
-      "Keep your contract safe in the Document Vault for easy reference during disputes",
+      "Keep your contract safe in the Document Vault \u2014 Guardian\u2019s AI can scan it for dodgy clauses",
     actionLabel: "Go to Documents",
     actionType: "tab",
     actionTarget: "documents",
-  },
-  {
-    id: 3,
-    title: "Check Your Builder\u2019s License",
-    description:
-      "Verify your builder is properly licensed in your state \u2014 it takes 30 seconds",
-    actionLabel: "Verify License",
-    actionType: "external",
-    actionTarget: "", // resolved at render time from project state
-  },
-  {
-    id: 4,
-    title: "Understand Your Current Stage",
-    description:
-      "Your Smart Dashboard shows what to focus on right now based on your build stage",
-    actionLabel: "View Dashboard",
-    actionType: "tab",
-    actionTarget: "overview",
   },
   {
     id: 5,

@@ -584,20 +584,22 @@ export default function SmartDashboard({ project, currentStage, stageNames, onNa
                 </div>
             )}
 
+            {/* Should I Pay? Mega-Button — promoted above alerts so it's the
+                hero of the dashboard. This is the most actionable card on the
+                page when there's a payment due. */}
+            <ShouldIPay
+                projectId={project.id}
+                contractValue={contractValue}
+                currentStage={currentStage}
+                onNavigateTab={onNavigateTab}
+            />
+
             {/* Consolidated Alerts — show top priority + expandable rest */}
             <ConsolidatedAlerts
                 coolingOff={coolingOff}
                 insuranceAlerts={insuranceAlerts}
                 warrantyAlerts={warrantyAlerts}
                 insuranceConfig={insuranceConfig}
-            />
-
-            {/* Should I Pay? Mega-Button */}
-            <ShouldIPay
-                projectId={project.id}
-                contractValue={contractValue}
-                currentStage={currentStage}
-                onNavigateTab={onNavigateTab}
             />
 
             {/* Action Summary Cards */}

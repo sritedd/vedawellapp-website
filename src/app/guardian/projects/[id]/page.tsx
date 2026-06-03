@@ -611,7 +611,7 @@ export default function ProjectDetailPage() {
                         )}
 
                         {/* ── Issues Section ── */}
-                        {activeTab === "defects" && <ProjectDefects projectId={project.id} stages={stageNames} builderEmail={project.builder_email || ""} onDataChanged={fetchProject} />}
+                        {activeTab === "defects" && <ProjectDefects projectId={project.id} stages={stageNames} builderEmail={project.builder_email || ""} onDataChanged={fetchProject} onNavigateTab={setActiveTab} />}
                         {activeTab === "variations" && <ProjectVariations projectId={project.id} contractValue={project.contract_value || 0} onDataChanged={fetchProject} />}
                         {activeTab === "redflags" && (
                             <DodgyBuilderAlerts

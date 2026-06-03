@@ -40,6 +40,21 @@ interface ProjectDefectsProps {
     stages?: string[];
     builderEmail?: string;
     onDataChanged?: () => void;
+    /** Switch the parent project page to a different tab id (e.g. "escalation"). */
+    onNavigateTab?: (tabId: string) => void;
+}
+
+/** Days a defect can sit in an unresolved state before we surface the escalation CTA. */
+const DEFECT_ESCALATION_AGE_DAYS = 14;
+
+/** Statuses where the builder hasn't actioned the defect yet — eligible for escalation prompt. */
+const UNRESOLVED_DEFECT_STATUSES = new Set(["open", "reported", "in_progress"]);
+
+function daysSince(iso: string): number {
+    if (!iso) return 0;
+    const ts = new Date(iso).getTime();
+    if (Number.isNaN(ts)) return 0;
+    return Math.floor((Date.now() - ts) / 86400000);
 }
 
 const FREE_DEFECT_LIMIT = 3;
@@ -69,7 +84,7 @@ const LOCATIONS = [
 
 const DEFAULT_STAGES = ["Base/Slab", "Frame", "Lockup", "Fixing", "Practical Completion", "Post-Handover"];
 
-export default function ProjectDefects({ projectId, stages, builderEmail, onDataChanged }: ProjectDefectsProps) {
+export default function ProjectDefects({ projectId, stages, builderEmail, onDataChanged, onNavigateTab }: ProjectDefectsProps) {
     const { toast } = useToast();
     const [defects, setDefects] = useState<Defect[]>([]);
     const [loading, setLoading] = useState(true);
@@ -695,6 +710,39 @@ export default function ProjectDefects({ projectId, stages, builderEmail, onData
                                         )}
                                         {defect.homeowner_notes && (
                                             <p><span className="font-medium">Notes:</span> {defect.homeowner_notes}</p>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Aged-defect escalation prompt — surfaces when a defect has
+                                    been sitting in an unresolved state past the threshold. The
+                                    escalation workflow exists at the "escalation" tab but most
+                                    users never find it without this nudge. */}
+                                {UNRESOLVED_DEFECT_STATUSES.has(defect.status) &&
+                                    daysSince(defect.reported_at || defect.created_at) >= DEFECT_ESCALATION_AGE_DAYS && (
+                                    <div className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 flex items-center justify-between gap-3 flex-wrap">
+                                        <div className="text-sm">
+                                            <p className="font-semibold text-red-800 dark:text-red-300">
+                                                Builder not responding? It&apos;s been {daysSince(defect.reported_at || defect.created_at)} days.
+                                            </p>
+                                            <p className="text-xs text-red-700 dark:text-red-400">
+                                                Time to escalate formally — Guardian has state-specific templates for NCAT, VCAT, QBCC, Fair Trading and more.
+                                            </p>
+                                        </div>
+                                        {onNavigateTab ? (
+                                            <button
+                                                onClick={() => onNavigateTab("escalation")}
+                                                className="px-3 py-1.5 rounded-md bg-red-600 hover:bg-red-700 text-white text-sm font-semibold whitespace-nowrap transition-colors"
+                                            >
+                                                Start escalation →
+                                            </button>
+                                        ) : (
+                                            <a
+                                                href={`/guardian/projects/${projectId}?tab=escalation`}
+                                                className="px-3 py-1.5 rounded-md bg-red-600 hover:bg-red-700 text-white text-sm font-semibold whitespace-nowrap transition-colors"
+                                            >
+                                                Start escalation →
+                                            </a>
                                         )}
                                     </div>
                                 )}
