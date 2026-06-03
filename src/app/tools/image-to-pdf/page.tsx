@@ -8,6 +8,14 @@ import SupportBanner from "@/components/SupportBanner";
 import EmailCapture from "@/components/EmailCapture";
 import ShareButtons from "@/components/social/ShareButtons";
 import JsonLd from "@/components/seo/JsonLd";
+import {
+    dataUrlToBytes,
+    friendlyError,
+    loadImage,
+    readAsDataURL,
+    validateImageFile,
+    MAX_BATCH_FILES,
+} from "@/lib/tools/safety";
 
 interface ImageFile {
     name: string;
@@ -33,24 +41,50 @@ export default function ImageToPDF() {
     const [converting, setConverting] = useState(false);
     const [error, setError] = useState("");
 
-    const loadImage = (file: File): Promise<ImageFile> =>
-        new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = ev => {
-                const img = new Image();
-                img.onload = () => resolve({ name: file.name, dataUrl: ev.target!.result as string, width: img.width, height: img.height });
-                img.onerror = reject;
-                img.src = ev.target!.result as string;
-            };
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-        });
+    const loadImageFile = async (file: File): Promise<ImageFile> => {
+        validateImageFile(file);
+        const dataUrl = await readAsDataURL(file);
+        const img = await loadImage(dataUrl);
+        return { name: file.name, dataUrl, width: img.naturalWidth, height: img.naturalHeight };
+    };
 
     const handleFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = Array.from(e.target.files || []).filter(f => f.type.startsWith("image/"));
-        const loaded = await Promise.all(files.map(loadImage));
-        setImages(prev => [...prev, ...loaded]);
+        const input = e.target;
+        const incoming = Array.from(input.files || []);
+        if (incoming.length === 0) return;
+
         setError("");
+
+        // Enforce batch cap (combined with already-loaded images)
+        const remaining = MAX_BATCH_FILES - images.length;
+        if (remaining <= 0) {
+            setError(`Maximum ${MAX_BATCH_FILES} images per PDF. Remove some before adding more.`);
+            input.value = "";
+            return;
+        }
+        const toLoad = incoming.slice(0, remaining);
+        if (incoming.length > remaining) {
+            setError(`Only loaded the first ${remaining} image${remaining === 1 ? "" : "s"} — ${MAX_BATCH_FILES} is the per-PDF max.`);
+        }
+
+        const loaded: ImageFile[] = [];
+        const failures: string[] = [];
+        for (const file of toLoad) {
+            try {
+                loaded.push(await loadImageFile(file));
+            } catch (err) {
+                failures.push(`${file.name}: ${friendlyError(err, "Failed to load")}`);
+            }
+        }
+
+        if (loaded.length > 0) {
+            setImages(prev => [...prev, ...loaded]);
+        }
+        if (failures.length > 0) {
+            setError(failures.join(" · "));
+        }
+        // Reset the input so re-selecting the same file fires onChange again
+        input.value = "";
     };
 
     const removeImage = (i: number) => setImages(prev => prev.filter((_, idx) => idx !== i));
@@ -61,26 +95,37 @@ export default function ImageToPDF() {
         if (images.length === 0) return;
         setConverting(true);
         setError("");
+
+        // Track blob URLs so we can revoke after download (prevents leak)
+        let downloadUrl: string | null = null;
+
         try {
             const { PDFDocument } = await import("pdf-lib");
             const pdf = await PDFDocument.create();
 
             for (const img of images) {
-                const isJpeg = img.name.toLowerCase().match(/\.(jpe?g)$/);
-                // Convert to blob
-                const res = await fetch(img.dataUrl);
-                const blob = await res.arrayBuffer();
+                const isJpeg = /\.jpe?g$/i.test(img.name) || /^data:image\/jpe?g/i.test(img.dataUrl);
+
+                // Decode data URL directly to bytes. Using fetch(dataUrl) here
+                // is fragile — Safari + some strict CSP configs reject it with
+                // "Failed to fetch" and no stack trace.
+                const bytes = dataUrlToBytes(img.dataUrl);
 
                 let embedded;
                 if (isJpeg) {
-                    embedded = await pdf.embedJpg(blob);
+                    embedded = await pdf.embedJpg(bytes);
                 } else {
-                    // Convert to PNG via canvas
+                    // Re-encode via canvas to ensure we hand pdf-lib a PNG it
+                    // can embed, even if the source was WebP/AVIF/etc.
+                    const image = await loadImage(img.dataUrl);
                     const canvas = document.createElement("canvas");
-                    const image = new Image();
-                    await new Promise<void>(resolve => { image.onload = () => { canvas.width = image.width; canvas.height = image.height; canvas.getContext("2d")!.drawImage(image, 0, 0); resolve(); }; image.src = img.dataUrl; });
-                    const pngBlob = await new Promise<Blob>(r => canvas.toBlob(b => r(b!), "image/png"));
-                    embedded = await pdf.embedPng(await pngBlob.arrayBuffer());
+                    canvas.width = image.naturalWidth;
+                    canvas.height = image.naturalHeight;
+                    const ctx = canvas.getContext("2d");
+                    if (!ctx) throw new Error("Browser canvas unavailable");
+                    ctx.drawImage(image, 0, 0);
+                    const pngDataUrl = canvas.toDataURL("image/png");
+                    embedded = await pdf.embedPng(dataUrlToBytes(pngDataUrl));
                 }
 
                 let pw: number, ph: number;
@@ -94,8 +139,8 @@ export default function ImageToPDF() {
                 }
 
                 const page = pdf.addPage([pw, ph]);
-                const availW = pw - margin * 2;
-                const availH = ph - margin * 2;
+                const availW = Math.max(1, pw - margin * 2);
+                const availH = Math.max(1, ph - margin * 2);
                 const scale = Math.min(availW / embedded.width, availH / embedded.height);
                 const drawW = embedded.width * scale;
                 const drawH = embedded.height * scale;
@@ -104,16 +149,22 @@ export default function ImageToPDF() {
                 page.drawImage(embedded, { x, y, width: drawW, height: drawH });
             }
 
-            const bytes = await pdf.save();
-            const blob = new Blob([new Uint8Array(bytes)], { type: "application/pdf" });
+            const pdfBytes = await pdf.save();
+            const blob = new Blob([new Uint8Array(pdfBytes)], { type: "application/pdf" });
+            downloadUrl = URL.createObjectURL(blob);
             const a = document.createElement("a");
-            a.href = URL.createObjectURL(blob);
+            a.href = downloadUrl;
             a.download = `images-to-pdf-${Date.now()}.pdf`;
+            document.body.appendChild(a);
             a.click();
+            a.remove();
         } catch (e) {
-            setError(`Conversion failed: ${e instanceof Error ? e.message : "Unknown error"}`);
+            setError(friendlyError(e, "Couldn't create the PDF. Try fewer images or smaller files."));
+        } finally {
+            // Revoke after a moment so the download has time to start
+            if (downloadUrl) setTimeout(() => URL.revokeObjectURL(downloadUrl!), 30_000);
+            setConverting(false);
         }
-        setConverting(false);
     };
 
     return (
