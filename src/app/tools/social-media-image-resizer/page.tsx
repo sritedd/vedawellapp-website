@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { readAsDataURL, loadImage, validateImageFile, friendlyError } from "@/lib/tools/safety";
 
 const SOCIAL_SIZES = {
     "Instagram Post": { width: 1080, height: 1080 },
@@ -20,32 +21,43 @@ export default function SocialMediaImageResizer() {
     const [image, setImage] = useState<string | null>(null);
     const [selectedSize, setSelectedSize] = useState<keyof typeof SOCIAL_SIZES>("Instagram Post");
     const [result, setResult] = useState<string | null>(null);
+    const [error, setError] = useState("");
 
-    const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (ev) => { setImage(ev.target?.result as string); setResult(null); };
-        reader.readAsDataURL(file);
+        setError("");
+        try {
+            validateImageFile(file);
+            const dataUrl = await readAsDataURL(file);
+            setImage(dataUrl);
+            setResult(null);
+        } catch (err) {
+            setError(friendlyError(err, "Could not load that image."));
+        }
+        e.target.value = "";
     };
 
-    const resize = () => {
+    const resize = async () => {
         if (!image) return;
-        const size = SOCIAL_SIZES[selectedSize];
-        const canvas = document.createElement("canvas");
-        canvas.width = size.width;
-        canvas.height = size.height;
-        const ctx = canvas.getContext("2d")!;
-        const img = new Image();
-        img.onload = () => {
+        setError("");
+        try {
+            const img = await loadImage(image);
+            const size = SOCIAL_SIZES[selectedSize];
+            const canvas = document.createElement("canvas");
+            canvas.width = size.width;
+            canvas.height = size.height;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) throw new Error("Canvas unavailable in this browser");
             // Cover resize (crop to fill)
-            const scale = Math.max(size.width / img.width, size.height / img.height);
-            const x = (size.width - img.width * scale) / 2;
-            const y = (size.height - img.height * scale) / 2;
-            ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+            const scale = Math.max(size.width / img.naturalWidth, size.height / img.naturalHeight);
+            const x = (size.width - img.naturalWidth * scale) / 2;
+            const y = (size.height - img.naturalHeight * scale) / 2;
+            ctx.drawImage(img, x, y, img.naturalWidth * scale, img.naturalHeight * scale);
             setResult(canvas.toDataURL("image/jpeg", 0.9));
-        };
-        img.src = image;
+        } catch (err) {
+            setError(friendlyError(err, "Resize failed."));
+        }
     };
 
     const download = () => {
@@ -72,6 +84,9 @@ export default function SocialMediaImageResizer() {
                     <label htmlFor="upload" className="block p-8 border-2 border-dashed border-pink-700 rounded-lg text-center cursor-pointer hover:bg-slate-700/30">
                         {image ? <img src={image} alt="Source" className="max-h-32 mx-auto" /> : "📁 Upload Image"}
                     </label>
+                    {error && (
+                        <p role="alert" className="mt-3 text-sm text-red-300 bg-red-950/40 border border-red-800/50 rounded-lg px-3 py-2">{error}</p>
+                    )}
                 </div>
                 {image && (
                     <div className="grid md:grid-cols-2 gap-6">

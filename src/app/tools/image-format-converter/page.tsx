@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
+import { readAsDataURL, loadImage, validateImageFile, friendlyError } from "@/lib/tools/safety";
 
 type ImageFormat = "png" | "jpeg" | "webp";
 
@@ -13,26 +14,36 @@ export default function ImageFormatConverter() {
     const [converted, setConverted] = useState<string | null>(null);
     const [originalSize, setOriginalSize] = useState(0);
     const [convertedSize, setConvertedSize] = useState(0);
+    const [error, setError] = useState("");
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
-    const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-        setFileName(file.name.split(".")[0]);
-        setOriginalSize(file.size);
-        const reader = new FileReader();
-        reader.onload = (ev) => { setImage(ev.target?.result as string); setConverted(null); };
-        reader.readAsDataURL(file);
+        setError("");
+        try {
+            validateImageFile(file);
+            const dataUrl = await readAsDataURL(file);
+            setFileName(file.name.split(".")[0]);
+            setOriginalSize(file.size);
+            setImage(dataUrl);
+            setConverted(null);
+        } catch (err) {
+            setError(friendlyError(err, "Could not load that image."));
+        }
+        e.target.value = "";
     };
 
-    const convert = () => {
+    const convert = async () => {
         if (!image || !canvasRef.current) return;
-        const img = new Image();
-        img.onload = () => {
-            const canvas = canvasRef.current!;
-            canvas.width = img.width;
-            canvas.height = img.height;
-            const ctx = canvas.getContext("2d")!;
+        setError("");
+        try {
+            const img = await loadImage(image);
+            const canvas = canvasRef.current;
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) throw new Error("Canvas unavailable in this browser");
             if (format === "jpeg") {
                 ctx.fillStyle = "#ffffff";
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -42,8 +53,9 @@ export default function ImageFormatConverter() {
             const dataUrl = canvas.toDataURL(mimeType, quality / 100);
             setConverted(dataUrl);
             setConvertedSize(Math.round((dataUrl.length - `data:${mimeType};base64,`.length) * 0.75));
-        };
-        img.src = image;
+        } catch (err) {
+            setError(friendlyError(err, "Conversion failed."));
+        }
     };
 
     const download = () => {
@@ -73,6 +85,9 @@ export default function ImageFormatConverter() {
                         <div className="text-4xl mb-2">📁</div>
                         <div className="text-white">Upload PNG, JPG, WEBP, GIF, BMP...</div>
                     </label>
+                    {error && (
+                        <p role="alert" className="mt-3 text-sm text-red-300 bg-red-950/40 border border-red-800/50 rounded-lg px-3 py-2">{error}</p>
+                    )}
                 </div>
                 {image && (
                     <div className="grid md:grid-cols-2 gap-6">

@@ -8,6 +8,7 @@ import SupportBanner from "@/components/SupportBanner";
 import EmailCapture from "@/components/EmailCapture";
 import ShareButtons from "@/components/social/ShareButtons";
 import JsonLd from "@/components/seo/JsonLd";
+import { readAsDataURL, loadImage, validateImageFile, friendlyError } from "@/lib/tools/safety";
 
 interface FilterValues {
     brightness: number;
@@ -43,18 +44,26 @@ export default function ImageFilters() {
     const [filters, setFilters] = useState<FilterValues>({ ...DEFAULT_FILTERS });
     const [format, setFormat] = useState<"jpeg" | "png" | "webp">("jpeg");
     const [quality, setQuality] = useState(90);
+    const [error, setError] = useState("");
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     const cssFilter = useCallback((f: FilterValues) =>
         `brightness(${f.brightness}%) contrast(${f.contrast}%) saturate(${f.saturation}%) blur(${f.blur}px) grayscale(${f.grayscale}%) sepia(${f.sepia}%) hue-rotate(${f.hueRotate}deg) invert(${f.invert}%) opacity(${f.opacity}%)`,
         []);
 
-    const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-        const reader = new FileReader();
-        reader.onload = ev => { setImage(ev.target!.result as string); setFilters({ ...DEFAULT_FILTERS }); };
-        reader.readAsDataURL(file);
+        setError("");
+        try {
+            validateImageFile(file);
+            const dataUrl = await readAsDataURL(file);
+            setImage(dataUrl);
+            setFilters({ ...DEFAULT_FILTERS });
+        } catch (err) {
+            setError(friendlyError(err, "Could not load that image."));
+        }
+        e.target.value = "";
     };
 
     const applyPreset = (preset: typeof PRESETS[0]) => {
@@ -64,14 +73,16 @@ export default function ImageFilters() {
     const update = (key: keyof FilterValues, value: number) => setFilters(prev => ({ ...prev, [key]: value }));
     const reset = () => setFilters({ ...DEFAULT_FILTERS });
 
-    const download = () => {
+    const download = async () => {
         if (!image || !canvasRef.current) return;
-        const img = new Image();
-        img.onload = () => {
-            const canvas = canvasRef.current!;
-            canvas.width = img.width;
-            canvas.height = img.height;
-            const ctx = canvas.getContext("2d")!;
+        setError("");
+        try {
+            const img = await loadImage(image);
+            const canvas = canvasRef.current;
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) throw new Error("Canvas unavailable in this browser");
             ctx.filter = cssFilter(filters);
             ctx.drawImage(img, 0, 0);
             const mimeType = `image/${format}`;
@@ -80,8 +91,9 @@ export default function ImageFilters() {
             a.href = dataUrl;
             a.download = `filtered-${Date.now()}.${format}`;
             a.click();
-        };
-        img.src = image;
+        } catch (err) {
+            setError(friendlyError(err, "Could not save the filtered image."));
+        }
     };
 
     const sliders: { key: keyof FilterValues; label: string; min: number; max: number; step?: number; unit: string }[] = [
@@ -123,6 +135,9 @@ export default function ImageFilters() {
                             </>
                         )}
                     </label>
+                    {error && (
+                        <p role="alert" className="mt-3 text-sm text-red-300 bg-red-950/40 border border-red-800/50 rounded-lg px-3 py-2">{error}</p>
+                    )}
                 </div>
 
                 {image && (

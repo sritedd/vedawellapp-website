@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
+import { readAsDataURL, readAsText, validateImageFile, validateFile, friendlyError, MAX_FILE_BYTES } from "@/lib/tools/safety";
 
 interface LineItem {
     id: string;
@@ -104,15 +105,18 @@ export default function InvoiceGenerator() {
         }
     };
 
-    const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                updateInvoice({ logoUrl: e.target?.result as string });
-            };
-            reader.readAsDataURL(file);
+        if (!file) return;
+        try {
+            // Logos are typically small — cap at 2 MB to avoid huge invoice files
+            validateImageFile(file, 2 * 1024 * 1024);
+            const dataUrl = await readAsDataURL(file);
+            updateInvoice({ logoUrl: dataUrl });
+        } catch (err) {
+            alert(friendlyError(err, "Could not load that logo. Try a smaller image."));
         }
+        e.target.value = "";
     };
 
     const handlePrint = () => {
@@ -130,20 +134,21 @@ export default function InvoiceGenerator() {
         URL.revokeObjectURL(url);
     };
 
-    const loadInvoice = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const loadInvoice = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const data = JSON.parse(e.target?.result as string);
-                    setInvoice(data);
-                } catch {
-                    alert("Invalid invoice file");
-                }
-            };
-            reader.readAsText(file);
+        if (!file) return;
+        try {
+            validateFile(file, MAX_FILE_BYTES);
+            const text = await readAsText(file);
+            const data = JSON.parse(text);
+            setInvoice(data);
+        } catch (err) {
+            const msg = err instanceof SyntaxError
+                ? "That file isn't a valid invoice JSON."
+                : friendlyError(err, "Could not load the invoice.");
+            alert(msg);
         }
+        e.target.value = "";
     };
 
     return (

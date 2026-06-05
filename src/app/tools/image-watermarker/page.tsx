@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
+import { readAsDataURL, loadImage, validateImageFile, friendlyError } from "@/lib/tools/safety";
 
 export default function ImageWatermarker() {
     const [image, setImage] = useState<string | null>(null);
@@ -10,24 +11,34 @@ export default function ImageWatermarker() {
     const [fontSize, setFontSize] = useState(24);
     const [opacity, setOpacity] = useState(50);
     const [position, setPosition] = useState<"center" | "bottom-right" | "bottom-left" | "tiled">("bottom-right");
+    const [error, setError] = useState("");
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
-    const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (ev) => { setImage(ev.target?.result as string); setWatermarked(null); };
-        reader.readAsDataURL(file);
+        setError("");
+        try {
+            validateImageFile(file);
+            const dataUrl = await readAsDataURL(file);
+            setImage(dataUrl);
+            setWatermarked(null);
+        } catch (err) {
+            setError(friendlyError(err, "Could not load that image."));
+        }
+        e.target.value = "";
     };
 
-    const applyWatermark = () => {
+    const applyWatermark = async () => {
         if (!image || !canvasRef.current) return;
-        const img = new Image();
-        img.onload = () => {
-            const canvas = canvasRef.current!;
-            canvas.width = img.width;
-            canvas.height = img.height;
-            const ctx = canvas.getContext("2d")!;
+        setError("");
+        try {
+            const img = await loadImage(image);
+            const canvas = canvasRef.current;
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) throw new Error("Canvas unavailable in this browser");
             ctx.drawImage(img, 0, 0);
             ctx.font = `${fontSize}px Arial`;
             ctx.fillStyle = `rgba(255, 255, 255, ${opacity / 100})`;
@@ -39,8 +50,8 @@ export default function ImageWatermarker() {
                 const textWidth = metrics.width;
                 const textHeight = fontSize;
                 ctx.rotate(-Math.PI / 6);
-                for (let y = -img.height; y < img.height * 2; y += textHeight * 3) {
-                    for (let x = -img.width; x < img.width * 2; x += textWidth + 100) {
+                for (let y = -img.naturalHeight; y < img.naturalHeight * 2; y += textHeight * 3) {
+                    for (let x = -img.naturalWidth; x < img.naturalWidth * 2; x += textWidth + 100) {
                         ctx.strokeText(text, x, y);
                         ctx.fillText(text, x, y);
                     }
@@ -48,15 +59,16 @@ export default function ImageWatermarker() {
             } else {
                 let x = 0, y = 0;
                 const metrics = ctx.measureText(text);
-                if (position === "center") { x = (img.width - metrics.width) / 2; y = img.height / 2; }
-                else if (position === "bottom-right") { x = img.width - metrics.width - 20; y = img.height - 20; }
-                else if (position === "bottom-left") { x = 20; y = img.height - 20; }
+                if (position === "center") { x = (img.naturalWidth - metrics.width) / 2; y = img.naturalHeight / 2; }
+                else if (position === "bottom-right") { x = img.naturalWidth - metrics.width - 20; y = img.naturalHeight - 20; }
+                else if (position === "bottom-left") { x = 20; y = img.naturalHeight - 20; }
                 ctx.strokeText(text, x, y);
                 ctx.fillText(text, x, y);
             }
             setWatermarked(canvas.toDataURL("image/png"));
-        };
-        img.src = image;
+        } catch (err) {
+            setError(friendlyError(err, "Could not apply watermark."));
+        }
     };
 
     const download = () => {
@@ -82,6 +94,9 @@ export default function ImageWatermarker() {
                     <label htmlFor="upload" className="block p-8 border-2 border-dashed border-teal-700 rounded-lg text-center cursor-pointer hover:bg-slate-700/30">
                         {image ? "Click to upload a different image" : "📁 Click to upload an image"}
                     </label>
+                    {error && (
+                        <p role="alert" className="mt-3 text-sm text-red-300 bg-red-950/40 border border-red-800/50 rounded-lg px-3 py-2">{error}</p>
+                    )}
                 </div>
                 {image && (
                     <div className="grid md:grid-cols-2 gap-6">

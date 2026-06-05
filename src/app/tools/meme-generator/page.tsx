@@ -2,30 +2,40 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
+import { readAsDataURL, loadImage, validateImageFile, friendlyError } from "@/lib/tools/safety";
 
 export default function MemeGenerator() {
     const [image, setImage] = useState<string | null>(null);
     const [topText, setTopText] = useState("TOP TEXT");
     const [bottomText, setBottomText] = useState("BOTTOM TEXT");
     const [fontSize, setFontSize] = useState(32);
+    const [error, setError] = useState("");
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
-    const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (ev) => setImage(ev.target?.result as string);
-        reader.readAsDataURL(file);
+        setError("");
+        try {
+            validateImageFile(file);
+            const dataUrl = await readAsDataURL(file);
+            setImage(dataUrl);
+        } catch (err) {
+            setError(friendlyError(err, "Could not load that image."));
+        }
+        e.target.value = "";
     };
 
-    const generateMeme = () => {
+    const generateMeme = async () => {
         if (!image || !canvasRef.current) return;
-        const img = new Image();
-        img.onload = () => {
-            const canvas = canvasRef.current!;
-            canvas.width = img.width;
-            canvas.height = img.height;
-            const ctx = canvas.getContext("2d")!;
+        setError("");
+        try {
+            const img = await loadImage(image);
+            const canvas = canvasRef.current;
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) throw new Error("Canvas unavailable in this browser");
             ctx.drawImage(img, 0, 0);
             ctx.font = `bold ${fontSize}px Impact, sans-serif`;
             ctx.fillStyle = "white";
@@ -33,13 +43,14 @@ export default function MemeGenerator() {
             ctx.lineWidth = 3;
             ctx.textAlign = "center";
             // Top text
-            ctx.strokeText(topText.toUpperCase(), img.width / 2, fontSize + 10);
-            ctx.fillText(topText.toUpperCase(), img.width / 2, fontSize + 10);
+            ctx.strokeText(topText.toUpperCase(), img.naturalWidth / 2, fontSize + 10);
+            ctx.fillText(topText.toUpperCase(), img.naturalWidth / 2, fontSize + 10);
             // Bottom text
-            ctx.strokeText(bottomText.toUpperCase(), img.width / 2, img.height - 20);
-            ctx.fillText(bottomText.toUpperCase(), img.width / 2, img.height - 20);
-        };
-        img.src = image;
+            ctx.strokeText(bottomText.toUpperCase(), img.naturalWidth / 2, img.naturalHeight - 20);
+            ctx.fillText(bottomText.toUpperCase(), img.naturalWidth / 2, img.naturalHeight - 20);
+        } catch (err) {
+            setError(friendlyError(err, "Could not generate the meme."));
+        }
     };
 
     const download = () => {
@@ -63,6 +74,9 @@ export default function MemeGenerator() {
                     <div className="bg-slate-800/50 rounded-xl p-6 border border-purple-800/30">
                         <input type="file" accept="image/*" onChange={handleUpload} className="hidden" id="upload" />
                         <label htmlFor="upload" className="block p-6 border-2 border-dashed border-purple-700 rounded-lg text-center cursor-pointer hover:bg-slate-700/30 text-slate-400">📁 Upload Image</label>
+                        {error && (
+                            <p role="alert" className="mt-3 text-sm text-red-300 bg-red-950/40 border border-red-800/50 rounded-lg px-3 py-2">{error}</p>
+                        )}
                     </div>
                     <div className="bg-slate-800/50 rounded-xl p-6 border border-purple-800/30 space-y-4">
                         <div><label className="block text-sm text-purple-300 mb-1">Top Text</label><input type="text" value={topText} onChange={(e) => setTopText(e.target.value)} className="w-full px-4 py-2 bg-slate-900 border border-purple-700 rounded-lg text-white" /></div>
