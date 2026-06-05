@@ -1,7 +1,10 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { readAsDataURL, loadImage, validateImageFile, friendlyError } from "@/lib/tools/safety";
+
+const PREVIEW_SIZES = [16, 32, 64, 128];
 
 export default function FaviconGenerator() {
     const [image, setImage] = useState<string | null>(null);
@@ -9,22 +12,60 @@ export default function FaviconGenerator() {
     const [padding, setPadding] = useState(10);
     const [shape, setShape] = useState<"square" | "rounded" | "circle">("square");
     const [sizes, setSizes] = useState([16, 32, 48, 64, 128, 256]);
+    const [previews, setPreviews] = useState<Record<number, string>>({});
+    const [error, setError] = useState("");
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
-    const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Regenerate the small inline previews whenever any input changes.
+    // generateFavicon is async (it awaits loadImage), so the previews can't
+    // be inlined in JSX — they're staged into state here.
+    useEffect(() => {
+        if (!image) {
+            setPreviews({});
+            return;
+        }
+        let cancelled = false;
+        (async () => {
+            const next: Record<number, string> = {};
+            for (const size of PREVIEW_SIZES) {
+                try {
+                    const dataUrl = await generateFavicon(size);
+                    if (cancelled) return;
+                    if (dataUrl) next[size] = dataUrl;
+                } catch {
+                    // If preview generation fails for one size, skip it but keep going.
+                }
+            }
+            if (!cancelled) setPreviews(next);
+        })();
+        return () => { cancelled = true; };
+        // generateFavicon reads image/bgColor/padding/shape from closure.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [image, bgColor, padding, shape]);
+
+    const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (ev) => setImage(ev.target?.result as string);
-        reader.readAsDataURL(file);
+        setError("");
+        try {
+            validateImageFile(file);
+            const dataUrl = await readAsDataURL(file);
+            // Make sure it actually decodes — catches corrupt files now
+            await loadImage(dataUrl);
+            setImage(dataUrl);
+        } catch (err) {
+            setError(friendlyError(err, "Could not load that image."));
+        }
+        e.target.value = "";
     };
 
-    const generateFavicon = (size: number): string => {
+    const generateFavicon = async (size: number): Promise<string> => {
         if (!image || !canvasRef.current) return "";
         const canvas = canvasRef.current;
         canvas.width = size;
         canvas.height = size;
-        const ctx = canvas.getContext("2d")!;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) throw new Error("Canvas unavailable in this browser");
 
         // Draw background
         ctx.fillStyle = bgColor;
@@ -41,33 +82,42 @@ export default function FaviconGenerator() {
             ctx.fillRect(0, 0, size, size);
         }
 
-        // Draw image
-        const img = new Image();
-        img.src = image;
+        // Draw image — await the load so we never draw against an unready bitmap
+        const img = await loadImage(image);
         const p = (padding / 100) * size;
         ctx.drawImage(img, p, p, size - p * 2, size - p * 2);
         return canvas.toDataURL("image/png");
     };
 
-    const downloadAll = () => {
-        sizes.forEach(size => {
-            const dataUrl = generateFavicon(size);
+    const downloadAll = async () => {
+        setError("");
+        try {
+            for (const size of sizes) {
+                const dataUrl = await generateFavicon(size);
+                if (dataUrl) {
+                    const a = document.createElement("a");
+                    a.href = dataUrl;
+                    a.download = `favicon-${size}x${size}.png`;
+                    a.click();
+                }
+            }
+        } catch (err) {
+            setError(friendlyError(err, "Could not generate favicons."));
+        }
+    };
+
+    const downloadICO = async () => {
+        setError("");
+        try {
+            const dataUrl = await generateFavicon(32);
             if (dataUrl) {
                 const a = document.createElement("a");
                 a.href = dataUrl;
-                a.download = `favicon-${size}x${size}.png`;
+                a.download = "favicon.ico";
                 a.click();
             }
-        });
-    };
-
-    const downloadICO = () => {
-        const dataUrl = generateFavicon(32);
-        if (dataUrl) {
-            const a = document.createElement("a");
-            a.href = dataUrl;
-            a.download = "favicon.ico";
-            a.click();
+        } catch (err) {
+            setError(friendlyError(err, "Could not generate favicon.ico."));
         }
     };
 
@@ -88,6 +138,9 @@ export default function FaviconGenerator() {
                             <label htmlFor="upload" className="block p-6 border-2 border-dashed border-amber-700 rounded-lg text-center cursor-pointer hover:bg-slate-700/30">
                                 {image ? <img src={image} alt="Source" className="max-h-24 mx-auto" /> : "📁 Upload Logo/Icon"}
                             </label>
+                            {error && (
+                                <p role="alert" className="mt-3 text-sm text-red-300 bg-red-950/40 border border-red-800/50 rounded-lg px-3 py-2">{error}</p>
+                            )}
                         </div>
                         <div className="bg-slate-800/50 rounded-xl p-6 border border-amber-800/30 space-y-4">
                             <div>
@@ -116,10 +169,12 @@ export default function FaviconGenerator() {
                         {image && (
                             <>
                                 <div className="flex gap-4 items-end justify-center mb-6 flex-wrap">
-                                    {[16, 32, 64, 128].map(size => (
+                                    {PREVIEW_SIZES.map(size => (
                                         <div key={size} className="text-center">
                                             <div className="mb-1 inline-block" style={{ width: size, height: size }}>
-                                                <img src={generateFavicon(size)} alt={`${size}px`} style={{ width: size, height: size }} />
+                                                {previews[size] && (
+                                                    <img src={previews[size]} alt={`${size}px`} style={{ width: size, height: size }} />
+                                                )}
                                             </div>
                                             <div className="text-xs text-slate-400">{size}px</div>
                                         </div>
@@ -128,7 +183,7 @@ export default function FaviconGenerator() {
                                 <div className="bg-slate-900 p-4 rounded-lg mb-4">
                                     <div className="text-xs text-slate-400 mb-2">Browser Tab Preview</div>
                                     <div className="flex items-center gap-2 bg-slate-800 rounded px-3 py-2">
-                                        <img src={generateFavicon(16)} alt="tab" className="w-4 h-4" />
+                                        {previews[16] && <img src={previews[16]} alt="tab" className="w-4 h-4" />}
                                         <span className="text-white text-sm">Your Website</span>
                                     </div>
                                 </div>

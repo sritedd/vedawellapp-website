@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { readAsDataURL, readAsArrayBuffer, loadImage, validateImageFile, friendlyError } from "@/lib/tools/safety";
 
 interface ExifData {
     [key: string]: string | number | undefined;
@@ -11,22 +12,47 @@ export default function EXIFReader() {
     const [image, setImage] = useState<string | null>(null);
     const [exif, setExif] = useState<ExifData | null>(null);
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
 
     const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
         setLoading(true);
-        const reader = new FileReader();
-        reader.onload = async (ev) => {
-            setImage(ev.target?.result as string);
-            // Basic EXIF parsing from ArrayBuffer
-            const buffer = await file.arrayBuffer();
-            const parsed = parseBasicExif(buffer, file);
-            setExif(parsed);
+        setError("");
+        try {
+            validateImageFile(file);
+            const [dataUrl, buffer] = await Promise.all([
+                readAsDataURL(file),
+                readAsArrayBuffer(file),
+            ]);
+            setImage(dataUrl);
+
+            // Synchronously parse known file metadata + EXIF marker hint
+            const data = parseBasicExif(buffer, file);
+
+            // Then read image dimensions via the safe loader. loadImage rejects
+            // on bad images, so dimensions only land when we have a real picture.
+            try {
+                const img = await loadImage(dataUrl);
+                data["Width"] = `${img.naturalWidth}px`;
+                data["Height"] = `${img.naturalHeight}px`;
+                if (img.naturalHeight > 0) {
+                    data["Aspect Ratio"] = `${(img.naturalWidth / img.naturalHeight).toFixed(2)}`;
+                }
+            } catch {
+                // Dimensions are best-effort — leave them out if the image can't render
+            }
+
+            setExif(data);
+        } catch (err) {
+            setError(friendlyError(err, "Could not read that image."));
+            setExif(null);
+            setImage(null);
+        } finally {
             setLoading(false);
-        };
-        reader.readAsDataURL(file);
+        }
+        e.target.value = "";
     };
 
     const parseBasicExif = (buffer: ArrayBuffer, file: File): ExifData => {
@@ -34,33 +60,26 @@ export default function EXIFReader() {
         const data: ExifData = {
             "File Name": file.name,
             "File Size": `${(file.size / 1024).toFixed(2)} KB`,
-            "File Type": file.type,
+            "File Type": file.type || "unknown",
             "Last Modified": new Date(file.lastModified).toLocaleString(),
         };
 
         // Try to find EXIF markers in JPEG
-        const view = new DataView(buffer);
-        if (view.getUint16(0) === 0xFFD8) { // JPEG
-            let offset = 2;
-            while (offset < view.byteLength - 2) {
-                const marker = view.getUint16(offset);
-                if (marker === 0xFFE1) { // EXIF marker
-                    data["EXIF Data"] = "Present";
-                    break;
+        if (buffer.byteLength >= 4) {
+            const view = new DataView(buffer);
+            if (view.getUint16(0) === 0xFFD8) { // JPEG
+                let offset = 2;
+                while (offset < view.byteLength - 2) {
+                    const marker = view.getUint16(offset);
+                    if (marker === 0xFFE1) { // EXIF marker
+                        data["EXIF Data"] = "Present";
+                        break;
+                    }
+                    if ((marker & 0xFF00) !== 0xFF00) break;
+                    offset += 2 + view.getUint16(offset + 2);
                 }
-                if ((marker & 0xFF00) !== 0xFF00) break;
-                offset += 2 + view.getUint16(offset + 2);
             }
         }
-
-        // Create image to get dimensions
-        const img = new window.Image();
-        img.src = URL.createObjectURL(file);
-        img.onload = () => {
-            data["Width"] = `${img.width}px`;
-            data["Height"] = `${img.height}px`;
-            data["Aspect Ratio"] = `${(img.width / img.height).toFixed(2)}`;
-        };
 
         return data;
     };
@@ -81,6 +100,9 @@ export default function EXIFReader() {
                         <div className="text-white">Click to upload an image</div>
                         <div className="text-slate-400 text-sm mt-1">JPEG, PNG, HEIC, etc.</div>
                     </label>
+                    {error && (
+                        <p role="alert" className="mt-3 text-sm text-red-300 bg-red-950/40 border border-red-800/50 rounded-lg px-3 py-2">{error}</p>
+                    )}
                 </div>
                 {loading && <div className="text-center text-slate-400">Loading...</div>}
                 {image && exif && (

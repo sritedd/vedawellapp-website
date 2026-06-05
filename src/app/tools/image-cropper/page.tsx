@@ -2,34 +2,55 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
+import { readAsDataURL, validateImageFile, friendlyError } from "@/lib/tools/safety";
 
 export default function ImageCropper() {
     const [image, setImage] = useState<string | null>(null);
     const [crop, setCrop] = useState({ x: 0, y: 0, width: 200, height: 200 });
     const [result, setResult] = useState<string | null>(null);
     const [aspectRatio, setAspectRatio] = useState<"free" | "1:1" | "16:9" | "4:3">("free");
+    const [error, setError] = useState("");
     const imgRef = useRef<HTMLImageElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
-    const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (ev) => { setImage(ev.target?.result as string); setResult(null); };
-        reader.readAsDataURL(file);
+        setError("");
+        try {
+            validateImageFile(file);
+            const dataUrl = await readAsDataURL(file);
+            setImage(dataUrl);
+            setResult(null);
+        } catch (err) {
+            setError(friendlyError(err, "Could not load that image."));
+        }
+        e.target.value = "";
     };
 
     const handleCrop = () => {
         if (!image || !canvasRef.current || !imgRef.current) return;
-        const canvas = canvasRef.current;
-        const img = imgRef.current;
-        const scaleX = img.naturalWidth / img.width;
-        const scaleY = img.naturalHeight / img.height;
-        canvas.width = crop.width * scaleX;
-        canvas.height = crop.height * scaleY;
-        const ctx = canvas.getContext("2d")!;
-        ctx.drawImage(img, crop.x * scaleX, crop.y * scaleY, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
-        setResult(canvas.toDataURL("image/png"));
+        setError("");
+        try {
+            const canvas = canvasRef.current;
+            const img = imgRef.current;
+            if (img.naturalWidth === 0 || img.naturalHeight === 0) {
+                throw new Error("Image not ready — try uploading again");
+            }
+            if (crop.width <= 0 || crop.height <= 0) {
+                throw new Error("Crop area must be larger than 0×0");
+            }
+            const scaleX = img.naturalWidth / img.width;
+            const scaleY = img.naturalHeight / img.height;
+            canvas.width = crop.width * scaleX;
+            canvas.height = crop.height * scaleY;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) throw new Error("Canvas unavailable in this browser");
+            ctx.drawImage(img, crop.x * scaleX, crop.y * scaleY, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+            setResult(canvas.toDataURL("image/png"));
+        } catch (err) {
+            setError(friendlyError(err, "Crop failed."));
+        }
     };
 
     const download = () => {
@@ -59,6 +80,9 @@ export default function ImageCropper() {
                 <div className="bg-slate-800/50 rounded-xl p-6 border border-rose-800/30 mb-6">
                     <input type="file" accept="image/*" onChange={handleUpload} className="hidden" id="upload" />
                     <label htmlFor="upload" className="block p-8 border-2 border-dashed border-rose-700 rounded-lg text-center cursor-pointer hover:bg-slate-700/30">📁 Upload Image</label>
+                    {error && (
+                        <p role="alert" className="mt-3 text-sm text-red-300 bg-red-950/40 border border-red-800/50 rounded-lg px-3 py-2">{error}</p>
+                    )}
                 </div>
                 {image && (
                     <div className="grid md:grid-cols-2 gap-6">

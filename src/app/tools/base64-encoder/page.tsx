@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { readAsDataURL, readAsText, validateFile, friendlyError } from "@/lib/tools/safety";
 
 export default function Base64Encoder() {
     const [input, setInput] = useState("");
@@ -57,28 +58,27 @@ export default function Base64Encoder() {
         setTimeout(() => setCopied(false), 2000);
     };
 
-    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-
-        const reader = new FileReader();
-
-        if (mode === "encode") {
-            reader.onload = () => {
-                const base64 = reader.result as string;
-                // Remove data URL prefix
-                const base64Data = base64.split(",")[1];
+        setError("");
+        try {
+            validateFile(file);
+            if (mode === "encode") {
+                const dataUrl = await readAsDataURL(file);
+                const base64Data = dataUrl.split(",")[1] ?? "";
+                if (!base64Data) throw new Error("Encoded payload was empty");
                 setOutput(base64Data);
                 setInput(`File: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`);
-            };
-            reader.readAsDataURL(file);
-        } else {
-            reader.onload = () => {
-                const text = reader.result as string;
+            } else {
+                const text = await readAsText(file);
                 processText(text, false);
-            };
-            reader.readAsText(file);
+            }
+        } catch (err) {
+            setError(friendlyError(err, "Could not read that file."));
+            setOutput("");
         }
+        e.target.value = "";
     };
 
     return (
