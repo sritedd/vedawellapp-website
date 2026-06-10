@@ -1,0 +1,11 @@
+{
+  "_note": "Posting history for scripts/post-to-bluesky.mjs. Seeded 2026-06-10 because the workflow was failing to persist this file (missing contents:write permission + broken cache key), causing the same post to go out daily. Edit if your actual Bluesky timeline shows different posts.",
+  "posted": [
+    {
+      "id": "should-i-pay",
+      "postedAt": "2026-06-09T22:39:02Z",
+      "uri": "unknown:auto-seeded"
+    }
+  ],
+  "lastRun": "2026-06-09T22:39:02Z"
+}
