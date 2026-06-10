@@ -5,7 +5,12 @@
       "id": "should-i-pay",
       "postedAt": "2026-06-09T22:39:02Z",
       "uri": "unknown:auto-seeded"
+    },
+    {
+      "id": "ai-supervisor",
+      "postedAt": "2026-06-10T22:43:05.465Z",
+      "uri": "at://did:plc:gcvv4q7fng5whvyhhoxgkvab/app.bsky.feed.post/3mnxrvrq2uu2v"
     }
   ],
-  "lastRun": "2026-06-09T22:39:02Z"
+  "lastRun": "2026-06-10T22:43:05.465Z"
 }
