@@ -10,7 +10,12 @@
       "id": "ai-supervisor",
       "postedAt": "2026-06-10T22:43:05.465Z",
       "uri": "at://did:plc:gcvv4q7fng5whvyhhoxgkvab/app.bsky.feed.post/3mnxrvrq2uu2v"
+    },
+    {
+      "id": "85-percent-defects",
+      "postedAt": "2026-06-12T22:39:44.828Z",
+      "uri": "at://did:plc:gcvv4q7fng5whvyhhoxgkvab/app.bsky.feed.post/3mo4snnzpkc2g"
     }
   ],
-  "lastRun": "2026-06-10T22:43:05.465Z"
+  "lastRun": "2026-06-12T22:39:44.828Z"
 }
