@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { formatMoney } from "@/utils/format";
 import { useToast } from "@/components/guardian/Toast";
 import ShouldIPay from "@/components/guardian/ShouldIPay";
+import { stageNameToKey } from "@/lib/guardian/stage-keys";
 import type { Project } from "@/types/guardian";
 import {
     getInsuranceAlerts,
@@ -306,8 +307,13 @@ export default function SmartDashboard({ project, currentStage, stageNames, onNa
                 const buildCategory = project.build_category || "new_build";
                 const workflow = data.workflows?.[buildCategory as keyof typeof data.workflows]?.[stateCode as keyof (typeof data.workflows)[keyof typeof data.workflows]];
                 if (workflow && "stages" in workflow) {
-                    const stageData = (workflow as { stages: Array<{ id: string; dodgyBuilderWarnings?: string[] }> }).stages.find(
-                        (s) => s.id === currentStage
+                    // Match by canonical key — currentStage is a human name
+                    // ("Slab / Footings") while workflow ids are slugs ("slab").
+                    // The name-based fallback covers aliased ids (e.g. granny
+                    // flat "Final Inspection" id=completion → practical_completion).
+                    const stageKey = stageNameToKey(currentStage);
+                    const stageData = (workflow as { stages: Array<{ id: string; name: string; dodgyBuilderWarnings?: string[] }> }).stages.find(
+                        (s) => s.id === stageKey || stageNameToKey(s.name) === stageKey
                     );
                     if (stageData?.dodgyBuilderWarnings) {
                         setDodgyWarnings(stageData.dodgyBuilderWarnings);
@@ -455,8 +461,10 @@ export default function SmartDashboard({ project, currentStage, stageNames, onNa
         fetchData();
     }, [project.id]);
 
-    // Lookup stage guidance
-    const normalizedStage = currentStage.toLowerCase().replace(/[\s/]+/g, "_");
+    // Lookup stage guidance via the canonical key mapper — the old naive
+    // normalisation ("slab_footings") matched the guidance keys for only
+    // 1 of 8 stages, so the dashboard fell back to generic advice everywhere.
+    const normalizedStage = stageNameToKey(currentStage);
     const guidance = STAGE_GUIDANCE[normalizedStage] || DEFAULT_GUIDANCE;
 
     // Insurance, cooling-off, warranty alerts (from ProjectOverview)
@@ -503,7 +511,7 @@ export default function SmartDashboard({ project, currentStage, stageNames, onNa
 
     // Current stage display name
     const currentStageName = stages.find(
-        s => s.name.toLowerCase().replace(/[\s/]+/g, "_") === normalizedStage
+        s => stageNameToKey(s.name) === normalizedStage
     )?.name || currentStage;
 
     // Celebration messages based on project state
@@ -761,7 +769,7 @@ export default function SmartDashboard({ project, currentStage, stageNames, onNa
                             <p className="text-muted-foreground text-sm pl-10">No stages configured.</p>
                         ) : stages.map((stage, idx) => {
                             const isCompleted = stage.status === "completed" || stage.status === "verified";
-                            const isCurrent = stage.name.toLowerCase().replace(/[\s/]+/g, "_") === normalizedStage;
+                            const isCurrent = stageNameToKey(stage.name) === normalizedStage;
                             return (
                                 <div key={stage.id} className="relative flex items-start gap-4 pl-0">
                                     <div

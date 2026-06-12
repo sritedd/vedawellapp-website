@@ -35,6 +35,7 @@ import PreHandoverChecklist from "@/components/guardian/PreHandoverChecklist";
 import AccountabilityScore from "@/components/guardian/AccountabilityScore";
 import NCC2025Compliance from "@/components/guardian/NCC2025Compliance";
 import GuidedOnboarding, { shouldShowOnboarding } from "@/components/guardian/GuidedOnboarding";
+import { stageNameToKey } from "@/lib/guardian/stage-keys";
 import PhoneVerificationBanner from "@/components/guardian/PhoneVerificationBanner";
 import MobilePhotoCapture, { PhotoFAB } from "@/components/guardian/MobilePhotoCapture";
 import PushNotificationSetup from "@/components/guardian/PushNotificationSetup";
@@ -227,8 +228,9 @@ export default function ProjectDetailPage() {
     const activeSection: SectionId = TAB_SECTION_MAP[activeTab] || "home";
     const currentSubTabs = SECTION_SUBTABS[activeSection];
 
-    // Stage-aware tab relevance
-    const normalizedStage = currentStage.toLowerCase().replace(/[\s/]+/g, "_");
+    // Stage-aware tab relevance — canonical key via shared mapper so
+    // "Slab / Footings" resolves to the `slab` entry.
+    const normalizedStage = stageNameToKey(currentStage);
     const relevantTabs = STAGE_VISIBLE_TABS[normalizedStage] || new Set<string>();
 
     // Handle section click — navigate to default tab for that section
@@ -305,16 +307,21 @@ export default function ProjectDetailPage() {
             if (stages && stages.length > 0) {
                 setStageNames(stages.map((s: { name: string }) => s.name));
 
+                // Store the RAW stage name. Children (StageGate, AIStageAdvice,
+                // StageChecklist) need the human name for defect matching, AI
+                // context and display; canonical keys are derived where needed
+                // via stageNameToKey(). The old pre-normalised value
+                // ("slab_footings") matched neither names nor canonical keys.
                 const activeStage = stages.find((s: { status: string }) => s.status !== "completed");
                 if (activeStage) {
-                    setCurrentStage(activeStage.name.toLowerCase().replace(/[\s/]+/g, "_"));
+                    setCurrentStage(activeStage.name);
                     const idx = stages.indexOf(activeStage);
                     if (idx < stages.length - 1) {
                         setNextStage(stages[idx + 1].name);
                     }
                 } else {
                     const lastStage = stages[stages.length - 1];
-                    setCurrentStage(lastStage.name.toLowerCase().replace(/[\s/]+/g, "_"));
+                    setCurrentStage(lastStage.name);
                     setNextStage("Handover Complete");
                 }
             }
