@@ -215,8 +215,15 @@ export default function NewProjectPage() {
             let stageFailures = 0;
             for (let stageIdx = 0; stageIdx < stages.length; stageIdx++) {
                 const stageTemplate = stages[stageIdx];
-                const paymentPercent = (stageTemplate as any).paymentMilestone
-                    ? parseFloat(((stageTemplate as any).paymentMilestone as string).match(/\d+/)?.[0] || "0")
+                const milestoneText = ((stageTemplate as any).paymentMilestone as string | null) || "";
+                // Milestones marked "combined"/"additional" are part of the PREVIOUS
+                // stage's payment (e.g. QLD slab "Base Stage (combined 10%)" is the
+                // same 10% already created for site_start). Creating a row for them
+                // double-bills the homeowner — exactly the kind of thing this app
+                // exists to prevent.
+                const isCombinedMilestone = /combined|additional/i.test(milestoneText);
+                const paymentPercent = milestoneText && !isCombinedMilestone
+                    ? parseFloat(milestoneText.match(/\d+/)?.[0] || "0")
                     : 0;
 
                 const { data: stageData, error: stageError } = await supabase

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { PDFDocument, rgb, StandardFonts, PDFFont, PDFPage } from "pdf-lib";
+import { getTribunalInfo } from "@/lib/guardian/tribunal-info";
 
 /**
  * Per-user PDF generation throttle. Caps spam that could inflate Netlify
@@ -56,16 +57,6 @@ const PAGE_W = 595;
 const PAGE_H = 842;
 const MARGIN = 50;
 const LINE_H = 16;
-
-// NSW standard payment schedule
-const STAGE_PAYMENTS = [
-    { stage: "Deposit", pct: 5 },
-    { stage: "Base/Slab", pct: 15 },
-    { stage: "Frame", pct: 20 },
-    { stage: "Lockup", pct: 25 },
-    { stage: "Fixing", pct: 20 },
-    { stage: "Completion", pct: 15 },
-];
 
 type ReportType = "full" | "defects" | "variations" | "payments" | "dispute" | "summary";
 
@@ -239,12 +230,13 @@ export async function GET(req: NextRequest) {
     }
 
     // Fetch all data in parallel
-    const [defectsRes, variationsRes, stagesRes, commsRes, inspectionsRes] = await Promise.all([
+    const [defectsRes, variationsRes, stagesRes, commsRes, inspectionsRes, paymentsRes] = await Promise.all([
         supabase.from("defects").select("*").eq("project_id", projectId).order("created_at", { ascending: false }),
         supabase.from("variations").select("*").eq("project_id", projectId).order("created_at", { ascending: false }),
         supabase.from("stages").select("*").eq("project_id", projectId).order("order_index", { ascending: true }),
         supabase.from("communication_log").select("*").eq("project_id", projectId).order("date", { ascending: true }),
         supabase.from("inspections").select("*").eq("project_id", projectId).order("created_at", { ascending: true }),
+        supabase.from("payments").select("*").eq("project_id", projectId).order("percentage", { ascending: true }),
     ]);
 
     const defects = defectsRes.data || [];
@@ -252,6 +244,7 @@ export async function GET(req: NextRequest) {
     const stages = stagesRes.data || [];
     const comms = commsRes.data || [];
     const inspections = inspectionsRes.data || [];
+    const payments = paymentsRes.data || [];
     const contractValue = Number(project.contract_value) || 0;
 
     // Build PDF
@@ -376,41 +369,44 @@ export async function GET(req: NextRequest) {
     }
 
     // ── Payments section ──
+    // Reads the project's REAL payment rows (seeded per-state at creation,
+    // user-maintained since). The previous version rendered a hardcoded NSW
+    // schedule whose name-matching never matched "Deposit"/"Base/Slab" — it
+    // showed wrong percentages for QLD/VIC and eternally-unpaid rows for NSW.
     if (reportType === "payments" || reportType === "full") {
         w.sectionTitle("Payment Schedule");
 
-        const paidAmount = STAGE_PAYMENTS.reduce((sum, sp) => {
-            const match = stages.find((s: Record<string, unknown>) =>
-                (s.name as string).toLowerCase().includes(sp.stage.toLowerCase().replace("/", ""))
-            );
-            return sum + (match?.status === "completed" ? Math.round(contractValue * sp.pct / 100) : 0);
-        }, 0);
-        const remaining = contractValue - paidAmount;
-
-        w.text(`Total Contract:`, MARGIN, { bold: true, size: 9, color: GRAY });
-        w.text(fmtCurrency(contractValue), MARGIN + 110, { size: 9 });
-        w.gap();
-        w.text(`Amount Paid:`, MARGIN, { bold: true, size: 9, color: GRAY });
-        w.text(fmtCurrency(paidAmount), MARGIN + 110, { size: 9, color: GREEN });
-        w.gap();
-        w.text(`Remaining:`, MARGIN, { bold: true, size: 9, color: GRAY });
-        w.text(fmtCurrency(remaining), MARGIN + 110, { size: 9 });
-        w.gap(10);
-
-        // Payment milestones table
-        for (const sp of STAGE_PAYMENTS) {
-            w.checkSpace(20);
-            const match = stages.find((s: Record<string, unknown>) =>
-                (s.name as string).toLowerCase().includes(sp.stage.toLowerCase().replace("/", ""))
-            );
-            const isPaid = match?.status === "completed";
-            const icon = isPaid ? "[PAID]" : "[    ]";
-            const amount = Math.round(contractValue * sp.pct / 100);
-
-            w.text(icon, MARGIN, { bold: true, size: 9, color: isPaid ? GREEN : GRAY });
-            w.text(`${sp.stage} (${sp.pct}%)`, MARGIN + 45, { size: 9 });
-            w.text(fmtCurrency(amount), MARGIN + 200, { size: 9, color: isPaid ? GREEN : BLACK });
+        if (payments.length === 0) {
+            w.text("No payment milestones recorded for this project.", MARGIN + 10, { size: 9, color: GRAY });
             w.gap();
+        } else {
+            const paidAmount = payments.reduce((sum: number, p: Record<string, unknown>) =>
+                sum + (p.status === "paid" ? (Number(p.amount) || 0) : 0), 0);
+            const totalScheduled = payments.reduce((sum: number, p: Record<string, unknown>) =>
+                sum + (Number(p.amount) || 0), 0);
+
+            w.text(`Total Contract:`, MARGIN, { bold: true, size: 9, color: GRAY });
+            w.text(fmtCurrency(contractValue), MARGIN + 110, { size: 9 });
+            w.gap();
+            w.text(`Amount Paid:`, MARGIN, { bold: true, size: 9, color: GRAY });
+            w.text(fmtCurrency(paidAmount), MARGIN + 110, { size: 9, color: GREEN });
+            w.gap();
+            w.text(`Remaining (scheduled):`, MARGIN, { bold: true, size: 9, color: GRAY });
+            w.text(fmtCurrency(Math.max(0, totalScheduled - paidAmount)), MARGIN + 110, { size: 9 });
+            w.gap(10);
+
+            for (const p of payments as Record<string, unknown>[]) {
+                w.checkSpace(20);
+                const isPaid = p.status === "paid";
+                const icon = isPaid ? "[PAID]" : "[    ]";
+                const pct = Number(p.percentage) || 0;
+                const label = pct > 0 ? `${p.stage_name} (${pct}%)` : `${p.stage_name}`;
+
+                w.text(icon, MARGIN, { bold: true, size: 9, color: isPaid ? GREEN : GRAY });
+                w.text(label, MARGIN + 45, { size: 9 });
+                w.text(fmtCurrency(Number(p.amount) || 0), MARGIN + 220, { size: 9, color: isPaid ? GREEN : BLACK });
+                w.gap();
+            }
         }
 
         w.gap(6);
@@ -432,12 +428,15 @@ export async function GET(req: NextRequest) {
             w.gap();
         }
 
-        w.sectionTitle("Fair Trading Information");
-        w.text("NSW Fair Trading: 13 32 20", MARGIN, { bold: true, size: 10 });
+        // State-specific contacts — a VIC homeowner gets VCAT/CAV, QLD gets
+        // QCAT/QBCC, etc. Never hand a non-NSW user NCAT's phone number.
+        const tribunal = getTribunalInfo(project.state as string | null);
+        w.sectionTitle(`${project.state || "NSW"} Dispute Contacts`);
+        w.text(`${tribunal.fairTrading}: ${tribunal.ftPhone}`, MARGIN, { bold: true, size: 10 });
         w.gap();
-        w.text("HBCF Claims: 1800 110 877", MARGIN, { bold: true, size: 10 });
+        w.text(`${tribunal.insurance}: ${tribunal.insPhone}`, MARGIN, { bold: true, size: 10 });
         w.gap();
-        w.text("NCAT (Tribunal): 1300 006 228", MARGIN, { bold: true, size: 10 });
+        w.text(`${tribunal.name}: ${tribunal.phone}`, MARGIN, { bold: true, size: 10 });
         w.gap(10);
         w.text("Supporting documents to include:", MARGIN, { bold: true, size: 9, color: GRAY });
         w.gap();

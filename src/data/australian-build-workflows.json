@@ -457,7 +457,7 @@
             "id": "slab",
             "name": "Slab / Footings",
             "description": "Foundation concrete slab or strip footings poured",
-            "paymentMilestone": "Base Stage (additional or combined)",
+            "paymentMilestone": "Base Stage (combined with Site Start 10%)",
             "inspections": [
               "Footings/Reinforcement (BEFORE pour)",
               "Plumbing Rough-in"
@@ -475,7 +475,7 @@
             "id": "frame",
             "name": "Frame Stage",
             "description": "Wall frames, roof trusses, and structural steel erected",
-            "paymentMilestone": "Frame Stage (15-20%)",
+            "paymentMilestone": "Frame Stage (15% — VIC statutory maximum)",
             "inspections": [
               "Frame Inspection"
             ],
@@ -595,7 +595,7 @@
             "id": "practical_completion",
             "name": "Practical Completion (PC)",
             "description": "Build complete, ready for handover inspection",
-            "paymentMilestone": "Final Stage / Practical Completion (5-10%)",
+            "paymentMilestone": "Final Stage (10%)",
             "inspections": [
               "Final Inspection",
               "CoO Inspection"
@@ -619,18 +619,18 @@
           {
             "id": "warranty",
             "name": "Warranty Period",
-            "description": "6 years structural, 2 years non-structural",
+            "description": "Implied warranties under the Domestic Building Contracts Act 1995 — builder liability runs 10 years from occupancy permit",
             "paymentMilestone": null,
             "inspections": [
               "6-month inspection (recommended)",
               "12-month inspection (recommended)"
             ],
             "yourRights": [
-              "2-year warranty for minor defects (cosmetic, waterproofing, paintwork)",
-              "6-year warranty for major structural defects (foundations, load-bearing)",
-              "Domestic Building Insurance (DBI) covers you if builder dies, disappears, or becomes insolvent",
-              "Maximum claim $300,000 (VIC threshold)",
-              "Lodge claims via DBDRV or VCAT"
+              "Implied warranties (workmanship, materials, compliance, fitness) apply for the FULL 10-year liability period under s134 Building Act 1993",
+              "Defects liability period per your contract (typically 3 months) for minor finishing items",
+              "Domestic Building Insurance (DBI) is mandatory for works over $16,000 — covers incomplete/defective work if builder dies, disappears, or becomes insolvent",
+              "DBI cover: up to $300,000 (max 20% of contract for incomplete work)",
+              "Disputes: start with DBDRV (Domestic Building Dispute Resolution Victoria — free conciliation), then VCAT if unresolved"
             ]
           }
         ],
