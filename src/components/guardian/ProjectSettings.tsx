@@ -33,6 +33,7 @@ export default function ProjectSettings({ project, onProjectUpdated }: ProjectSe
         insurance_expiry_date: project.insurance_expiry_date || "",
         contract_value: project.contract_value?.toString() || "",
         start_date: project.start_date?.split("T")[0] || "",
+        handover_date: project.handover_date?.split("T")[0] || "",
         status: project.status || "active",
     });
 
@@ -63,6 +64,7 @@ export default function ProjectSettings({ project, onProjectUpdated }: ProjectSe
             insurance_expiry_date: form.insurance_expiry_date || null,
             contract_value: parseFloat(form.contract_value) || 0,
             start_date: form.start_date || null,
+            handover_date: form.handover_date || null,
             status: form.status,
         };
 
@@ -267,6 +269,22 @@ export default function ProjectSettings({ project, onProjectUpdated }: ProjectSe
                                 <option value="paused">Paused</option>
                                 <option value="completed">Completed</option>
                             </select>
+                        </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Handover Date</label>
+                            <input
+                                type="date"
+                                name="handover_date"
+                                value={form.handover_date}
+                                onChange={handleChange}
+                                className="w-full px-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                            />
+                            <p className="text-xs text-muted-foreground mt-1.5">
+                                Set when you receive the keys — starts your statutory warranty clock and enables warranty alerts.
+                            </p>
                         </div>
                     </div>
 

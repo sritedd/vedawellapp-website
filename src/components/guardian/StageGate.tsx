@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/components/guardian/Toast";
+import { stageNameToKey } from "@/lib/guardian/stage-keys";
 import {
     getBlockingItems,
     getOverridableItems,
@@ -349,6 +350,35 @@ export default function StageGate({ projectId, currentStage, nextStage, onProcee
         if (updateError && fallbackError) {
             toast(`Could not mark stage complete: ${fallbackError.message}. Please try again.`, "error");
             return;
+        }
+
+        // Closure transition: completing practical completion is the handover
+        // moment. Previously nothing ever set project.status or handover_date,
+        // so projects stayed "active" forever and warranty alerts (which key
+        // off handover_date) could never fire.
+        const completedKey = stageNameToKey(stageName || currentStage);
+        if (completedKey === "practical_completion") {
+            const wantsClosure = confirm(
+                "Practical completion done — congratulations! 🏠\n\n" +
+                "Mark the project as COMPLETED and set today as your handover date? " +
+                "This starts your statutory warranty tracking.\n\n" +
+                "(You can adjust the date later in Settings.)"
+            );
+            if (wantsClosure) {
+                const { error: closeErr } = await supabase
+                    .from("projects")
+                    .update({
+                        status: "completed",
+                        handover_date: new Date().toISOString().split("T")[0],
+                    })
+                    .eq("id", projectId);
+                if (closeErr) {
+                    console.error("[StageGate] Project closure update failed:", closeErr.message);
+                    toast("Stage completed, but project closure failed — set status + handover date in Settings.", "error");
+                } else {
+                    toast("Project marked completed — warranty tracking is now active.", "success");
+                }
+            }
         }
 
         setShowConfirmation(false);

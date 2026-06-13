@@ -432,12 +432,50 @@
           {
             "id": "planning",
             "name": "Planning Permit",
-            "description": "Council assesses land use and development proposal"
+            "description": "Council assesses land use and development proposal",
+            "inspections": [],
+            "certificates": [],
+            "checklist": [
+              {
+                "item": "Planning permit application lodged with council",
+                "critical": true,
+                "requiresPhoto": false
+              },
+              {
+                "item": "Planning permit issued (check conditions carefully)",
+                "critical": true,
+                "requiresPhoto": false
+              },
+              {
+                "item": "Any permit conditions priced into the contract (not as later variations)",
+                "critical": false,
+                "requiresPhoto": false
+              }
+            ]
           },
           {
             "id": "building_permit",
             "name": "Building Permit",
-            "description": "Registered Building Surveyor issues permit confirming BCA compliance"
+            "description": "Registered Building Surveyor issues permit confirming BCA compliance",
+            "inspections": [],
+            "certificates": [],
+            "checklist": [
+              {
+                "item": "Building permit issued by Registered Building Surveyor (RBS)",
+                "critical": true,
+                "requiresPhoto": false
+              },
+              {
+                "item": "Domestic Building Insurance (DBI) certificate received BEFORE paying deposit",
+                "critical": true,
+                "requiresPhoto": false
+              },
+              {
+                "item": "Verify DBI policy on the VMIA register",
+                "critical": true,
+                "requiresPhoto": false
+              }
+            ]
           },
           {
             "id": "site_start",
