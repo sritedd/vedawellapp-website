@@ -1,6 +1,11 @@
 # Bug Hunt: Project Workflow Creation → Closure (NSW / QLD / VIC)
 
-Date: 2026-06-11. Status: FOUND, fixes pending. Execute Batches A → B → C, typecheck + build + commit + push after each batch. Do not stop until all are fixed.
+Date: 2026-06-11. Status: ✅ ALL FIXED (2026-06-13). Shipped across 3 commits:
+- Batch A (money/legal) — commit 71bf347
+- Batch B (stage-name↔key mismatch) — commit f749340
+- Batch C (closure lifecycle + VIC pre-construction) — commit 68172e5
+
+All typecheck + build green. Every item below resolved.
 
 ## Batch A — money/legal correctness (~3h)
 
