@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/components/guardian/Toast";
+import { stageNameToKey } from "@/lib/guardian/stage-keys";
 import australianData from "@/data/australian-build-workflows.json";
 
 interface Certification {
@@ -40,12 +41,12 @@ export default function CertificationGate({
         ? stateCode
         : "NSW";
 
+    // Match by canonical key. currentStage is a human name ("Pre-Plasterboard")
+    // while workflow ids are slugs ("pre_plasterboard") — direct string compares
+    // missed on hyphen-vs-underscore and dropped that stage's required certs.
+    const currentStageKey = stageNameToKey(currentStage);
     const workflow = (australianData.workflows.new_build as unknown as Record<string, { stages: Array<{ id: string; name: string; certificates?: string[] }> }>)[state];
-    const stageData = workflow?.stages.find((s) =>
-        s.id.toLowerCase() === currentStage.toLowerCase() ||
-        s.id.toLowerCase().includes(currentStage.toLowerCase()) ||
-        currentStage.toLowerCase().includes(s.id.toLowerCase())
-    );
+    const stageData = workflow?.stages.find((s) => stageNameToKey(s.id) === currentStageKey);
     const requiredCerts = stageData?.certificates || [];
 
     // Get mandatory certificates for the project's state

@@ -13,10 +13,15 @@
  * so consumers can still use the value as a stable identifier.
  */
 
+// NOTE: "completion" is intentionally absent. Some workflow categories use the
+// stage id `completion` (name "Final Inspection") while new_build uses
+// `practical_completion` for the same logical stage. We collapse both to
+// `practical_completion` (via the fuzzy pass) so guidance, tabs, and warnings
+// all resolve to the one canonical key.
 const CANONICAL_KEYS = new Set([
     "site_start", "slab", "frame", "lockup", "pre_plasterboard", "fixing",
     "practical_completion", "warranty", "planning", "building_permit",
-    "approval", "completion", "demolition", "excavation", "footings", "roof",
+    "approval", "demolition", "excavation", "footings", "roof",
 ]);
 
 export function stageNameToKey(name: string | null | undefined): string {
