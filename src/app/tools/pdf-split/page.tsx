@@ -65,10 +65,14 @@ export default function PDFSplit() {
             copied.forEach(p => out.addPage(p));
             const bytes = await out.save();
             const blob = new Blob([new Uint8Array(bytes)], { type: "application/pdf" });
+            const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
-            a.href = URL.createObjectURL(blob);
+            a.href = url;
             a.download = `split-pages-${pageRange.replace(/\s/g, "")}-${Date.now()}.pdf`;
+            document.body.appendChild(a);
             a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 30_000);
         } catch {
             setError("Failed to split PDF.");
         }

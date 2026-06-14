@@ -79,10 +79,14 @@ export default function PDFMerge() {
     const download = () => {
         if (!merged) return;
         const blob = new Blob([new Uint8Array(merged)], { type: "application/pdf" });
+        const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
+        a.href = url;
         a.download = `merged-${Date.now()}.pdf`;
+        document.body.appendChild(a);
         a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 30_000);
     };
 
     const formatSize = (b: number) => b < 1024 * 1024 ? `${(b / 1024).toFixed(1)} KB` : `${(b / 1024 / 1024).toFixed(1)} MB`;

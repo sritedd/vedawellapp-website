@@ -262,10 +262,14 @@ export default function PDFToWord() {
             setProgress(100);
 
             const suffix = pagesToConvert ? `-p${pagesToConvert[0]}-${pagesToConvert[pagesToConvert.length - 1]}` : "";
+            const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
-            a.href = URL.createObjectURL(blob);
+            a.href = url;
             a.download = `${fileName}${suffix}-converted.docx`;
+            document.body.appendChild(a);
             a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 30_000);
             setDone(true);
         } catch (err) {
             setError(`Conversion failed: ${err instanceof Error ? err.message : String(err)}`);

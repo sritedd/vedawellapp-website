@@ -103,10 +103,15 @@ export default function PDFCompress() {
     const download = () => {
         if (!result) return;
         const blob = new Blob([new Uint8Array(result.bytes)], { type: "application/pdf" });
+        const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
+        a.href = url;
         a.download = `compressed-${fileName}-${Date.now()}.pdf`;
+        document.body.appendChild(a);
         a.click();
+        a.remove();
+        // Revoke after the download has had time to start, freeing the blob.
+        setTimeout(() => URL.revokeObjectURL(url), 30_000);
     };
 
     const formatSize = (b: number) => b < 1024 * 1024 ? `${(b / 1024).toFixed(1)} KB` : `${(b / 1024 / 1024).toFixed(2)} MB`;
