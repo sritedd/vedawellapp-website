@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { Home } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import TwoFactorSetup from "@/components/guardian/TwoFactorSetup";
 import NotificationPreferences from "@/components/guardian/NotificationPreferences";
@@ -294,7 +295,7 @@ export default function ProfilePage() {
             <nav className="border-b border-border bg-card">
                 <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
                     <Link href="/guardian/dashboard" className="flex items-center gap-2 text-xl font-bold">
-                        <span>🏠</span>
+                        <Home className="w-5 h-5 text-primary" />
                         <span>Guardian</span>
                     </Link>
                     <div className="flex items-center gap-4">

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { Home, Lock, ShieldCheck, BadgeCheck } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { getRateLimitSecondsRemaining, recordFailedAttempt, resetRateLimit } from "@/lib/security/rate-limit";
@@ -305,7 +306,9 @@ export default function LoginPage() {
 
                     <div className="card">
                         <div className="text-center mb-8">
-                            <span className="text-5xl block mb-4">🏠</span>
+                            <span className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-4">
+                                <Home className="w-8 h-8 text-primary" />
+                            </span>
                             <h1 className="text-2xl font-bold">{getTitle()}</h1>
                             <p className="text-muted mt-2">{getSubtitle()}</p>
                         </div>
@@ -513,9 +516,9 @@ export default function LoginPage() {
                         {/* Trust indicators */}
                         <div className="mt-8 pt-6 border-t border-border">
                             <div className="flex items-center justify-center gap-6 text-xs text-muted">
-                                <span>🔒 Encrypted</span>
-                                <span>🛡️ Secure Auth</span>
-                                <span>📱 Free to Use</span>
+                                <span className="flex items-center gap-1.5"><Lock className="w-3.5 h-3.5" /> Encrypted</span>
+                                <span className="flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> Secure Auth</span>
+                                <span className="flex items-center gap-1.5"><BadgeCheck className="w-3.5 h-3.5" /> Free to Use</span>
                             </div>
                         </div>
                     </div>

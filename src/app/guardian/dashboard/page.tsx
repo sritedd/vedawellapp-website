@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { BookOpen, Gift, MessageCircle, Settings, User, Sparkles, Plus, ClipboardList, FileSignature, Rocket, MapPin, HardHat } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { isAdminEmail } from "@/lib/admin";
 import { formatMoney } from "@/utils/format";
@@ -88,26 +89,26 @@ export default async function DashboardPage() {
                         <Link href="/guardian/projects" className="text-muted hover:text-foreground">
                             Projects
                         </Link>
-                        <Link href="/guardian/journey" className="text-muted hover:text-foreground">
-                            📚 Learn
+                        <Link href="/guardian/journey" className="text-muted hover:text-foreground flex items-center gap-1.5">
+                            <BookOpen className="w-4 h-4" /> Learn
                         </Link>
-                        <Link href="/guardian/refer" className="text-muted hover:text-foreground">
-                            🎁 Refer
+                        <Link href="/guardian/refer" className="text-muted hover:text-foreground flex items-center gap-1.5">
+                            <Gift className="w-4 h-4" /> Refer
                         </Link>
                         {hasPro && (
-                            <Link href="/guardian/support" className="text-muted hover:text-foreground">
-                                💬 Support
+                            <Link href="/guardian/support" className="text-muted hover:text-foreground flex items-center gap-1.5">
+                                <MessageCircle className="w-4 h-4" /> Support
                             </Link>
                         )}
                         {isAdmin && (
-                            <Link href="/guardian/admin" className="text-yellow-600 hover:text-yellow-500 font-medium text-sm">
-                                ⚙️ Admin
+                            <Link href="/guardian/admin" className="text-yellow-600 hover:text-yellow-500 font-medium text-sm flex items-center gap-1.5">
+                                <Settings className="w-4 h-4" /> Admin
                             </Link>
                         )}
                     </div>
                     <div className="flex items-center gap-4">
-                        <Link href="/guardian/profile" className="text-muted text-sm hover:text-primary transition-colors flex items-center gap-1">
-                            👤 {user.email}
+                        <Link href="/guardian/profile" className="text-muted text-sm hover:text-primary transition-colors flex items-center gap-1.5">
+                            <User className="w-4 h-4" /> {user.email}
                         </Link>
                         <form action={logout}>
                             <button
@@ -128,8 +129,8 @@ export default async function DashboardPage() {
                         <h1 className="text-3xl font-bold">HomeOwner Guardian</h1>
                         <div className="flex items-center gap-3">
                             {isFree ? (
-                                <Link href="/guardian/pricing" className="text-xs px-3 py-1.5 bg-primary text-primary-foreground rounded-full font-medium hover:opacity-90 transition-opacity">
-                                    ✦ Upgrade to Pro
+                                <Link href="/guardian/pricing" className="text-xs px-3 py-1.5 bg-primary text-primary-foreground rounded-full font-medium hover:opacity-90 transition-opacity inline-flex items-center gap-1.5">
+                                    <Sparkles className="w-3.5 h-3.5" /> Upgrade to Pro
                                 </Link>
                             ) : trialActive ? (
                                 <span className="text-xs px-2 py-1 bg-blue-500/10 text-blue-600 rounded-full font-medium">
@@ -274,7 +275,7 @@ export default async function DashboardPage() {
                     <h2 className="text-xl font-bold mb-4">Quick Actions</h2>
                     <div className="grid md:grid-cols-4 gap-6 mb-8">
                         <Link href={isFree && (projects?.length || 0) >= FREE_PROJECT_LIMIT ? "/guardian/pricing" : "/guardian/projects/new"} className="card hover:border-primary transition-colors">
-                            <span className="text-3xl mb-3 block">+</span>
+                            <Plus className="w-8 h-8 mb-3 text-primary" strokeWidth={2.5} />
                             <h3 className="font-bold mb-2">New Project</h3>
                             <p className="text-muted text-sm">
                                 {isFree && (projects?.length || 0) >= FREE_PROJECT_LIMIT
@@ -284,7 +285,7 @@ export default async function DashboardPage() {
                         </Link>
                         {projectId && (
                             <Link href={`/guardian/projects/${projectId}`} className="card hover:border-primary transition-colors">
-                                <span className="text-3xl mb-3 block">📋</span>
+                                <ClipboardList className="w-8 h-8 mb-3 text-primary" />
                                 <h3 className="font-bold mb-2">View Checklists</h3>
                                 <p className="text-muted text-sm">
                                     Document insulation and rough-in
@@ -292,7 +293,7 @@ export default async function DashboardPage() {
                             </Link>
                         )}
                         <Link href="/guardian/journey" className="card hover:border-primary transition-colors bg-blue-50 border-blue-200">
-                            <span className="text-3xl mb-3 block">📚</span>
+                            <BookOpen className="w-8 h-8 mb-3 text-blue-600" />
                             <h3 className="font-bold mb-2 text-blue-700">Build Journey Guide</h3>
                             <p className="text-muted text-sm">
                                 Learn what to expect at each stage
@@ -300,7 +301,7 @@ export default async function DashboardPage() {
                         </Link>
                         {projectId && (
                             <Link href={`/guardian/projects/${projectId}?tab=variations`} className="card hover:border-primary transition-colors">
-                                <span className="text-3xl mb-3 block">💰</span>
+                                <FileSignature className="w-8 h-8 mb-3 text-primary" />
                                 <h3 className="font-bold mb-2">Log Variation</h3>
                                 <p className="text-muted text-sm">
                                     Record changes with digital signature
@@ -312,7 +313,7 @@ export default async function DashboardPage() {
                     {/* Getting Started OR Projects List */}
                     {!projects || projects.length === 0 ? (
                         <div className="card border-primary/30 bg-primary/5">
-                            <h2 className="text-xl font-bold mb-4">🚀 Getting Started</h2>
+                            <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><Rocket className="w-5 h-5 text-primary" /> Getting Started</h2>
                             <ol className="list-decimal list-inside space-y-2 text-muted">
                                 <li>Create a new project with your builder and contract details</li>
                                 <li>Upload your building contract (we&apos;ll extract key dates and inclusions)</li>
@@ -322,9 +323,9 @@ export default async function DashboardPage() {
                             <div className="mt-4">
                                 <Link
                                     href="/guardian/journey"
-                                    className="text-primary hover:underline font-medium"
+                                    className="text-primary hover:underline font-medium inline-flex items-center gap-1.5"
                                 >
-                                    📚 First, learn about the build process →
+                                    <BookOpen className="w-4 h-4" /> First, learn about the build process →
                                 </Link>
                             </div>
                         </div>
@@ -350,8 +351,8 @@ export default async function DashboardPage() {
                                             </span>
                                         </div>
                                         <div className="text-sm text-muted space-y-1">
-                                            {project.address && <div>📍 {project.address}</div>}
-                                            {project.builder_name && <div>👷 {project.builder_name}</div>}
+                                            {project.address && <div className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 flex-shrink-0" /> {project.address}</div>}
+                                            {project.builder_name && <div className="flex items-center gap-1.5"><HardHat className="w-3.5 h-3.5 flex-shrink-0" /> {project.builder_name}</div>}
                                             {project.contract_value && (
                                                 <div className="font-medium text-foreground">
                                                     {formatMoney(project.contract_value)}
