@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
+import { AlertOctagon, AlertTriangle, FileText } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { formatMoney } from "@/utils/format";
@@ -176,7 +177,7 @@ export default function ProjectVariations({
                         : "bg-amber-500/10 border border-amber-500/30"
                         }`}
                 >
-                    <span className="text-2xl">{warningLevel === 'critical' ? "🚨" : "⚠️"}</span>
+                    <span>{warningLevel === 'critical' ? <AlertOctagon className="w-6 h-6 text-red-500" /> : <AlertTriangle className="w-6 h-6 text-amber-500" />}</span>
                     <div>
                         <h4 className="font-bold text-foreground">
                             {warningLevel === 'critical' ? "Critical Variation Alert" : "Variation Warning"}
@@ -191,8 +192,8 @@ export default function ProjectVariations({
                             )}
                         </p>
                         {variationPercent >= 15 && (
-                            <button className="mt-3 px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700">
-                                📝 Generate Dispute Template
+                            <button className="mt-3 px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 inline-flex items-center gap-1.5">
+                                <FileText className="w-4 h-4" /> Generate Dispute Template
                             </button>
                         )}
                     </div>

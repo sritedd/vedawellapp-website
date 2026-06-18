@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Wallet, AlertTriangle, CheckCircle2, OctagonX, ClipboardList } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { logActivity } from "@/lib/activity-log";
 import { useToast } from "@/components/guardian/Toast";
@@ -145,9 +146,9 @@ export default function PaymentSchedule({ projectId, contractValue }: PaymentSch
     if (loadError) {
         return (
             <div className="space-y-4">
-                <h2 className="text-2xl font-bold">💰 Payment Schedule</h2>
+                <h2 className="text-2xl font-bold flex items-center gap-2"><Wallet className="w-6 h-6 text-primary" /> Payment Schedule</h2>
                 <div className="p-4 bg-red-50 border border-red-300 rounded-xl">
-                    <h3 className="font-bold text-red-800 mb-1">⚠️ Couldn&apos;t load payment data</h3>
+                    <h3 className="font-bold text-red-800 mb-1 flex items-center gap-1.5"><AlertTriangle className="w-4 h-4" /> Couldn&apos;t load payment data</h3>
                     <p className="text-sm text-red-700 mb-3">{loadError}</p>
                     <button
                         onClick={() => { setLoading(true); fetchData(); }}
@@ -163,7 +164,7 @@ export default function PaymentSchedule({ projectId, contractValue }: PaymentSch
     if (payments.length === 0) {
         return (
             <div className="space-y-4">
-                <h2 className="text-2xl font-bold">💰 Payment Schedule</h2>
+                <h2 className="text-2xl font-bold flex items-center gap-2"><Wallet className="w-6 h-6 text-primary" /> Payment Schedule</h2>
                 <div className="p-6 bg-card border border-border rounded-xl text-center">
                     <p className="text-muted-foreground mb-2">No payment milestones found.</p>
                     <p className="text-sm text-muted">Payment milestones are automatically created when you create a new project. For existing projects, they may need to be set up manually.</p>
@@ -175,7 +176,7 @@ export default function PaymentSchedule({ projectId, contractValue }: PaymentSch
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-2xl font-bold">💰 Payment Schedule</h2>
+                <h2 className="text-2xl font-bold flex items-center gap-2"><Wallet className="w-6 h-6 text-primary" /> Payment Schedule</h2>
                 <p className="text-muted-foreground">
                     Track progress payments linked to construction stages and certificates.
                 </p>
@@ -215,8 +216,8 @@ export default function PaymentSchedule({ projectId, contractValue }: PaymentSch
                         ? "bg-green-50 border-green-200"
                         : "bg-red-50 border-red-200"
                         }`}>
-                        <h3 className={`font-bold mb-1 ${check.safe ? "text-green-800" : "text-red-800"}`}>
-                            {check.safe ? "✅" : "🛑"} Should I Pay? — {nextDue.stage_name}
+                        <h3 className={`font-bold mb-1 flex items-center gap-1.5 ${check.safe ? "text-green-800" : "text-red-800"}`}>
+                            {check.safe ? <CheckCircle2 className="w-4 h-4" /> : <OctagonX className="w-4 h-4" />} Should I Pay? — {nextDue.stage_name}
                         </h3>
                         <p className={`text-sm ${check.safe ? "text-green-700" : "text-red-700"}`}>
                             {check.reason}
@@ -362,7 +363,7 @@ export default function PaymentSchedule({ projectId, contractValue }: PaymentSch
 
             {/* Legal Info */}
             <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
-                <h4 className="font-bold text-blue-800 mb-2">📋 Your Payment Rights</h4>
+                <h4 className="font-bold text-blue-800 mb-2 flex items-center gap-1.5"><ClipboardList className="w-4 h-4" /> Your Payment Rights</h4>
                 <ul className="text-sm text-blue-700 space-y-1">
                     <li>• Deposit cannot exceed 10% of contract value (or $20,000, whichever is less)</li>
                     <li>• Progress payments must be linked to genuinely completed stages</li>
