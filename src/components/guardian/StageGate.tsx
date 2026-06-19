@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/components/guardian/Toast";
+import { ClipboardList, AlertTriangle } from "lucide-react";
 import { stageNameToKey } from "@/lib/guardian/stage-keys";
 import {
     getBlockingItems,
@@ -428,13 +429,13 @@ export default function StageGate({ projectId, currentStage, nextStage, onProcee
             {loggedDefects.length > 0 && (
                 <div className="p-4 bg-amber-50 border-2 border-amber-300 rounded-xl">
                     <h3 className="font-bold text-amber-800 flex items-center gap-2 mb-3">
-                        <span className="text-2xl">📋</span>
+                        <ClipboardList className="w-6 h-6" />
                         {loggedDefects.length} Defect{loggedDefects.length !== 1 && "s"} Logged for Post-OC Rectification
                     </h3>
                     <ul className="space-y-2">
                         {loggedDefects.map((defect) => (
                             <li key={defect.id} className="flex items-center gap-2 text-amber-700">
-                                <span>⚠️</span>
+                                <AlertTriangle className="w-4 h-4 flex-shrink-0" />
                                 <span>{defect.name}</span>
                             </li>
                         ))}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { BarChart3 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import {
     calculateTotalBudgeted,
@@ -106,7 +107,7 @@ export default function BudgetDashboard({
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold">📊 Budget Dashboard</h2>
+                    <h2 className="text-2xl font-bold flex items-center gap-2"><BarChart3 className="w-6 h-6 text-primary" /> Budget Dashboard</h2>
                     <p className="text-muted-foreground">
                         Track your actual spending vs budget in real-time.
                     </p>

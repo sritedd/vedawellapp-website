@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Search, FileText, AlertTriangle, Scale } from "lucide-react";
 import australianData from "@/data/australian-build-workflows.json";
 
 interface StateWorkflowTimelineProps {
@@ -131,7 +132,7 @@ export default function StateWorkflowTimeline({
                                         {/* Inspections */}
                                         {stage.inspections && stage.inspections.length > 0 && (
                                             <div>
-                                                <h5 className="text-sm font-bold text-blue-700 mb-2">🔍 Required Inspections</h5>
+                                                <h5 className="text-sm font-bold text-blue-700 mb-2 flex items-center gap-1.5"><Search className="w-4 h-4" /> Required Inspections</h5>
                                                 <div className="flex flex-wrap gap-2">
                                                     {stage.inspections.map((inspection: string, i: number) => (
                                                         <span
@@ -148,7 +149,7 @@ export default function StateWorkflowTimeline({
                                         {/* Certificates */}
                                         {stage.certificates && stage.certificates.length > 0 && (
                                             <div>
-                                                <h5 className="text-sm font-bold text-green-700 mb-2">📄 Certificates Required</h5>
+                                                <h5 className="text-sm font-bold text-green-700 mb-2 flex items-center gap-1.5"><FileText className="w-4 h-4" /> Certificates Required</h5>
                                                 <div className="flex flex-wrap gap-2">
                                                     {stage.certificates.map((cert: string, i: number) => (
                                                         <span
@@ -189,7 +190,7 @@ export default function StateWorkflowTimeline({
                                         {/* Dodgy Builder Warnings */}
                                         {stage.dodgyBuilderWarnings && stage.dodgyBuilderWarnings.length > 0 && (
                                             <div className="p-3 bg-red-100 border border-red-200 rounded-lg">
-                                                <h5 className="text-sm font-bold text-red-700 mb-2">⚠️ Watch Out For</h5>
+                                                <h5 className="text-sm font-bold text-red-700 mb-2 flex items-center gap-1.5"><AlertTriangle className="w-4 h-4" /> Watch Out For</h5>
                                                 <ul className="space-y-1">
                                                     {stage.dodgyBuilderWarnings.map((warning: string, i: number) => (
                                                         <li key={i} className="text-sm text-red-800">
@@ -203,7 +204,7 @@ export default function StateWorkflowTimeline({
                                         {/* Your Rights */}
                                         {stage.yourRights && stage.yourRights.length > 0 && (
                                             <div className="p-3 bg-blue-100 border border-blue-200 rounded-lg">
-                                                <h5 className="text-sm font-bold text-blue-700 mb-2">⚖️ Your Rights</h5>
+                                                <h5 className="text-sm font-bold text-blue-700 mb-2 flex items-center gap-1.5"><Scale className="w-4 h-4" /> Your Rights</h5>
                                                 <ul className="space-y-1">
                                                     {stage.yourRights.map((right: string, i: number) => (
                                                         <li key={i} className="text-sm text-blue-800 flex items-start gap-2">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { BellOff } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import {
     generateEmail,
@@ -301,7 +302,7 @@ export default function NotificationCenter({ projectId, projectName, builderEmai
             <div className="space-y-3">
                 {notifications.length === 0 ? (
                     <div className="p-8 text-center border border-dashed border-border rounded-xl">
-                        <span className="text-3xl block mb-2">✨</span>
+                        <BellOff className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
                         <p className="text-muted-foreground">No alerts right now. Everything looks good!</p>
                     </div>
                 ) : (

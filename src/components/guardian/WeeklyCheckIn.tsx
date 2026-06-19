@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { CalendarCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/components/guardian/Toast";
 
@@ -141,7 +142,7 @@ export default function WeeklyCheckIn({ projectId }: WeeklyCheckInProps) {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <div>
-                    <h2 className="text-2xl font-bold">📅 Weekly Check-Ins</h2>
+                    <h2 className="text-2xl font-bold flex items-center gap-2"><CalendarCheck className="w-6 h-6 text-primary" /> Weekly Check-Ins</h2>
                     <p className="text-muted-foreground">
                         Track your builder's weekly progress and any issues.
                     </p>

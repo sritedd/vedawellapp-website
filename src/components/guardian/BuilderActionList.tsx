@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { CheckCircle2, Ban, AlertTriangle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 interface PendingAction {
@@ -317,7 +318,7 @@ export default function BuilderActionList({ projectId, projectName, builderName,
             {pendingCount === 0 ? (
                 <div className="p-4 bg-green-50 border border-green-300 rounded-xl">
                     <div className="flex items-center gap-3">
-                        <span className="text-3xl">✅</span>
+                        <CheckCircle2 className="w-8 h-8 text-green-600 flex-shrink-0" />
                         <div>
                             <h3 className="font-bold text-green-800">All Clear</h3>
                             <p className="text-green-700 text-sm">
@@ -329,7 +330,7 @@ export default function BuilderActionList({ projectId, projectName, builderName,
             ) : criticalCount > 0 ? (
                 <div className="p-4 bg-red-50 border-2 border-red-300 rounded-xl">
                     <div className="flex items-center gap-3">
-                        <span className="text-3xl">🚫</span>
+                        <Ban className="w-8 h-8 text-red-600 flex-shrink-0" />
                         <div>
                             <h3 className="font-bold text-red-800">Stage Progression Blocked</h3>
                             <p className="text-red-700 text-sm">
@@ -342,7 +343,7 @@ export default function BuilderActionList({ projectId, projectName, builderName,
             ) : (
                 <div className="p-4 bg-amber-50 border border-amber-300 rounded-xl">
                     <div className="flex items-center gap-3">
-                        <span className="text-3xl">⚠️</span>
+                        <AlertTriangle className="w-8 h-8 text-amber-600 flex-shrink-0" />
                         <div>
                             <h3 className="font-bold text-amber-800">{pendingCount} Item{pendingCount !== 1 && "s"} Pending</h3>
                             <p className="text-amber-700 text-sm">
