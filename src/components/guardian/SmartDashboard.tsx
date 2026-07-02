@@ -317,6 +317,10 @@ export default function SmartDashboard({ project, currentStage, stageNames, onNa
                     );
                     if (stageData?.dodgyBuilderWarnings) {
                         setDodgyWarnings(stageData.dodgyBuilderWarnings);
+                    } else {
+                        // Reset — otherwise warnings from the previous stage
+                        // linger when the current stage has none (e.g. warranty).
+                        setDodgyWarnings([]);
                     }
                 }
             } catch {

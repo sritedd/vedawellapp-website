@@ -104,11 +104,14 @@ export async function checkFreeChatAllowance(
 ): Promise<{ allowed: boolean; used: number; limit: number }> {
     const limit = FREE_LIFETIME_CHAT_ALLOWANCE;
 
+    // Only count SUCCESSFUL sends — a failed first stream (network drop,
+    // model error) must not permanently burn the user's one free preview.
     const { count, error } = await supabase
         .from("ai_usage_log")
         .select("id", { count: "exact", head: true })
         .eq("user_id", userId)
-        .eq("feature", "chat");
+        .eq("feature", "chat")
+        .eq("success", true);
 
     if (error) {
         console.error("[checkFreeChatAllowance] usage log query failed:", error.message);

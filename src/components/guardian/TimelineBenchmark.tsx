@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { stageNameToKey } from "@/lib/guardian/stage-keys";
 
 interface TimelineBenchmarkProps {
     projectId: string;
@@ -29,9 +30,10 @@ const INDUSTRY_BENCHMARKS: Record<string, { weeks: number; label: string }> = {
     practical_completion: { weeks: 4, label: "Practical Completion" },
 };
 
-function normalizeStage(name: string): string {
-    return name.toLowerCase().replace(/[\s/]+/g, "_").replace(/[^a-z_]/g, "");
-}
+// Canonical stage keys come from the shared mapper — the previous local
+// normaliser produced "slab_footings"/"preplasterboard" which never matched
+// INDUSTRY_BENCHMARKS, so every stage silently fell back to a generic
+// 4-week benchmark (same bug class as the B6 stage-key fix).
 
 function weeksBetween(start: string, end: string): number {
     const ms = new Date(end).getTime() - new Date(start).getTime();
@@ -103,7 +105,7 @@ export default function TimelineBenchmark({ projectId, stateCode = "NSW" }: Time
 
     // Build analysis for each stage
     const analysis: StageAnalysis[] = stages.map((stage, idx) => {
-        const key = normalizeStage(stage.name);
+        const key = stageNameToKey(stage.name);
         const benchmark = INDUSTRY_BENCHMARKS[key] || { weeks: 4, label: stage.name };
 
         let startDate: string | null = null;

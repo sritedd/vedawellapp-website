@@ -57,8 +57,48 @@ function parseAttribution(raw: unknown): {
  * Idempotent: if the email is already subscribed (any source), we re-send the
  * PDF but don't error. Marketing intent: never make a worried homeowner feel
  * shut out from the document they came for.
+ *
+ * Abuse controls (this is a PUBLIC endpoint that emails arbitrary addresses):
+ * - Per-IP rolling window throttle — stops spam-relay / Resend-quota abuse
+ * - Per-email daily re-send cap — an already-subscribed address only gets
+ *   the PDF re-sent once per 24h, so repeat-submitting a victim's email
+ *   can't flood their inbox
+ * In-memory state resets on cold start, which is acceptable: the caps are
+ * generous enough for legit users and any sustained attack keeps instances
+ * warm, keeping the counters alive.
  */
+const SIGNUP_WINDOW_MS = 10 * 60 * 1000; // 10 min
+const SIGNUP_MAX_PER_IP = 5;
+const signupIpBuckets = new Map<string, number[]>();
+
+function checkSignupThrottle(ip: string): boolean {
+    const now = Date.now();
+    const windowStart = now - SIGNUP_WINDOW_MS;
+    const recent = (signupIpBuckets.get(ip) || []).filter((t) => t > windowStart);
+    if (recent.length >= SIGNUP_MAX_PER_IP) {
+        signupIpBuckets.set(ip, recent);
+        return false;
+    }
+    recent.push(now);
+    signupIpBuckets.set(ip, recent);
+    // Opportunistic cleanup so the map doesn't grow unbounded
+    if (signupIpBuckets.size > 10_000) {
+        for (const [k, v] of signupIpBuckets) {
+            if (v.every((t) => t <= windowStart)) signupIpBuckets.delete(k);
+        }
+    }
+    return true;
+}
+
 export async function POST(req: NextRequest) {
+    const ip = (req.headers.get("x-forwarded-for") || "unknown").split(",")[0].trim();
+    if (!checkSignupThrottle(ip)) {
+        return NextResponse.json(
+            { error: "Too many requests. Please try again in a few minutes." },
+            { status: 429 }
+        );
+    }
+
     let body: { email?: unknown; firstName?: unknown; state?: unknown; attribution?: unknown };
     try {
         body = await req.json();
@@ -88,13 +128,27 @@ export async function POST(req: NextRequest) {
     // not a hard fail — we still re-send the PDF in case they lost it).
     const { data: existing, error: existingErr } = await supabase
         .from("email_subscribers")
-        .select("email, status, first_name")
+        .select("email, status, first_name, last_email_at")
         .eq("email", email)
         .maybeSingle();
 
     if (existingErr) {
         console.error("[red-flags/signup] Lookup failed:", existingErr.message);
         return NextResponse.json({ error: "Could not save your signup. Please try again." }, { status: 503 });
+    }
+
+    // Re-send cap: an existing subscriber only gets the PDF re-sent once per
+    // 24h. Stops repeat-submitting someone else's address from flooding their
+    // inbox, and skips the per-request PDF generation cost for repeats.
+    if (existing?.last_email_at) {
+        const lastSent = new Date(existing.last_email_at as string).getTime();
+        if (Date.now() - lastSent < 24 * 60 * 60 * 1000) {
+            return NextResponse.json({
+                success: true,
+                alreadySubscribed: true,
+                note: "Already sent recently — check your inbox (and spam folder).",
+            });
+        }
     }
 
     // Upsert. We persist whatever extra fields the user provided. If the row
