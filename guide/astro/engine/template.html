@@ -1,0 +1,327 @@
+<title>Jyotisha Engine — Vedic Birth Chart</title>
+<style>
+  @font-face {
+    font-family: "Rozha One";
+    font-style: normal;
+    font-weight: 400;
+    src: url(data:font/woff2;base64,%%FONT%%) format("woff2");
+  }
+  :root {
+    --bg: #10141F;
+    --panel: #171C2B;
+    --panel-2: #1D2334;
+    --line: #2C3450;
+    --line-soft: #232941;
+    --ink: #EAE4D4;
+    --ink-2: #9FA3B3;
+    --ink-3: #6B7186;
+    --gold: #D9A84E;
+    --gold-deep: #BE8A30;
+    --gold-dim: rgba(217, 168, 78, 0.14);
+    --verm: #E0644C;
+    --verm-dim: rgba(224, 100, 76, 0.14);
+    --teal: #2F9D6C;
+    --teal-dim: rgba(47, 157, 108, 0.16);
+    --display: "Rozha One", Georgia, serif;
+    --body: -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+    --mono: ui-monospace, "Cascadia Mono", Consolas, "SF Mono", monospace;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 28px 20px 80px; }
+
+  /* ---------- masthead ---------- */
+  .mast { display: flex; align-items: baseline; gap: 18px; flex-wrap: wrap; padding: 10px 0 18px; border-bottom: 1px solid var(--line); }
+  .mast h1 { font-family: var(--display); font-weight: 400; font-size: clamp(30px, 4.6vw, 44px); margin: 0; letter-spacing: 0.5px; color: var(--ink); text-wrap: balance; }
+  .mast h1 .om { color: var(--gold); }
+  .mast .tag { color: var(--ink-2); font-size: 14px; max-width: 46ch; }
+  .mast .badge { margin-left: auto; font-family: var(--mono); font-size: 11.5px; color: var(--gold); border: 1px solid var(--line); border-radius: 3px; padding: 4px 9px; background: var(--panel); white-space: nowrap; }
+
+  /* ---------- section headers ---------- */
+  .eyebrow { display: flex; align-items: center; gap: 12px; margin: 34px 0 12px; }
+  .eyebrow .lbl { font-size: 11.5px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold); white-space: nowrap; }
+  .eyebrow .sub { font-size: 12px; color: var(--ink-3); white-space: nowrap; }
+  .eyebrow::after { content: ""; flex: 1; height: 1px; background: var(--line-soft); }
+
+  /* ---------- cards ---------- */
+  .card { background: var(--panel); border: 1px solid var(--line-soft); border-radius: 4px; padding: 18px 20px; }
+  .card + .card { margin-top: 14px; }
+
+  /* ---------- form console ---------- */
+  form.console { background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 20px; margin-top: 18px; }
+  .frow { display: grid; grid-template-columns: repeat(12, 1fr); gap: 14px 16px; }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .f-name { grid-column: span 4; } .f-date { grid-column: span 3; } .f-time { grid-column: span 3; } .f-tu { grid-column: span 2; align-self: end; }
+  .f-city { grid-column: span 5; position: relative; } .f-lat { grid-column: span 2; } .f-lon { grid-column: span 2; } .f-tz { grid-column: span 2; } .f-dst { grid-column: span 1; align-self: end; }
+  @media (max-width: 860px) {
+    .f-name, .f-city { grid-column: span 12; }
+    .f-date, .f-time { grid-column: span 4; } .f-tu { grid-column: span 4; }
+    .f-lat, .f-lon, .f-tz { grid-column: span 3; } .f-dst { grid-column: span 3; }
+  }
+  label { font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-2); }
+  input[type="text"], input[type="date"], input[type="time"], input[type="number"] {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 3px;
+    color: var(--ink); padding: 8px 10px; font-size: 14.5px; font-family: var(--body);
+    width: 100%;
+  }
+  input[type="number"] { font-family: var(--mono); font-size: 13.5px; }
+  input:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+  input::-webkit-calendar-picker-indicator { filter: invert(0.8); }
+  .chk { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--ink-2); text-transform: none; letter-spacing: 0; cursor: pointer; padding: 8px 0; }
+  .chk input { accent-color: var(--gold-deep); width: 15px; height: 15px; }
+  .console .actions { display: flex; gap: 14px; align-items: center; margin-top: 16px; flex-wrap: wrap; }
+  button.cast {
+    font-family: var(--display); font-size: 17px; letter-spacing: 0.04em;
+    background: var(--gold-deep); color: #0E0A03; border: none; border-radius: 3px;
+    padding: 10px 30px; cursor: pointer; transition: background 120ms ease;
+  }
+  button.cast:hover { background: var(--gold); }
+  .hint { font-size: 12.5px; color: var(--ink-3); max-width: 62ch; }
+  .error { color: var(--verm); font-size: 13.5px; margin-top: 10px; display: none; }
+
+  /* city autocomplete */
+  .ac { position: absolute; top: 100%; left: 0; right: 0; z-index: 30; background: var(--panel-2); border: 1px solid var(--line); border-radius: 0 0 4px 4px; max-height: 240px; overflow-y: auto; display: none; }
+  .ac button { display: flex; justify-content: space-between; gap: 10px; width: 100%; text-align: left; background: none; border: none; border-bottom: 1px solid var(--line-soft); color: var(--ink); padding: 8px 12px; font-size: 13.5px; cursor: pointer; }
+  .ac button:hover, .ac button.hot { background: var(--gold-dim); }
+  .ac button .cc { color: var(--ink-3); font-size: 12px; }
+  .ac button:last-child { border-bottom: none; }
+
+  /* ---------- summary ---------- */
+  .example-note { display: none; margin-top: 14px; font-size: 13px; color: var(--gold); background: var(--gold-dim); border: 1px solid var(--line-soft); border-radius: 3px; padding: 8px 12px; }
+  .summary { display: grid; grid-template-columns: 380px 1fr; gap: 22px; align-items: center; }
+  @media (max-width: 860px) { .summary { grid-template-columns: 1fr; } }
+  .wheel-box { display: flex; justify-content: center; }
+  canvas#wheel { width: 100%; max-width: 380px; aspect-ratio: 1; }
+  .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 26px; align-content: center; }
+  @media (max-width: 520px) { .facts { grid-template-columns: 1fr; } }
+  .fact { display: flex; justify-content: space-between; gap: 12px; padding: 7px 0; border-bottom: 1px solid var(--line-soft); font-size: 13.5px; }
+  .fact .k { color: var(--ink-3); }
+  .fact .v { color: var(--ink); text-align: right; font-variant-numeric: tabular-nums; }
+  .fact .v.gold { color: var(--gold); }
+  .chips { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; padding-top: 14px; }
+  .chip { font-size: 12.5px; padding: 4px 11px; border-radius: 20px; border: 1px solid var(--line); background: var(--panel-2); color: var(--ink-2); }
+  .chip b { color: var(--ink); font-weight: 600; }
+  .chip.gold { border-color: var(--gold-deep); background: var(--gold-dim); color: var(--gold); }
+
+  /* ---------- charts ---------- */
+  .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 760px) { .charts { grid-template-columns: 1fr; } }
+  .chart-card { background: var(--panel); border: 1px solid var(--line-soft); border-radius: 4px; padding: 16px; }
+  .chart-card h3 { margin: 0 0 10px; font-family: var(--display); font-weight: 400; font-size: 17px; color: var(--ink); }
+  .chart-card h3 .en { color: var(--ink-3); font-family: var(--body); font-size: 12.5px; margin-left: 8px; }
+  .style-toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 3px; overflow: hidden; }
+  .style-toggle button { background: var(--panel-2); color: var(--ink-2); border: none; padding: 5px 14px; font-size: 12.5px; cursor: pointer; }
+  .style-toggle button[aria-pressed="true"] { background: var(--gold-deep); color: #0E0A03; }
+  .kundli-n { width: 100%; height: auto; display: block; }
+  .kundli-n line, .kundli-n rect { stroke: var(--line); stroke-width: 1.2; fill: none; }
+  .kundli-n .signnum { fill: var(--gold); font-family: var(--display); font-size: 13px; }
+  .kundli-n .pl { fill: var(--ink); font-family: var(--mono); font-size: 12.5px; }
+  .kundli-n .pl.retro { fill: var(--verm); }
+  .kundli-n .pl.lagna { fill: var(--gold); }
+  .kundli-s { display: grid; grid-template-columns: repeat(4, 1fr); aspect-ratio: 1; border: 1px solid var(--line); }
+  .kundli-s .cell { border: 1px solid var(--line-soft); padding: 4px 6px; position: relative; min-height: 0; overflow: hidden; }
+  .kundli-s .cell.blank { border: none; background: var(--bg); }
+  .kundli-s .glyph { position: absolute; top: 3px; right: 6px; font-size: 11px; color: var(--ink-3); }
+  .kundli-s .hnum { position: absolute; bottom: 2px; right: 6px; font-size: 10px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .kundli-s .pls { font-family: var(--mono); font-size: 11.5px; line-height: 1.5; color: var(--ink); word-spacing: 2px; }
+  .kundli-s .pls .r { color: var(--verm); }
+  .kundli-s .pls .lg { color: var(--gold); }
+  .kundli-s .cell.asc { background: linear-gradient(135deg, var(--gold-dim) 0 12px, transparent 12px); border-color: var(--gold-deep); }
+  .kundli-s .center { grid-column: 2 / 4; grid-row: 2 / 4; border: none; background: var(--bg); display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 4px; }
+  .kundli-s .center .t { font-family: var(--display); font-size: 15px; color: var(--gold); }
+  .kundli-s .center .d { font-size: 11px; color: var(--ink-3); }
+
+  /* ---------- tables ---------- */
+  .tbl-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+  th { text-align: left; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; padding: 8px 12px 8px 0; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  td { padding: 8px 12px 8px 0; border-bottom: 1px solid var(--line-soft); vertical-align: top; white-space: nowrap; }
+  td.num { font-family: var(--mono); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+  tr.hl td { background: var(--gold-dim); }
+  .graha-name { color: var(--ink); font-weight: 600; }
+  .graha-name .dev { color: var(--ink-3); font-weight: 400; font-size: 12px; margin-left: 6px; }
+  .flag { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 3px; margin-left: 6px; vertical-align: 1px; }
+  .flag.retro { color: var(--verm); background: var(--verm-dim); border: 1px solid rgba(224,100,76,.35); }
+  .flag.comb { color: var(--gold); background: var(--gold-dim); border: 1px solid rgba(217,168,78,.35); }
+  .flag.ex { color: var(--teal); background: var(--teal-dim); border: 1px solid rgba(47,157,108,.4); }
+  .flag.deb { color: var(--verm); background: var(--verm-dim); border: 1px solid rgba(224,100,76,.35); }
+  .flag.own { color: var(--ink-2); background: var(--panel-2); border: 1px solid var(--line); }
+
+  /* ---------- panchanga & dasha ---------- */
+  .duo { display: grid; grid-template-columns: 5fr 7fr; gap: 14px; align-items: start; }
+  @media (max-width: 860px) { .duo { grid-template-columns: 1fr; } }
+  .prow { display: flex; justify-content: space-between; gap: 14px; padding: 8px 0; border-bottom: 1px solid var(--line-soft); font-size: 13.5px; }
+  .prow:last-child { border-bottom: none; }
+  .prow .k { color: var(--ink-3); white-space: nowrap; }
+  .prow .v { text-align: right; }
+  .prow .v small { color: var(--ink-3); display: block; font-size: 11.5px; font-variant-numeric: tabular-nums; }
+  .dchain { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+  .dcell { flex: 1; min-width: 130px; background: var(--panel-2); border: 1px solid var(--line-soft); border-radius: 3px; padding: 9px 12px; }
+  .dcell .lv { font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3); }
+  .dcell .who { font-family: var(--display); font-size: 17px; color: var(--gold); }
+  .dcell .rng { font-family: var(--mono); font-size: 11px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .dband { display: flex; gap: 2px; height: 40px; margin: 6px 0 4px; position: relative; }
+  .dseg { position: relative; border-radius: 2px; background: var(--panel-2); border: 1px solid var(--line-soft); overflow: hidden; }
+  .dseg.past { background: var(--bg); }
+  .dseg.cur { background: var(--gold-deep); border-color: var(--gold); }
+  .dseg .t { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10.5px; line-height: 1.25; color: var(--ink-2); }
+  .dseg.cur .t { color: #0E0A03; font-weight: 600; }
+  .dnow { position: absolute; top: -5px; bottom: -5px; width: 2px; background: var(--ink); z-index: 2; }
+  .dnow::after { content: "now"; position: absolute; top: -14px; left: -12px; font-size: 9.5px; letter-spacing: 0.1em; color: var(--ink-2); }
+  .dscale { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 10.5px; color: var(--ink-3); margin-bottom: 12px; font-variant-numeric: tabular-nums; }
+  .mdrow td { cursor: pointer; }
+  .mdrow:hover td { background: var(--gold-dim); }
+  .adbox td { white-space: normal; }
+  .adline { display: inline-block; font-family: var(--mono); font-size: 11.5px; color: var(--ink-2); padding: 2px 10px 2px 0; font-variant-numeric: tabular-nums; }
+  .adline.cur { color: var(--gold); font-weight: 600; }
+  .expander { color: var(--gold); font-size: 11px; margin-right: 6px; display: inline-block; width: 12px; }
+
+  /* ---------- SAV strip ---------- */
+  .sav { display: grid; grid-template-columns: repeat(12, 1fr); gap: 2px; margin-top: 4px; }
+  .sav .s { background: var(--panel-2); border: 1px solid var(--line-soft); border-radius: 2px; text-align: center; padding: 7px 2px 5px; }
+  .sav .s .g { font-size: 11px; color: var(--ink-3); display: block; }
+  .sav .s .n { font-family: var(--mono); font-size: 14px; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .sav .s.hi .n { color: var(--teal); font-weight: 700; }
+  .sav .s.lo .n { color: var(--verm); }
+  .sav .s.lagna { border-color: var(--gold-deep); }
+  @media (max-width: 640px) { .sav { grid-template-columns: repeat(6, 1fr); } }
+  details { border: 1px solid var(--line-soft); border-radius: 3px; padding: 0; margin-top: 12px; background: var(--panel-2); }
+  details summary { cursor: pointer; padding: 9px 14px; font-size: 12.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); user-select: none; }
+  details[open] summary { border-bottom: 1px solid var(--line-soft); color: var(--gold); }
+  details .inner { padding: 12px 14px; }
+  .mini td, .mini th { padding: 4px 8px 4px 0; font-size: 12px; }
+  .mini td.num { font-size: 11.5px; }
+
+  /* ---------- name & reading ---------- */
+  .syls { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+  .syl { font-family: var(--display); font-size: 17px; color: var(--ink-2); border: 1px solid var(--line); border-radius: 3px; padding: 5px 15px; background: var(--panel-2); }
+  .syl.hot { color: #0E0A03; background: var(--gold-deep); border-color: var(--gold); }
+  .reading p { margin: 0 0 10px; max-width: 72ch; color: var(--ink); font-size: 14.5px; }
+  .reading p b { color: var(--gold); font-weight: 600; }
+  .reading .fine { color: var(--ink-3); font-size: 12.5px; border-top: 1px solid var(--line-soft); padding-top: 10px; margin-top: 14px; }
+
+  /* ---------- appendix / footer ---------- */
+  .appendix p { color: var(--ink-2); font-size: 13px; max-width: 78ch; margin: 0 0 8px; }
+  .appendix code { font-family: var(--mono); font-size: 12px; color: var(--gold); }
+  footer { margin-top: 40px; border-top: 1px solid var(--line); padding-top: 16px; color: var(--ink-3); font-size: 12.5px; max-width: 78ch; }
+  #results { display: none; }
+  @media (prefers-reduced-motion: no-preference) {
+    #results.reveal { animation: rise 340ms ease-out; }
+    @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  }
+</style>
+
+<div class="wrap">
+  <header class="mast">
+    <h1><span class="om">&#2384;</span> Jyotisha Engine</h1>
+    <div class="tag">A first-principles Vedic horoscope calculator &mdash; every position solved from celestial mechanics, no lookup tables.</div>
+    <div class="badge" id="acc-badge" title="Max longitude error vs JPL DE421 over 1900-2050: Moon 0.22 arcmin, planets 0.02 arcmin">JPL-validated &middot; &le;0.25&prime;</div>
+  </header>
+
+  <form class="console" id="birth-form" novalidate>
+    <div class="frow">
+      <div class="field f-name">
+        <label for="in-name">Name <span style="text-transform:none;letter-spacing:0">(optional &mdash; for syllable check)</span></label>
+        <input type="text" id="in-name" autocomplete="off" placeholder="Given name" />
+      </div>
+      <div class="field f-date">
+        <label for="in-date">Date of birth</label>
+        <input type="date" id="in-date" min="1800-01-01" max="2149-12-31" required />
+      </div>
+      <div class="field f-time">
+        <label for="in-time">Time of birth (local)</label>
+        <input type="time" id="in-time" step="60" required />
+      </div>
+      <div class="field f-tu">
+        <label class="chk"><input type="checkbox" id="in-tu" /> Time unknown &mdash; use sunrise</label>
+      </div>
+      <div class="field f-city">
+        <label for="in-city">Place of birth</label>
+        <input type="text" id="in-city" autocomplete="off" placeholder="Search city&hellip;" />
+        <div class="ac" id="city-ac"></div>
+      </div>
+      <div class="field f-lat">
+        <label for="in-lat">Latitude &deg;N</label>
+        <input type="number" id="in-lat" step="0.0001" min="-89.9" max="89.9" />
+      </div>
+      <div class="field f-lon">
+        <label for="in-lon">Longitude &deg;E</label>
+        <input type="number" id="in-lon" step="0.0001" min="-180" max="180" />
+      </div>
+      <div class="field f-tz">
+        <label for="in-tz">UTC offset h</label>
+        <input type="number" id="in-tz" step="0.25" min="-12" max="14" />
+      </div>
+      <div class="field f-dst">
+        <label class="chk" title="Tick if daylight saving time applied at the birth moment"><input type="checkbox" id="in-dst" /> DST +1h</label>
+      </div>
+    </div>
+    <div class="actions">
+      <button type="submit" class="cast">Cast the chart</button>
+      <div class="hint">Pick a city to auto-fill coordinates and standard offset, then adjust if needed. For births under daylight saving, tick DST. Historical zones vary &mdash; the offset field is the ground truth used.</div>
+    </div>
+    <div class="error" id="form-error"></div>
+    <div class="example-note" id="example-note">Showing an example chart &mdash; replace the details above with real birth data and press <b>Cast the chart</b>.</div>
+  </form>
+
+  <div id="results">
+    <div class="eyebrow"><span class="lbl">Janma &middot; Birth Moment</span><span class="sub" id="sub-birth"></span></div>
+    <div class="card summary">
+      <div class="wheel-box"><canvas id="wheel" width="760" height="760" role="img" aria-label="Sidereal sky wheel showing planetary longitudes at birth"></canvas></div>
+      <div class="facts" id="facts"></div>
+    </div>
+
+    <div class="eyebrow"><span class="lbl">Kundali &middot; Charts</span><span class="sub">whole-sign houses &middot; Lahiri ayanamsa</span></div>
+    <div class="card" style="padding:12px 16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+      <span style="font-size:13px; color:var(--ink-2)">Chart style</span>
+      <div class="style-toggle" role="group" aria-label="Chart style">
+        <button type="button" id="btn-north" aria-pressed="true">North Indian</button>
+        <button type="button" id="btn-south" aria-pressed="false">South Indian</button>
+      </div>
+    </div>
+    <div class="charts" style="margin-top:14px">
+      <div class="chart-card"><h3>Rashi &middot; D-1 <span class="en">the birth chart</span></h3><div id="chart-d1"></div></div>
+      <div class="chart-card"><h3>Navamsha &middot; D-9 <span class="en">the ninth harmonic</span></h3><div id="chart-d9"></div></div>
+    </div>
+
+    <div class="eyebrow"><span class="lbl">Grahas &middot; Positions</span><span class="sub" id="sub-ayan"></span></div>
+    <div class="card tbl-wrap" id="planet-table"></div>
+
+    <div class="duo" style="margin-top:34px">
+      <div>
+        <div class="eyebrow" style="margin-top:0"><span class="lbl">Panchanga</span><span class="sub">five limbs of the day</span></div>
+        <div class="card" id="panchanga"></div>
+      </div>
+      <div>
+        <div class="eyebrow" style="margin-top:0"><span class="lbl">Vimshottari Dasha</span><span class="sub">120-year cycle</span></div>
+        <div class="card" id="dasha-top"></div>
+      </div>
+    </div>
+    <div class="card tbl-wrap" style="margin-top:14px" id="dasha-table"></div>
+
+    <div class="eyebrow"><span class="lbl">Bala &middot; Strengths</span><span class="sub">ashtakavarga &middot; uccha &middot; cheshta &middot; drishti</span></div>
+    <div class="card" id="strength"></div>
+
+    <div class="eyebrow"><span class="lbl">Nama &middot; Name</span><span class="sub">janma nakshatra syllables</span></div>
+    <div class="card" id="namecard"></div>
+
+    <div class="eyebrow"><span class="lbl">Reading</span><span class="sub">traditional significations</span></div>
+    <div class="card reading" id="reading"></div>
+
+    <div class="eyebrow"><span class="lbl">Method &amp; Validation</span></div>
+    <div class="card appendix" id="appendix"></div>
+  </div>
+
+  <footer>
+    The astronomy above is exact science; the interpretation layer belongs to tradition, not to the equations. Positions are geocentric, sidereal (Lahiri/Chitra-paksha), computed from VSOP87D planetary theory, the abridged ELP lunar theory, and IAU precession &mdash; validated against the JPL DE421 ephemeris. Built from the VedaWell jyotish math specification.
+  </footer>
+</div>

@@ -1667,5 +1667,22 @@ export const toolMetadata: Record<string, Metadata> = {
       canonical: "https://vedawellapp.com/tools/crontab",
     },
   },
+  "vedic-birth-chart": {
+    title: "Free Vedic Birth Chart Calculator (Kundli) - Nakshatra, Dasha & Panchang",
+    description: "Cast an accurate Vedic kundli from your birth date, time and place. Lagna, rashi, nakshatra, D-1 and D-9 charts, panchanga, Vimshottari dasha and ashtakavarga — computed from real astronomy (JPL-validated), free and private in your browser.",
+    keywords: ["kundli", "vedic birth chart", "jyotish calculator", "janam kundali", "nakshatra calculator", "vimshottari dasha", "lagna calculator", "navamsa chart", "panchang", "free horoscope chart"],
+    openGraph: {
+      title: "Free Vedic Birth Chart Calculator (Kundli) - JPL-Validated Accuracy",
+      description: "Lagna, nakshatra, D-1/D-9 charts, panchanga, dashas and ashtakavarga computed from real astronomy. Free, no signup, runs in your browser.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Free Vedic Birth Chart Calculator (Kundli) - JPL-Validated Accuracy",
+      description: "Lagna, nakshatra, D-1/D-9 charts, panchanga, dashas and ashtakavarga computed from real astronomy. Free, no signup, runs in your browser.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/vedic-birth-chart",
+    },
+  },
 };
 

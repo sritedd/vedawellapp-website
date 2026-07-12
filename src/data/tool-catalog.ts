@@ -911,6 +911,16 @@ export const TOOLS: ToolEntry[] = [
 
     // ===================== WELLNESS =====================
     {
+        id: 'vedic-birth-chart',
+        title: 'Vedic Birth Chart',
+        description: 'Cast an accurate kundli — planetary positions, panchanga, Vimshottari dasha — computed from real astronomy.',
+        icon: '🪔',
+        category: 'wellness',
+        tags: ['kundli', 'jyotish', 'horoscope', 'astrology', 'birth chart', 'nakshatra', 'dasha', 'panchang'],
+        color: CATEGORY_COLORS.wellness,
+        href: '/tools/vedic-birth-chart',
+    },
+    {
         id: 'breathing-exercise',
         title: 'Breathing Exercise',
         description: 'Guided breathing with 4-7-8 Relaxing, Box, and Energizing patterns.',
