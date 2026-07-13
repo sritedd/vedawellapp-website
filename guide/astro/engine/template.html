@@ -209,6 +209,35 @@
   .reading p b { color: var(--gold); font-weight: 600; }
   .reading .fine { color: var(--ink-3); font-size: 12.5px; border-top: 1px solid var(--line-soft); padding-top: 10px; margin-top: 14px; }
 
+  /* ---------- life map ---------- */
+  .life-box { position: relative; }
+  canvas#life-curve { width: 100%; height: auto; display: block; }
+  .life-tip { position: absolute; z-index: 20; pointer-events: none; display: none; background: var(--panel-2); border: 1px solid var(--gold-deep); border-radius: 3px; padding: 7px 11px; font-size: 12px; color: var(--ink); max-width: 260px; box-shadow: 0 4px 14px rgba(0,0,0,.45); }
+  .life-tip .t1 { color: var(--gold); font-weight: 600; }
+  .life-tip .t2 { font-family: var(--mono); font-size: 11px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .life-over { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 4px; }
+  .gchip { display: inline-block; font-size: 11px; padding: 2px 9px; border-radius: 3px; border: 1px solid var(--line); background: var(--panel-2); color: var(--ink-2); white-space: nowrap; }
+  .gchip.uttama { color: var(--teal); background: var(--teal-dim); border-color: rgba(47,157,108,.4); }
+  .gchip.shubha { color: var(--gold); background: var(--gold-dim); border-color: rgba(217,168,78,.4); }
+  .gchip.mishra { color: var(--ink-2); }
+  .gchip.kashta { color: var(--verm); background: var(--verm-dim); border-color: rgba(224,100,76,.3); }
+  .gchip.atikashta { color: var(--verm); background: var(--verm-dim); border-color: var(--verm); }
+  .md-block { border: 1px solid var(--line-soft); border-radius: 3px; background: var(--panel-2); margin-top: 10px; overflow: hidden; }
+  .md-head { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; background: none; border: none; color: var(--ink); padding: 11px 14px; cursor: pointer; font-size: 14px; font-family: var(--body); }
+  .md-head:hover { background: var(--gold-dim); }
+  .md-head .who { font-family: var(--display); font-size: 16px; color: var(--gold); min-width: 76px; }
+  .md-head .ages { font-family: var(--mono); font-size: 12px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .md-head .caret { margin-left: auto; color: var(--gold); font-size: 11px; }
+  .md-body { display: none; border-top: 1px solid var(--line-soft); padding: 12px 14px; }
+  .md-block.open .md-body { display: block; }
+  .md-sum { font-size: 13.5px; color: var(--ink); max-width: 80ch; margin: 0 0 12px; }
+  .bh-row { display: grid; grid-template-columns: 96px 110px 1fr; gap: 4px 14px; padding: 10px 0; border-top: 1px solid var(--line-soft); font-size: 13px; }
+  .bh-row .who { color: var(--ink); font-weight: 600; }
+  .bh-row .rng { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .bh-row .txt { color: var(--ink-2); max-width: 78ch; grid-column: 3; }
+  @media (max-width: 640px) { .bh-row { grid-template-columns: 1fr 1fr; } .bh-row .txt { grid-column: 1 / -1; } }
+  .life-fine { color: var(--ink-3); font-size: 12.5px; border-top: 1px solid var(--line-soft); padding-top: 10px; margin-top: 14px; max-width: 80ch; }
+
   /* ---------- appendix / footer ---------- */
   .appendix p { color: var(--ink-2); font-size: 13px; max-width: 78ch; margin: 0 0 8px; }
   .appendix code { font-family: var(--mono); font-size: 12px; color: var(--gold); }
@@ -307,6 +336,9 @@
       </div>
     </div>
     <div class="card tbl-wrap" style="margin-top:14px" id="dasha-table"></div>
+
+    <div class="eyebrow"><span class="lbl">Jeevana Rekha &middot; Life Map</span><span class="sub">dasha-bhukti quality from birth to age 90</span></div>
+    <div class="card life-box" id="lifemap"></div>
 
     <div class="eyebrow"><span class="lbl">Bala &middot; Strengths</span><span class="sub">ashtakavarga &middot; uccha &middot; cheshta &middot; drishti</span></div>
     <div class="card" id="strength"></div>

@@ -830,6 +830,330 @@
     };
   }
 
+  // ===================================================================
+  // Dasha-bhukti life engine (birth -> age 90)
+  // Classical Parashari period assessment: every score is computed from
+  // stated rules (functional lordship by lagna, dignity, placement,
+  // ashtakavarga, MD->AD relations) and every narrative clause is
+  // traceable to one of those rules. Tendencies in tradition's language,
+  // never certainties.
+  // ===================================================================
+
+  // Naisargika maitri (natural friendship): 1 friend, 0 neutral, -1 enemy
+  var RELATIONS = {
+    Sun:     { Moon: 1, Mars: 1, Jupiter: 1, Mercury: 0, Venus: -1, Saturn: -1, Rahu: -1, Ketu: -1 },
+    Moon:    { Sun: 1, Mercury: 1, Mars: 0, Jupiter: 0, Venus: 0, Saturn: 0, Rahu: -1, Ketu: -1 },
+    Mars:    { Sun: 1, Moon: 1, Jupiter: 1, Venus: 0, Saturn: 0, Mercury: -1, Rahu: -1, Ketu: 1 },
+    Mercury: { Sun: 1, Venus: 1, Mars: 0, Jupiter: 0, Saturn: 0, Moon: -1, Rahu: 1, Ketu: 0 },
+    Jupiter: { Sun: 1, Moon: 1, Mars: 1, Saturn: 0, Mercury: -1, Venus: -1, Rahu: 0, Ketu: 0 },
+    Venus:   { Mercury: 1, Saturn: 1, Mars: 0, Jupiter: 0, Sun: -1, Moon: -1, Rahu: 1, Ketu: 1 },
+    Saturn:  { Mercury: 1, Venus: 1, Jupiter: 0, Sun: -1, Moon: -1, Mars: -1, Rahu: 1, Ketu: 0 },
+    Rahu:    { Venus: 1, Saturn: 1, Mercury: 1, Jupiter: 0, Sun: -1, Moon: -1, Mars: -1, Ketu: -1 },
+    Ketu:    { Mars: 1, Venus: 1, Saturn: 1, Jupiter: 0, Mercury: 0, Sun: -1, Moon: -1, Rahu: -1 }
+  };
+  var NATURAL_TONE = { Jupiter: 1, Venus: 1, Mercury: 0.5, Sun: -0.5, Mars: -1, Saturn: -1, Rahu: -1, Ketu: -1 };
+  var NATURAL_BENEFIC = { Jupiter: true, Venus: true, Mercury: true, Moon: true };
+
+  var HOUSE_THEMES = [null,
+    "self, health and new identity", "wealth, family and speech",
+    "courage, siblings and skills", "home, mother, property and inner peace",
+    "children, education, creativity and romance", "health discipline, service and rivals",
+    "marriage, partnership and public dealings", "transformation, research, inheritance and shared assets",
+    "fortune, dharma, father and long journeys", "career, status and public karma",
+    "gains, income and friendships", "expenses, foreign lands, retreat and letting go"];
+
+  function ordinal(n) {
+    return n + (n === 1 ? "st" : n === 2 ? "nd" : n === 3 ? "rd" : "th");
+  }
+
+  // Houses (1-12) ruled by graha from the given lagna; nodes rule none.
+  function housesRuledBy(name, lagnaRashi) {
+    var out = [];
+    for (var r = 0; r < 12; r++) {
+      if (RASHI_LORD[r] === name) out.push(((r - lagnaRashi) + 12) % 12 + 1);
+    }
+    return out.sort(function (a, b) { return a - b; });
+  }
+
+  function isYogakaraka(name, lagnaRashi) {
+    var ruled = housesRuledBy(name, lagnaRashi);
+    var kendra = false, trikona = false;
+    for (var i = 0; i < ruled.length; i++) {
+      if (ruled[i] === 4 || ruled[i] === 7 || ruled[i] === 10) kendra = true;
+      if (ruled[i] === 5 || ruled[i] === 9) trikona = true;
+    }
+    return kendra && trikona;
+  }
+
+  // Functional score of a (non-node) graha from its lordships (BPHS logic).
+  function functionalScore(name, lagnaRashi, moonWaxing) {
+    var ruled = housesRuledBy(name, lagnaRashi);
+    var rulesLagna = ruled.indexOf(1) >= 0;
+    var benefic = NATURAL_BENEFIC[name] === true && !(name === "Moon" && !moonWaxing);
+    var s = 0;
+    for (var i = 0; i < ruled.length; i++) {
+      var h = ruled[i];
+      if (h === 1) s += 2;
+      else if (h === 5 || h === 9) s += 2;
+      else if (h === 4 || h === 7 || h === 10) s += benefic ? -1 : 1; // kendradhipati
+      else if (h === 3 || h === 6 || h === 11) s -= 2;
+      else if (h === 8) s += rulesLagna ? 0 : -2;
+      // 2 and 12: neutral, take color from the other lordship
+    }
+    if (isYogakaraka(name, lagnaRashi)) s += 1.5;
+    return s;
+  }
+
+  function bodyOf(chart, name) {
+    for (var i = 0; i < chart.bodies.length; i++) {
+      if (chart.bodies[i].name === name) return chart.bodies[i];
+    }
+    return null;
+  }
+
+  // Placement quality of a graha in this chart (dignity, bhava, AV, states).
+  function placementScore(chart, name) {
+    var b = bodyOf(chart, name);
+    var s = 0;
+    if (b.dignity === "Exalted") s += 3;
+    else if (b.dignity === "Own sign") s += 2;
+    else if (b.dignity === "Debilitated") s -= 3;
+    var h = b.house;
+    var dusthana = (h === 6 || h === 8 || h === 12);
+    var ruled = housesRuledBy(name, chart.lagna.rashi);
+    var rulesDusthana = ruled.some(function (x) { return x === 6 || x === 8 || x === 12; });
+    if (dusthana) s += (rulesDusthana ? 1.5 : -2); // vipareeta flip
+    else if (h === 5 || h === 9) s += 2;
+    else if (h === 1 || h === 4 || h === 7 || h === 10) s += 1.5;
+    else if (h === 2 || h === 11) s += 1;
+    if (b.combust) s -= 1.5;
+    if (b.retro && name !== "Rahu" && name !== "Ketu") s += 0.5; // cheshta
+    var bav = chart.strength.ashtakavarga.bav[name];
+    if (bav) s += (bav[b.rashi] - 4) * 0.5;
+    if (b.ucchaBala !== null && b.ucchaBala !== undefined) s += (b.ucchaBala - 30) / 30;
+    return s;
+  }
+
+  // Overall period-lord quality Q in about [-10, +10].
+  function grahaQuality(chart, name) {
+    var moonWaxing = chart.panchanga.tithi.elong < 180;
+    var q;
+    if (name === "Rahu" || name === "Ketu") {
+      var disp = RASHI_LORD[bodyOf(chart, name).rashi];
+      var dispB = bodyOf(chart, disp);
+      q = 0.75 * functionalScore(disp, chart.lagna.rashi, moonWaxing)
+        + (NATURAL_TONE[name] || 0)
+        + placementScore(chart, name) * 0.6
+        + (dispB.dignity === "Exalted" ? 1 : dispB.dignity === "Debilitated" ? -1 : 0);
+    } else {
+      q = functionalScore(name, chart.lagna.rashi, moonWaxing)
+        + (name === "Moon" ? (moonWaxing ? 0.5 : -0.5) : (NATURAL_TONE[name] || 0))
+        + placementScore(chart, name);
+    }
+    return Math.max(-10, Math.min(10, q));
+  }
+
+  var GRADES = [
+    { min: 72, key: "uttama", label: "Uttama", en: "excellent", tone: "a flourishing stretch" },
+    { min: 58, key: "shubha", label: "Shubha", en: "favorable", tone: "a supportive stretch" },
+    { min: 42, key: "mishra", label: "Mishra", en: "mixed", tone: "a mixed stretch" },
+    { min: 28, key: "kashta", label: "Kashta", en: "demanding", tone: "a demanding stretch" },
+    { min: -1, key: "atikashta", label: "Atikashta", en: "testing", tone: "a testing stretch" }
+  ];
+  function gradeOf(score) {
+    for (var i = 0; i < GRADES.length; i++) if (score >= GRADES[i].min) return GRADES[i];
+    return GRADES[GRADES.length - 1];
+  }
+
+  // Rashi-wise count from MD lord's sign to AD lord's sign (1..12).
+  function signCountBetween(chart, fromName, toName) {
+    var a = bodyOf(chart, fromName).rashi, b = bodyOf(chart, toName).rashi;
+    return ((b - a) + 12) % 12 + 1;
+  }
+
+  function mutualRelation(a, b) { // averaged natural friendship, -1..1
+    return ((RELATIONS[a][b] || 0) + (RELATIONS[b][a] || 0)) / 2;
+  }
+
+  // Score one bhukti; returns { score 0-100, grade, factors: {...} }
+  function bhuktiScore(chart, mdLord, adLord, isChidra) {
+    var qM = grahaQuality(chart, mdLord), qA = grahaQuality(chart, adLord);
+    var s, factors = { qMd: qM, qAd: qA, own: mdLord === adLord, chidra: !!isChidra };
+    if (mdLord === adLord) {
+      s = qM - 0.5;
+      factors.relation = 0; factors.position = 1;
+    } else {
+      s = 0.6 * qM + 0.4 * qA;
+      var pos = signCountBetween(chart, mdLord, adLord);
+      factors.position = pos;
+      if (pos === 6 || pos === 8 || pos === 12) s -= 2;
+      else if (pos === 5 || pos === 9) s += 1.5;
+      else if (pos === 1 || pos === 4 || pos === 7 || pos === 10) s += 1;
+      else if (pos === 2 || pos === 11) s += 0.5;
+      var rel = mutualRelation(mdLord, adLord);
+      factors.relation = rel;
+      s += rel > 0 ? 1 : rel < -0.4 ? -1.5 : 0;
+    }
+    if (isChidra) s -= 1;
+    s = Math.max(-10, Math.min(10, s));
+    var score = Math.round((s + 10) * 5);
+    return { score: score, grade: gradeOf(score), factors: factors };
+  }
+
+  // ------------------------------------------------- narrative composer
+  function listHouses(hs) {
+    var parts = hs.map(function (h) { return ordinal(h); });
+    if (parts.length <= 1) return parts.join("");
+    return parts.slice(0, -1).join(", ") + " and " + parts[parts.length - 1];
+  }
+
+  function themesFor(chart, adLord, mdLord) {
+    var seen = {}, out = [];
+    function push(h) { if (!seen[h] && out.length < 3) { seen[h] = 1; out.push(HOUSE_THEMES[h]); } }
+    housesRuledBy(adLord, chart.lagna.rashi).forEach(push);
+    push(bodyOf(chart, adLord).house);
+    housesRuledBy(mdLord, chart.lagna.rashi).forEach(push);
+    push(bodyOf(chart, mdLord).house);
+    return out;
+  }
+
+  function roleSentence(chart, name) {
+    var b = bodyOf(chart, name);
+    var bits = [];
+    if (name === "Rahu" || name === "Ketu") {
+      var disp = RASHI_LORD[b.rashi];
+      bits.push(name + " occupies " + RASHI[b.rashi] + " in your " + ordinal(b.house) +
+        " house, delivering results through " + disp + ", its dispositor");
+    } else {
+      var ruled = housesRuledBy(name, chart.lagna.rashi);
+      var place = b.dignity === "Exalted" ? "exalted " : b.dignity === "Own sign" ? "in its own sign " :
+        b.dignity === "Debilitated" ? "debilitated " : "";
+      bits.push(name + " rules your " + listHouses(ruled) + (ruled.length > 1 ? " houses" : " house") +
+        " and sits " + place + "in " + RASHI[b.rashi] + " in the " + ordinal(b.house) + " house");
+      if (isYogakaraka(name, chart.lagna.rashi)) bits.push("as yogakaraka for your lagna");
+    }
+    var states = [];
+    if (b.combust) states.push("combust");
+    if (b.retro && name !== "Rahu" && name !== "Ketu") states.push("retrograde");
+    return bits.join(", ") + (states.length ? " (" + states.join(", ") + ")" : "") + ".";
+  }
+
+  function relationClause(chart, mdLord, adLord, factors) {
+    if (factors.own) {
+      return "The lord runs its own bhukti, so its significations concentrate and intensify.";
+    }
+    var pos = factors.position;
+    if (pos === 6 || pos === 8 || pos === 12) {
+      return "Classically, " + adLord + " stands " + ordinal(pos) + " from " + mdLord +
+        ", so the two agendas rub against each other — patience over force.";
+    }
+    if (pos === 5 || pos === 9) {
+      return adLord + " stands " + ordinal(pos) + " from " + mdLord +
+        ", a trine — the sub-period flows with the mahadasha rather than against it.";
+    }
+    if (factors.relation < -0.4) {
+      return mdLord + " and " + adLord + " are natural adversaries, adding friction to the period.";
+    }
+    if (factors.relation > 0.4) {
+      return mdLord + " and " + adLord + " are natural allies, easing the period's work.";
+    }
+    return null;
+  }
+
+  function bhuktiText(chart, mdLord, adLord, scored, isChidra) {
+    var s = [];
+    s.push(roleSentence(chart, adLord));
+    s.push("Focus falls on " + themesFor(chart, adLord, mdLord).join("; ") + ".");
+    var rel = relationClause(chart, mdLord, adLord, scored.factors);
+    if (rel) s.push(rel);
+    var adRules = housesRuledBy(adLord, chart.lagna.rashi);
+    if (adRules.indexOf(6) >= 0 || bodyOf(chart, adLord).house === 6) {
+      s.push("With the 6th activated, guard routines around health and avoid needless disputes.");
+    }
+    if (isChidra) {
+      s.push("This bhukti closes the mahadasha (dasha-chidra) — a hand-over phase; keep major commitments light near the transition.");
+    }
+    var b = bodyOf(chart, adLord);
+    if ((b.house === 6 || b.house === 8 || b.house === 12) &&
+        adRules.some(function (x) { return x === 6 || x === 8 || x === 12; })) {
+      s.push("Its dusthana-lord-in-dusthana placement is vipareeta — obstacles in this window can invert into unexpected gains.");
+    }
+    return s.join(" ");
+  }
+
+  /**
+   * lifeTimeline(chart, maxAgeYears=90)
+   * Returns { mahadashas: [{lord, startJd, endJd, ageStart, ageEnd, quality,
+   *   grade, summary, bhuktis: [{mdLord, adLord, startJd, endJd, ageStart,
+   *   ageEnd, score, grade, themes, text, chidra, own}] }], overview }
+   */
+  function lifeTimeline(chart, maxAgeYears) {
+    maxAgeYears = maxAgeYears || 90;
+    var birth = chart.jdUt, horizon = birth + maxAgeYears * YEAR_DAYS;
+    var mds = chart.dasha.mds, out = [], allBh = [];
+    for (var i = 0; i < mds.length; i++) {
+      var md = mds[i];
+      if (md.end <= birth || md.start >= horizon) continue;
+      var qM = grahaQuality(chart, md.lord);
+      var mdScore = Math.round((qM + 10) * 5);
+      var entry = {
+        lord: md.lord, startJd: Math.max(md.start, birth), endJd: Math.min(md.end, horizon),
+        ageStart: Math.max(0, (md.start - birth) / YEAR_DAYS),
+        ageEnd: Math.min(maxAgeYears, (md.end - birth) / YEAR_DAYS),
+        quality: qM, score: mdScore, grade: gradeOf(mdScore), bhuktis: []
+      };
+      var ads = subPeriods(md.lordIdx, md.start, md.end - md.start);
+      for (var j = 0; j < ads.length; j++) {
+        var ad = ads[j];
+        if (ad.end <= birth || ad.start >= horizon) continue;
+        var chidra = j === 8;
+        var scored = bhuktiScore(chart, md.lord, ad.lord, chidra);
+        var bh = {
+          mdLord: md.lord, adLord: ad.lord,
+          startJd: Math.max(ad.start, birth), endJd: Math.min(ad.end, horizon),
+          ageStart: Math.max(0, (ad.start - birth) / YEAR_DAYS),
+          ageEnd: Math.min(maxAgeYears, (ad.end - birth) / YEAR_DAYS),
+          score: scored.score, grade: scored.grade,
+          themes: themesFor(chart, ad.lord, md.lord),
+          text: bhuktiText(chart, md.lord, ad.lord, scored, chidra),
+          chidra: chidra, own: md.lord === ad.lord
+        };
+        entry.bhuktis.push(bh);
+        allBh.push(bh);
+      }
+      // summary: tone + role + best/worst bhukti inside
+      var best = null, worst = null;
+      entry.bhuktis.forEach(function (b) {
+        if (!best || b.score > best.score) best = b;
+        if (!worst || b.score < worst.score) worst = b;
+      });
+      var sum = entry.grade.tone.charAt(0).toUpperCase() + entry.grade.tone.slice(1) +
+        " of " + Math.round((entry.endJd - entry.startJd) / YEAR_DAYS * 10) / 10 + " years. " +
+        roleSentence(chart, md.lord);
+      if (best && worst && best !== worst) {
+        sum += " Within it, the " + best.adLord + " bhukti (age " + best.ageStart.toFixed(1) +
+          "–" + best.ageEnd.toFixed(1) + ") shines brightest, while the " + worst.adLord +
+          " bhukti (age " + worst.ageStart.toFixed(1) + "–" + worst.ageEnd.toFixed(1) + ") asks the most of you.";
+      }
+      entry.summary = sum;
+      out.push(entry);
+    }
+    // overview
+    var sorted = allBh.slice().sort(function (a, b) { return b.score - a.score; });
+    var nowJd = chart.dasha.nowJd;
+    var current = null;
+    for (var k = 0; k < allBh.length; k++) {
+      if (allBh[k].startJd <= nowJd && nowJd < allBh[k].endJd) { current = allBh[k]; break; }
+    }
+    return {
+      mahadashas: out,
+      overview: {
+        best: sorted.slice(0, 3), toughest: sorted.slice(-3).reverse(),
+        current: current, ageNow: (nowJd - birth) / YEAR_DAYS, maxAge: maxAgeYears
+      }
+    };
+  }
+
   // ------------------------------------------------------------ exports
   var Jyotish = {
     wrap360: wrap360, wrap180: wrap180,
@@ -848,6 +1172,9 @@
     currentDashaChain: currentDashaChain, speedOf: speedOf,
     nameToNakshatra: nameToNakshatra, computeChart: computeChart,
     dignityOf: dignityOf, ucchaBala: ucchaBala, cheshtaBala: cheshtaBala,
+    housesRuledBy: housesRuledBy, isYogakaraka: isYogakaraka,
+    functionalScore: functionalScore, grahaQuality: grahaQuality,
+    bhuktiScore: bhuktiScore, lifeTimeline: lifeTimeline, gradeOf: gradeOf,
     drishti: drishti, ashtakavarga: ashtakavarga, findCrossing: findCrossing,
     moonSunElongUt: moonSunElongUt, moonSidUt: moonSidUt, moonSunSumSidUt: moonSunSumSidUt,
     NAK: NAK, RASHI: RASHI, RASHI_EN: RASHI_EN, RASHI_LORD: RASHI_LORD,

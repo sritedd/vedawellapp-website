@@ -64,7 +64,7 @@ try {
 }
 
 // sanity: key panels actually rendered content
-for (const id of ["facts", "planet-table", "panchanga", "dasha-top", "dasha-table", "strength", "namecard", "reading", "appendix", "chart-d1", "chart-d9"]) {
+for (const id of ["facts", "planet-table", "panchanga", "dasha-top", "dasha-table", "lifemap", "strength", "namecard", "reading", "appendix", "chart-d1", "chart-d9"]) {
   const el = registry[id];
   if (!el || el._html.length < 50) { console.error(`  [FAIL] #${id} empty after boot`); problems++; }
 }

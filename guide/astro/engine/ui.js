@@ -150,6 +150,7 @@
     renderPlanetTable(chart);
     renderPanchanga(chart);
     renderDasha(chart);
+    renderLifeMap(chart);
     renderStrength(chart);
     renderName(chart);
     renderReading(chart);
@@ -442,6 +443,173 @@
     });
   }
 
+  // -------------------------------------------------- life map (0-90)
+  function fmtMonYr(jdUt, tz) {
+    var p = jdLocal(jdUt, tz);
+    return MON[p.m - 1] + " " + p.y;
+  }
+
+  function gradeChip(grade, score) {
+    return "<span class='gchip " + grade.key + "'>" + grade.label +
+      (score !== undefined ? " · " + score : "") + "</span>";
+  }
+
+  function renderLifeMap(chart) {
+    var life = J.lifeTimeline(chart, 90);
+    var tz = chart.input.tzHours, o = life.overview;
+    var h = "";
+
+    h += "<div style='font-size:13px;color:var(--ink-2);max-width:80ch'>Each dasha-bhukti window scored by the classical Parashari rules — functional lordship for your lagna, dignity and placement of the period lords, ashtakavarga support, and the relation between mahadasha and bhukti lords. Higher is smoother.</div>";
+    h += "<canvas id='life-curve' width='1080' height='300' role='img' aria-label='Life quality curve from birth to age 90, one step per dasha-bhukti'></canvas>";
+    h += "<div class='life-tip' id='life-tip'></div>";
+
+    h += "<div class='life-over'>";
+    if (o.current && o.ageNow >= 0 && o.ageNow <= o.maxAge) {
+      h += "<span class='gchip " + o.current.grade.key + "'>Now (age " + o.ageNow.toFixed(1) + "): " +
+        o.current.mdLord + "–" + o.current.adLord + " · " + o.current.grade.label + "</span>";
+    }
+    o.best.forEach(function (b) {
+      h += "<span class='gchip uttama'>Peak: " + b.mdLord + "–" + b.adLord + " · age " +
+        b.ageStart.toFixed(1) + "–" + b.ageEnd.toFixed(1) + "</span>";
+    });
+    o.toughest.forEach(function (b) {
+      h += "<span class='gchip kashta'>Care: " + b.mdLord + "–" + b.adLord + " · age " +
+        b.ageStart.toFixed(1) + "–" + b.ageEnd.toFixed(1) + "</span>";
+    });
+    h += "</div>";
+
+    h += "<div id='md-blocks'>";
+    life.mahadashas.forEach(function (m, i) {
+      var isCur = o.current && o.current.mdLord === m.lord &&
+        m.startJd <= chart.dasha.nowJd && chart.dasha.nowJd < m.endJd;
+      h += "<div class='md-block" + (isCur ? " open" : "") + "' id='mdb-" + i + "'>";
+      h += "<button type='button' class='md-head' data-mdb='" + i + "' aria-expanded='" + (isCur ? "true" : "false") + "'>";
+      h += "<span class='who'>" + m.lord + "</span>";
+      h += "<span class='ages'>age " + m.ageStart.toFixed(1) + "–" + m.ageEnd.toFixed(1) + " · " +
+        fmtMonYr(m.startJd, tz) + " – " + fmtMonYr(m.endJd, tz) + "</span>";
+      h += gradeChip(m.grade, m.score);
+      h += "<span class='caret'>▾</span></button>";
+      h += "<div class='md-body'><p class='md-sum'>" + m.summary + "</p>";
+      m.bhuktis.forEach(function (b) {
+        h += "<div class='bh-row'>";
+        h += "<div><span class='who'>" + LORD_ABBR[b.mdLord] + "–" + b.adLord + "</span><br>" + gradeChip(b.grade, b.score) + "</div>";
+        h += "<div class='rng'>age " + b.ageStart.toFixed(1) + "–" + b.ageEnd.toFixed(1) + "<br>" +
+          fmtMonYr(b.startJd, tz) + " –<br>" + fmtMonYr(b.endJd, tz) + "</div>";
+        h += "<div class='txt'>" + b.text + "</div>";
+        h += "</div>";
+      });
+      h += "</div></div>";
+    });
+    h += "</div>";
+    h += "<div class='life-fine'>This map is the classical Parashari dasha-phala reading of your chart — tendencies expressed in the tradition's own rules, not certainties, and never a substitute for medical, financial or legal judgement. The same lords that test you in one domain often build you in another.</div>";
+
+    $("lifemap").innerHTML = h;
+    drawLifeCurve(chart, life);
+
+    var blocks = $("md-blocks");
+    blocks.addEventListener("click", function (e) {
+      var head = e.target && e.target.closest ? e.target.closest(".md-head") : null;
+      if (!head) return;
+      var blk = $("mdb-" + head.getAttribute("data-mdb"));
+      if (!blk) return;
+      var open = blk.classList.toggle("open");
+      head.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+  }
+
+  function drawLifeCurve(chart, life) {
+    var cv = $("life-curve");
+    if (!cv || !cv.getContext) return;
+    var ctx = cv.getContext("2d");
+    var W = cv.width, H = cv.height;
+    var padL = 34, padR = 12, padT = 30, padB = 26;
+    var x0 = padL, x1 = W - padR, y0 = H - padB, y1 = padT;
+    var maxAge = life.overview.maxAge;
+    function ax(age) { return x0 + (age / maxAge) * (x1 - x0); }
+    function sy(score) { return y0 - (score / 100) * (y0 - y1); }
+    ctx.clearRect(0, 0, W, H);
+
+    // grid
+    ctx.font = "11px " + '"Cascadia Mono", Consolas, monospace';
+    ctx.fillStyle = C.ink3; ctx.strokeStyle = C.lineSoft; ctx.lineWidth = 1;
+    [0, 25, 50, 75, 100].forEach(function (s) {
+      ctx.beginPath(); ctx.moveTo(x0, sy(s)); ctx.lineTo(x1, sy(s)); ctx.stroke();
+      ctx.textAlign = "right"; ctx.textBaseline = "middle";
+      ctx.fillText(String(s), x0 - 6, sy(s));
+    });
+    ctx.textAlign = "center"; ctx.textBaseline = "top";
+    for (var a = 0; a <= maxAge; a += 10) {
+      ctx.fillText(String(a), ax(a), y0 + 6);
+    }
+
+    // MD boundaries + lord labels
+    ctx.textBaseline = "bottom";
+    life.mahadashas.forEach(function (m) {
+      var x = ax(m.ageStart);
+      ctx.strokeStyle = C.line; ctx.setLineDash([3, 4]);
+      ctx.beginPath(); ctx.moveTo(x, y1 - 4); ctx.lineTo(x, y0); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = C.gold; ctx.font = "12px " + '"Rozha One", serif';
+      ctx.fillText(LORD_ABBR[m.lord], ax((m.ageStart + m.ageEnd) / 2), y1 - 6);
+    });
+
+    // step area + line
+    var bhs = [];
+    life.mahadashas.forEach(function (m) { m.bhuktis.forEach(function (b) { bhs.push(b); }); });
+    ctx.beginPath();
+    ctx.moveTo(ax(bhs[0].ageStart), y0);
+    bhs.forEach(function (b) {
+      ctx.lineTo(ax(b.ageStart), sy(b.score));
+      ctx.lineTo(ax(b.ageEnd), sy(b.score));
+    });
+    ctx.lineTo(ax(bhs[bhs.length - 1].ageEnd), y0);
+    ctx.closePath();
+    ctx.fillStyle = "rgba(190,138,48,0.16)";
+    ctx.fill();
+    ctx.beginPath();
+    bhs.forEach(function (b, i) {
+      if (i === 0) ctx.moveTo(ax(b.ageStart), sy(b.score));
+      else ctx.lineTo(ax(b.ageStart), sy(b.score));
+      ctx.lineTo(ax(b.ageEnd), sy(b.score));
+    });
+    ctx.strokeStyle = C.gold; ctx.lineWidth = 2; ctx.stroke();
+
+    // "now" marker
+    var ageNow = life.overview.ageNow;
+    if (ageNow >= 0 && ageNow <= maxAge) {
+      var xn = ax(ageNow);
+      ctx.strokeStyle = C.ink; ctx.lineWidth = 1.4; ctx.setLineDash([5, 4]);
+      ctx.beginPath(); ctx.moveTo(xn, y1); ctx.lineTo(xn, y0); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = C.ink; ctx.font = "10px " + '"Cascadia Mono", Consolas, monospace';
+      ctx.textAlign = xn > (x0 + x1) / 2 ? "right" : "left";
+      ctx.fillText("now", xn + (xn > (x0 + x1) / 2 ? -4 : 4), y1 + 10);
+    }
+
+    // hover tooltip
+    if (!cv.addEventListener) return;
+    var tip = $("life-tip"), tz = chart.input.tzHours;
+    cv.addEventListener("mousemove", function (e) {
+      var rect = cv.getBoundingClientRect();
+      var scale = W / rect.width;
+      var px = (e.clientX - rect.left) * scale;
+      var age = (px - x0) / (x1 - x0) * maxAge;
+      var hit = null;
+      for (var i = 0; i < bhs.length; i++) {
+        if (age >= bhs[i].ageStart && age < bhs[i].ageEnd) { hit = bhs[i]; break; }
+      }
+      if (!hit || age < 0 || age > maxAge) { tip.style.display = "none"; return; }
+      tip.innerHTML = "<div class='t1'>" + hit.mdLord + " mahadasha · " + hit.adLord + " bhukti · " +
+        hit.grade.label + " " + hit.score + "</div><div class='t2'>age " + hit.ageStart.toFixed(1) +
+        "–" + hit.ageEnd.toFixed(1) + " · " + fmtMonYr(hit.startJd, tz) + " – " + fmtMonYr(hit.endJd, tz) + "</div>";
+      tip.style.display = "block";
+      var bx = e.clientX - rect.left, by = e.clientY - rect.top;
+      tip.style.left = Math.min(bx + 14, rect.width - 270) + "px";
+      tip.style.top = (by + 16) + "px";
+    });
+    cv.addEventListener("mouseleave", function () { tip.style.display = "none"; });
+  }
+
   // -------------------------------------------------------------- strength
   function renderStrength(chart) {
     var av = chart.strength.ashtakavarga, lagnaR = chart.lagna.rashi;
@@ -564,6 +732,7 @@
     var h = "";
     h += "<p><b style='color:var(--ink)'>Method.</b> Time scales: Julian Day (Meeus ch.7), ΔT by Espenak–Meeus polynomials (here " + chart.deltaT.toFixed(1) + " s). Planets &amp; Sun: VSOP87D truncated Poisson series (heliocentric, ecliptic of date) with light-time iteration, annual aberration and nutation. Moon: abridged ELP (Meeus ch.47, 60+30 terms). Rahu/Ketu: mean lunar node. Ayanamsa: Lahiri/Chitra-paksha via IAU precession, anchored 23°51′11″ at J2000 (Spica ≈ 180°). Lagna &amp; MC: spherical trigonometry from apparent sidereal time. Houses: whole-sign. Sunrise and every panchanga boundary: bracketed bisection root-finding, not interpolation. Vimshottari: exact proportional subdivision of the 120-year cycle.</p>";
     h += "<p><b style='color:var(--ink)'>Validation</b> (run against independent references at build time): <code>88/88</code> spec checks pass — Meeus worked examples, ascendant identities, dasha invariants, ashtakavarga total 337. Against the JPL DE421 ephemeris over 1900–2050 (1,200 epochs), max longitude error: Sun 0.01′, Moon 0.22′, Mercury 0.01′, Venus 0.02′, Mars 0.01′, Jupiter 0.02′, Saturn 0.02′ — the worst case is 1/900 of one pada. New-moon roots land within 35 s of the 2017 &amp; 2024 solar-eclipse times; sunrise within 2 s of the Skyfield almanac.</p>";
+    h += "<p><b style='color:var(--ink)'>Life map scoring.</b> Each bhukti's score is a stated, reproducible function of classical factors: BPHS functional lordship for your lagna (trikona lords benefic; 3rd/6th/8th/11th lords malefic; kendradhipati; yogakaraka detection), the period lord's dignity, bhava, combustion, retrogression, ashtakavarga bindus and uccha bala, plus the mahadasha–bhukti relation (trine/dusthana counting between the lords, natural friendship, own-bhukti and dasha-chidra rules). Nodes take their dispositor's functional nature. The 0–100 scale is a ranking of the chart's own periods, not an absolute measure.</p>";
     h += "<p><b style='color:var(--ink)'>Limits.</b> Valid 1800–2149 (series truncation span). Moon is geocentric — classical kundli practice; topocentric parallax (≤≈1°) is not applied. Node is mean, not true. The UTC offset you enter is taken as ground truth — for historical births check what clock the birthplace actually used (e.g. pre-1948 India, wartime DST). A 1-minute birth-time error moves the lagna ≈ 0.25° and the Moon ≈ 0.55′ — birth-time accuracy matters more than ephemeris accuracy here.</p>";
     $("appendix").innerHTML = h;
   }

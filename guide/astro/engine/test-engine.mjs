@@ -247,5 +247,60 @@ check("  Sun in Mesha = Exalted", J.dignityOf("Sun", 0) === "Exalted" ? 1 : 0, 1
 check("  Saturn in Mesha = Debilitated", J.dignityOf("Saturn", 0) === "Debilitated" ? 1 : 0, 1, 0);
 check("  Moon in Karka = Own sign", J.dignityOf("Moon", 3) === "Own sign" ? 1 : 0, 1, 0);
 
+// ---- Dasha-bhukti life engine ----
+console.log("\n-- Life engine: functional lordship / bhukti scoring / timeline --");
+{
+  // Lordship from lagna (Aries = 0)
+  check("  Aries lagna: Mars rules 1,8", JSON.stringify(J.housesRuledBy("Mars", 0)) === "[1,8]" ? 1 : 0, 1, 0);
+  check("  Aries lagna: Venus rules 2,7", JSON.stringify(J.housesRuledBy("Venus", 0)) === "[2,7]" ? 1 : 0, 1, 0);
+  check("  Aries lagna: Saturn rules 10,11", JSON.stringify(J.housesRuledBy("Saturn", 0)) === "[10,11]" ? 1 : 0, 1, 0);
+  // Yogakaraka: the six classical cases and nothing else for those grahas
+  check("  Yogakaraka Mars for Karka", J.isYogakaraka("Mars", 3) ? 1 : 0, 1, 0);
+  check("  Yogakaraka Mars for Simha", J.isYogakaraka("Mars", 4) ? 1 : 0, 1, 0);
+  check("  Yogakaraka Saturn for Vrishabha", J.isYogakaraka("Saturn", 1) ? 1 : 0, 1, 0);
+  check("  Yogakaraka Saturn for Tula", J.isYogakaraka("Saturn", 6) ? 1 : 0, 1, 0);
+  check("  Yogakaraka Venus for Makara", J.isYogakaraka("Venus", 9) ? 1 : 0, 1, 0);
+  check("  Yogakaraka Venus for Kumbha", J.isYogakaraka("Venus", 10) ? 1 : 0, 1, 0);
+  check("  Mars NOT yogakaraka for Mesha", J.isYogakaraka("Mars", 0) ? 1 : 0, 0, 0);
+  check("  Jupiter NOT yogakaraka for Karka", J.isYogakaraka("Jupiter", 3) ? 1 : 0, 0, 0);
+  // BPHS functional signs for Aries lagna (waxing moon)
+  check("  Aries: Jupiter functional benefic", J.functionalScore("Jupiter", 0, true) > 0 ? 1 : 0, 1, 0);
+  check("  Aries: Mercury (3,6 lord) malefic", J.functionalScore("Mercury", 0, true) < 0 ? 1 : 0, 1, 0);
+  check("  Aries: Saturn (10,11 lord) malefic", J.functionalScore("Saturn", 0, true) < 0 ? 1 : 0, 1, 0);
+  check("  Karka: Mars yogakaraka net benefic", J.functionalScore("Mars", 3, true) > 0 ? 1 : 0, 1, 0);
+}
+{
+  const life = J.lifeTimeline(chart, 90);
+  const life2 = J.lifeTimeline(chart, 90);
+  check("  Deterministic output", JSON.stringify(life) === JSON.stringify(life2) ? 1 : 0, 1, 0);
+  const birth = chart.jdUt, horizon = birth + 90 * 365.25;
+  const allBh = life.mahadashas.flatMap(m => m.bhuktis);
+  check("  Coverage starts at birth", allBh[0].startJd, birth, 1e-6);
+  check("  Coverage ends at age 90", allBh[allBh.length - 1].endJd, horizon, 1e-6);
+  let contiguous = true;
+  for (let i = 1; i < allBh.length; i++) {
+    if (Math.abs(allBh[i].startJd - allBh[i - 1].endJd) > 1e-6) contiguous = false;
+  }
+  check("  Bhuktis contiguous birth->90", contiguous ? 1 : 0, 1, 0);
+  const scoresOk = allBh.every(b => b.score >= 0 && b.score <= 100 && b.grade && b.grade.label);
+  check("  All scores in [0,100] with grades", scoresOk ? 1 : 0, 1, 0);
+  const textOk = allBh.every(b => b.text.length > 40 && b.themes.length >= 1 && b.themes.length <= 3);
+  check("  All bhuktis narrated with themes", textOk ? 1 : 0, 1, 0);
+  // chidra = 9th bhukti of each complete MD; own = first bhukti of complete MDs
+  const fullMds = life.mahadashas.filter(m => m.bhuktis.length === 9);
+  check("  Complete MDs have 9 bhuktis each", fullMds.length >= 6 ? 1 : 0, 1, 0);
+  check("  Chidra flag on last bhukti", fullMds.every(m => m.bhuktis[8].chidra) ? 1 : 0, 1, 0);
+  check("  Own-lord flag on first bhukti", fullMds.every(m => m.bhuktis[0].own && m.bhuktis[0].adLord === m.lord) ? 1 : 0, 1, 0);
+  // graha quality bounded
+  const qOk = ["Sun","Moon","Mars","Mercury","Jupiter","Venus","Saturn","Rahu","Ketu"]
+    .every(g => Math.abs(J.grahaQuality(chart, g)) <= 10);
+  check("  Graha quality Q within [-10,10]", qOk ? 1 : 0, 1, 0);
+  // dusthana relation penalty: same lords, with vs without chidra differ by 5 points
+  const a = J.bhuktiScore(chart, "Venus", "Jupiter", false).score;
+  const b = J.bhuktiScore(chart, "Venus", "Jupiter", true).score;
+  check("  Chidra penalty applied (-1 => -5 pts)", a - b, 5, 0);
+  check("  Overview lists best/toughest/current", life.overview.best.length === 3 && life.overview.toughest.length === 3 ? 1 : 0, 1, 0);
+}
+
 console.log(`\n${pass}/${pass + fail} checks passed.`);
 if (fail > 0) process.exit(1);

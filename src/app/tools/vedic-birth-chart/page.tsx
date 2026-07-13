@@ -7,6 +7,7 @@ const FEATURES = [
     { icon: "📅", title: "Full panchanga", text: "Tithi, vara, nakshatra, yoga and karana with exact end times found by root-finding, plus sunrise and sunset." },
     { icon: "⏳", title: "Vimshottari dasha", text: "The complete 120-year cycle: mahadasha, antardasha and pratyantardasha with the running period highlighted." },
     { icon: "💪", title: "Strengths", text: "Ashtakavarga (SAV + per-graha bindus), uccha and cheshta bala, and the Parashari aspect grid." },
+    { icon: "📈", title: "Life map to age 90", text: "Every dasha-bhukti window from birth to 90 scored and narrated by classical Parashari rules — an interactive life-quality curve with peak and care periods flagged." },
 ];
 
 export default function VedicBirthChart() {
