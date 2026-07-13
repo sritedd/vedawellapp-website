@@ -143,6 +143,8 @@
       Math.abs(inp.lat).toFixed(2) + "°" + (inp.lat >= 0 ? "N" : "S") + " " +
       Math.abs(inp.lon).toFixed(2) + "°" + (inp.lon >= 0 ? "E" : "W");
     $("sub-ayan").textContent = "ayanamsa " + dms(chart.ayanamsa) + " · sidereal";
+    $("print-meta").textContent = "Jyotisha Engine — " + (inp.name ? inp.name + " · " : "") +
+      $("sub-birth").textContent + " · Lahiri ayanamsa · prepared " + fmtDate(chart.dasha.nowJd, tz);
 
     drawWheel(chart);
     renderFacts(chart);
@@ -958,6 +960,34 @@
       famSave();
       renderFamily();
     }
+  });
+
+  // ---------------------------------------------------- print / PDF export
+  // Expand every accordion before printing so the PDF is the full reading,
+  // then restore the on-screen state afterwards.
+  var printState = null;
+  function qAll(sel) {
+    return document.querySelectorAll ? Array.prototype.slice.call(document.querySelectorAll(sel)) : [];
+  }
+  function expandForPrint() {
+    if (printState) return;
+    printState = { blocks: [], details: [], adRows: [] };
+    qAll(".md-block:not(.open)").forEach(function (b) { b.classList.add("open"); printState.blocks.push(b); });
+    qAll("details:not([open])").forEach(function (d) { d.setAttribute("open", ""); printState.details.push(d); });
+  }
+  function restoreAfterPrint() {
+    if (!printState) return;
+    printState.blocks.forEach(function (b) { b.classList.remove("open"); });
+    printState.details.forEach(function (d) { d.removeAttribute("open"); });
+    printState = null;
+  }
+  if (typeof window !== "undefined" && window.addEventListener) {
+    window.addEventListener("beforeprint", expandForPrint);
+    window.addEventListener("afterprint", restoreAfterPrint);
+  }
+  $("btn-print").addEventListener("click", function () {
+    expandForPrint(); // covers browsers that fire beforeprint late or not at all
+    if (typeof window !== "undefined" && window.print) window.print();
   });
 
   // ------------------------------------------------------------ boot: example

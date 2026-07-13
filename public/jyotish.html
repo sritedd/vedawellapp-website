@@ -273,6 +273,33 @@
     #results.reveal { animation: rise 340ms ease-out; }
     @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
   }
+
+  /* ---------- print / PDF export ---------- */
+  .print-meta { display: none; }
+  #btn-print { margin-left: 12px; background: var(--panel-2); color: var(--gold); border: 1px solid var(--gold-deep); border-radius: 3px; padding: 4px 14px; font-size: 12px; cursor: pointer; font-family: var(--body); white-space: nowrap; }
+  #btn-print:hover { background: var(--gold-dim); }
+  @media print {
+    :root {
+      --bg: #ffffff; --panel: #ffffff; --panel-2: #f5f2ea; --line: #b9b2a2; --line-soft: #ddd6c6;
+      --ink: #1c1a15; --ink-2: #4a463c; --ink-3: #75705f;
+      --gold: #79570f; --gold-deep: #79570f; --gold-dim: #f0e6cd;
+      --verm: #a83a24; --verm-dim: #f6ddd5; --teal: #176844; --teal-dim: #d9ecdf;
+    }
+    body { background: #fff; font-size: 12px; }
+    .console, #btn-print, .no-print, .example-note, .life-tip, .expander,
+    .fam-member button, #fam-add, #fam-clear, .md-head .caret { display: none !important; }
+    .wrap { max-width: 100%; padding: 0 2px; }
+    .print-meta { display: block !important; font-size: 11.5px; color: var(--ink-2); margin: 2px 0 10px; }
+    canvas#wheel, canvas#life-curve, canvas#family-strips {
+      background: #10141F; border-radius: 4px;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+    .md-block .md-body { display: block !important; }
+    .dseg.cur .t { color: #fff !important; }
+    .summary, .chart-card, .dchain, .dcell, .bh-row, .conf-row, .prow, .md-head, .sav, .fact { break-inside: avoid; }
+    .eyebrow { break-after: avoid; }
+    a { color: var(--gold); text-decoration: none; }
+  }
 </style>
 
 </head>
@@ -331,14 +358,15 @@
   </form>
 
   <div id="results">
-    <div class="eyebrow"><span class="lbl">Janma &middot; Birth Moment</span><span class="sub" id="sub-birth"></span></div>
+    <div class="print-meta" id="print-meta"></div>
+    <div class="eyebrow"><span class="lbl">Janma &middot; Birth Moment</span><span class="sub" id="sub-birth"></span><button type="button" id="btn-print" title="Opens the print dialog — choose 'Save as PDF'">Save as PDF</button></div>
     <div class="card summary">
       <div class="wheel-box"><canvas id="wheel" width="760" height="760" role="img" aria-label="Sidereal sky wheel showing planetary longitudes at birth"></canvas></div>
       <div class="facts" id="facts"></div>
     </div>
 
     <div class="eyebrow"><span class="lbl">Kundali &middot; Charts</span><span class="sub">whole-sign houses &middot; Lahiri ayanamsa</span></div>
-    <div class="card" style="padding:12px 16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+    <div class="card no-print" style="padding:12px 16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
       <span style="font-size:13px; color:var(--ink-2)">Chart style</span>
       <div class="style-toggle" role="group" aria-label="Chart style">
         <button type="button" id="btn-north" aria-pressed="true">North Indian</button>
@@ -2011,6 +2039,8 @@
       Math.abs(inp.lat).toFixed(2) + "°" + (inp.lat >= 0 ? "N" : "S") + " " +
       Math.abs(inp.lon).toFixed(2) + "°" + (inp.lon >= 0 ? "E" : "W");
     $("sub-ayan").textContent = "ayanamsa " + dms(chart.ayanamsa) + " · sidereal";
+    $("print-meta").textContent = "Jyotisha Engine — " + (inp.name ? inp.name + " · " : "") +
+      $("sub-birth").textContent + " · Lahiri ayanamsa · prepared " + fmtDate(chart.dasha.nowJd, tz);
 
     drawWheel(chart);
     renderFacts(chart);
@@ -2826,6 +2856,34 @@
       famSave();
       renderFamily();
     }
+  });
+
+  // ---------------------------------------------------- print / PDF export
+  // Expand every accordion before printing so the PDF is the full reading,
+  // then restore the on-screen state afterwards.
+  var printState = null;
+  function qAll(sel) {
+    return document.querySelectorAll ? Array.prototype.slice.call(document.querySelectorAll(sel)) : [];
+  }
+  function expandForPrint() {
+    if (printState) return;
+    printState = { blocks: [], details: [], adRows: [] };
+    qAll(".md-block:not(.open)").forEach(function (b) { b.classList.add("open"); printState.blocks.push(b); });
+    qAll("details:not([open])").forEach(function (d) { d.setAttribute("open", ""); printState.details.push(d); });
+  }
+  function restoreAfterPrint() {
+    if (!printState) return;
+    printState.blocks.forEach(function (b) { b.classList.remove("open"); });
+    printState.details.forEach(function (d) { d.removeAttribute("open"); });
+    printState = null;
+  }
+  if (typeof window !== "undefined" && window.addEventListener) {
+    window.addEventListener("beforeprint", expandForPrint);
+    window.addEventListener("afterprint", restoreAfterPrint);
+  }
+  $("btn-print").addEventListener("click", function () {
+    expandForPrint(); // covers browsers that fire beforeprint late or not at all
+    if (typeof window !== "undefined" && window.print) window.print();
   });
 
   // ------------------------------------------------------------ boot: example
