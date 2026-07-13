@@ -238,6 +238,24 @@
   @media (max-width: 640px) { .bh-row { grid-template-columns: 1fr 1fr; } .bh-row .txt { grid-column: 1 / -1; } }
   .life-fine { color: var(--ink-3); font-size: 12.5px; border-top: 1px solid var(--line-soft); padding-top: 10px; margin-top: 14px; max-width: 80ch; }
 
+  /* ---------- family timeline ---------- */
+  canvas#family-strips { width: 100%; height: auto; display: block; margin-top: 12px; }
+  .fam-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+  .fam-btn { background: var(--panel-2); color: var(--gold); border: 1px solid var(--gold-deep); border-radius: 3px; padding: 7px 16px; font-size: 13px; cursor: pointer; font-family: var(--body); }
+  .fam-btn:hover { background: var(--gold-dim); }
+  .fam-btn.ghost { border-color: var(--line); color: var(--ink-3); }
+  .fam-member { display: inline-flex; align-items: center; gap: 8px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 20px; padding: 4px 6px 4px 13px; font-size: 12.5px; color: var(--ink); }
+  .fam-member .meta { color: var(--ink-3); font-family: var(--mono); font-size: 11px; }
+  .fam-member button { background: none; border: none; color: var(--verm); cursor: pointer; font-size: 14px; line-height: 1; padding: 2px 6px; }
+  .fam-legend { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .conf-list { margin-top: 14px; }
+  .conf-row { display: grid; grid-template-columns: 130px 190px 1fr; gap: 4px 14px; padding: 8px 0; border-top: 1px solid var(--line-soft); font-size: 13px; align-items: baseline; }
+  .conf-row .rng { font-family: var(--mono); font-size: 11.5px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .conf-row .who { color: var(--ink); }
+  .conf-row.now-row { background: var(--gold-dim); }
+  @media (max-width: 640px) { .conf-row { grid-template-columns: 1fr 1fr; } .conf-row .who { grid-column: 1 / -1; } }
+  .conf-head { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin: 16px 0 2px; }
+
   /* ---------- appendix / footer ---------- */
   .appendix p { color: var(--ink-2); font-size: 13px; max-width: 78ch; margin: 0 0 8px; }
   .appendix code { font-family: var(--mono); font-size: 12px; color: var(--gold); }
@@ -339,6 +357,9 @@
 
     <div class="eyebrow"><span class="lbl">Jeevana Rekha &middot; Life Map</span><span class="sub">dasha-bhukti quality from birth to age 90</span></div>
     <div class="card life-box" id="lifemap"></div>
+
+    <div class="eyebrow"><span class="lbl">Kutumba &middot; Family Timeline</span><span class="sub">aligned dasha periods across charts</span></div>
+    <div class="card life-box" id="family"></div>
 
     <div class="eyebrow"><span class="lbl">Bala &middot; Strengths</span><span class="sub">ashtakavarga &middot; uccha &middot; cheshta &middot; drishti</span></div>
     <div class="card" id="strength"></div>

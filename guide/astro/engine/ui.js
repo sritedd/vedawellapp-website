@@ -151,6 +151,7 @@
     renderPanchanga(chart);
     renderDasha(chart);
     renderLifeMap(chart);
+    renderFamily();
     renderStrength(chart);
     renderName(chart);
     renderReading(chart);
@@ -610,6 +611,215 @@
     cv.addEventListener("mouseleave", function () { tip.style.display = "none"; });
   }
 
+  // ---------------------------------------------- family timeline (kutumba)
+  var FAM_KEY = "jyotishFamily.v1";
+  var famMembers = [];   // [{ name, input }] persisted client-side only
+  var famCache = {};     // input-json -> { chart, bhuktis }
+  var BAND = { uttama: "#2F9D6C", shubha: "#BE8A30", mishra: "#3F4767", kashta: "#A14E3D", atikashta: "#E0644C" };
+
+  function famLoad() {
+    try {
+      if (typeof localStorage === "undefined") return;
+      var raw = localStorage.getItem(FAM_KEY);
+      if (raw) famMembers = JSON.parse(raw).slice(0, 4);
+    } catch (err) { famMembers = []; }
+  }
+  function famSave() {
+    try {
+      if (typeof localStorage !== "undefined") localStorage.setItem(FAM_KEY, JSON.stringify(famMembers));
+    } catch (err) { /* private mode etc. — keep in-memory */ }
+  }
+  function famTimelineOf(m) {
+    var key = JSON.stringify(m.input);
+    if (!famCache[key]) {
+      var ch = J.computeChart(m.input);
+      var flat = [];
+      J.lifeTimeline(ch, 90).mahadashas.forEach(function (md) {
+        md.bhuktis.forEach(function (b) { flat.push(b); });
+      });
+      famCache[key] = { chart: ch, bhuktis: flat };
+    }
+    return famCache[key];
+  }
+  function famActiveAt(bhuktis, t) {
+    for (var k = 0; k < bhuktis.length; k++) {
+      if (bhuktis[k].startJd <= t && t < bhuktis[k].endJd) return bhuktis[k];
+    }
+    return null;
+  }
+
+  function addFamilyMember() {
+    if (!lastChart) return;
+    if (famMembers.length >= 4) { alert("Family timeline holds up to 4 charts — remove one first."); return; }
+    var inp = lastChart.input, copy = {};
+    ["year","month","day","hour","minute","second","tzHours","lat","lon","timeUnknown","name"].forEach(function (k) {
+      if (inp[k] !== undefined) copy[k] = inp[k];
+    });
+    var dup = famMembers.some(function (m) {
+      var a = m.input;
+      return a.year === copy.year && a.month === copy.month && a.day === copy.day &&
+        a.hour === copy.hour && a.minute === copy.minute && a.lat === copy.lat && a.lon === copy.lon;
+    });
+    if (dup) { alert("This chart is already on the family timeline."); return; }
+    famMembers.push({ name: (copy.name || "").trim() || "Member " + (famMembers.length + 1), input: copy });
+    famSave();
+    renderFamily();
+  }
+
+  function renderFamily() {
+    var box = $("family");
+    if (!box) return;
+    var h = "<div style='font-size:13px;color:var(--ink-2);max-width:80ch'>Cast each family member's chart above, then add it here. The rows share one calendar axis so you can compare <b style='color:var(--ink)'>timing</b> — when each person's supportive and testing periods fall, and where they coincide. Scores are each chart's own ranking, so rows are never compared by height. Charts stay in this browser only.</div>";
+    h += "<div class='fam-actions'>";
+    h += "<button type='button' class='fam-btn' id='fam-add'" + (famMembers.length >= 4 ? " disabled" : "") + ">+ Add current chart</button>";
+    famMembers.forEach(function (m, i) {
+      h += "<span class='fam-member'>" + esc(m.name) +
+        " <span class='meta'>" + pad2(m.input.day) + "." + pad2(m.input.month) + "." + m.input.year + "</span>" +
+        "<button type='button' data-fam-remove='" + i + "' aria-label='Remove " + esc(m.name) + "'>×</button></span>";
+    });
+    if (famMembers.length) h += "<button type='button' class='fam-btn ghost' id='fam-clear'>Clear all</button>";
+    h += "</div>";
+
+    if (famMembers.length >= 1) {
+      var rows = famMembers.length;
+      h += "<canvas id='family-strips' width='1080' height='" + (rows * 44 + 50) +
+        "' role='img' aria-label='Family dasha timeline: one grade-band row per member on a shared calendar axis'></canvas>";
+      h += "<div class='life-tip' id='fam-tip'></div>";
+      h += "<div class='fam-legend'>";
+      [["uttama","Uttama · excellent"],["shubha","Shubha · favorable"],["mishra","Mishra · mixed"],["kashta","Kashta · demanding"],["atikashta","Atikashta · testing"]].forEach(function (g) {
+        h += "<span class='gchip " + g[0] + "'>" + g[1] + "</span>";
+      });
+      h += "</div>";
+    }
+
+    if (famMembers.length >= 2) {
+      var members = famMembers.map(function (m) {
+        return { name: m.name, bhuktis: famTimelineOf(m).bhuktis };
+      });
+      var windows = J.familyConfluence(members, { minDays: 90 });
+      var nowJd = 2440587.5 + Date.now() / 86400000.0;
+      var tzs = famMembers[0].input.tzHours;
+      function confRows(kind, title, note) {
+        var list = windows.filter(function (w) { return w.kind === kind; });
+        if (!list.length) return "";
+        var out = "<div class='conf-head'>" + title + "</div><div style='font-size:12px;color:var(--ink-3)'>" + note + "</div><div class='conf-list'>";
+        var shown = 0;
+        list.forEach(function (w) {
+          if (shown >= 14) return;
+          shown++;
+          var isNow = w.startJd <= nowJd && nowJd < w.endJd;
+          var mid = (w.startJd + w.endJd) / 2;
+          var detail = members.filter(function (m) { return w.names.indexOf(m.name) >= 0; })
+            .map(function (m) {
+              var b = famActiveAt(m.bhuktis, mid);
+              return esc(m.name) + " in " + (b ? LORD_ABBR[b.mdLord] + "–" + LORD_ABBR[b.adLord] : "—");
+            }).join(" · ");
+          out += "<div class='conf-row" + (isNow ? " now-row" : "") + "'>";
+          out += "<span class='rng'>" + fmtMonYr(w.startJd, tzs) + " – " + fmtMonYr(w.endJd, tzs) +
+            (isNow ? " ◂ now" : "") + "</span>";
+          out += "<span class='who'>" + w.names.map(esc).join(" + ") + "</span>";
+          out += "<span style='color:var(--ink-3);font-size:12px'>" + detail + "</span></div>";
+        });
+        if (list.length > shown) out += "<div class='conf-row'><span class='rng'>+" + (list.length - shown) + " more windows</span></div>";
+        return out + "</div>";
+      }
+      h += confRows("good", "Supportive confluences",
+        "Two or more members simultaneously in Shubha or Uttama periods — the family's natural windows for joint undertakings.");
+      h += confRows("tough", "Testing confluences",
+        "Two or more members simultaneously in demanding periods — spread big commitments away from these, and be gentle with each other.");
+      if (!windows.length) h += "<div class='conf-head'>No sustained confluences</div><div style='font-size:12px;color:var(--ink-3)'>No window of 90+ days where two members share strongly marked periods — the family's highs and lows are staggered.</div>";
+    } else if (famMembers.length === 1) {
+      h += "<div style='font-size:12.5px;color:var(--ink-3);margin-top:10px'>Add a second chart to see confluence windows.</div>";
+    }
+    h += "<div class='life-fine'>Each row ranks that person's periods against their own chart — the classical scale is self-relative, so band colors compare <i>when</i>, never <i>who is better</i>. Family reading of aligned dashas is traditional for timing shared decisions; treat it as the tradition's language of tendencies.</div>";
+    box.innerHTML = h;
+    if (famMembers.length >= 1) drawFamilyStrips();
+  }
+
+  function drawFamilyStrips() {
+    var cv = $("family-strips");
+    if (!cv || !cv.getContext) return;
+    var ctx = cv.getContext("2d");
+    var W = cv.width, H = cv.height;
+    var padL = 96, padR = 14, rowH = 44, bandH = 26, topPad = 12;
+    var tls = famMembers.map(function (m) { return famTimelineOf(m); });
+    var minJd = Infinity, maxJd = -Infinity;
+    tls.forEach(function (t) {
+      minJd = Math.min(minJd, t.bhuktis[0].startJd);
+      maxJd = Math.max(maxJd, t.bhuktis[t.bhuktis.length - 1].endJd);
+    });
+    function x(t) { return padL + (t - minJd) / (maxJd - minJd) * (W - padL - padR); }
+    ctx.clearRect(0, 0, W, H);
+
+    // year ticks (decades; 20y if the span is very wide)
+    var y0 = topPad + famMembers.length * rowH;
+    var yr0 = J.jdToDate(minJd).y, yr1 = J.jdToDate(maxJd).y;
+    var step = (yr1 - yr0) > 130 ? 20 : 10;
+    ctx.font = "11px " + '"Cascadia Mono", Consolas, monospace';
+    ctx.textAlign = "center"; ctx.textBaseline = "top";
+    for (var yr = Math.ceil(yr0 / step) * step; yr <= yr1; yr += step) {
+      var xt = x(J.julianDay(yr, 1, 1, 0));
+      ctx.strokeStyle = C.lineSoft; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(xt, topPad); ctx.lineTo(xt, y0); ctx.stroke();
+      ctx.fillStyle = C.ink3;
+      ctx.fillText(String(yr), xt, y0 + 8);
+    }
+
+    // member rows
+    famMembers.forEach(function (m, i) {
+      var yTop = topPad + i * rowH + (rowH - bandH) / 2;
+      ctx.fillStyle = C.ink2;
+      ctx.font = "12.5px -apple-system, 'Segoe UI', sans-serif";
+      ctx.textAlign = "right"; ctx.textBaseline = "middle";
+      var label = m.name.length > 11 ? m.name.slice(0, 10) + "…" : m.name;
+      ctx.fillText(label, padL - 8, yTop + bandH / 2);
+      tls[i].bhuktis.forEach(function (b) {
+        var xa = x(b.startJd), xb = x(b.endJd);
+        ctx.fillStyle = BAND[b.grade.key] || BAND.mishra;
+        ctx.fillRect(xa + 0.5, yTop, Math.max(0.8, xb - xa - 1), bandH);
+      });
+    });
+
+    // now line
+    var nowJd = 2440587.5 + Date.now() / 86400000.0;
+    if (nowJd > minJd && nowJd < maxJd) {
+      var xn = x(nowJd);
+      ctx.strokeStyle = C.ink; ctx.lineWidth = 1.4; ctx.setLineDash([5, 4]);
+      ctx.beginPath(); ctx.moveTo(xn, topPad - 4); ctx.lineTo(xn, y0); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = C.ink; ctx.font = "10px " + '"Cascadia Mono", Consolas, monospace';
+      ctx.textAlign = "left"; ctx.textBaseline = "bottom";
+      ctx.fillText("now", xn + 4, topPad + 6);
+    }
+
+    // hover tooltip
+    if (!cv.addEventListener) return;
+    var tip = $("fam-tip");
+    cv.addEventListener("mousemove", function (e) {
+      var rect = cv.getBoundingClientRect();
+      var sx = W / rect.width, sy = H / rect.height;
+      var px = (e.clientX - rect.left) * sx, py = (e.clientY - rect.top) * sy;
+      var row = Math.floor((py - topPad) / rowH);
+      var t = minJd + (px - padL) / (W - padL - padR) * (maxJd - minJd);
+      if (row < 0 || row >= famMembers.length || px < padL) { tip.style.display = "none"; return; }
+      var b = famActiveAt(tls[row].bhuktis, t);
+      if (!b) { tip.style.display = "none"; return; }
+      var tz = famMembers[row].input.tzHours;
+      tip.innerHTML = "<div class='t1'>" + esc(famMembers[row].name) + " — " + b.mdLord + " MD · " +
+        b.adLord + " bhukti · " + b.grade.label + " " + b.score + "</div><div class='t2'>age " +
+        b.ageStart.toFixed(1) + "–" + b.ageEnd.toFixed(1) + " · " + fmtMonYr(b.startJd, tz) + " – " + fmtMonYr(b.endJd, tz) + "</div>";
+      tip.style.display = "block";
+      var bx = e.clientX - rect.left, by = e.clientY - rect.top;
+      tip.style.left = Math.min(bx + 14, rect.width - 280) + "px";
+      tip.style.top = (by + cvOffsetTop(cv) + 16) + "px";
+    });
+    cv.addEventListener("mouseleave", function () { tip.style.display = "none"; });
+  }
+  function cvOffsetTop(cv) {
+    // tooltip div is positioned against the card; offset by canvas position inside it
+    return (cv.offsetTop || 0);
+  }
+
   // -------------------------------------------------------------- strength
   function renderStrength(chart) {
     var av = chart.strength.ashtakavarga, lagnaR = chart.lagna.rashi;
@@ -737,7 +947,21 @@
     $("appendix").innerHTML = h;
   }
 
+  // family container: one delegated listener (contents re-render freely)
+  $("family").addEventListener("click", function (e) {
+    var t = e.target || {};
+    if (t.id === "fam-add") { addFamilyMember(); return; }
+    if (t.id === "fam-clear") { famMembers = []; famSave(); renderFamily(); return; }
+    var rm = t.getAttribute ? t.getAttribute("data-fam-remove") : null;
+    if (rm !== null && rm !== undefined) {
+      famMembers.splice(parseInt(rm, 10), 1);
+      famSave();
+      renderFamily();
+    }
+  });
+
   // ------------------------------------------------------------ boot: example
+  famLoad();
   $("in-date").value = "1990-09-08";
   $("in-time").value = "10:15";
   pickCity(["Chennai (Madras)", "India", 13.08, 80.27, 5.5, 0]);

@@ -1154,8 +1154,73 @@
     };
   }
 
+  // ------------------------------------------------ family confluence
+  // members: [{ name, bhuktis: [{startJd, endJd, score, mdLord, adLord}] }]
+  // Finds calendar windows where >=2 members simultaneously run supportive
+  // (score >= 58) or testing (score < 42) bhuktis. Windows merge over
+  // identical member-sets and are filtered to >= minDays. Scores stay
+  // self-relative per chart; only TIMING is compared across members.
+  function familyConfluence(members, opts) {
+    var GOOD = 58, TOUGH = 42;
+    var minDays = (opts && opts.minDays) || 60;
+    if (!members || members.length < 2) return [];
+    var lo = -Infinity, hi = Infinity, i, j;
+    for (i = 0; i < members.length; i++) {
+      var bh = members[i].bhuktis;
+      if (!bh || !bh.length) return [];
+      lo = Math.max(lo, bh[0].startJd);
+      hi = Math.min(hi, bh[bh.length - 1].endJd);
+    }
+    if (lo >= hi) return [];
+    var cuts = {}; cuts[lo] = 1; cuts[hi] = 1;
+    members.forEach(function (m) {
+      m.bhuktis.forEach(function (b) {
+        if (b.startJd > lo && b.startJd < hi) cuts[b.startJd] = 1;
+        if (b.endJd > lo && b.endJd < hi) cuts[b.endJd] = 1;
+      });
+    });
+    var ts = Object.keys(cuts).map(Number).sort(function (a, b) { return a - b; });
+    function activeAt(m, t) {
+      for (var k = 0; k < m.bhuktis.length; k++) {
+        if (m.bhuktis[k].startJd <= t && t < m.bhuktis[k].endJd) return m.bhuktis[k];
+      }
+      return null;
+    }
+    var raw = [];
+    for (i = 0; i < ts.length - 1; i++) {
+      var t0 = ts[i], t1 = ts[i + 1], mid = (t0 + t1) / 2;
+      var good = [], tough = [];
+      for (j = 0; j < members.length; j++) {
+        var b = activeAt(members[j], mid);
+        if (!b) continue;
+        if (b.score >= GOOD) good.push(members[j].name);
+        else if (b.score < TOUGH) tough.push(members[j].name);
+      }
+      if (good.length >= 2) raw.push({ startJd: t0, endJd: t1, kind: "good", names: good });
+      if (tough.length >= 2) raw.push({ startJd: t0, endJd: t1, kind: "tough", names: tough });
+    }
+    // merge adjacent windows of same kind + same member set
+    var merged = [];
+    raw.sort(function (a, b) { return a.startJd - b.startJd || (a.kind < b.kind ? -1 : 1); });
+    raw.forEach(function (w) {
+      var last = null;
+      for (var k = merged.length - 1; k >= 0; k--) {
+        if (merged[k].kind === w.kind) { last = merged[k]; break; }
+      }
+      if (last && Math.abs(last.endJd - w.startJd) < 1e-6 &&
+          last.names.join("|") === w.names.join("|")) {
+        last.endJd = w.endJd;
+      } else {
+        merged.push({ startJd: w.startJd, endJd: w.endJd, kind: w.kind, names: w.names.slice() });
+      }
+    });
+    return merged.filter(function (w) { return w.endJd - w.startJd >= minDays; })
+      .sort(function (a, b) { return a.startJd - b.startJd; });
+  }
+
   // ------------------------------------------------------------ exports
   var Jyotish = {
+    familyConfluence: familyConfluence,
     wrap360: wrap360, wrap180: wrap180,
     julianDay: julianDay, jdToDate: jdToDate,
     deltaTSeconds: deltaTSeconds, jdTTfromUT: jdTTfromUT, centuries: centuries,

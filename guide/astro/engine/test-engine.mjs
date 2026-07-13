@@ -302,5 +302,50 @@ console.log("\n-- Life engine: functional lordship / bhukti scoring / timeline -
   check("  Overview lists best/toughest/current", life.overview.best.length === 3 && life.overview.toughest.length === 3 ? 1 : 0, 1, 0);
 }
 
+// ---- Family confluence ----
+console.log("\n-- Family confluence --");
+{
+  // Synthetic: A supportive 1000-1200 then testing 1200-1400;
+  //            B supportive 1000-1300 then testing 1300-1500.
+  const A = { name: "A", bhuktis: [
+    { startJd: 1000, endJd: 1200, score: 80 }, { startJd: 1200, endJd: 1400, score: 30 }] };
+  const B = { name: "B", bhuktis: [
+    { startJd: 1000, endJd: 1300, score: 80 }, { startJd: 1300, endJd: 1500, score: 30 }] };
+  const w = J.familyConfluence([A, B], { minDays: 60 });
+  check("  Two windows found", w.length, 2, 0);
+  check("  Good window 1000-1200", w[0].kind === "good" && w[0].startJd === 1000 && w[0].endJd === 1200 ? 1 : 0, 1, 0);
+  check("  Tough window 1300-1400", w[1].kind === "tough" && w[1].startJd === 1300 && w[1].endJd === 1400 ? 1 : 0, 1, 0);
+  check("  Good window names A,B", w[0].names.join(",") === "A,B" ? 1 : 0, 1, 0);
+  // Short overlaps filtered by minDays
+  const C = { name: "C", bhuktis: [{ startJd: 1000, endJd: 1010, score: 80 }, { startJd: 1010, endJd: 1500, score: 50 }] };
+  const w2 = J.familyConfluence([A, C], { minDays: 60 });
+  check("  10-day overlap filtered out", w2.length, 0, 0);
+  // Fewer than 2 members -> empty
+  check("  Single member -> no windows", J.familyConfluence([A]).length, 0, 0);
+  // Merging: identical adjacent segments coalesce (B split at 1100 must not split the window)
+  const B2 = { name: "B", bhuktis: [
+    { startJd: 1000, endJd: 1100, score: 80 }, { startJd: 1100, endJd: 1300, score: 78 },
+    { startJd: 1300, endJd: 1500, score: 30 }] };
+  const w3 = J.familyConfluence([A, B2], { minDays: 60 });
+  check("  Adjacent same-set windows merged", w3[0].startJd === 1000 && w3[0].endJd === 1200 ? 1 : 0, 1, 0);
+}
+{
+  // Two real charts: windows must lie inside the shared calendar span
+  const c2 = J.computeChart({ year: 1992, month: 3, day: 14, hour: 22, minute: 40,
+    tzHours: 5.5, lat: 19.08, lon: 72.88, nowJdUt: J.julianDay(2026, 7, 13, 12) });
+  const l1 = J.lifeTimeline(chart, 90), l2 = J.lifeTimeline(c2, 90);
+  const flat = l => l.mahadashas.flatMap(m => m.bhuktis);
+  const m1 = { name: "P1", bhuktis: flat(l1) }, m2 = { name: "P2", bhuktis: flat(l2) };
+  const w = J.familyConfluence([m1, m2]);
+  const lo = Math.max(m1.bhuktis[0].startJd, m2.bhuktis[0].startJd);
+  const hi = Math.min(m1.bhuktis[m1.bhuktis.length - 1].endJd, m2.bhuktis[m2.bhuktis.length - 1].endJd);
+  const inSpan = w.every(x => x.startJd >= lo - 1e-6 && x.endJd <= hi + 1e-6);
+  check("  Real charts: windows within shared span", inSpan ? 1 : 0, 1, 0);
+  const kindsOk = w.every(x => (x.kind === "good" || x.kind === "tough") && x.names.length >= 2);
+  check("  Real charts: kinds and name counts valid", kindsOk ? 1 : 0, 1, 0);
+  const w2 = J.familyConfluence([m1, m2]);
+  check("  Real charts: deterministic", JSON.stringify(w) === JSON.stringify(w2) ? 1 : 0, 1, 0);
+}
+
 console.log(`\n${pass}/${pass + fail} checks passed.`);
 if (fail > 0) process.exit(1);

@@ -46,7 +46,7 @@ const documentStub = {
   createElement(tag) { return makeEl("created-" + tag); },
   addEventListener(type, fn) { listeners.push([null, type, fn]); },
 };
-const sandbox = { document: documentStub, console, Date, Math, JSON, Proxy, Object };
+const sandbox = { document: documentStub, console, Date, Math, JSON, Proxy, Object, alert() {} };
 sandbox.window = sandbox;
 sandbox.globalThis = sandbox;
 vm.createContext(sandbox);
@@ -64,7 +64,7 @@ try {
 }
 
 // sanity: key panels actually rendered content
-for (const id of ["facts", "planet-table", "panchanga", "dasha-top", "dasha-table", "lifemap", "strength", "namecard", "reading", "appendix", "chart-d1", "chart-d9"]) {
+for (const id of ["facts", "planet-table", "panchanga", "dasha-top", "dasha-table", "lifemap", "family", "strength", "namecard", "reading", "appendix", "chart-d1", "chart-d9"]) {
   const el = registry[id];
   if (!el || el._html.length < 50) { console.error(`  [FAIL] #${id} empty after boot`); problems++; }
 }
@@ -82,5 +82,27 @@ for (const [el, type, fn] of [...listeners]) {
   }
 }
 console.log(`Fired ${fired} event handlers, ${errors} errors, ${problems} content problems.`);
+
+// family flow: add two distinct charts, expect confluence panel, then clear
+try {
+  const famL = listeners.find(([el, type]) => el && el._id === "family" && type === "click");
+  const subL = listeners.find(([el, type]) => el && el._id === "birth-form" && type === "submit");
+  famL[2]({ target: { id: "fam-add" } });                       // member 1: boot example
+  registry["in-date"].value = "1992-03-14";
+  registry["in-time"].value = "22:40";
+  registry["in-name"].value = "Second";
+  subL[2]({ preventDefault() {} });                             // cast chart 2
+  famL[2]({ target: { id: "fam-add" } });                       // member 2
+  const famHtml = registry["family"]._html;
+  if (!/family-strips/.test(famHtml)) { console.error("  [FAIL] family strips canvas missing"); problems++; }
+  if (!/confluence|No sustained/i.test(famHtml)) { console.error("  [FAIL] confluence panel missing"); problems++; }
+  famL[2]({ target: { id: "fam-clear" } });
+  if (/family-strips/.test(registry["family"]._html)) { console.error("  [FAIL] clear did not reset"); problems++; }
+  console.log("Family flow OK: 2 members rendered with confluence, then cleared.");
+} catch (e) {
+  console.error("  [FAIL] family flow:", e.message);
+  problems++;
+}
+
 if (errors || problems) process.exit(1);
 console.log("SMOKE PASS");
