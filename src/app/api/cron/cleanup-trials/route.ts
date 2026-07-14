@@ -10,8 +10,8 @@ import { createServerClient } from "@supabase/ssr";
  *
  * Setup options:
  * 1. Netlify Scheduled Function: call this endpoint daily
- * 2. External cron: GET /api/cron/cleanup-trials with Authorization: Bearer CRON_SECRET header
- * 3. Manual: admin can call from curl with auth header
+ * 2. External cron: POST /api/cron/cleanup-trials with Authorization: Bearer CRON_SECRET header
+ * 3. Manual: admin can call from curl with auth header (POST only — GET returns 405)
  *
  * SECURITY: Secret must be in Authorization header, NOT query string (prevents logging/caching exposure)
  */

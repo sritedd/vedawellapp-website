@@ -9,13 +9,13 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
     title: "HomeOwner Guardian — AI-Powered Australian Construction Tracker",
     description:
-        "Protect your Australian home construction investment with AI-powered defect analysis, stage advice, builder risk checks, and construction chat. Legal-ready documentation for NSW Fair Trading and NCAT disputes.",
+        "Protect your Australian home construction investment with AI-powered defect analysis, stage advice, progress claim review, and construction chat. Legal-ready documentation for NSW Fair Trading and NCAT disputes.",
     keywords:
         "home construction tracker, AI building defects, construction defect documentation, variation tracker, building inspection, owner builder, new home build Australia, NSW Fair Trading, NCAT building disputes, AI construction advisor",
     openGraph: {
         title: "HomeOwner Guardian — AI-Powered Protection for Your Home Build",
         description:
-            "AI defect analysis, stage advice, builder checks, and construction chat. Legal-ready documentation for Australian homeowners.",
+            "AI defect analysis, stage advice, progress claim review, and construction chat. Legal-ready documentation for Australian homeowners.",
         url: "https://vedawellapp.com/guardian",
     },
     alternates: {
@@ -40,10 +40,10 @@ export default async function GuardianPage() {
         description: "AI-powered construction tracker for Australian homeowners. Track building defects, variations, and costs with intelligent analysis.",
         offers: [
             { "@type": "Offer", price: "0", priceCurrency: "AUD", name: "Free", description: "1 project, 3 defects, AI defect assist" },
-            { "@type": "Offer", price: "14.99", priceCurrency: "AUD", name: "Guardian Pro", billingIncrement: "P1M", description: "Unlimited projects, AI chat, builder checks, PDF exports" },
+            { "@type": "Offer", price: "14.99", priceCurrency: "AUD", name: "Guardian Pro", billingIncrement: "P1M", description: "Unlimited projects, AI chat, progress claim review, PDF exports" },
         ],
         author: { "@type": "Organization", name: "VedaWell", url: "https://vedawellapp.com" },
-        featureList: "Should I Pay verdict, Camera-first defect reporting, Builder speed benchmarking, Tribunal evidence package, AI defect analysis, AI stage advisor, AI builder check, Construction chat, Certification gates, Variation management, Photo evidence, NCC 2025 compliance, Stage-by-stage checklists",
+        featureList: "Should I Pay verdict, Camera-first defect reporting, Builder speed benchmarking, Tribunal evidence package, AI defect analysis, AI stage advisor, AI progress claim review, Construction chat, Certification gates, Variation management, Photo evidence, NCC 2025 compliance, Stage-by-stage checklists",
         aggregateRating: {
             "@type": "AggregateRating",
             ratingValue: "4.8",
@@ -349,8 +349,8 @@ export default async function GuardianPage() {
                                     desc: "Get state-specific checklists, mandatory inspections, documents to demand, and payment advice for every construction stage.",
                                 },
                                 {
-                                    icon: "&#x1F50D;", title: "Builder Check", gradient: "from-amber-500 to-red-500",
-                                    desc: "Enter your builder's name. AI assesses risk based on ABN status, license data, and reviews — before you sign the contract.",
+                                    icon: "&#x1F50D;", title: "Claim Review", gradient: "from-amber-500 to-red-500",
+                                    desc: "Paste a progress claim before you pay. AI cross-checks it against your stage, certificates, and defects — and gives a PAY, HOLD, or DISPUTE verdict.",
                                 },
                                 {
                                     icon: "&#x1F4AC;", title: "Guardian Chat", gradient: "from-green-500 to-teal-600",

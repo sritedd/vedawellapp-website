@@ -157,7 +157,7 @@ export default function HomePage() {
                                 HomeOwner Guardian AI is now inside your build workflow
                             </h2>
                             <p className="text-teal-100 text-lg leading-relaxed">
-                                Your new AI copilot helps write defect reports, gives stage-by-stage advice, checks builder risk signals, and answers construction questions in plain English.
+                                Your new AI copilot helps write defect reports, gives stage-by-stage advice, reviews progress claims before you pay, and answers construction questions in plain English.
                             </p>
                             <div className="flex flex-col sm:flex-row gap-3 mt-6">
                                 <Link
@@ -179,7 +179,7 @@ export default function HomePage() {
                             <ul className="space-y-3 text-teal-50 text-sm">
                                 <li>AI Defect Assist: turn rough notes into clear, evidence-ready defect logs.</li>
                                 <li>AI Stage Advice: get stage-specific checks and key documents to demand.</li>
-                                <li>Builder Check AI: spot red flags from licensing and public reputation signals.</li>
+                                <li>Claim Review AI: get a PAY, HOLD, or DISPUTE verdict before paying a progress claim.</li>
                                 <li>Guardian Chat: ask build questions and get context-aware answers fast.</li>
                             </ul>
                         </div>

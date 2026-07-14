@@ -170,7 +170,7 @@
 | Send support msg | Yes ✓ | N/A |
 | AI defect assist | Cached in ai_cache ✓ | N/A |
 | AI stage advice | Cached in ai_cache ✓ | N/A |
-| AI chat | Not persisted | N/A |
+| AI chat | Yes ✓ (ai_conversations, schema_v30) | N/A |
 | AI builder check | Cached in ai_cache ✓ | N/A |
 | Pre-handover items | Yes ✓ (pre_handover_items) | N/A |
 | Contract review items | Yes ✓ (contract_review_items) | N/A |
@@ -200,21 +200,23 @@ User views Stage Gate → AI Stage Advice panel auto-loads below
   → Collapsible panel, "AI-generated" disclaimer
 ```
 
-### AI Guardian Chat (Pro tier)
+### AI Guardian Chat (Pro/trial + one lifetime free preview)
 ```
 User opens AI Chat tab → streaming chat interface
+  → Tier gate: Pro/trial/admin, OR free user's single lifetime preview message
+  → Daily chat pool: trial 10/day, pro 30/day (separate from ai pool)
   → API fetches project context (stages, defects, variations)
   → Verifies project ownership (user_id match)
   → Streams response via Gemini Flash / Claude Sonnet
   → Context-aware answers about user's specific build
 ```
 
-### AI Builder Check (Pro tier)
+### AI Builder Check — DISABLED (coming soon)
 ```
-User submits builder name + ABN → API validates state
-  → Queries external APIs (ABN Lookup — stubs for now)
-  → Gemini generates risk assessment report
-  → 3-day cache per builder+state combination
+Route returns 503 { comingSoon: true } for ALL users (incl. Pro).
+Disabled 2026-03-24: generated hallucinated reports from zero real data.
+Re-enable only after ABN Lookup / state licence register integration.
+Marketing surfaces scrubbed 2026-07-14 (replaced with Claim Review AI).
 ```
 
 ---

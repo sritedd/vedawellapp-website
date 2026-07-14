@@ -109,7 +109,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                             Guardian AI now supports every build stage
                         </h2>
                         <p className="text-lg text-slate-600 dark:text-slate-300 mb-8 leading-relaxed max-w-2xl">
-                            Use AI Defect Assist, Stage Advice, Builder Check AI, and Guardian Chat to turn construction uncertainty into clear next actions.
+                            Use AI Defect Assist, Stage Advice, Claim Review AI, and Guardian Chat to turn construction uncertainty into clear next actions.
                         </p>
                         <div className="flex flex-wrap gap-4">
                             <Link href="/guardian" className="px-6 py-3 bg-teal-600 hover:bg-teal-500 text-white rounded-xl font-bold transition-all shadow-sm hover:shadow-md flex items-center gap-2">

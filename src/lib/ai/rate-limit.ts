@@ -65,10 +65,13 @@ export async function checkDailyQuota(
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
 
+    // Only successful calls count against the quota — a flaky provider day
+    // (success=false rows) must not consume the user's paid-for allowance.
     const query = supabase
         .from("ai_usage_log")
         .select("id", { count: "exact", head: true })
         .eq("user_id", userId)
+        .eq("success", true)
         .gte("created_at", startOfDay.toISOString());
 
     // Scope the count to the matching pool (chat vs. everything else),
@@ -95,6 +98,10 @@ export async function checkDailyQuota(
  *
  * Fail-closed: a DB error returns `allowed: false` rather than handing out
  * unlimited free chat on a transient glitch.
+ *
+ * Intentional: the count includes chat used during a past trial or Pro
+ * subscription, so lapsed trial/Pro users do NOT get a fresh preview —
+ * they've already experienced the feature. Only never-chatted users see it.
  */
 export const FREE_LIFETIME_CHAT_ALLOWANCE = 1;
 
@@ -124,7 +131,11 @@ export async function checkFreeChatAllowance(
 
 /**
  * Check if a user has a Pro subscription.
- * Returns the subscription_tier string, or null if lookup fails.
+ * Returns { allowed, tier } where tier is the effective quota tier:
+ * admins get "admin" (not their raw subscription_tier) so the callers'
+ * checkDailyQuota(tier) call resolves to the unlimited admin pool —
+ * otherwise an admin on the free tier would hit free quotas (chat: 0)
+ * despite passing the Pro gate via is_admin.
  */
 export async function checkProAccess(
     supabase: { from: (table: string) => any },
@@ -140,5 +151,5 @@ export async function checkProAccess(
     const isAdmin = data?.is_admin === true;
     const trialActive = tier === "trial" && data?.trial_ends_at && new Date(data.trial_ends_at) > new Date();
     const allowed = tier === "guardian_pro" || isAdmin || trialActive === true;
-    return { allowed, tier };
+    return { allowed, tier: isAdmin ? "admin" : tier };
 }

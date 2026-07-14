@@ -42,7 +42,7 @@ const PLANS = {
             "Certification gates & payment milestones",
             "Document vault (1GB)",
             "AI Guardian Chat assistant",
-            "AI builder risk reports",
+            "AI progress claim review (PAY / HOLD / DISPUTE)",
             "AI stage-by-stage advice",
             "Fair Trading compliance reports",
             "Priority support",

@@ -79,7 +79,7 @@ function getInvoiceSubscriptionId(invoice: Stripe.Invoice): string | null {
 async function findProfileByCustomer(supabase: ReturnType<typeof getServiceSupabase>, customerId: string) {
     const { data, error } = await supabase
         .from("profiles")
-        .select("id, email, subscription_tier")
+        .select("id, email, subscription_tier, trial_ends_at")
         .eq("stripe_customer_id", customerId)
         .single();
     if (error) {
@@ -87,6 +87,16 @@ async function findProfileByCustomer(supabase: ReturnType<typeof getServiceSupab
         return null;
     }
     return data;
+}
+
+/**
+ * Tier to land on when a Stripe subscription stops being active.
+ * A cancelled/failed subscription must not wipe a still-valid trial
+ * entitlement (e.g. referral-earned days) — those users drop back to
+ * "trial" until trial_ends_at, not straight to "free".
+ */
+function downgradeTier(trialEndsAt: string | null | undefined): "trial" | "free" {
+    return trialEndsAt && new Date(trialEndsAt) > new Date() ? "trial" : "free";
 }
 
 export async function POST(req: NextRequest) {
@@ -192,8 +202,8 @@ export async function POST(req: NextRequest) {
 
                 console.log(`[Stripe] checkout.session.completed: user=${userId} → guardian_pro`);
 
-                // Track conversion in GA4
-                const amount = session.amount_total || 990;
+                // Track conversion in GA4 (fallback = $14.99 monthly price in cents)
+                const amount = session.amount_total || 1499;
                 await trackGA4Purchase(userId, amount, session.currency?.toUpperCase() || "AUD");
             }
             break;
@@ -208,7 +218,18 @@ export async function POST(req: NextRequest) {
 
             if (profile) {
                 const isActive = ACTIVE_SUBSCRIPTION_STATUSES.has(subscription.status);
-                const newTier = isActive ? "guardian_pro" : "free";
+
+                // Only an active subscription on a Guardian Pro price grants the
+                // pro tier — mirrors the price check in checkout.session.completed.
+                const hasGuardianProPrice = subscription.items.data.some(
+                    (item) => item.price?.id && GUARDIAN_PRO_PRICE_IDS.has(item.price.id)
+                );
+                if (isActive && !hasGuardianProPrice) {
+                    console.warn(`[Stripe] ${event.type}: customer=${customerId} active sub has no Guardian Pro price — skipping tier change`);
+                    break;
+                }
+
+                const newTier = isActive ? "guardian_pro" : downgradeTier(profile.trial_ends_at);
 
                 await supabase
                     .from("profiles")
@@ -239,15 +260,16 @@ export async function POST(req: NextRequest) {
                 const profile = await findProfileByCustomer(supabase, customerId);
 
                 if (profile && profile.subscription_tier === "guardian_pro") {
+                    const newTier = downgradeTier(profile.trial_ends_at);
                     await supabase
                         .from("profiles")
                         .update({
-                            subscription_tier: "free",
+                            subscription_tier: newTier,
                             subscription_updated_at: new Date().toISOString(),
                         })
                         .eq("id", profile.id);
 
-                    console.log(`[Stripe] invoice.payment_failed: customer=${customerId} → downgraded to free`);
+                    console.log(`[Stripe] invoice.payment_failed: customer=${customerId} → downgraded to ${newTier}`);
                 }
             }
             break;
@@ -258,11 +280,35 @@ export async function POST(req: NextRequest) {
         case "invoice.paid": {
             const invoice = event.data.object as Stripe.Invoice;
             const customerId = invoice.customer as string;
+            const subscriptionId = getInvoiceSubscriptionId(invoice);
 
-            if (getInvoiceSubscriptionId(invoice)) {
+            if (subscriptionId) {
                 const profile = await findProfileByCustomer(supabase, customerId);
 
                 if (profile && profile.subscription_tier !== "guardian_pro") {
+                    // Verify against the LIVE subscription before upgrading.
+                    // Stripe does not guarantee event ordering — a late-arriving
+                    // invoice.paid after customer.subscription.deleted must not
+                    // re-grant Pro forever. Also confirms the paid subscription
+                    // is actually a Guardian Pro price (mirrors the checkout check).
+                    let subscription: Stripe.Subscription;
+                    try {
+                        subscription = await stripe.subscriptions.retrieve(subscriptionId);
+                    } catch (e) {
+                        console.error(`[Stripe] invoice.paid: could not retrieve sub=${subscriptionId} for customer=${customerId}:`, e instanceof Error ? e.message : e);
+                        break;
+                    }
+
+                    const isActive = ACTIVE_SUBSCRIPTION_STATUSES.has(subscription.status);
+                    const hasGuardianProPrice = subscription.items.data.some(
+                        (item) => item.price?.id && GUARDIAN_PRO_PRICE_IDS.has(item.price.id)
+                    );
+
+                    if (!isActive || !hasGuardianProPrice) {
+                        console.warn(`[Stripe] invoice.paid: customer=${customerId} sub=${subscriptionId} status=${subscription.status} guardianProPrice=${hasGuardianProPrice} — skipping upgrade`);
+                        break;
+                    }
+
                     await supabase
                         .from("profiles")
                         .update({

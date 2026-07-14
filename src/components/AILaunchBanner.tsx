@@ -7,7 +7,7 @@ export default function AILaunchBanner() {
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <p className="text-sm sm:text-[15px] text-slate-700 dark:text-slate-200">
                         <span className="font-extrabold text-teal-700 dark:text-teal-300">New: Guardian AI is live.</span>{" "}
-                        Get AI defect descriptions, stage-specific advice, builder checks, and a construction chat copilot.
+                        Get AI defect descriptions, stage-specific advice, progress claim reviews, and a construction chat copilot.
                     </p>
                     <div className="flex items-center gap-2 shrink-0">
                         <Link

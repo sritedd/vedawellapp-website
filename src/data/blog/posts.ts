@@ -409,8 +409,9 @@ export const BLOG_POSTS: BlogPost[] = [
 <p>Every construction stage has critical checkpoints that most homeowners don't know about. The AI Stage Advisor gives you a tailored briefing for your current stage and state — what to watch for, which documents to collect, common builder mistakes, and payment guidance.</p>
 <p>It pulls from the National Construction Code, Australian Standards, and state-specific regulations so you don't have to read 400 pages of legislation yourself.</p>
 
-<h3>3. AI Builder Risk Check</h3>
-<p>Thinking about hiring a builder? Enter their company name and ABN, and Guardian's AI generates a risk assessment based on publicly available data — licence status, insurance, complaint history, and red flags to watch for in contracts.</p>
+<h3>3. AI Progress Claim Review</h3>
+<p>Builder sent a progress claim? Paste it into Guardian before you pay. The AI cross-checks the claim against your current stage, uploaded certificates, and open defects — then gives you a clear <strong>PAY</strong>, <strong>HOLD</strong>, or <strong>DISPUTE</strong> verdict with the reasons spelled out.</p>
+<p><em>(A Builder Risk Check is also on the roadmap — we're integrating real data sources like ABN Lookup and state licence registers first, so the assessments are verified rather than AI guesswork.)</em></p>
 
 <h3>4. Guardian Chat</h3>
 <p>Have a question about your build? Open Guardian Chat and ask anything. The AI has full context of your project — your stages, defects, variations, and inspections — so it can give specific, actionable advice rather than generic answers.</p>
@@ -423,7 +424,7 @@ export const BLOG_POSTS: BlogPost[] = [
 <p>Your project data stays in your Supabase database. The AI only sees the minimum context needed to answer your question — your current stage, state, and the specific defect or query. We never send your personal details, photos, or financial information to the AI model.</p>
 
 <h2>Pricing</h2>
-<p>AI Defect Descriptions are available on the <strong>free tier</strong>. Guardian Chat, Builder Risk Check, and Stage Advisor are included with <strong>Guardian Pro</strong> at no extra cost — still $14.99/month.</p>
+<p>AI Defect Descriptions are available on the <strong>free tier</strong>. Guardian Chat, Progress Claim Review, and Stage Advisor are included with <strong>Guardian Pro</strong> at no extra cost — still $14.99/month.</p>
 
 <p>Ready to build smarter? <a href="/guardian">Try HomeOwner Guardian with AI today.</a></p>`,
     },

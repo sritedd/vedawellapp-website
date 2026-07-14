@@ -6,7 +6,7 @@ import BreadcrumbJsonLd from "@/components/seo/BreadcrumbJsonLd";
 export const metadata: Metadata = {
     title: "HomeOwner Guardian Pricing — Free & Pro Plans | $14.99/mo",
     description:
-        "Guardian Free: 1 project, 3 defects, AI defect assist. Guardian Pro $14.99/mo: unlimited projects, AI chat, builder risk checks, PDF evidence packs. Cancel anytime.",
+        "Guardian Free: 1 project, 3 defects, AI defect assist. Guardian Pro $14.99/mo: unlimited projects, AI chat, progress claim review, PDF evidence packs. Cancel anytime.",
     keywords:
         "home construction tracker pricing, Australian building defect tracker, construction app cost, home builder protection, Guardian Pro price, owner builder tools Australia",
     openGraph: {
