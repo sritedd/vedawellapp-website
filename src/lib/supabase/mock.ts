@@ -58,6 +58,22 @@ export class MockSupabaseClient {
     from(table: string) {
         return new MockQueryBuilder(table, this.storage);
     }
+
+    // Realtime stub — useRealtimeProject chains .channel().on().subscribe()
+    // and later removeChannel(). Without these the dev-bypass project page
+    // throws "supabase.channel is not a function" and the ErrorBoundary trips.
+    channel(_name: string) {
+        const chan: any = {
+            on: () => chan,
+            subscribe: () => chan,
+            unsubscribe: () => chan,
+        };
+        return chan;
+    }
+
+    removeChannel(_channel: any) {
+        return Promise.resolve({ error: null });
+    }
 }
 
 class MockQueryBuilder {
@@ -118,6 +134,32 @@ class MockQueryBuilder {
     in(column: string, values: any[]) {
         return this;
     }
+
+    // PostgREST filter/modifier methods — all chainable no-ops in the mock.
+    // The real app chains these freely (e.g. .in(...).not(...), .gte(...).lt(...));
+    // each must return the builder so the chain resolves instead of throwing
+    // "x.not is not a function" and crashing the dev-bypass preview.
+    not(..._args: any[]) { return this; }
+    neq(..._args: any[]) { return this; }
+    gt(..._args: any[]) { return this; }
+    gte(..._args: any[]) { return this; }
+    lt(..._args: any[]) { return this; }
+    lte(..._args: any[]) { return this; }
+    like(..._args: any[]) { return this; }
+    ilike(..._args: any[]) { return this; }
+    is(..._args: any[]) { return this; }
+    or(..._args: any[]) { return this; }
+    and(..._args: any[]) { return this; }
+    filter(..._args: any[]) { return this; }
+    match(..._args: any[]) { return this; }
+    contains(..._args: any[]) { return this; }
+    containedBy(..._args: any[]) { return this; }
+    overlaps(..._args: any[]) { return this; }
+    textSearch(..._args: any[]) { return this; }
+    range(..._args: any[]) { return this; }
+    abortSignal(..._args: any[]) { return this; }
+    returns(..._args: any[]) { return this; }
+    csv() { return this; }
 
     limit(count: number) {
         return this;
