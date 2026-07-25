@@ -511,6 +511,23 @@ export const toolMetadata: Record<string, Metadata> = {
       canonical: "https://vedawellapp.com/tools/habit-tracker",
     },
   },
+  "migraine-tracker": {
+    title: "Free Migraine Tracker & Headache Diary - Log Triggers, Severity & Meds",
+    description: "Track migraine attacks, severity, triggers and medication in a clean headache diary. Spot patterns, watch medication-overuse days, and export a doctor-ready summary. Syncs to your account and Google Drive. Free.",
+    keywords: ["migraine tracker", "headache diary", "migraine diary", "migraine log", "headache tracker", "migraine trigger tracker", "medication overuse headache", "migraine app free", "track migraines online", "headache severity chart"],
+    openGraph: {
+      title: "Free Migraine Tracker & Headache Diary - Triggers, Severity, Meds",
+      description: "Log migraine attacks and spot patterns. Track triggers, severity and medication days. Export a doctor-ready summary. Syncs to your account and Google Drive.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Free Migraine Tracker & Headache Diary",
+      description: "Log migraines, spot triggers, watch medication-overuse days, export a doctor-ready summary. Syncs to your account and Google Drive.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/migraine-tracker",
+    },
+  },
   "hash-generator": {
     title: "Hash Generator Online Free - MD5, SHA-1, SHA-256, SHA-512",
     description: "Generate MD5, SHA-1, SHA-256 and SHA-512 hashes from text instantly. Verify file integrity and create checksums. 100% browser-based, your data stays private.",

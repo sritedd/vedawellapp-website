@@ -931,6 +931,16 @@ export const TOOLS: ToolEntry[] = [
         href: '/tools/breathing-exercise',
     },
     {
+        id: 'migraine-tracker',
+        title: 'Migraine Tracker',
+        description: 'Log migraine attacks, severity, triggers and medication. Syncs to your account and Google Drive; exports a doctor-ready summary.',
+        icon: '🧠',
+        category: 'wellness',
+        tags: ['migraine', 'headache', 'tracker', 'diary', 'triggers', 'medication overuse', 'health'],
+        color: CATEGORY_COLORS.wellness,
+        href: '/tools/migraine-tracker',
+    },
+    {
         id: 'metronome',
         title: 'Metronome',
         description: 'Adjustable BPM metronome for music practice and rhythm.',
