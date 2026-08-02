@@ -114,7 +114,11 @@ supabase-seed.ts                    Supabase client
 
 ## Known Limitations
 
-1. **QLD/WA have no workflow stages** — `australian-build-workflows.json` doesn't define stages for these states. Tests verify graceful empty state.
+1. ~~**QLD/WA have no workflow stages**~~ **STALE — corrected 2026-07-25.** All 8 states now have
+   full `new_build` workflows: NSW 8, VIC 10, QLD 7, WA 8, SA 7, TAS 7, ACT 7, NT 7. The step-3/4
+   matrix above (which skips QLD/WA) is therefore also out of date. Real gaps are in the *other*
+   categories: `granny_flat` exists only for NSW (7 stages) and VIC (0 — empty array), and
+   `extension` only for NSW (8). See `guide/16-E2E-BROWSER-TEST-PLAN.md`.
 2. **No storage tests** — photo upload, document upload not tested end-to-end (requires Supabase Storage buckets).
 3. **Sequential only** — tests share DB state per state, must run single worker.
 
