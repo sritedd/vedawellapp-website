@@ -39,8 +39,10 @@ These are blockers. Each has been verified as of 2026-07-25.
 | P4 | Dev server | — | `npm run dev` on a known port. Test against **localhost**, never prod — this plan creates and deletes real rows. |
 | P5 | Test account | — | Reuse `ensureTestUser()` from `e2e/setup/supabase-seed.ts` (`e2e-test@vedawellapp.com` / `E2eTestPass!2026`, auto-set to `guardian_pro`), then flip `is_admin=true` for admin runs. |
 
-**Never run this plan against production.** Project creation, defect logging, and the delete
-cascade all write real rows. Localhost only, unless explicitly testing a deploy smoke.
+**Target update (2026-07-25)**: the user has decided this plan runs against **live prod**
+(`https://vedawellapp.com`). The original localhost-only rule is superseded by the safety rails
+in `guide/17-E2E-PROD-RUN-PLAYBOOK.md` §1 — namespaced `E2E …` test data with mandatory cleanup,
+no Stripe payment completion (live mode), test accounts only, no cron triggering.
 
 ---
 

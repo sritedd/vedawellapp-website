@@ -13,8 +13,10 @@ Drives the **real UI in a real browser**. This is not the `e2e/*.spec.ts` Playwr
 
 ## Non-negotiables
 
-1. **Localhost only.** This creates and deletes real rows. Never run against
-   `vedawellapp.com` unless the user explicitly asks for a read-only deploy smoke.
+1. **Target = LIVE PROD** (`https://vedawellapp.com`) per user decision 2026-07-25 — but under
+   the safety rails in `guide/17-E2E-PROD-RUN-PLAYBOOK.md` §1: all test projects named `E2E …`
+   and cleaned up, never complete a Stripe payment (live mode!), touch only `e2e-*@` test
+   accounts, never trigger `/api/cron/*`. Read the playbook before the browser.
 2. **NSW first, completely.** Don't start VIC until every NSW box is ✅ or has a logged finding.
 3. **Snapshot before clicking.** Take an accessibility snapshot and use the real ref. Never
    guess a CSS selector.
