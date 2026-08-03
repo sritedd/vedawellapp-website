@@ -18,6 +18,10 @@ export default async function ProjectsPage() {
         .order('created_at', { ascending: false })
         .limit(50);
 
+    if (error) {
+        console.error("[Projects] Failed to load projects:", error.message);
+    }
+
     return (
         <>
             {/* Guardian Sub-Navigation */}
@@ -47,7 +51,25 @@ export default async function ProjectsPage() {
                         </Link>
                     </div>
 
-                    {!projects || projects.length === 0 ? (
+                    {error ? (
+                        // A failed query must never masquerade as "you have no
+                        // projects" — that is how an RLS outage (v47) looked
+                        // identical to a brand-new account for every user.
+                        <div className="bg-card border border-red-500/40 rounded-xl p-12 text-center">
+                            <span className="text-5xl mb-4 block">⚠️</span>
+                            <h3 className="text-xl font-bold mb-2">Couldn&apos;t load your projects</h3>
+                            <p className="text-muted mb-6">
+                                Something went wrong reading your projects. Your data is safe — please
+                                refresh, and contact support if this keeps happening.
+                            </p>
+                            <a
+                                href="mailto:support@vedawellapp.com?subject=Projects%20failed%20to%20load"
+                                className="px-4 py-2 border border-border rounded-lg font-medium hover:bg-muted/10 transition-colors"
+                            >
+                                Contact support
+                            </a>
+                        </div>
+                    ) : !projects || projects.length === 0 ? (
                         <div className="bg-card border border-border rounded-xl p-12 text-center">
                             <span className="text-5xl mb-4 block">🏗️</span>
                             <h3 className="text-xl font-bold mb-2">No Projects Yet</h3>

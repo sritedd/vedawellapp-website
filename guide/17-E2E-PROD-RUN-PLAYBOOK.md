@@ -8,7 +8,11 @@
 > **Audience**: a future Opus session. Execute top to bottom. Phase A fixes known-broken specs
 > BEFORE any run — running first and "discovering" these failures wastes a full cycle.
 >
-> **Status**: NOT RUN — playbook created 2026-07-25 after reviewing the E2E suite.
+> **Status**: RUN 2026-08-03 — **HALTED AT PHASE B WITH A P0 PRODUCTION OUTAGE.**
+> Phase A complete. Phase B NSW run found that 18 of 21 tables are unreadable for every
+> authenticated user in prod (`infinite recursion detected in policy for relation "projects"`).
+> Guardian is non-functional for all logged-in customers. Fix written: `supabase/schema_v47_rls_recursion_fix.sql`
+> — **must be run in the Supabase SQL Editor before testing can continue.** See §8.
 
 ---
 
@@ -163,3 +167,103 @@ logged in as the pro test user (admin-flagged for 4A4/AI6). Prod deltas:
 - NSW green end-to-end (specs + browser journey) on prod; 7 states pass the short circuit.
 - No `E2E %` rows left in prod; `is_admin` reverted; no unexplained Sentry events.
 - Findings triaged with severities; docs updated.
+
+---
+
+## 8. RUN RESULTS — 2026-08-03
+
+### 8.1 Phase A — spec fixes ✅ DONE
+
+| Fix | Detail |
+|-----|--------|
+| A1 | `guardian-full-workflow.spec.ts` now derives expected stages from `australian-build-workflows.json` via `stagesFor()`, and covers **all 8 states** (was 4). VIC's hardcoded 2-stage list (vs 10 real) and the dead "QLD/WA have no stages" branch are gone. Drift is now structurally impossible. |
+| A2 | `guardian-ai.spec.ts`: `BASE_URL` honours `E2E_BASE_URL`; Pro blocks use `e2e-test@`; the "Free User" block now uses a genuinely-free `e2e-free@`; the chat test is preview-aware (see below). |
+| A3 | `guardian-smoke.spec.ts` left alone, excluded from prod config (seeds local Postgres the deployed app can never read). Backlog: redesign or retire. |
+| Validation | `tsc --noEmit` clean; `--list` → **89 tests in 2 files** (8 states × 9 + AI), zero smoke. |
+
+Accounts provisioned on prod via new `e2e/setup/prod-accounts.mjs` (idempotent):
+`e2e-test@vedawellapp.com` (guardian_pro) and `e2e-free@vedawellapp.com` (free, 0 `ai_usage_log` rows).
+
+### 8.2 🔴 P0-1 — Total RLS outage: 18/21 tables unreadable when logged in
+
+**Impact**: every authenticated user — free, trial, and **paying Pro** — cannot read their own
+projects or any project-scoped data. The product is effectively down for all customers.
+
+**Symptom on prod**: `/guardian/projects` renders "No Projects Yet"; the dashboard shows
+"Getting Started" as if the account were brand new. No error is shown to anyone.
+
+**Underlying error**: `infinite recursion detected in policy for relation "projects"`
+
+**Cause** — two policies each subquery the other's table, so evaluation never terminates:
+
+| Policy | Migration | Reads |
+|--------|-----------|-------|
+| `projects."Members can view shared projects"` | v40 | `project_members` |
+| `project_members."Project owners can manage members"` | v33 | `projects` |
+
+Everything scoped through `projects` (stages, defects, payments, …) inherits the cycle.
+
+**Blast radius measured on prod** (`e2e/setup/blast-radius.mjs`, authenticated as a real Pro user):
+
+```
+BROKEN (18): projects, project_members, stages, defects, variations, certifications,
+             inspections, payments, documents, communication_log, progress_photos,
+             weekly_checkins, site_visits, pre_handover_items, contract_review_items,
+             builder_reviews, materials, activity_log
+OK (3):      profiles, escalations, allowances
+```
+
+**Fix**: `supabase/schema_v47_rls_recursion_fix.sql` — replaces both cycle edges with
+`SECURITY DEFINER` helpers (`is_project_member`, `is_project_owner`) that look up membership
+/ownership without re-entering policy evaluation. Standard Supabase pattern.
+
+**Fix verified before shipping** — `e2e/setup/verify-rls-fix.mjs` rebuilds the current policy
+shape on a local Postgres and proves the behaviour change:
+
+```
+Before fix: owner reads projects → ERROR infinite recursion   (reproduces prod exactly)
+After fix:  owner reads projects → OK, 1 row
+            accepted member sees shared project → YES (v40's feature preserved)
+            stranger sees nothing → YES (no leak introduced)
+```
+
+**Why no one noticed**: see P1-1 — the UI reports a hard DB failure as an empty state.
+
+**ACTION REQUIRED**: run `schema_v47_rls_recursion_fix.sql` in the Supabase SQL Editor.
+Testing cannot proceed past this point — no logged-in user can read any project data.
+
+### 8.3 🟠 P1-1 — Failed queries render as "you have no data" (fixed in code)
+
+`src/app/guardian/projects/page.tsx:14` destructured `error` and never used it; a failed read
+fell through to `!projects` → the "No Projects Yet" empty state. The dashboard had the same
+shape (`projectsResult.data || []`, error unchecked). This is precisely why a total outage was
+invisible — and it violates the repo's own rule ("ALWAYS check `.error` … never ignore failures").
+
+Fixed: both surfaces now distinguish *failed to load* from *nothing to show*, log server-side,
+and offer a support link. An outage will now be visible instead of looking like a new account.
+
+### 8.4 Phase B — NSW workflow spec (blocked by P0-1)
+
+`2 passed, 7 failed (10.2m)`. Passing: login reaches the dashboard, and no console errors.
+All 7 failures are downstream of P0-1 — the seeded project is invisible to the logged-in user,
+so every assertion that needs project data fails. **Not spec bugs**; re-run after v47.
+
+### 8.5 Remaining
+
+- [ ] Run v47 on prod, re-verify with `node e2e/setup/blast-radius.mjs` (expect 0 broken)
+- [ ] Re-run Phase B NSW → then the other 7 states
+- [ ] Phase C browser-MCP journey (§4 of plan 16) — creation wizard still never exercised
+- [ ] Phase D teardown + report
+
+### 8.6 🟠 P1-2 — Production test-account credentials in a public repo
+
+The GitHub repo is **public** (unauthenticated API access returns 200), and
+`e2e/setup/supabase-seed.ts` has long committed `TEST_PASSWORD = "E2eTestPass!2026"` for
+`e2e-test@vedawellapp.com` — an account that exists on **production** with the
+`guardian_pro` tier. Anyone reading the repo can sign in to the live app as a Pro user.
+
+Not introduced by this run, but this run added a second such account, so the scripts now read
+`E2E_PRO_PASSWORD` / `E2E_FREE_PASSWORD` from env (defaults preserved for continuity).
+
+Recommended: rotate both passwords, set them via env/CI secrets only, and consider dropping the
+test accounts to `free` tier except while a run needs Pro.

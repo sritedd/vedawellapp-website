@@ -36,6 +36,14 @@ export default async function DashboardPage() {
         console.error("[dashboard] Profile fetch failed:", profileResult.error?.message);
     }
 
+    // A failed projects read must be distinguishable from "no projects yet".
+    // Silently coercing the error to [] is how the v47 RLS recursion outage
+    // looked identical to a brand-new account for every logged-in user.
+    const projectsFailed = !!projectsResult.error;
+    if (projectsFailed) {
+        console.error("[dashboard] Projects fetch failed:", projectsResult.error?.message);
+    }
+
     const rawTier = profile?.subscription_tier || 'free';
     const isAdmin = profile?.is_admin === true || isAdminEmail(user.email);
     const trialActive = rawTier === 'trial' && profile?.trial_ends_at && new Date(profile.trial_ends_at) > new Date();
@@ -310,8 +318,23 @@ export default async function DashboardPage() {
                         )}
                     </div>
 
-                    {/* Getting Started OR Projects List */}
-                    {!projects || projects.length === 0 ? (
+                    {/* Load failure OR Getting Started OR Projects List */}
+                    {projectsFailed ? (
+                        <div className="card border-red-500/40">
+                            <h2 className="text-xl font-bold mb-2">⚠️ Couldn&apos;t load your projects</h2>
+                            <p className="text-muted">
+                                Something went wrong reading your projects — this is not the same as
+                                having none. Your data is safe. Please refresh, and{" "}
+                                <a
+                                    href="mailto:support@vedawellapp.com?subject=Dashboard%20failed%20to%20load%20projects"
+                                    className="text-primary hover:underline"
+                                >
+                                    contact support
+                                </a>{" "}
+                                if it keeps happening.
+                            </p>
+                        </div>
+                    ) : !projects || projects.length === 0 ? (
                         <div className="card border-primary/30 bg-primary/5">
                             <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><Rocket className="w-5 h-5 text-primary" /> Getting Started</h2>
                             <ol className="list-decimal list-inside space-y-2 text-muted">

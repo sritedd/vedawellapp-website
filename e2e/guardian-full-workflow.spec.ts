@@ -1,15 +1,21 @@
 /**
- * Guardian Full Workflow E2E Tests — All 4 State Codes
+ * Guardian Full Workflow E2E Tests — all 8 states/territories
  *
  * Simulates the complete homeowner journey:
  *   Login → Create Project → Walk through stages → Log data → Close project
  *
- * Tests each state: NSW (8 stages), VIC (2 stages), QLD (no stages), WA (no stages)
+ * Expected stages are DERIVED from src/data/australian-build-workflows.json at
+ * run time rather than hardcoded. Hardcoded copies drifted badly before: VIC was
+ * pinned at 2 stages when the JSON had grown to 10, and QLD/WA were described as
+ * having no stages at all when both have full workflows. Deriving means the spec
+ * can never disagree with the data the app itself seeds from.
+ *
  * Uses Supabase cloud for auth + data (service role key bypasses RLS).
  * No mock data in application code.
  *
- * Run: npm run test:e2e
- * Run one state: npx @playwright/test test guardian-full-workflow -g "NSW"
+ * Run (local):  npm run test:e2e
+ * Run (prod):   npx playwright test --config=playwright.prod.config.ts guardian-full-workflow
+ * One state:    ... guardian-full-workflow -g "NSW"
  */
 
 import { test, expect, Page } from "@playwright/test";
@@ -28,61 +34,37 @@ import {
 
 // ─── Config ────────────────────────────────────────
 
+import workflowData from "../src/data/australian-build-workflows.json";
+
+/** Stage names for a state's new_build workflow, straight from the app's own data. */
+function stagesFor(stateCode: string): string[] {
+    const workflows = (workflowData as {
+        workflows?: Record<string, Record<string, { stages?: Array<{ name: string }> }>>;
+    }).workflows;
+    return workflows?.new_build?.[stateCode]?.stages?.map((s) => s.name) ?? [];
+}
+
+const STATE_META: Record<string, { name: string; insuranceLabel: string }> = {
+    NSW: { name: "New South Wales", insuranceLabel: "HBCF Policy #" },
+    VIC: { name: "Victoria", insuranceLabel: "DBI Policy #" },
+    QLD: { name: "Queensland", insuranceLabel: "QBCC Insurance #" },
+    WA: { name: "Western Australia", insuranceLabel: "Home Warranty Policy #" },
+    SA: { name: "South Australia", insuranceLabel: "BIG Policy #" },
+    TAS: { name: "Tasmania", insuranceLabel: "Insurance Policy #" },
+    ACT: { name: "Australian Capital Territory", insuranceLabel: "Insurance Policy #" },
+    NT: { name: "Northern Territory", insuranceLabel: "Insurance Policy #" },
+};
+
 const STATE_CONFIGS: Record<string, {
     name: string;
     expectedStages: string[];
     insuranceLabel: string;
-}> = {
-    NSW: {
-        name: "New South Wales",
-        expectedStages: [
-            "Site Start",
-            "Slab / Footings",
-            "Frame Stage",
-            "Lockup / Enclosed",
-            "Pre-Plasterboard",
-            "Fixing Stage",
-            "Practical Completion (PC)",
-            "Warranty Period",
-        ],
-        insuranceLabel: "HBCF Policy #",
-    },
-    VIC: {
-        name: "Victoria",
-        expectedStages: [
-            "Planning Permit",
-            "Building Permit",
-        ],
-        insuranceLabel: "DBI Policy #",
-    },
-    QLD: {
-        name: "Queensland",
-        expectedStages: [
-            "Site Start",
-            "Base / Slab",
-            "Frame Stage",
-            "Enclosed / Lockup",
-            "Fixing Stage",
-            "Practical Completion",
-            "Warranty Period",
-        ],
-        insuranceLabel: "QBCC Insurance #",
-    },
-    WA: {
-        name: "Western Australia",
-        expectedStages: [
-            "Site Start",
-            "Slab Stage",
-            "Plate Height / Wall Frame",
-            "Roof On",
-            "Lockup & Weatherproof",
-            "Fixing Stage",
-            "Practical Completion (PCI)",
-            "Warranty Period",
-        ],
-        insuranceLabel: "Home Warranty Policy #",
-    },
-};
+}> = Object.fromEntries(
+    Object.entries(STATE_META).map(([code, meta]) => [
+        code,
+        { ...meta, expectedStages: stagesFor(code) },
+    ])
+);
 
 // ─── Helpers ───────────────────────────────────────
 
@@ -181,17 +163,19 @@ for (const [stateCode, config] of Object.entries(STATE_CONFIGS)) {
 
             await goToTab(page, "Stages");
 
-            if (config.expectedStages.length > 0) {
-                for (const stageName of config.expectedStages) {
-                    await expect(
-                        page.locator(`text=${stageName}`).first(),
-                        `Stage "${stageName}" not found for ${stateCode}`
-                    ).toBeVisible({ timeout: 5000 });
-                }
-            } else {
-                // QLD/WA: empty is expected — just verify no crash
-                const content = await page.locator(".min-h-\\[500px\\]").textContent();
-                expect(content).toBeDefined();
+            // Every state has a new_build workflow, so this list is never empty.
+            // Guard anyway: an empty list would mean the JSON lost a state, which
+            // is a data regression worth failing loudly on.
+            expect(
+                config.expectedStages.length,
+                `${stateCode} has no new_build stages in australian-build-workflows.json`
+            ).toBeGreaterThan(0);
+
+            for (const stageName of config.expectedStages) {
+                await expect(
+                    page.locator(`text=${stageName}`).first(),
+                    `Stage "${stageName}" not found for ${stateCode}`
+                ).toBeVisible({ timeout: 5000 });
             }
 
             // Cross-check via API
