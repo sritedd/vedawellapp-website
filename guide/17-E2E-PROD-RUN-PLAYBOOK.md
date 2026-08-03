@@ -13,6 +13,11 @@
 > authenticated user in prod (`infinite recursion detected in policy for relation "projects"`).
 > Guardian is non-functional for all logged-in customers. Fix written: `supabase/schema_v47_rls_recursion_fix.sql`
 > — **must be run in the Supabase SQL Editor before testing can continue.** See §8.
+>
+> Findings: **P0-1** RLS recursion outage (fix written, needs running) · **P1-1** failed reads
+> rendered as empty states (fixed in code) · **P1-2** prod test creds in a public repo ·
+> **P1-3** all AI generation 503ing on a quota-exhausted model (one-line fix, not committed) ·
+> **P2-1** AI spec fires faster than the rate limiter.
 
 ---
 
@@ -267,3 +272,77 @@ Not introduced by this run, but this run added a second such account, so the scr
 
 Recommended: rotate both passwords, set them via env/CI secrets only, and consider dropping the
 test accounts to `free` tier except while a run needs Pro.
+
+### 8.7 🟠 P1-3 — All AI generation is failing in production (quota-exhausted model)
+
+**Symptom on prod** (probed with real sessions, `e2e/setup/probe-ai.mjs`):
+
+```
+503  describe-defect  {"fallback":true,"reason":"AI generation failed"}
+503  stage-advice     {"advice":"We were unable to generate AI advice at this time…"}
+503  builder-check    {"comingSoon":true}          ← correct by design, not a fault
+```
+
+The 503-with-fallback behaviour is the *designed* degradation and it works — but no user,
+free or Pro, is getting AI output from Defect Assist or Stage Advice.
+
+**Not a config problem.** The admin diagnostic (`GET /api/guardian/ai/chat`) reports
+`ai_available: true`, `cheap_ai_available: true`, `GOOGLE_AI_API_KEY: true`,
+`selected_model: gemini-2.5-flash`, `model_init: ok`.
+
+**Root cause** — the *cheap* model is quota-exhausted while the others are healthy. Testing the
+key directly against Google:
+
+```
+429  gemini-2.0-flash        "You exceeded your current quota…"   ← used by getCheapModel()
+200  gemini-2.5-flash        OK
+200  gemini-2.5-flash-lite   OK
+```
+
+`getCheapModel()` (`src/lib/ai/provider.ts:225`) returns `gemini-2.0-flash`, and that powers
+describe-defect, stage-advice and builder-check. Chat uses the smart model and is unaffected.
+
+Note the docs/code disagree: `.claude/CLAUDE.md` states the AI model is "Gemini 2.5 Flash-Lite
+(FREE, 1000 req/day)", but the code has been calling `gemini-2.0-flash`.
+
+**Fix (one line)** — align code with the documented model, which also has quota:
+
+```diff
+- if (getGoogleApiKey()) return getGoogle()("gemini-2.0-flash");
++ if (getGoogleApiKey()) return getGoogle()("gemini-2.5-flash-lite");
+```
+
+**NOT committed by this run**: `src/lib/ai/provider.ts` currently holds ~233 lines of
+unrelated, uncommitted local work (Lemonade provider support). Committing the one-line model fix
+would drag that experimental code into a production deploy. Apply this line alongside that work
+when it's ready to ship.
+
+### 8.8 🟡 P2-1 — AI spec fails on prod because tests fire faster than the rate limiter
+
+`guardian-ai` on prod: **4 passed / 13 failed**. The 4 passes are the unauthenticated 401 checks.
+The failures are NOT product bugs — they are two environmental effects the spec doesn't model:
+
+1. **429 from `checkRateLimit`** — a 5s (10s for parse routes) per-user window. The Input
+   Validation block fires 6 requests back to back as one user, so requests 2+ return
+   `429 "Please wait a few seconds"` instead of the expected 400.
+2. **503 from P1-3** — tests expecting `200` on describe-defect can't pass while the cheap model
+   is quota-exhausted.
+
+Verified by hand with 8s spacing: validation returns the correct `400`s, free-tier gating returns
+the correct `403`, and free chat on a bogus project correctly returns `404`. The product logic is
+right; the spec needs per-request spacing (or a rate-limit-aware helper) before its results mean
+anything on prod. Fix the spec in the next pass.
+
+### 8.9 Confirmed-correct behaviour (positive results)
+
+| Check | Result |
+|-------|--------|
+| Unauthenticated AI routes | `401 Authentication required` ✅ |
+| Input validation (spaced) | `400 Description is required`, `400 projectId is required` ✅ |
+| Free-tier gating | `403 "AI Stage Advice is available on the Pro plan"` ✅ |
+| Free chat on a project they don't own | `404 Project not found` — no cross-tenant leak ✅ |
+| Builder Check | `503 comingSoon` as designed ✅ |
+| AI failure degradation | 503 + `fallback: true`, never a silent 200 ✅ |
+| Login (both accounts) | reaches dashboard ✅ |
+| Public pages | `/guardian`, `/guardian/login`, `/guardian/pricing` all 200 ✅ |
+| Teardown | `is_admin` reverted; 0 leftover `E2E %` projects ✅ |
