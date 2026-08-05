@@ -346,3 +346,97 @@ anything on prod. Fix the spec in the next pass.
 | Login (both accounts) | reaches dashboard ✅ |
 | Public pages | `/guardian`, `/guardian/login`, `/guardian/pricing` all 200 ✅ |
 | Teardown | `is_admin` reverted; 0 leftover `E2E %` projects ✅ |
+
+---
+
+## 9. RUN RESULTS — 2026-08-05 (post-v47/v48, full NSW journey)
+
+### 9.1 🔴 P0-2 — defect/variation INSERT recursion (FIXED, v48 applied)
+
+Found immediately after v47 unblocked reads: logging a defect failed for **every**
+user (reproduced on a `guardian_pro` + `is_admin` account) with
+`infinite recursion detected in policy for relation "defects"`.
+
+Cause: the free-tier cap was enforced inside each table's own INSERT policy by
+counting rows of that same table. `has_pro_access() OR (...)` does not save it —
+SQL doesn't guarantee short-circuit evaluation, so the subquery is planned for
+every tier. Isolated by probing tables with/without the pattern:
+
+```
+defects    INSERT -> RECURSION   variations INSERT -> RECURSION
+materials  INSERT -> OK (control)  projects INSERT -> OK (2nd still blocked)
+```
+
+`schema_v48_insert_policy_recursion_fix.sql` drops the self-referential counting
+and lets the already-deployed v41/v42 SECURITY DEFINER triggers enforce caps.
+Applied 2026-08-05. **Verified on prod** (`verify-write-limits.mjs`):
+
+| Check | Result |
+|---|---|
+| Pro: 4 defects + variation | all OK (uncapped) ✅ |
+| Free: defects 1–3 / 4th | OK / **blocked** ✅ |
+| Free: variations 1–2 / 3rd | OK / **blocked** ✅ |
+| Free writes into Pro's project | **blocked** ✅ |
+
+### 9.2 🟠 P1-4 — "Next Payment" showed the cheapest milestone, not the next one
+
+`PaymentSchedule.tsx` fetched payments with `.order("percentage", ascending)`, so
+on a brand-new NSW build the schedule sorted PC (5%) first and
+`payments.find(p => p.status !== "paid")` picked it as **Next Payment: $32,500 —
+Practical Completion**. The correct answer is **Site Start, $65,000 (10%)**.
+
+Impact: understates what's actually due next, renders the payment schedule in
+cost order rather than build order, and runs the "Should I Pay?" certificate
+check against the wrong milestone.
+
+Fixed: payments are now ordered by the matching stage's `order_index` (the
+`payments` table has no order column); unmatched milestones sink to the bottom
+instead of jumping the queue.
+
+### 9.3 🟡 P2-2 — NSW payment milestones total 90%, not 100%
+
+Seeding parses percentages out of free-text strings and takes the **low end** of
+ranges: `"Frame Stage (15-20%)"` → 15, `"Final Stage / Practical Completion
+(5-10%)"` → 5. NSW totals 90%. May be intentional (deposit held separately) —
+flagged for the owner's judgement, not changed.
+
+### 9.4 Full NSW journey — PASSED end to end
+
+First time the creation wizard has ever been exercised. Everything below was
+driven through the real UI on prod:
+
+| Step | Result |
+|---|---|
+| Wizard step 1 (8 states + 3 categories) | ✅ email gate correctly bypassed for admin |
+| Wizard step 2 (9 fields incl. NSW HBCF) | ✅ all persisted exactly |
+| Seeding | ✅ 8 stages in order, 20 checklist items, 14 certs, 5 payments |
+| 16 project sub-tabs | ✅ all render, no errors ("empty" ones correctly empty) |
+| 22 More-section tools | ✅ all render, no errors |
+| Log a defect via UI | ✅ persisted with exact severity/stage/status |
+| Certificate gate | ✅ correct — flags 7 missing certs for PC, "Do NOT pay" |
+| Dashboard aggregates | ✅ $650k contract, 1 open defect, projected total correct |
+| Delete project (type-to-confirm) | ✅ deleted, **0 orphans across 17 child tables** |
+
+### 9.5 Corrections made during this run
+
+- Initially flagged the certificate gate as inverted ("cleared" with 0 uploaded).
+  **Wrong** — Site Start genuinely requires 0 certificates in the NSW workflow, and
+  all 14 certs link to the 6 stages that need them. Only real note: a green
+  "you may proceed with payment" banner directly above 8 unchecked ⬜ boxes reads
+  as contradictory and should be visually separated.
+- Initially reported member sharing broken after v47. **Wrong** — the probe's
+  membership insert failed on a NOT NULL `invited_by`. With a valid row, an
+  accepted member sees the shared project correctly.
+
+### 9.6 Still open
+
+- **P1-3 AI outage** — re-confirmed 503 `"AI generation failed"`. `gemini-2.0-flash`
+  is quota-exhausted (429) while `gemini-2.5-flash-lite` returns 200. One-line fix
+  in `provider.ts:225`, still uncommitted because that file holds unrelated
+  in-progress Lemonade work. Degradation itself is correct (503 + fallback text).
+- P1-2 prod test creds in a public repo (rotate).
+- P2-1 AI spec fires faster than the 5s rate limiter — needs pacing.
+- P3: `/api/admin/export?_rsc=` 400 (Next prefetching an API route), React #418
+  hydration mismatch, CSP blocks Google funding-choices consent script.
+- Latent: `projects` INSERT policy still carries the self-referential pattern
+  (currently behaves correctly; harden when convenient).

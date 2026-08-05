@@ -31,23 +31,48 @@ export default function PaymentSchedule({ projectId, contractValue }: PaymentSch
         const { data: paymentData, error: paymentError } = await supabase
             .from("payments")
             .select("*")
-            .eq("project_id", projectId)
-            .order("percentage", { ascending: true });
+            .eq("project_id", projectId);
 
         const { data: certData, error: certError } = await supabase
             .from("certifications")
             .select("type, status")
             .eq("project_id", projectId);
 
-        if (paymentError || certError) {
-            const which = paymentError ? "payment schedule" : "certificates";
-            console.error(`[PaymentSchedule] Failed to load ${which}:`, paymentError?.message || certError?.message);
+        // Stages carry the construction sequence; payments have no order column.
+        const { data: stageData, error: stageError } = await supabase
+            .from("stages")
+            .select("name, order_index")
+            .eq("project_id", projectId)
+            .order("order_index", { ascending: true });
+
+        if (paymentError || certError || stageError) {
+            const which = paymentError ? "payment schedule" : certError ? "certificates" : "build stages";
+            console.error(`[PaymentSchedule] Failed to load ${which}:`, paymentError?.message || certError?.message || stageError?.message);
             setLoadError(`Couldn't load your ${which}. Refresh the page — do not record payments until this loads.`);
             setLoading(false);
             return;
         }
 
-        setPayments(paymentData || []);
+        // Order payments by BUILD SEQUENCE, not by amount. Sorting by
+        // `percentage` put the cheapest milestone first, so "Next Payment"
+        // showed Practical Completion (5%) on a brand-new build instead of
+        // Site Start (10%) — understating what's actually due next and
+        // running the "Should I Pay?" check against the wrong milestone.
+        const stageOrder = new Map<string, number>(
+            (stageData || []).map((s: { name: string; order_index: number }) => [s.name, s.order_index])
+        );
+        const ordered = [...(paymentData || [])].sort((a, b) => {
+            const ai = stageOrder.get(a.stage_name);
+            const bi = stageOrder.get(b.stage_name);
+            // Milestones whose stage can't be matched sink to the bottom rather
+            // than silently jumping the queue.
+            if (ai === undefined && bi === undefined) return 0;
+            if (ai === undefined) return 1;
+            if (bi === undefined) return -1;
+            return ai - bi;
+        });
+
+        setPayments(ordered);
         setCertifications(certData || []);
         setLoading(false);
     };

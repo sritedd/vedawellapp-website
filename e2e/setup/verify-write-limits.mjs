@@ -39,7 +39,7 @@ const mkProject = (uid, name) => admin.from("projects").insert({
 }).select("id").single();
 
 const defect = (pid, n) => ({ project_id: pid, title: `E2E defect ${n}`, description: "probe", severity: "minor", status: "open", stage: "Site Start" });
-const variation = (pid, n) => ({ project_id: pid, title: `E2E variation ${n}`, description: "probe", additional_cost: 100, status: "pending" });
+const variation = (pid, n) => ({ project_id: pid, title: `E2E variation ${n}`, description: "probe", additional_cost: 100, status: "draft" });
 
 const tag = (e) => !e ? "OK" : (/infinite recursion/i.test(e.message) ? "RECURSION ❌" : (/FREE_TIER|row-level security/i.test(e.message) ? "blocked" : "ERR: " + e.message.slice(0, 60)));
 
