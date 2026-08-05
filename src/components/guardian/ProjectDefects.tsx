@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { logActivity } from "@/lib/activity-log";
 import Link from "next/link";
 import {
     createDefectStatusUpdate,
@@ -218,6 +219,19 @@ export default function ProjectDefects({ projectId, stages, builderEmail, onData
                 setError(`Failed to save: ${insertError.message}`);
             }
         } else if (data) {
+            // Audit trail — defects are the backbone of a tribunal evidence pack,
+            // so their creation must be on the record, not just the row itself.
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                logActivity(supabase, {
+                    projectId,
+                    userId: user.id,
+                    action: "defect.created",
+                    entityType: "defect",
+                    entityId: data.id,
+                    newValues: { title: data.title, severity: data.severity, stage: data.stage, status: data.status },
+                });
+            }
             setDefects([{
                 ...data,
                 reported_date: (data.reported_date || data.created_at || "").split("T")[0],

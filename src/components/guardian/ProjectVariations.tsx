@@ -2,6 +2,7 @@
 import { useEffect, useState, useRef } from "react";
 import { AlertOctagon, AlertTriangle, FileText } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { logActivity } from "@/lib/activity-log";
 import Link from "next/link";
 import { formatMoney } from "@/utils/format";
 import SignatureCanvas from "react-signature-canvas";
@@ -251,18 +252,34 @@ export default function ProjectVariations({
                         const formData = new FormData(form);
                         const supabase = createClient();
 
-                        const { error } = await supabase.from("variations").insert({
+                        const title = formData.get("title") as string;
+                        const additionalCost = parseFloat(formData.get("additional_cost") as string) || 0;
+
+                        const { data: inserted, error } = await supabase.from("variations").insert({
                             project_id: projectId,
-                            title: formData.get("title") as string,
+                            title,
                             description: formData.get("description") as string,
-                            additional_cost: parseFloat(formData.get("additional_cost") as string) || 0,
+                            additional_cost: additionalCost,
                             labour_cost: parseFloat(formData.get("labour_cost") as string) || 0,
                             material_cost: parseFloat(formData.get("material_cost") as string) || 0,
                             reason_category: formData.get("reason_category") as string || null,
                             status: "draft",
-                        });
+                        }).select("id").single();
 
                         if (!error) {
+                            // Audit trail — cost changes are the most disputed items in a
+                            // build, so who added what and when has to be on the record.
+                            const { data: { user } } = await supabase.auth.getUser();
+                            if (user) {
+                                logActivity(supabase, {
+                                    projectId,
+                                    userId: user.id,
+                                    action: "variation.created",
+                                    entityType: "variation",
+                                    entityId: inserted?.id,
+                                    newValues: { title, additional_cost: additionalCost },
+                                });
+                            }
                             setShowAddForm(false);
                             fetchVariations();
                             onDataChanged?.();

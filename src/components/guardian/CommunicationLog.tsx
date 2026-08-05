@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { logActivity } from "@/lib/activity-log";
 import { useToast } from "@/components/guardian/Toast";
 
 interface CommunicationEntry {
@@ -69,15 +70,29 @@ export default function CommunicationLog({ projectId }: CommunicationLogProps) {
         e.preventDefault();
         const supabase = createClient();
 
-        const { error } = await supabase.from("communication_log").insert({
+        const { data: inserted, error } = await supabase.from("communication_log").insert({
             project_id: projectId,
             ...formData,
             follow_up_date: formData.follow_up_required ? formData.follow_up_date : null,
-        });
+        }).select("id").single();
 
         if (error) {
             toast(`Failed to save communication entry: ${error.message}`, "error");
             return;
+        }
+
+        // Audit trail — "we told the builder on this date" is exactly the kind of
+        // claim a tribunal asks you to evidence, so log the entry itself too.
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            logActivity(supabase, {
+                projectId,
+                userId: user.id,
+                action: "communication.logged",
+                entityType: "communication",
+                entityId: inserted?.id,
+                newValues: { type: formData.type, summary: formData.summary, date: formData.date },
+            });
         }
         setShowForm(false);
         setFormData({
