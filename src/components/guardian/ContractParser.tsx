@@ -3,7 +3,12 @@
 import { useState, useRef } from "react";
 async function loadPdfjs() {
   const pdfjsLib = await import("pdfjs-dist");
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+  // Self-hosted worker, NOT cdnjs. Our CSP is `script-src 'self' ...` with no
+  // cdnjs entry, so the CDN worker was blocked outright in production and this
+  // feature failed 100% of the time with "Setting up fake worker failed".
+  // The file is copied from node_modules/pdfjs-dist/build by `npm run sync-pdf-worker`
+  // (wired into build) so it can never drift from the installed version.
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
   return pdfjsLib;
 }
 

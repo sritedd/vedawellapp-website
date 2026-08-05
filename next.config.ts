@@ -42,6 +42,10 @@ const nextConfig: NextConfig = {
                             // ep1/ep2.adtrafficquality.google and www.google.com are framed
                             // by AdSense's ad-traffic-quality checks; both were being blocked.
                             "frame-src https://js.stripe.com https://pagead2.googlesyndication.com https://tpc.googlesyndication.com https://td.doubleclick.net https://googleads.g.doubleclick.net https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google https://www.google.com https://fundingchoicesmessages.google.com",
+                            // pdf.js runs its parser in a Web Worker and falls back to a
+                            // blob: worker. Without this, PDF contract/inspection import
+                            // dies with "Setting up fake worker failed".
+                            "worker-src 'self' blob:",
                             "object-src 'none'",
                             "base-uri 'self'",
                             "form-action 'self'",

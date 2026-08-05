@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "node scripts/sync-pdf-worker.mjs && next build",
     "start": "next start",
     "lint": "eslint",
     "test": "jest --maxWorkers=2 --workerIdleMemoryLimit=512MB",
@@ -22,7 +22,8 @@
     "social:auto:dry": "node scripts/auto-post-social.mjs --dry-run",
     "social:auto:status": "node scripts/auto-post-social.mjs --status",
     "social:ai": "node scripts/generate-ai-posts.mjs",
-    "social:ai:preview": "node scripts/generate-ai-posts.mjs --preview"
+    "social:ai:preview": "node scripts/generate-ai-posts.mjs --preview",
+    "sync-pdf-worker": "node scripts/sync-pdf-worker.mjs"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.58",

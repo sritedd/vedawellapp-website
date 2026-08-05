@@ -4,7 +4,10 @@ import { useState, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 async function loadPdfjs() {
   const pdfjsLib = await import("pdfjs-dist");
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+  // Self-hosted worker, NOT cdnjs — see ContractParser for the full reason.
+  // CSP is `script-src 'self'`, so the CDN worker was blocked and PDF import
+  // never worked in production.
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
   return pdfjsLib;
 }
 
