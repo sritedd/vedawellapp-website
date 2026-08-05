@@ -19,8 +19,14 @@ interface UserRow {
     email_verified_override?: boolean;
 }
 
+// timeZone must be pinned. This component is SSR'd on Netlify (UTC) then hydrated
+// in the browser (local zone); an unpinned toLocaleDateString renders different
+// text in each pass, which React reports as hydration error #418.
 const fmt = (d: string | null) =>
-    d ? new Date(d).toLocaleDateString("en-AU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "—";
+    d ? new Date(d).toLocaleDateString("en-AU", {
+        day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
+        timeZone: "Australia/Sydney",
+    }) : "—";
 
 export default function AdminUserSearch({ users }: { users: UserRow[] }) {
     const [search, setSearch] = useState("");
