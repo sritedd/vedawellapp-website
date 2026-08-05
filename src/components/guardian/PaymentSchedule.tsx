@@ -164,6 +164,16 @@ export default function PaymentSchedule({ projectId, contractValue }: PaymentSch
     const remainingBalance = contractValue - totalPaid;
     const paidPercent = contractValue > 0 ? Math.round((totalPaid / contractValue) * 100) : 0;
 
+    // The seeded schedule comes from generic state workflow data, where milestones
+    // are free text like "Frame Stage (15-20%)" and parse to the low end of the
+    // range. NSW therefore seeds to 90%, not 100%. That gap is usually the deposit,
+    // but it is NOT safe to assume — so surface it rather than let a homeowner
+    // believe the listed milestones add up to their whole contract.
+    const scheduledPercent = payments.reduce((sum, p) => sum + (p.percentage || 0), 0);
+    const percentGap = Math.round((100 - scheduledPercent) * 10) / 10;
+    const hasPercentGap = payments.length > 0 && percentGap > 0.5;
+    const gapAmount = Math.round((contractValue * percentGap) / 100);
+
     if (loading) {
         return <div className="text-center py-8 text-muted-foreground">Loading payment schedule...</div>;
     }
@@ -232,6 +242,23 @@ export default function PaymentSchedule({ projectId, contractValue }: PaymentSch
                     <div className="text-2xl font-bold text-blue-800">{formatCurrency(remainingBalance)}</div>
                 </div>
             </div>
+
+            {/* Milestones don't add up to the contract — say so instead of implying they do */}
+            {hasPercentGap && (
+                <div className="p-4 bg-slate-50 dark:bg-slate-900/40 border border-slate-300 dark:border-slate-700 rounded-xl">
+                    <h3 className="font-semibold text-sm mb-1 flex items-center gap-1.5">
+                        <ClipboardList className="w-4 h-4 text-slate-600 dark:text-slate-300" />
+                        These milestones cover {scheduledPercent}% of your contract
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                        The remaining <strong>{percentGap}%</strong> (about {formatCurrency(gapAmount)}) isn&apos;t
+                        listed above. That&apos;s commonly the deposit, but it can also mean a milestone is
+                        missing or your contract splits payments differently — this schedule is seeded from
+                        typical stage percentages for your state, not from your actual contract.
+                        <strong> Check it against your signed contract and adjust before paying.</strong>
+                    </p>
+                </div>
+            )}
 
             {/* Should I Pay? Alert for next due */}
             {nextDue && (() => {

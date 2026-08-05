@@ -37,7 +37,7 @@ These are blockers. Each has been verified as of 2026-07-25.
 | P2 | `SUPABASE_SERVICE_ROLE_KEY` in `.env.local` | ❌ absent (`SUPABASE_SECRET_KEY` is SET) | App code reads `SUPABASE_SERVICE_ROLE_KEY`; the e2e seed reads `SUPABASE_SECRET_KEY`. Add the former (same value) or service-role paths fail locally. |
 | P3 | `schema_v46_migraine_logs.sql` | ⬜ not run | Not required for Guardian testing; only blocks migraine profile sync. |
 | P4 | Dev server | — | `npm run dev` on a known port. Test against **localhost**, never prod — this plan creates and deletes real rows. |
-| P5 | Test account | — | Reuse `ensureTestUser()` from `e2e/setup/supabase-seed.ts` (`e2e-test@vedawellapp.com` / `E2eTestPass!2026`, auto-set to `guardian_pro`), then flip `is_admin=true` for admin runs. |
+| P5 | Test account | — | Reuse `ensureTestUser()` from `e2e/setup/supabase-seed.ts` (`e2e-test@vedawellapp.com` (password from `E2E_PRO_PASSWORD` in `.env.local`), auto-set to `guardian_pro`), then flip `is_admin=true` for admin runs. |
 
 **Target update (2026-07-25)**: the user has decided this plan runs against **live prod**
 (`https://vedawellapp.com`). The original localhost-only rule is superseded by the safety rails

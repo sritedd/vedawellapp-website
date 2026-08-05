@@ -85,12 +85,44 @@ async function login(page: Page) {
     await page.waitForURL(/\/(dashboard|projects)/, { timeout: 15000 });
 }
 
+/**
+ * The project page uses a two-level nav (2026-03 restructure): five top sections
+ * — Home / Build / Issues / Evidence / More — each revealing its own sub-tabs.
+ * Clicking a sub-tab like "Stages" only works once its parent section is open,
+ * so map each sub-tab to its section and click the parent first. Before this,
+ * every sub-tab lookup silently returned false and the assertions that followed
+ * failed against a page that was actually working.
+ */
+const TAB_SECTION: Record<string, string> = {
+    Dashboard: "Home", "Pending Actions": "Home",
+    "Stage Gate": "Build", Timeline: "Build", Stages: "Build",
+    Inspections: "Build", Certificates: "Build", "NCC 2025": "Build",
+    Defects: "Issues", Variations: "Issues", "Red Flags": "Issues",
+    Disputes: "Issues", "Pre-Handover": "Issues",
+    Photos: "Evidence", Documents: "Evidence", Comms: "Evidence",
+    "Check-ins": "Evidence", "Site Visits": "Evidence",
+};
+
 async function goToTab(page: Page, tabLabel: string): Promise<boolean> {
-    const tabBtn = page.locator(`button:has-text("${tabLabel}")`).first();
-    if (await tabBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-        await tabBtn.click();
-        await page.waitForTimeout(500);
-        return true;
+    const section = TAB_SECTION[tabLabel];
+    if (section) {
+        const sectionBtn = page.locator(`button:text-is("${section}")`).first();
+        if (await sectionBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+            await sectionBtn.click();
+            await page.waitForTimeout(600);
+        }
+    }
+
+    // Exact match first so "Stages" doesn't match "Stage Gate".
+    for (const locator of [
+        page.locator(`button:text-is("${tabLabel}")`).first(),
+        page.locator(`button:has-text("${tabLabel}")`).first(),
+    ]) {
+        if (await locator.isVisible({ timeout: 2500 }).catch(() => false)) {
+            await locator.click();
+            await page.waitForTimeout(800);
+            return true;
+        }
     }
     return false;
 }

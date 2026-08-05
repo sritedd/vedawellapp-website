@@ -47,3 +47,7 @@ next-env.d.ts
 # Social media local post history
 scripts/.social-post-history.json
 # Note: scripts/.bluesky-posted.json is NOT ignored — GitHub Actions commits it to track posting history
+
+# Playwright artifacts — can contain typed credentials in DOM snapshots
+playwright-report/
+test-results/

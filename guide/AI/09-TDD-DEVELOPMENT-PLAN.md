@@ -269,7 +269,7 @@ test.describe('AI Defect Description Assistant', () => {
         // Login as test user
         await page.goto('/guardian/login');
         await page.fill('[name="email"]', 'e2e-test@vedawellapp.com');
-        await page.fill('[name="password"]', 'E2eTestPass!2026');
+        await page.fill('[name="password"]', process.env.E2E_PRO_PASSWORD);
         await page.click('button[type="submit"]');
         await page.waitForURL('/guardian/dashboard');
     });

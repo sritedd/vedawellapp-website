@@ -40,8 +40,22 @@ function getAdminClient(): SupabaseClient {
     });
 }
 
-export const TEST_EMAIL = "e2e-test@vedawellapp.com";
-export const TEST_PASSWORD = "E2eTestPass!2026";
+export const TEST_EMAIL = env.E2E_PRO_EMAIL || "e2e-test@vedawellapp.com";
+
+// NEVER hardcode this. The repo is public and this account exists on PRODUCTION,
+// so a committed password is a working prod login for anyone who reads the repo.
+// Sourced from .env.local (gitignored) / the environment; rotate with
+// `node e2e/setup/prod-accounts.mjs`.
+export const TEST_PASSWORD = (() => {
+    const v = process.env.E2E_PRO_PASSWORD || env.E2E_PRO_PASSWORD;
+    if (!v) {
+        throw new Error(
+            "E2E_PRO_PASSWORD is not set. E2E account passwords are never committed — " +
+            "set it in .env.local or the environment (see e2e/setup/credentials.mjs)."
+        );
+    }
+    return v;
+})();
 
 let testUserId: string | null = null;
 

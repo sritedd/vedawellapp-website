@@ -22,8 +22,7 @@ const env = loadEnv();
 const URL = env.NEXT_PUBLIC_SUPABASE_URL, ANON = env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const admin = createClient(URL, env.SUPABASE_SECRET_KEY, { auth: { persistSession: false } });
 
-const PRO = { email: process.env.E2E_PRO_EMAIL || "e2e-test@vedawellapp.com", password: process.env.E2E_PRO_PASSWORD || "E2eTestPass!2026" };
-const FREE = { email: process.env.E2E_FREE_EMAIL || "e2e-free@vedawellapp.com", password: process.env.E2E_FREE_PASSWORD || "E2eFreePass!2026" };
+const { PRO, FREE } = await import("./credentials.mjs");
 
 async function session(acct) {
     const c = createClient(URL, ANON);

@@ -19,18 +19,19 @@ function loadEnv() {
 const env = loadEnv();
 const URL = env.NEXT_PUBLIC_SUPABASE_URL;
 const admin = createClient(URL, env.SUPABASE_SECRET_KEY, { auth: { persistSession: false } });
+const { PRO } = await import("./credentials.mjs");
 
 // 1. How many auth users? (ensureTestUser uses a NON-paginated listUsers)
 const { data: page1 } = await admin.auth.admin.listUsers();
 console.log("1. listUsers() default page size returned:", page1.users.length, "users");
-const foundDefault = page1.users.find(u => u.email === "e2e-test@vedawellapp.com");
+const foundDefault = page1.users.find(u => u.email === PRO.email);
 console.log("   e2e-test@ found in default page?", !!foundDefault);
 
 let total = 0, foundPaged = null;
 for (let p = 1; p <= 20; p++) {
     const { data } = await admin.auth.admin.listUsers({ page: p, perPage: 200 });
     total += data.users.length;
-    const hit = data.users.find(u => u.email === "e2e-test@vedawellapp.com");
+    const hit = data.users.find(u => u.email === PRO.email);
     if (hit) foundPaged = hit;
     if (data.users.length < 200) break;
 }
@@ -49,7 +50,7 @@ if (proj) {
     // 3. Read it back as the USER (anon key + real session), which is what the browser does
     const anon = createClient(URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
     const { data: signIn, error: signErr } = await anon.auth.signInWithPassword({
-        email: "e2e-test@vedawellapp.com", password: "E2eTestPass!2026",
+        email: PRO.email, password: PRO.password,
     });
     console.log("3. signIn as pro user:", signErr ? "ERROR " + signErr.message : "ok, uid=" + signIn.user.id);
     console.log("   uid matches project.user_id?", signIn?.user?.id === proj.user_id);

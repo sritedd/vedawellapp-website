@@ -23,10 +23,24 @@ import { test, expect, Page } from "@playwright/test";
 // so the "free user" gating tests were run against whatever that account happened
 // to be (or a login failure). e2e-free@ is provisioned as tier=free by
 // e2e/setup/prod-accounts.mjs.
+// Passwords are NEVER hardcoded: this repo is public and these accounts exist on
+// production, so a committed default is a working prod login for any reader.
+// Set E2E_PRO_PASSWORD / E2E_FREE_PASSWORD in .env.local or the environment.
+function requiredEnv(key: string): string {
+    const v = process.env[key];
+    if (!v) {
+        throw new Error(
+            `${key} is not set. E2E account passwords are never committed — set it in ` +
+            `.env.local or the environment (see e2e/setup/credentials.mjs).`
+        );
+    }
+    return v;
+}
+
 const FREE_EMAIL = process.env.E2E_FREE_EMAIL || "e2e-free@vedawellapp.com";
-const FREE_PASSWORD = process.env.E2E_FREE_PASSWORD || "E2eFreePass!2026";
+const FREE_PASSWORD = requiredEnv("E2E_FREE_PASSWORD");
 const PRO_EMAIL = process.env.E2E_PRO_EMAIL || "e2e-test@vedawellapp.com";
-const PRO_PASSWORD = process.env.E2E_PRO_PASSWORD || "E2eTestPass!2026";
+const PRO_PASSWORD = requiredEnv("E2E_PRO_PASSWORD");
 
 // Honour the Playwright baseURL so the same spec can target prod.
 const BASE_URL = process.env.E2E_BASE_URL || "http://localhost:3000";

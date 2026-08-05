@@ -57,7 +57,7 @@ Start the dev server on a fixed port and confirm it answers before driving the b
 ## Test account
 
 Reuse the existing helper rather than inventing one — `e2e/setup/supabase-seed.ts` exports
-`ensureTestUser()` (`e2e-test@vedawellapp.com` / `E2eTestPass!2026`, auto-set to `guardian_pro`).
+`ensureTestUser()` (`e2e-test@vedawellapp.com`, auto-set to `guardian_pro`). Password comes from `E2E_PRO_PASSWORD` in `.env.local` — never committed.
 For admin runs, flip `is_admin=true` on that profile via the Supabase MCP, and flip it back after.
 
 ## Run order

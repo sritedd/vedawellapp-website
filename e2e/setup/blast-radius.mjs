@@ -8,8 +8,9 @@ function loadEnv() {
     return e;
 }
 const env = loadEnv();
+const { PRO } = await import("./credentials.mjs");
 const anon = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
-const { error: se } = await anon.auth.signInWithPassword({ email: "e2e-test@vedawellapp.com", password: "E2eTestPass!2026" });
+const { error: se } = await anon.auth.signInWithPassword({ email: PRO.email, password: PRO.password });
 if (se) { console.log("sign-in failed:", se.message); process.exit(1); }
 
 const tables = ["projects", "project_members", "stages", "defects", "variations", "certifications",

@@ -33,22 +33,9 @@ const admin = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SECRET_KEY
     auth: { autoRefreshToken: false, persistSession: false },
 });
 
-// SECURITY: these accounts live on PRODUCTION and this repo is PUBLIC.
-// The defaults below match the long-committed value in supabase-seed.ts, so
-// existing runs keep working — but they are effectively public credentials.
-// Override via env (and rotate the real passwords) before relying on these:
-//   E2E_PRO_PASSWORD=... E2E_FREE_PASSWORD=... node e2e/setup/prod-accounts.mjs
-// See playbook 17 §8.5 (P1-2).
-export const PRO = {
-    email: process.env.E2E_PRO_EMAIL || "e2e-test@vedawellapp.com",
-    password: process.env.E2E_PRO_PASSWORD || "E2eTestPass!2026",
-    tier: "guardian_pro",
-};
-export const FREE = {
-    email: process.env.E2E_FREE_EMAIL || "e2e-free@vedawellapp.com",
-    password: process.env.E2E_FREE_PASSWORD || "E2eFreePass!2026",
-    tier: "free",
-};
+// Credentials come from .env.local / env only — never committed. See credentials.mjs.
+import { PRO, FREE } from "./credentials.mjs";
+export { PRO, FREE };
 
 async function findUser(email) {
     // listUsers is paginated; page through until found

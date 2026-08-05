@@ -8,6 +8,7 @@ function loadEnv() {
     return e;
 }
 const env = loadEnv();
+const { PRO, FREE } = await import("./credentials.mjs");
 const BASE = "https://vedawellapp.com";
 const SUPA_URL = env.NEXT_PUBLIC_SUPABASE_URL;
 const ANON = env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -45,8 +46,7 @@ console.log("── Unauthenticated (expect 401) ──");
 await hit("describe-defect", "/api/guardian/ai/describe-defect", { description: "crack in slab" }, null);
 
 console.log("── PRO user ──");
-const pro = await sessionCookie(process.env.E2E_PRO_EMAIL || "e2e-test@vedawellapp.com",
-                               process.env.E2E_PRO_PASSWORD || "E2eTestPass!2026");
+const pro = await sessionCookie(PRO.email, PRO.password);
 await hit("describe-defect (valid)", "/api/guardian/ai/describe-defect", { description: "Hairline crack approx 0.3mm in ground floor slab near the north wall" }, pro.cookie);
 await hit("describe-defect (empty → expect 400)", "/api/guardian/ai/describe-defect", { description: "" }, pro.cookie);
 await hit("stage-advice (bad state → expect 400)", "/api/guardian/ai/stage-advice", { stage: "slab", state: "XX" }, pro.cookie);
@@ -54,8 +54,7 @@ await hit("builder-check (expect 503 comingSoon)", "/api/guardian/ai/builder-che
 await hit("chat (no projectId → expect 400)", "/api/guardian/ai/chat", { messages: [{ role: "user", content: "hi" }] }, pro.cookie);
 
 console.log("── FREE user ──");
-const free = await sessionCookie(process.env.E2E_FREE_EMAIL || "e2e-free@vedawellapp.com",
-                                 process.env.E2E_FREE_PASSWORD || "E2eFreePass!2026");
+const free = await sessionCookie(FREE.email, FREE.password);
 await hit("describe-defect (free, allowed)", "/api/guardian/ai/describe-defect", { description: "Water stain spreading on bedroom ceiling below the ensuite" }, free.cookie);
 await hit("stage-advice (free → expect 403)", "/api/guardian/ai/stage-advice", { stage: "slab", state: "NSW" }, free.cookie);
 await hit("chat (free, bogus project)", "/api/guardian/ai/chat", { projectId: "00000000-0000-0000-0000-000000000000", messages: [{ role: "user", content: "hi" }] }, free.cookie);

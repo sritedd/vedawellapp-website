@@ -64,7 +64,7 @@ npx @playwright/test test --headed
 | Field | Value |
 |-------|-------|
 | Email | `e2e-test@vedawellapp.com` |
-| Password | `E2eTestPass!2026` |
+| Password | (from `E2E_PRO_PASSWORD` in `.env.local` — never committed) |
 | Tier | `guardian_pro` (auto-set) |
 | Created by | `ensureTestUser()` via Supabase Admin API |
 

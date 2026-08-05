@@ -211,8 +211,16 @@ export default async function AdminPage() {
         const idleUsers = idleUsersResult?.data ?? [];
         const socialHistory = socialHistoryResult?.data ?? [];
 
+        // Pin the timeZone. Without it, toLocaleDateString uses the runtime's zone —
+        // UTC on the Netlify server, local on the client — so the same timestamp
+        // renders differently in each and React throws a hydration mismatch
+        // (minified error #418) on every admin page load. This is an Australian
+        // product, so Sydney is the meaningful zone for admin timestamps.
         const fmt = (d: string | null) =>
-            d ? new Date(d).toLocaleDateString("en-AU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "—";
+            d ? new Date(d).toLocaleDateString("en-AU", {
+                day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
+                timeZone: "Australia/Sydney",
+            }) : "—";
         const fmtMoney = (v: number) => v >= 1e6 ? `$${(v / 1e6).toFixed(1)}M` : v >= 1e3 ? `$${(v / 1e3).toFixed(0)}K` : `$${v.toFixed(0)}`;
         const mrr = proUsers * 14.99;
 
@@ -227,12 +235,16 @@ export default async function AdminPage() {
                             <p className="text-muted text-sm mt-1">VedaWell — live Supabase data</p>
                         </div>
                         <div className="flex items-center gap-3">
-                            <Link href="/api/admin/export?type=users" className="text-xs px-3 py-1.5 border border-border rounded-lg hover:bg-muted/10 transition-colors font-medium">
+                            {/* Plain <a>, not <Link>: these are CSV downloads, not client
+                                navigations. next/link prefetches the href as an RSC payload
+                                (`?_rsc=...`), which the API route rejects with a 400 on every
+                                admin page load. <a> also lets the browser handle the download. */}
+                            <a href="/api/admin/export?type=users" className="text-xs px-3 py-1.5 border border-border rounded-lg hover:bg-muted/10 transition-colors font-medium">
                                 Export Users CSV
-                            </Link>
-                            <Link href="/api/admin/export?type=subscribers" className="text-xs px-3 py-1.5 border border-border rounded-lg hover:bg-muted/10 transition-colors font-medium">
+                            </a>
+                            <a href="/api/admin/export?type=subscribers" className="text-xs px-3 py-1.5 border border-border rounded-lg hover:bg-muted/10 transition-colors font-medium">
                                 Export Subscribers CSV
-                            </Link>
+                            </a>
                             <span className="text-xs bg-yellow-500/10 text-yellow-600 border border-yellow-500/30 px-3 py-1.5 rounded-full font-semibold">
                                 Admin
                             </span>
