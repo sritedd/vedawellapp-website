@@ -490,3 +490,94 @@ Teardown      is_admin reverted; 0 leftover `E2E %` projects
   during the hotfix — harden when convenient.
 - `guardian-smoke.spec.ts` still seeds a local Postgres the deployed app can't read;
   redesign or retire it.
+
+---
+
+## 11. THOROUGH PASS — 2026-08-05 (write paths, 8 states, money, generation)
+
+Driven through the real UI on prod unless noted. Test data purged afterwards.
+
+### 11.1 Write paths — verified persisting
+
+| Path | Via | Persisted |
+|---|---|---|
+| Defect | UI form | ✅ |
+| Variation | UI form | ✅ |
+| Communication | UI form | ✅ |
+| Site visit | UI form | ✅ |
+| Material | UI form | ✅ |
+| Project create (2-step wizard) | UI | ✅ (earlier pass) |
+| Project delete + cascade | UI, type-to-confirm | ✅ 0 orphans / 17 tables |
+
+Not yet exercised: weekly check-in, photo upload, document upload, certificate
+upload, inspection scheduling, stage advance, defect status transitions,
+escalation, team invite, contract parse, inspector-report import.
+
+### 11.2 🟠 P1-5 — Audit trail recorded almost nothing (FIXED)
+
+`activity_log` stayed empty after five separate UI writes. `logActivity()` was
+called from exactly **one** place in the app (PaymentSchedule) despite the lib
+defining **17** action types. For a product selling tribunal-ready evidence,
+an audit log that captures only payments is materially incomplete.
+
+Wired `defect.created`, `variation.created`, `communication.logged`; verified
+live after deploy — `activity_log` now records the event with entity details.
+Still unemitted (follow-up): `stage.advanced`, `certificate.uploaded`,
+`inspection.*`, `escalation.*`, `defect.updated/resolved`, `variation.signed`,
+`project.*`.
+
+### 11.3 All 8 states — stage seeding + state-specific routing
+
+| State | Stages | Order | UI check |
+|---|---|---|---|
+| NSW | 8/8 | ✅ | full journey passed (earlier) |
+| VIC | 10/10 | ✅ | 10/10 stages render; Disputes → VCAT + DBDRV, no wrong-state text |
+| QLD | 7/7 | ✅ | Disputes → QBCC + QCAT; Tribunal Pack → QCAT; no wrong-state text |
+| WA / SA / TAS / ACT / NT | 8/7/7/7/7 | ✅ | seeded + page loads clean (deep UI check not repeated per state) |
+
+### 11.4 Generation features
+
+| Feature | Result |
+|---|---|
+| PDF export — full, defects, variations, payments, dispute, summary | ✅ all 6 return real PDFs (`%PDF`, 1.8–2.8 KB) |
+| Calendar export | ✅ valid `BEGIN:VCALENDAR`, `text/calendar` |
+
+Note: the route is **GET** with query params (`?projectId=&type=`), not POST — a
+POST probe returns 405.
+
+### 11.5 Money flows (no payment completed — live mode)
+
+| Check | Result |
+|---|---|
+| Checkout session creation | ✅ 200, real `checkout.stripe.com` URL (not navigated to) |
+| Invalid/forged priceId | ✅ 400 "Invalid price ID" — billing-bypass guard holds |
+| Start trial as existing Pro | ✅ 400 "Already subscribed to Guardian Pro." |
+| Billing portal | 404 "No active subscription found" — correct for a tier set manually rather than via Stripe, but worth a friendlier message |
+
+### 11.6 Free-tier caps
+
+Server-side caps verified by API earlier (3 defects / 2 variations, 4th and 3rd
+blocked). Confirmed by code inspection that both surface friendly copy rather
+than raw Postgres text — `FREE_TIER_DEFECT_LIMIT` / `FREE_TIER_VARIATION_LIMIT`
+are mapped to "Free plan allows N … Upgrade to Guardian Pro". Not yet driven
+through the UI as a real free user.
+
+### 11.7 Spec suite status
+
+NSW spec after the nav fix: **3 passed, 1 flaky, 5 failed** (was 2 passed / 7
+failed). The nav fix helped but the suite is still not a reliable signal — the
+browser-driven evidence above is stronger. Fixing the remaining 5 is open work.
+
+### 11.8 Test-harness hazard worth remembering
+
+`cleanupE2EProjects()` deletes **every** project matching `E2E %` in its
+`beforeAll`. A browser fixture named `E2E …` gets deleted mid-run by a
+concurrent spec, and the resulting failures look exactly like write bugs (RLS
+denying writes to a project that no longer exists). It produced a false
+"variations and communications are broken" reading before I caught it. Browser
+fixtures now use the `UITEST ` prefix, which that pattern cannot match.
+
+### 11.9 Teardown
+
+`0` projects left in prod (all `E2E %` and `UITEST %` purged), `0` orphaned
+child rows across 9 tables, `is_admin` reverted on the test account.
