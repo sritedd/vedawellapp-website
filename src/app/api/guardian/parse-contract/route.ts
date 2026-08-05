@@ -171,18 +171,44 @@ ${truncated}`;
       return NextResponse.json({ error: "AI returned malformed output. Please retry." }, { status: 502 });
     }
 
-    // Optional: persist extracted fields back to the project row
+    // Optional: persist extracted fields back to the project row.
+    //
+    // FILL BLANKS ONLY — never overwrite a value the user already has.
+    // This used to blindly clobber every field it extracted, so parsing any PDF
+    // that wasn't the main build contract destroyed real data: a $440
+    // subcontractor quote rewrote contract_value from $650,000 to $440 and
+    // replaced the builder name, with no confirmation and no undo. contract_value
+    // drives payment milestones, budget, variation-percentage warnings and the
+    // insurance threshold check (HBCF is required above $20k), so a bad
+    // overwrite silently disables safety features.
     let persisted = false;
+    const skippedFields: string[] = [];
     if (persistToProject === true && projectId && typeof projectId === "string") {
+      const { data: current } = await supabase
+        .from("projects")
+        .select("contract_value, builder_name, builder_license_number, builder_abn, start_date, contract_signed_date, expected_end_date, hbcf_policy_number")
+        .eq("id", projectId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
       const updates: Record<string, unknown> = {};
-      if (typeof result.contractSum === "number" && result.contractSum > 0) updates.contract_value = result.contractSum;
-      if (result.builderName) updates.builder_name = result.builderName;
-      if (result.builderLicense) updates.builder_license_number = result.builderLicense;
-      if (result.builderABN) updates.builder_abn = result.builderABN;
-      if (isIsoDate(result.startDate)) updates.start_date = result.startDate;
-      if (isIsoDate(result.contractSignedDate)) updates.contract_signed_date = result.contractSignedDate;
-      if (isIsoDate(result.completionDate)) updates.expected_end_date = result.completionDate;
-      if (result.insurancePolicyNumber) updates.hbcf_policy_number = result.insurancePolicyNumber;
+      // `existing` is the value already on the project; blank means null/""/0.
+      const fill = (column: string, existing: unknown, value: unknown, label: string) => {
+        if (value === null || value === undefined || value === "") return;
+        const isBlank = existing === null || existing === undefined || existing === "" || existing === 0;
+        if (isBlank) updates[column] = value;
+        else if (existing !== value) skippedFields.push(label);
+      };
+
+      const sum = typeof result.contractSum === "number" && result.contractSum > 0 ? result.contractSum : null;
+      fill("contract_value", current?.contract_value, sum, "contract value");
+      fill("builder_name", current?.builder_name, result.builderName, "builder name");
+      fill("builder_license_number", current?.builder_license_number, result.builderLicense, "builder licence");
+      fill("builder_abn", current?.builder_abn, result.builderABN, "builder ABN");
+      fill("start_date", current?.start_date, isIsoDate(result.startDate) ? result.startDate : null, "start date");
+      fill("contract_signed_date", current?.contract_signed_date, isIsoDate(result.contractSignedDate) ? result.contractSignedDate : null, "contract signed date");
+      fill("expected_end_date", current?.expected_end_date, isIsoDate(result.completionDate) ? result.completionDate : null, "completion date");
+      fill("hbcf_policy_number", current?.hbcf_policy_number, result.insurancePolicyNumber, "insurance policy number");
 
       if (Object.keys(updates).length > 0) {
         const { error: updateErr } = await supabase
@@ -209,7 +235,7 @@ ${truncated}`;
       outputTokens,
     }).catch(() => {});
 
-    return NextResponse.json({ ...result, persisted });
+    return NextResponse.json({ ...result, persisted, skippedFields });
   } catch (error) {
     logAIUsage({
       userId,

@@ -31,6 +31,8 @@ interface ParsedContract {
   unusualClauses: string[];
   missingProtections: string[];
   persisted?: boolean;
+  /** Fields the parser deliberately did NOT overwrite because you already had a value. */
+  skippedFields?: string[];
 }
 
 export default function ContractParser({ projectId }: { projectId: string }) {
@@ -158,7 +160,18 @@ export default function ContractParser({ projectId }: { projectId: string }) {
             <div className="card border-green-500/30 bg-green-500/10">
               <div className="flex items-center gap-2 text-sm text-green-700">
                 <span className="font-bold">Saved:</span>
-                <span>Contract details written to your project. They'll still be here after refresh.</span>
+                <span>Blank project details were filled in. They&apos;ll still be here after refresh.</span>
+              </div>
+            </div>
+          )}
+
+          {/* Say plainly what was NOT touched, so a mismatch is visible rather than silent. */}
+          {result.skippedFields && result.skippedFields.length > 0 && (
+            <div className="card border-amber-500/30 bg-amber-500/10">
+              <div className="text-sm text-amber-800 dark:text-amber-300">
+                <span className="font-bold">Kept your existing values</span> for:{" "}
+                {result.skippedFields.join(", ")}. This PDF had different values — if it
+                is your main build contract, update those fields in Settings yourself.
               </div>
             </div>
           )}
