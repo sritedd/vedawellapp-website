@@ -581,3 +581,93 @@ fixtures now use the `UITEST ` prefix, which that pattern cannot match.
 
 `0` projects left in prod (all `E2E %` and `UITEST %` purged), `0` orphaned
 child rows across 9 tables, `is_admin` reverted on the test account.
+
+---
+
+## 12. UPLOAD PASS — 2026-08-05 (real files from the user's Downloads)
+
+Files chosen deliberately: a house photo and a contractor's electrical quote.
+Downloads also held passport scans, a police report, a resume and a signature
+image — **third-party personal documents were not uploaded to production
+storage for a test.** Everything uploaded was purged afterwards (rows *and*
+storage objects).
+
+### 12.1 Uploads — working
+
+| Path | File | Result |
+|---|---|---|
+| Progress photo | villa.jpg (64,274 B) | ✅ row + object at `evidence/{pid}/photos/…` at exactly 64,274 B |
+| Document vault | electrical quote PDF (28,904 B) | ✅ row + object at `documents/{pid}/…` |
+
+### 12.2 🔴 P1-6 — Contract Parser + Inspector Report Import were DEAD in prod (FIXED)
+
+Both Pro features failed 100% of the time:
+
+```
+Setting up fake worker failed: "Failed to fetch dynamically imported module:
+https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.4.624/pdf.worker.min.mjs"
+```
+
+Both components loaded the pdf.js worker from **cdnjs.cloudflare.com**, which is
+not in our CSP `script-src`. The console showed two violations — the CDN script,
+and pdf.js's `blob:` worker fallback.
+
+Fixed by self-hosting the worker (`public/pdf.worker.min.mjs`, synced from
+`node_modules` on every build by `scripts/sync-pdf-worker.mjs` so it cannot
+drift from the installed version) and adding `worker-src 'self' blob:` to both
+CSP definitions.
+
+**Verified live after deploy**: worker serves 200 from our origin (1,078,612 B),
+zero console errors, and the parser extracted from the real quote — Contract Sum
+$440, builder "LKL Electrical Tender", address, plus a correct "Missing
+Protections" list (no licence number, no ABN, no dates).
+
+### 12.3 🟠 P1-7 — Contract parser silently destroyed project data (FIXED)
+
+With the parser finally working, uploading that **$440 subcontractor quote**
+rewrote the project's `contract_value` from **$650,000 → $440** and replaced the
+builder name. No confirmation, no preview, no undo.
+
+Worse than a wrong number: `contract_value` drives payment milestone amounts,
+budget, variation-percentage warnings, and the **insurance threshold check**
+(HBCF required above $20k) — so a bad overwrite silently switches safety
+features off.
+
+Now **fills blanks only**: reads the current row and writes only fields that are
+null/""/0. Differing fields come back as `skippedFields`, and the UI says "kept
+your existing values for: contract value, builder name" instead of quietly
+diverging. Still convenient for the intended flow (parse right after creating a
+project, when everything is blank).
+
+### 12.4 🟠 P1-8 — All three storage buckets are PUBLIC (open, decision needed)
+
+```
+evidence      public=true
+documents     public=true
+certificates  public=true
+
+Unauthenticated GET of an uploaded evidence photo: 200 image/jpeg 64274
+```
+
+Proven with no credentials at all. Defect photos, building contracts and
+certificates are readable by anyone holding the URL, and the project UUID that
+forms the path prefix is visible in the address bar of every project page.
+Storage RLS (v27) does not help — the `/object/public/…` endpoint bypasses it.
+
+For a product marketed on legal-dispute evidence and containing signed
+contracts, this is a privacy exposure. **Not changed unilaterally**: flipping
+the buckets to private breaks every existing image URL app-wide and requires
+moving all read paths to signed URLs. That is a deliberate migration, and the
+owner's call.
+
+### 12.5 Also observed
+
+Real inspection reports are often **scanned PDFs with no text layer** — the
+supplied PCI report extracted only image data. The component already guards this
+(`fullText.trim().length < 50`), so it degrades to a message rather than sending
+garbage to the AI. OCR would be needed to support scanned reports.
+
+### 12.6 Teardown
+
+0 projects in prod; storage `evidence`, `documents`, `certificates` all clean
+(objects removed explicitly — deleting a row does not delete the file).
