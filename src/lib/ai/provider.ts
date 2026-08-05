@@ -46,9 +46,17 @@ function getOpenAI() {
     return _openai;
 }
 
-/** Cheap model for high-volume features (defect assist, stage advice, builder check). */
+/**
+ * Cheap model for high-volume features (defect assist, stage advice, builder check).
+ *
+ * gemini-2.5-flash-lite, NOT gemini-2.0-flash: 2.0-flash's free-tier quota was
+ * exhausted in production (429 "You exceeded your current quota"), which surfaced
+ * to users as every Defect Assist and Stage Advice call returning a 503 fallback.
+ * 2.5-flash-lite is the model the docs already claimed we ran on, and it has
+ * headroom. Verified against the live key: 2.0-flash -> 429, 2.5-flash-lite -> 200.
+ */
 export function getCheapModel() {
-    if (getGoogleApiKey()) return getGoogle()("gemini-2.0-flash");
+    if (getGoogleApiKey()) return getGoogle()("gemini-2.5-flash-lite");
     if (process.env.GROQ_API_KEY) return getGroq()("llama-3.3-70b-versatile");
     throw new Error("No AI provider configured. Set GOOGLE_AI_API_KEY or GROQ_API_KEY.");
 }
