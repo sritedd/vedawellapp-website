@@ -35,14 +35,46 @@ const args = process.argv.slice(2);
 // deleted out from under you if a spec run starts concurrently — which looks exactly
 // like a write bug (RLS denies writes to a project that no longer exists). Browser
 // fixtures therefore use the `UITEST ` prefix, which that pattern cannot match.
+/**
+ * Remove every storage object under a project prefix.
+ *
+ * Deleting the `projects` row does NOT delete uploaded files — the app's own
+ * deleteProject() clears storage explicitly, but test tooling that deletes rows
+ * via the service role bypasses that and leaves orphaned objects behind. Since
+ * the buckets are public, an orphan stays publicly fetchable forever.
+ */
+async function purgeProjectStorage(projectId) {
+    let removed = 0;
+    for (const bucket of ["evidence", "documents", "certificates"]) {
+        const paths = [];
+        const { data: lvl1 } = await admin.storage.from(bucket).list(projectId, { limit: 200 });
+        for (const entry of lvl1 || []) {
+            if (entry.id) {
+                paths.push(`${projectId}/${entry.name}`);
+            } else {
+                const { data: lvl2 } = await admin.storage.from(bucket).list(`${projectId}/${entry.name}`, { limit: 200 });
+                for (const sub of lvl2 || []) paths.push(`${projectId}/${entry.name}/${sub.name}`);
+            }
+        }
+        if (paths.length) {
+            await admin.storage.from(bucket).remove(paths);
+            removed += paths.length;
+        }
+    }
+    return removed;
+}
+
 if (args[0] === "--purge") {
-    let total = 0;
+    let total = 0, files = 0;
     for (const pattern of ["E2E %", "UITEST %"]) {
         const { data } = await admin.from("projects").select("id,name").like("name", pattern);
-        for (const p of data || []) await admin.from("projects").delete().eq("id", p.id);
+        for (const p of data || []) {
+            files += await purgeProjectStorage(p.id);
+            await admin.from("projects").delete().eq("id", p.id);
+        }
         total += data?.length ?? 0;
     }
-    console.log(`purged ${total} test project(s)`);
+    console.log(`purged ${total} test project(s) and ${files} storage object(s)`);
     process.exit(0);
 }
 if (args[0] === "--delete") {

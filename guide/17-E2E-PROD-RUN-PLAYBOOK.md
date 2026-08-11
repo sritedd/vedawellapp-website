@@ -671,3 +671,81 @@ garbage to the AI. OCR would be needed to support scanned reports.
 
 0 projects in prod; storage `evidence`, `documents`, `certificates` all clean
 (objects removed explicitly — deleting a row does not delete the file).
+
+---
+
+## 13. FINAL PASS — 2026-08-11 (transitions, gate, mobile, spec)
+
+### 13.1 🔴 P1-9 — Stage Gate never enforced certificate requirements (FIXED)
+
+The Stage Gate exists to stop a homeowner paying before mandatory certificates
+arrive. On a real NSW project it showed **"All Clear - Proceed to Frame Stage"**
+for Slab / Footings while the Plumbing Rough-in Certificate was missing, listing
+only 1 requirement instead of 2.
+
+`certifications.required_for_stage` is written in two formats — project seeding
+stores the **stage UUID**, `CertificationGate` stores the **stage name/key** —
+and StageGate matched on name only, so a UUID could never match and every
+*seeded* certificate requirement was invisible. Proven on live data:
+
+```
+cert "Plumbing Rough-in Certificate" -> required_for_stage = 4e1187bf… (UUID)
+StageGate name-matching finds:  0 requirements
+Matching by stage UUID finds:   1 requirement
+```
+
+Fixed by matching both keys. **Verified in prod after deploy** — same project,
+same stage:
+
+| | Before | After |
+|---|---|---|
+| Verdict | "All Clear - Proceed" | **"Cannot Proceed - 1 Critical Item Required"** |
+| Requirements | 1 of 1 (100%) | **1 of 2 (50%)** |
+| Blocker | none | **Plumbing Rough-in Certificate — Blocks Progress** |
+| Warning | none | **"Do NOT release payment until blocking items are resolved"** |
+
+### 13.2 🟠 P1-10 — Audit trail missed the events that matter (FIXED)
+
+Walked a defect open → reported → in_progress → rectified → verified in prod.
+The state machine is correct (the UI only ever offers valid transitions, so
+invalid ones are impossible by construction) — but `activity_log` stayed **empty
+through all four transitions**.
+
+For a tribunal the status timeline *is* the evidence: when the builder was
+notified, when they claimed rectification, when the homeowner disputed. Added
+`defect.updated` / `defect.resolved` (with old→new status), `stage.advanced`
+(including whether gate blockers were overridden), and `certificate.uploaded`.
+Emitted action types: **4 of 17 → 8 of 17**.
+
+### 13.3 Verified working
+
+| Area | Result |
+|---|---|
+| Defect state machine | open→reported→in_progress→rectified→verified ✅; only valid transitions ever offered |
+| Terminal state | `verified` + `verified_date` set; no further actions ✅ |
+| Stage advance | Site Start → completed, dodgy-builder warning fired ✅ |
+| Free-tier caps (UI) | trigger strings `FREE_TIER_*_LIMIT` match the UI's checks exactly → friendly message + upgrade link, never raw Postgres ✅ |
+| Mobile 375px | no horizontal overflow, bottom nav intact, no sub-40px tap targets ✅ |
+| Mobile 320px | no overflow (305/305) ✅ |
+| Service worker | registered + active, scope `/` ✅ |
+
+### 13.4 Spec suite — improved, not green
+
+`2 passed / 7 failed` → **`5 passed / 4 failed`** by fixing real staleness:
+tab aliases (`Comms Log`→`Comms`, `Weekly Check-ins`→`Check-ins`), the More
+card-grid added to the section map, and the dead `.min-h-[500px]` selector
+(0 matches in the app — those assertions were testing `undefined`).
+
+The remaining 4 are further spec-level issues (overlay interception, text
+matching), not product defects — every feature they cover was verified working
+through the browser. Left as a tracked follow-up rather than forced green.
+
+### 13.5 Teardown
+
+0 projects; `evidence` / `documents` / `certificates` all 0 entries; test
+accounts back to `guardian_pro` / `free` with `is_admin=false`.
+
+Note: the app's own `deleteProject()` and `delete-account` DO clear storage.
+The orphans found during this run came from test tooling deleting rows via the
+service role, which bypasses that path — `make-fixture.mjs --purge` now clears
+storage too, so runs stop leaving publicly-fetchable litter in public buckets.
