@@ -65,10 +65,27 @@ for (let i = 1; i <= 3; i++) {
     console.log(`  variation ${i}: ${tag(error)}${i === 3 ? "   <- 3rd MUST be blocked" : ""}`);
 }
 
+console.log("── FREE user project cap (1) ──");
+// Start from zero so the cap is exercised from a known state.
+await admin.from("projects").delete().eq("user_id", free.uid);
+const mkAsUser = (uid, name) => free.c.from("projects").insert({
+    user_id: uid, name, builder_name: "E2E Builder", contract_value: 400000,
+    address: "1 Test St", start_date: "2026-04-01", status: "active",
+    state: "NSW", build_category: "new_build",
+});
+const { error: p1 } = await mkAsUser(free.uid, "E2E WriteCheck FreeProj 1");
+console.log(`  project 1: ${tag(p1)}`);
+const { error: p2 } = await mkAsUser(free.uid, "E2E WriteCheck FreeProj 2");
+console.log(`  project 2: ${tag(p2)}   <- MUST be blocked`);
+
 console.log("── Cross-tenant isolation ──");
 const { error: xt } = await free.c.from("defects").insert(defect(pp.id, "intruder"));
 console.log(`  free user writes into PRO's project: ${xt ? "blocked ✅" : "ALLOWED ❌ SECURITY HOLE"}`);
+// A user must not be able to create a project OWNED BY someone else.
+const { error: xp } = await mkAsUser(pro.uid, "E2E WriteCheck Impersonated");
+console.log(`  free user creates project owned by PRO: ${xp ? "blocked ✅" : "ALLOWED ❌ SECURITY HOLE"}`);
 
 await admin.from("projects").delete().in("id", [pp.id, fp.id]);
+await admin.from("projects").delete().like("name", "E2E WriteCheck%");
 const { data: left } = await admin.from("projects").select("id").like("name", "E2E WriteCheck%");
 console.log(`\ncleanup: ${left?.length ? "LEFTOVERS " + left.length : "clean ✅"}`);
