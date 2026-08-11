@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { logActivity } from "@/lib/activity-log";
 import { useToast } from "@/components/guardian/Toast";
 import { stageNameToKey } from "@/lib/guardian/stage-keys";
 import australianData from "@/data/australian-build-workflows.json";
@@ -129,6 +130,20 @@ export default function CertificationGate({
                     required_for_stage: currentStage,
                 });
                 if (insertErr) throw insertErr;
+            }
+
+            // Audit trail — a certificate's arrival date is what proves the builder
+            // met a compliance gate before being paid for that stage. Without it the
+            // evidence pack can show the file but not when it was produced.
+            const { data: { user: actor } } = await supabase.auth.getUser();
+            if (actor) {
+                logActivity(supabase, {
+                    projectId,
+                    userId: actor.id,
+                    action: "certificate.uploaded",
+                    entityType: "certification",
+                    newValues: { type: certType, status: "uploaded", stage: currentStage },
+                });
             }
 
             fetchCertifications();

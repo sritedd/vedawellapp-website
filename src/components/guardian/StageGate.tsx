@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { logActivity } from "@/lib/activity-log";
 import { useToast } from "@/components/guardian/Toast";
 import { ClipboardList, AlertTriangle } from "lucide-react";
 import { stageNameToKey } from "@/lib/guardian/stage-keys";
@@ -351,6 +352,25 @@ export default function StageGate({ projectId, currentStage, nextStage, onProcee
         if (updateError && fallbackError) {
             toast(`Could not mark stage complete: ${fallbackError.message}. Please try again.`, "error");
             return;
+        }
+
+        // Audit trail — stage sign-off is the backbone of a progress-payment
+        // dispute: it evidences exactly when the homeowner accepted a stage as
+        // complete, and whether any gate requirements were overridden at the time.
+        const { data: { user: actor } } = await supabase.auth.getUser();
+        if (actor) {
+            logActivity(supabase, {
+                projectId,
+                userId: actor.id,
+                action: "stage.advanced",
+                entityType: "stage",
+                newValues: {
+                    stage: stageName || currentStage,
+                    status: "completed",
+                    completion_date: new Date().toISOString().split("T")[0],
+                },
+                metadata: { blockers: blockingItems.length, overridden: blockingItems.length > 0 },
+            });
         }
 
         // Closure transition: completing practical completion is the handover

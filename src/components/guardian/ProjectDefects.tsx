@@ -270,6 +270,25 @@ export default function ProjectDefects({ projectId, stages, builderEmail, onData
             return;
         }
 
+        // Audit trail — the STATUS TIMELINE is the part a tribunal actually cares
+        // about: when the builder was notified, when they claimed rectification,
+        // and when the homeowner disputed it. Creation alone doesn't prove any of
+        // that, so record every transition with its before/after.
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            logActivity(supabase, {
+                projectId,
+                userId: user.id,
+                action: newStatus === "verified" || newStatus === "rectified"
+                    ? "defect.resolved"
+                    : "defect.updated",
+                entityType: "defect",
+                entityId: id,
+                oldValues: { status: defect.status },
+                newValues: { status: newStatus, title: defect.title, severity: defect.severity },
+            });
+        }
+
         setDefects(defects.map(d =>
             d.id === id ? { ...d, ...updates } as Defect : d
         ));
