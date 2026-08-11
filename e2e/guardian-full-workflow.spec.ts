@@ -101,9 +101,30 @@ const TAB_SECTION: Record<string, string> = {
     Disputes: "Issues", "Pre-Handover": "Issues",
     Photos: "Evidence", Documents: "Evidence", Comms: "Evidence",
     "Check-ins": "Evidence", "Site Visits": "Evidence",
+    // "More" is a card grid of low-frequency tools, not a tab strip — but it
+    // opens the same way, so the same helper works.
+    Payments: "More", Budget: "More", "Cost Check": "More", "Builder Score": "More",
+    "Rate Builder": "More", Materials: "More", "Builder Speed": "More",
+    "Tribunal Pack": "More", "Contract Review": "More", Checklists: "More",
+    Export: "More", Reports: "More", Notifications: "More", Alerts: "More",
+    Settings: "More", "Share Progress": "More", Team: "More",
+    "Escalate Builder": "More", "Claim Review": "More", "Activity Log": "More",
+    "Calendar Export": "More", "Site Diary": "More", "Parse Contract": "More",
 };
 
-async function goToTab(page: Page, tabLabel: string): Promise<boolean> {
+/**
+ * Tab labels changed in the 2026-03 five-section restructure but the spec kept
+ * asking for the old ones, so those lookups silently returned false and the
+ * assertions after them failed against a page that was working fine.
+ */
+const TAB_ALIASES: Record<string, string> = {
+    "Comms Log": "Comms",
+    "Weekly Check-ins": "Check-ins",
+    "Check-Ins": "Check-ins",
+};
+
+async function goToTab(page: Page, rawLabel: string): Promise<boolean> {
+    const tabLabel = TAB_ALIASES[rawLabel] ?? rawLabel;
     const section = TAB_SECTION[tabLabel];
     if (section) {
         const sectionBtn = page.locator(`button:text-is("${section}")`).first();
@@ -296,7 +317,10 @@ for (const [stateCode, config] of Object.entries(STATE_CONFIGS)) {
             await goToTab(page, "Stage Gate");
             await page.waitForTimeout(1000);
 
-            const content = await page.locator(".min-h-\\[500px\\]").textContent();
+            // The old ".min-h-[500px]" wrapper stopped existing in the 2026-03
+            // restructure, so that selector matched nothing and this assertion was
+            // effectively testing undefined rather than the rendered panel.
+            const content = await page.locator("main").last().textContent();
             expect(content?.length).toBeGreaterThan(0);
         });
 
@@ -338,7 +362,10 @@ for (const [stateCode, config] of Object.entries(STATE_CONFIGS)) {
 
             // Dashboard should render
             await goToTab(page, "Dashboard");
-            const content = await page.locator(".min-h-\\[500px\\]").textContent();
+            // The old ".min-h-[500px]" wrapper stopped existing in the 2026-03
+            // restructure, so that selector matched nothing and this assertion was
+            // effectively testing undefined rather than the rendered panel.
+            const content = await page.locator("main").last().textContent();
             expect(content?.length).toBeGreaterThan(0);
 
             // DB verification

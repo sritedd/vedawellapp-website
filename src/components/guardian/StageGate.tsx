@@ -64,13 +64,20 @@ export default function StageGate({ projectId, currentStage, nextStage, onProcee
             const searchName = currentStage.replace(/_/g, " ");
             const { data: stageData } = await supabase
                 .from("stages")
-                .select("name")
+                .select("id, name")
                 .eq("project_id", projectId)
                 .ilike("name", `%${searchName}%`)
                 .limit(1)
                 .single();
 
             if (stageData) setStageName(stageData.name);
+            // certifications.required_for_stage is populated in TWO formats:
+            // project seeding writes the stage UUID, CertificationGate writes the
+            // stage name/key. Matching on name alone silently found ZERO seeded
+            // certificate requirements, so the gate reported "All Clear" for
+            // stages that were missing mandatory certificates. Keep both keys.
+            const stageId = stageData?.id ?? null;
+            const dbStageNameLower = (stageData?.name ?? currentStage).toLowerCase();
 
             // 1. Check inspections for this stage
             const { data: inspections } = await supabase
@@ -114,12 +121,15 @@ export default function StageGate({ projectId, currentStage, nextStage, onProcee
                 .eq("project_id", projectId);
 
             if (certs) {
-                const stageCerts = certs.filter((c: { required_for_stage: string | null }) =>
-                    c.required_for_stage && (
-                        c.required_for_stage.toLowerCase().includes(stageNameLower) ||
-                        stageNameLower.includes(c.required_for_stage.toLowerCase())
-                    )
-                );
+                const stageCerts = certs.filter((c: { required_for_stage: string | null }) => {
+                    if (!c.required_for_stage) return false;
+                    // Seeded rows key off the stage UUID …
+                    if (stageId && c.required_for_stage === stageId) return true;
+                    // … uploaded rows key off the stage name/key.
+                    const ref = c.required_for_stage.toLowerCase();
+                    return ref.includes(stageNameLower) || stageNameLower.includes(ref)
+                        || ref.includes(dbStageNameLower) || dbStageNameLower.includes(ref);
+                });
 
                 for (const cert of stageCerts) {
                     // Don't duplicate if already added from inspections
