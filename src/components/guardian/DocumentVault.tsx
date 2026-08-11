@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { getSignedUrl } from "@/lib/guardian/storage";
 import { validateUploadFile } from "@/lib/guardian/upload-validation";
 import { useToast } from "@/components/guardian/Toast";
 
@@ -34,6 +35,18 @@ const DOCUMENT_TYPES = [
 ];
 
 export default function DocumentVault({ projectId }: DocumentVaultProps) {
+
+    /**
+     * Documents live in a PRIVATE bucket (schema_v49). Mint a short-lived signed
+     * URL at click time and open that — rendering a URL up front would hand out
+     * links that expire in the user's tab.
+     */
+    const openStoredFile = async (stored: string) => {
+        const supabase = createClient();
+        const url = await getSignedUrl(supabase, "documents", stored);
+        if (!url) { alert("Could not open this document. Please refresh and try again."); return; }
+        window.open(url, "_blank", "noopener,noreferrer");
+    };
     const { toast } = useToast();
     const [documents, setDocuments] = useState<Document[]>([]);
     const [loading, setLoading] = useState(true);
@@ -103,9 +116,8 @@ export default function DocumentVault({ projectId }: DocumentVaultProps) {
             if (uploadError) throw uploadError;
 
             // Get public URL
-            const { data: urlData } = supabase.storage
-                .from("documents")
-                .getPublicUrl(fileName);
+            // Private bucket (schema_v49): store the PATH; it is signed on demand.
+            const storedPath = fileName;
 
             // Save document record
             const docType = DOCUMENT_TYPES.find((t) => t.id === selectedType);
@@ -117,7 +129,7 @@ export default function DocumentVault({ projectId }: DocumentVaultProps) {
                 project_id: projectId,
                 type: selectedType,
                 name: docName,
-                file_url: urlData.publicUrl,
+                file_url: storedPath,
             });
 
             if (insertError) {
@@ -286,14 +298,16 @@ export default function DocumentVault({ projectId }: DocumentVaultProps) {
                                             key={doc.id}
                                             className="flex items-center justify-between p-2 bg-white rounded-lg text-sm"
                                         >
-                                            <a
-                                                href={doc.file_url}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-primary hover:underline flex items-center gap-1"
+                                            {/* Signed on click: the documents bucket is private
+                                                (schema_v49), and a URL minted at render time
+                                                would already be stale by the time it's used. */}
+                                            <button
+                                                type="button"
+                                                onClick={() => openStoredFile(doc.file_url)}
+                                                className="text-primary hover:underline flex items-center gap-1 text-left"
                                             >
                                                 📎 {doc.name}
-                                            </a>
+                                            </button>
                                             <div className="flex items-center gap-2">
                                                 <span className="text-xs text-muted-foreground">
                                                     {new Date(doc.uploaded_at).toLocaleDateString()}

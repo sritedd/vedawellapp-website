@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { getSignedUrl } from "@/lib/guardian/storage";
 
 interface ChecklistItemCardProps {
     item: {
@@ -66,11 +67,8 @@ export default function ChecklistItemCard({ item, onUpdate }: ChecklistItemCardP
         }
 
         // Get public URL
-        const { data: urlData } = supabase.storage
-            .from("evidence")
-            .getPublicUrl(fileName);
-
-        const publicUrl = urlData.publicUrl;
+        // Private bucket (schema_v49): store the PATH; signed at render.
+        const publicUrl = fileName;
 
         // Update item with evidence URL
         const { error: updateError } = await supabase
@@ -131,14 +129,19 @@ export default function ChecklistItemCard({ item, onUpdate }: ChecklistItemCardP
                     {/* Evidence */}
                     {evidenceUrl && (
                         <div className="mt-2 flex items-center gap-2">
-                            <a
-                                href={evidenceUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                            {/* Signed on click — evidence bucket is private (schema_v49). */}
+                            <button
+                                type="button"
+                                onClick={async () => {
+                                    const supabase = createClient();
+                                    const url = await getSignedUrl(supabase, "evidence", evidenceUrl);
+                                    if (!url) { alert("Could not open this photo. Please refresh and try again."); return; }
+                                    window.open(url, "_blank", "noopener,noreferrer");
+                                }}
                                 className="text-sm text-primary hover:underline flex items-center gap-1"
                             >
                                 📷 View Evidence Photo
-                            </a>
+                            </button>
                             <span className="text-xs text-green-600">✓ Uploaded</span>
                         </div>
                     )}

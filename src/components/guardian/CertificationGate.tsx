@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { getSignedUrl } from "@/lib/guardian/storage";
 import { logActivity } from "@/lib/activity-log";
 import { useToast } from "@/components/guardian/Toast";
 import { stageNameToKey } from "@/lib/guardian/stage-keys";
@@ -31,6 +32,14 @@ export default function CertificationGate({
     stateCode = "NSW",
     onPaymentBlocked,
 }: CertificationGateProps) {
+
+    /** Certificates live in a PRIVATE bucket (schema_v49) — sign at click time. */
+    const openStoredCertificate = async (stored: string) => {
+        const supabase = createClient();
+        const url = await getSignedUrl(supabase, "certificates", stored);
+        if (!url) { alert("Could not open this certificate. Please refresh and try again."); return; }
+        window.open(url, "_blank", "noopener,noreferrer");
+    };
     const { toast } = useToast();
     const [certifications, setCertifications] = useState<Certification[]>([]);
     const [loading, setLoading] = useState(true);
@@ -102,9 +111,8 @@ export default function CertificationGate({
             if (uploadError) throw uploadError;
             uploadedFileName = fileName;
 
-            const { data: urlData } = supabase.storage
-                .from("certificates")
-                .getPublicUrl(fileName);
+            // Private bucket (schema_v49): store the PATH; it is signed on demand.
+            const storedPath = fileName;
 
             // Check if certification record exists
             const existing = certifications.find((c) => c.type === certType);
@@ -115,7 +123,7 @@ export default function CertificationGate({
                     .from("certifications")
                     .update({
                         status: "uploaded",
-                        file_url: urlData.publicUrl,
+                        file_url: storedPath,
                         uploaded_at: new Date().toISOString(),
                     })
                     .eq("id", existing.id);
@@ -126,7 +134,7 @@ export default function CertificationGate({
                     project_id: projectId,
                     type: certType,
                     status: "uploaded",
-                    file_url: urlData.publicUrl,
+                    file_url: storedPath,
                     required_for_stage: currentStage,
                 });
                 if (insertErr) throw insertErr;
@@ -267,14 +275,15 @@ export default function CertificationGate({
                                                     {cert.status.toUpperCase()}
                                                 </span>
                                                 {cert.file_url && (
-                                                    <a
-                                                        href={cert.file_url}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
+                                                    // Signed on click — certificates bucket is
+                                                    // private (schema_v49).
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => openStoredCertificate(cert.file_url!)}
                                                         className="ml-2 text-sm text-primary hover:underline"
                                                     >
                                                         View &rarr;
-                                                    </a>
+                                                    </button>
                                                 )}
                                                 {cert.uploaded_at && (
                                                     <p className="text-xs text-muted-foreground mt-1">

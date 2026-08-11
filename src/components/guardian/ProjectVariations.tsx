@@ -127,10 +127,8 @@ export default function ProjectVariations({
                 .upload(fileName, blob, { contentType: "image/png" });
 
             if (!uploadError) {
-                const { data: urlData } = supabase.storage
-                    .from("documents")
-                    .getPublicUrl(fileName);
-                signatureUrl = urlData.publicUrl;
+                // Private bucket (schema_v49): store the PATH; signed at render.
+                signatureUrl = fileName;
             }
         } catch {
             // If storage upload fails, fall back to base64 in DB

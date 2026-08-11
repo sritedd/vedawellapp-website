@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { getSignedUrlMap, getSignedUrl, toStoragePath } from "@/lib/guardian/storage";
 
 interface ProgressPhotosProps {
     projectId: string;
@@ -30,6 +31,8 @@ const DEFAULT_STAGES = ["Site Prep", "Base/Slab", "Frame", "Lockup", "Fixing", "
 export default function ProgressPhotos({ projectId, stages }: ProgressPhotosProps) {
     const STAGES = stages && stages.length > 0 ? stages : DEFAULT_STAGES;
     const [photos, setPhotos] = useState<ProgressPhoto[]>([]);
+    // stored photo_url -> freshly signed URL (private bucket, schema_v49)
+    const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
     const [showForm, setShowForm] = useState(false);
@@ -62,6 +65,12 @@ export default function ProgressPhotos({ projectId, stages }: ProgressPhotosProp
                 console.error("Error fetching photos:", fetchError);
             } else {
                 setPhotos(data || []);
+                // The evidence bucket is private (schema_v49), so stored values
+                // don't render directly — sign them all in one round trip.
+                const map = await getSignedUrlMap(
+                    supabase, "evidence", (data || []).map((p: ProgressPhoto) => p.photo_url)
+                );
+                setSignedUrls(map);
             }
             setLoading(false);
         };
@@ -127,12 +136,10 @@ export default function ProgressPhotos({ projectId, stages }: ProgressPhotosProp
                 return;
             }
 
-            // Get public URL
-            const { data: urlData } = supabase.storage
-                .from("evidence")
-                .getPublicUrl(filePath);
-
-            const photoUrl = urlData.publicUrl;
+            // The evidence bucket is private (schema_v49) — store the storage
+            // PATH, not a URL. Public URLs no longer resolve, and a signed URL
+            // would expire long before the row does.
+            const photoUrl = filePath;
 
             // Save to database
             const tags = newPhoto.tags.split(",").map(t => t.trim()).filter(Boolean);
@@ -156,6 +163,10 @@ export default function ProgressPhotos({ projectId, stages }: ProgressPhotosProp
             }
 
             setPhotos([insertedPhoto, ...photos]);
+            // Sign the newly uploaded photo so it appears immediately instead of
+            // rendering as a broken image until the next fetch.
+            const freshUrl = await getSignedUrl(supabase, "evidence", insertedPhoto.photo_url);
+            if (freshUrl) setSignedUrls(prev => ({ ...prev, [insertedPhoto.photo_url]: freshUrl }));
             setShowForm(false);
             setSelectedFile(null);
             setPreviewUrl("");
@@ -173,22 +184,14 @@ export default function ProgressPhotos({ projectId, stages }: ProgressPhotosProp
 
         const supabase = createClient();
 
-        // Delete from storage - extract path robustly
-        try {
-            const url = new URL(photo.photo_url);
-            const pathMatch = url.pathname.match(/\/object\/(?:public|sign)\/evidence\/(.+)/);
-            if (pathMatch?.[1]) {
-                await supabase.storage.from("evidence").remove([decodeURIComponent(pathMatch[1])]);
-            } else {
-                // Fallback: try the old split method
-                const urlParts = photo.photo_url.split("/evidence/");
-                if (urlParts[1]) {
-                    await supabase.storage.from("evidence").remove([urlParts[1]]);
-                }
-            }
-        } catch {
-            // If URL parsing fails, still delete the DB record
-            console.warn("Could not parse storage URL for cleanup:", photo.photo_url);
+        // Delete the object too. toStoragePath handles both shapes: legacy full
+        // public URLs written before schema_v49, and the bare paths written now.
+        const objectPath = toStoragePath(photo.photo_url, "evidence");
+        if (objectPath) {
+            const { error: rmErr } = await supabase.storage.from("evidence").remove([objectPath]);
+            if (rmErr) console.warn("[ProgressPhotos] Storage cleanup failed:", rmErr.message);
+        } else {
+            console.warn("Could not resolve storage path for cleanup:", photo.photo_url);
         }
 
         const { error: delErr } = await supabase.from("progress_photos").delete().eq("id", photo.id);
@@ -427,7 +430,7 @@ export default function ProgressPhotos({ projectId, stages }: ProgressPhotosProp
                                     <div key={photo.id} className="p-4 bg-card border border-border rounded-xl flex gap-4">
                                         <div className="w-24 h-24 bg-muted rounded-lg flex-shrink-0 overflow-hidden">
                                             <img
-                                                src={photo.photo_url}
+                                                src={signedUrls[photo.photo_url] || ""}
                                                 alt={photo.description}
                                                 className="w-full h-full object-cover"
                                             />
@@ -469,7 +472,7 @@ export default function ProgressPhotos({ projectId, stages }: ProgressPhotosProp
                         <div key={photo.id} className="bg-card border border-border rounded-xl overflow-hidden group relative">
                             <div className="aspect-square overflow-hidden">
                                 <img
-                                    src={photo.photo_url}
+                                    src={signedUrls[photo.photo_url] || ""}
                                     alt={photo.description}
                                     className="w-full h-full object-cover"
                                 />

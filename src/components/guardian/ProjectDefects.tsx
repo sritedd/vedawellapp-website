@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { logActivity } from "@/lib/activity-log";
+import { getSignedUrlMap, toStoragePath } from "@/lib/guardian/storage";
 import Link from "next/link";
 import {
     createDefectStatusUpdate,
@@ -88,6 +89,8 @@ const DEFAULT_STAGES = ["Base/Slab", "Frame", "Lockup", "Fixing", "Practical Com
 export default function ProjectDefects({ projectId, stages, builderEmail, onDataChanged, onNavigateTab }: ProjectDefectsProps) {
     const { toast } = useToast();
     const [defects, setDefects] = useState<Defect[]>([]);
+    // stored image_url -> freshly signed URL (private bucket, schema_v49)
+    const [signedImages, setSignedImages] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [showForm, setShowForm] = useState(false);
@@ -147,6 +150,11 @@ export default function ProjectDefects({ projectId, stages, builderEmail, onData
                     escalation_level: (d.escalation_level as string) || "none",
                 }));
                 setDefects(mapped);
+                // evidence bucket is private (schema_v49) — sign defect photos.
+                const signed = await getSignedUrlMap(
+                    supabase, "evidence", mapped.map((d) => d.image_url)
+                );
+                setSignedImages(signed);
             }
             setLoading(false);
         };
@@ -363,13 +371,12 @@ export default function ProjectDefects({ projectId, stages, builderEmail, onData
                 return;
             }
 
-            const { data: urlData } = supabase.storage
-                .from("evidence")
-                .getPublicUrl(filePath);
+            // Private bucket (schema_v49): store the PATH; it is signed at render.
+            const storedPath = filePath;
 
             const { error: updateErr } = await supabase
                 .from("defects")
-                .update({ image_url: urlData.publicUrl })
+                .update({ image_url: storedPath })
                 .eq("id", defectId);
 
             if (updateErr) {
@@ -383,8 +390,15 @@ export default function ProjectDefects({ projectId, stages, builderEmail, onData
             }
 
             setDefects(defects.map(d =>
-                d.id === defectId ? { ...d, image_url: urlData.publicUrl } : d
+                d.id === defectId ? { ...d, image_url: storedPath } : d
             ));
+            // Sign it now so the thumbnail appears immediately rather than
+            // staying blank until the next fetch (private bucket, schema_v49).
+            const { data: signed } = await supabase.storage
+                .from("evidence").createSignedUrl(storedPath, 60 * 60);
+            if (signed?.signedUrl) {
+                setSignedImages(prev => ({ ...prev, [storedPath]: signed.signedUrl }));
+            }
         } catch {
             setError("Photo upload failed. Please try again.");
         }
@@ -714,10 +728,10 @@ export default function ProjectDefects({ projectId, stages, builderEmail, onData
                                 </div>
 
                                 {/* Photo */}
-                                {defect.image_url && (
+                                {defect.image_url && signedImages[defect.image_url] && (
                                     <div className="mb-3">
                                         <img
-                                            src={defect.image_url}
+                                            src={signedImages[defect.image_url]}
                                             alt={`Defect: ${defect.title}`}
                                             className="w-32 h-32 object-cover rounded-lg border border-border"
                                         />

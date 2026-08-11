@@ -320,11 +320,8 @@ export default function MobilePhotoCapture({
 
       setUploadProgress(60);
 
-      const { data: urlData } = supabase.storage
-        .from("evidence")
-        .getPublicUrl(filePath);
-
-      const photoUrl = urlData.publicUrl;
+      // Private bucket (schema_v49): store the PATH; signed at render.
+      const photoUrl = filePath;
       setUploadProgress(80);
 
       // Save record to progress_photos
