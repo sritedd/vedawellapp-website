@@ -801,3 +801,61 @@ Uploaded a photo via Evidence → Photos on prod:
 ### 14.4 Teardown
 
 Test project and objects purged; buckets empty.
+
+---
+
+## 15. FOLLOW-UPS CLOSED — 2026-08-11
+
+### 15.1 `required_for_stage` normalised to stage UUID (schema_v50)
+
+The column held two formats — seeding wrote the stage UUID, `CertificationGate`
+wrote the stage NAME — and StageGate matched on name only, which is what made
+every seeded certificate requirement invisible (P1-9). That was patched by
+matching both shapes; v50 removes the split at the source.
+
+**Migration was a no-op on prod** (certifications table was empty after test
+teardown), so it proves nothing by itself. The durable fix is the write path,
+verified end to end instead:
+
+| Check | Result |
+|---|---|
+| Seeded certs (14) reference stage UUIDs | ✅ |
+| Gate shows "Plumbing Rough-in Certificate — Required before payment" | ✅ |
+| Upload via UI → gate flips to "You may proceed" | ✅ |
+| **INSERT branch** (seeded row deleted first, so the UI creates a new one) writes `required_for_stage` = **stage UUID** | ✅ |
+| `file_url` stored as a bare path, not a URL | ✅ |
+| `certificate.uploaded` audit entry recorded | ✅ |
+
+Forcing the INSERT branch mattered: the first upload hit the UPDATE branch
+(seeded row already existed), which never touches `required_for_stage` and so
+would have "passed" without exercising the fix at all.
+
+`CertificationGate` falls back to the stage name if the UUID lookup fails, so an
+upload can't break just because the stage row couldn't be read, and StageGate
+still resolves that shape.
+
+### 15.2 Expired signed URLs self-heal
+
+Signed URLs live 1 hour; a gallery left open past that re-requests and 400s.
+All three image render sites (ProgressPhotos timeline + grid, ProjectDefects)
+re-sign once on error, guarded by a ref-held attempt set so a genuinely missing
+object can't spin in a retry loop.
+
+### 15.3 Final prod state
+
+```
+projects:      0
+evidence:      0 entries    private ✅
+documents:     0 entries    private ✅
+certificates:  0 entries    private ✅
+```
+
+### 15.4 Still open (deliberately)
+
+- 4 spec-suite failures — spec-level (overlay interception / text matching), not
+  product defects; every feature they cover is verified working via the browser.
+- Lower-value audit actions (`inspection.*`, `escalation.*`, `project.*`,
+  `variation.signed`) — left unimplemented rather than added untested.
+- Orphaned-object sweep: `deleteProject` / `delete-account` both clean storage
+  correctly, but rows deleted outside those paths leave files. Now hygiene
+  rather than exposure, since the buckets are private.
