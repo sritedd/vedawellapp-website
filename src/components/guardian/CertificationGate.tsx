@@ -44,6 +44,28 @@ export default function CertificationGate({
     const [certifications, setCertifications] = useState<Certification[]>([]);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState<string | null>(null);
+    // DB uuid of the stage named `currentStage`. required_for_stage is stored as
+    // the stage UUID (schema_v50) — writing the display name here is what made
+    // seeded and uploaded certificates disagree and left the Stage Gate blind.
+    const [currentStageId, setCurrentStageId] = useState<string | null>(null);
+
+    useEffect(() => {
+        let cancelled = false;
+        const resolveStageId = async () => {
+            const supabase = createClient();
+            const { data } = await supabase
+                .from("stages")
+                .select("id, name")
+                .eq("project_id", projectId);
+            if (cancelled) return;
+            const match = (data || []).find(
+                (s: { id: string; name: string }) => stageNameToKey(s.name) === stageNameToKey(currentStage)
+            );
+            setCurrentStageId(match?.id ?? null);
+        };
+        resolveStageId();
+        return () => { cancelled = true; };
+    }, [projectId, currentStage]);
 
     // Get required certificates for current stage from workflow data
     // Use project's state, falling back to NSW
@@ -135,7 +157,11 @@ export default function CertificationGate({
                     type: certType,
                     status: "uploaded",
                     file_url: storedPath,
-                    required_for_stage: currentStage,
+                    // Prefer the stage UUID so this row matches what seeding
+                    // writes. Fall back to the name only if the lookup failed —
+                    // StageGate still resolves that shape, so an upload never
+                    // breaks just because the stage row couldn't be read.
+                    required_for_stage: currentStageId ?? currentStage,
                 });
                 if (insertErr) throw insertErr;
             }

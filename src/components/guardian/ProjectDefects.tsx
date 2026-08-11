@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { logActivity } from "@/lib/activity-log";
-import { getSignedUrlMap, toStoragePath } from "@/lib/guardian/storage";
+import { getSignedUrlMap, getSignedUrl, toStoragePath } from "@/lib/guardian/storage";
 import Link from "next/link";
 import {
     createDefectStatusUpdate,
@@ -91,6 +91,16 @@ export default function ProjectDefects({ projectId, stages, builderEmail, onData
     const [defects, setDefects] = useState<Defect[]>([]);
     // stored image_url -> freshly signed URL (private bucket, schema_v49)
     const [signedImages, setSignedImages] = useState<Record<string, string>>({});
+    // Signed URLs expire (1h). Re-sign once on load error so a long-open defect
+    // list heals itself rather than showing a broken thumbnail. Guarded so a
+    // genuinely missing object can't retry forever.
+    const resignAttempts = useRef<Set<string>>(new Set());
+    const resignExpired = async (storedUrl: string) => {
+        if (!storedUrl || resignAttempts.current.has(storedUrl)) return;
+        resignAttempts.current.add(storedUrl);
+        const fresh = await getSignedUrl(createClient(), "evidence", storedUrl);
+        if (fresh) setSignedImages(prev => ({ ...prev, [storedUrl]: fresh }));
+    };
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [showForm, setShowForm] = useState(false);
@@ -732,6 +742,7 @@ export default function ProjectDefects({ projectId, stages, builderEmail, onData
                                     <div className="mb-3">
                                         <img
                                             src={signedImages[defect.image_url]}
+                                            onError={() => resignExpired(defect.image_url!)}
                                             alt={`Defect: ${defect.title}`}
                                             className="w-32 h-32 object-cover rounded-lg border border-border"
                                         />

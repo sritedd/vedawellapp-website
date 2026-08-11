@@ -33,6 +33,17 @@ export default function ProgressPhotos({ projectId, stages }: ProgressPhotosProp
     const [photos, setPhotos] = useState<ProgressPhoto[]>([]);
     // stored photo_url -> freshly signed URL (private bucket, schema_v49)
     const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
+    // Signed URLs expire (1h). If a gallery is left open past that, the browser
+    // re-requests and gets a 400. Re-sign once on error so the thumbnail heals
+    // itself instead of staying broken. Guarded so a genuinely missing object
+    // can't spin in a retry loop.
+    const resignAttempts = useRef<Set<string>>(new Set());
+    const resignExpired = async (storedUrl: string) => {
+        if (!storedUrl || resignAttempts.current.has(storedUrl)) return;
+        resignAttempts.current.add(storedUrl);
+        const fresh = await getSignedUrl(createClient(), "evidence", storedUrl);
+        if (fresh) setSignedUrls(prev => ({ ...prev, [storedUrl]: fresh }));
+    };
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
     const [showForm, setShowForm] = useState(false);
@@ -432,6 +443,7 @@ export default function ProgressPhotos({ projectId, stages }: ProgressPhotosProp
                                             <img
                                                 src={signedUrls[photo.photo_url] || ""}
                                                 alt={photo.description}
+                                                onError={() => resignExpired(photo.photo_url)}
                                                 className="w-full h-full object-cover"
                                             />
                                         </div>
@@ -474,6 +486,7 @@ export default function ProgressPhotos({ projectId, stages }: ProgressPhotosProp
                                 <img
                                     src={signedUrls[photo.photo_url] || ""}
                                     alt={photo.description}
+                                    onError={() => resignExpired(photo.photo_url)}
                                     className="w-full h-full object-cover"
                                 />
                             </div>
