@@ -749,3 +749,55 @@ Note: the app's own `deleteProject()` and `delete-account` DO clear storage.
 The orphans found during this run came from test tooling deleting rows via the
 service role, which bypasses that path — `make-fixture.mjs --purge` now clears
 storage too, so runs stop leaving publicly-fetchable litter in public buckets.
+
+---
+
+## 14. STORAGE PRIVACY MIGRATION — 2026-08-11 (P1-8 CLOSED)
+
+Owner authorised the breaking migration explicitly ("no real users yet"), so the
+buckets were flipped rather than left as a documented risk.
+
+### 14.1 What shipped
+
+- **`schema_v49_private_buckets.sql`** — sets `public = false` on `evidence`,
+  `documents`, `certificates`, and widens the storage read policy to accepted
+  project members via the v47 `is_project_member()` helper (without that, every
+  shared image would render broken for members).
+- **`src/lib/guardian/storage.ts`** — `toStoragePath()` normalises BOTH shapes
+  present in the database (legacy full public URLs written before v49, and the
+  bare paths written after), so old and new rows both resolve.
+  `getSignedUrl()` / `getSignedUrlMap()` mint short-lived URLs, batching a whole
+  gallery into a single round trip.
+- **All 7 upload/render components migrated.** Uploads store the storage PATH,
+  not a URL. Galleries batch-sign on fetch and sign the just-uploaded file
+  immediately. Download links sign **on click** so a URL can't go stale sitting
+  in an open tab. `ProjectVariations` needed nothing — it only uses
+  `signature_url` as a boolean.
+
+**Deploy-safe ordering**: `createSignedUrl` works on public buckets too, so the
+code was correct both before and after the SQL ran — no breakage window.
+
+### 14.2 Verified (`verify-bucket-privacy.mjs`)
+
+| Check | Before | After |
+|---|---|---|
+| `evidence` / `documents` / `certificates` public | **true** | **false** ✅ |
+| Unauthenticated GET of an evidence photo | **200 image/jpeg** | **blocked, HTTP 400** ✅ |
+| Owner mints signed URL + fetches real bytes | pass | pass ✅ |
+| Stranger signs another user's object | denied | denied ✅ |
+
+### 14.3 Verified through the real UI
+
+Uploaded a photo via Evidence → Photos on prod:
+
+- Stored value is a **bare path** (`<project>/photos/1786420675383.jpg`), not a URL
+- Object present in storage at the right size (64,274 B)
+- Rendered immediately after upload via `/object/sign/…` with a token,
+  `loaded: true`, real pixels decoded (720×1600)
+- **After a hard reload** (the batch-sign-on-fetch path): `allSigned: true`,
+  `allLoaded: true`, `anyPublicUrl: false`
+- 0 console errors throughout
+
+### 14.4 Teardown
+
+Test project and objects purged; buckets empty.
