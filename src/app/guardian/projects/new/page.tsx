@@ -317,7 +317,16 @@ export default function NewProjectPage() {
             router.refresh();
         } catch (err: any) {
             console.error("Error creating project:", err);
-            setError(err.message || "Failed to create project. Please try again.");
+            // The free-tier cap is enforced server-side by a trigger (schema_v51).
+            // Its raw message leads with "FREE_TIER_PROJECT_LIMIT:", so translate it
+            // rather than showing a homeowner a database error code. The client-side
+            // guard above normally catches this first; this is the bypass path.
+            const raw = err?.message || "";
+            if (raw.includes("FREE_TIER_PROJECT_LIMIT")) {
+                setError("Free plan allows 1 project. Upgrade to Guardian Pro for unlimited projects.");
+            } else {
+                setError(raw || "Failed to create project. Please try again.");
+            }
         } finally {
             setLoading(false);
         }

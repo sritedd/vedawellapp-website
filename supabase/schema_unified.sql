@@ -2,10 +2,33 @@
 -- Guardian Unified Schema — All tables, RLS policies, indexes, triggers
 -- Generated: 2026-03-23 from schema.sql + schema_v2..v35
 --
+-- ┌─────────────────────────────────────────────────────────────────────────┐
+-- │ ⚠ STALE BELOW THIS LINE — body reflects v35 (2026-03-23) only.          │
+-- │                                                                         │
+-- │ Sixteen migrations (v36–v51) have run since, including FOUR that        │
+-- │ rewrote RLS policies to fix production outages. Several policies in     │
+-- │ the body below are NO LONGER what runs in production, and two of them   │
+-- │ as written here caused total outages:                                   │
+-- │                                                                         │
+-- │   • projects / project_members member policies  -> replaced in v47      │
+-- │   • defects / variations INSERT policies         -> replaced in v48      │
+-- │   • storage.objects read policy + bucket privacy -> replaced in v49      │
+-- │   • projects INSERT policy                       -> replaced in v51      │
+-- │                                                                         │
+-- │ SOURCE OF TRUTH is the migration chain (schema_v1 … schema_v51), not    │
+-- │ this file. SECTION 8 at the bottom consolidates every change since v35  │
+-- │ — read it before trusting anything above.                               │
+-- │                                                                         │
+-- │ Not regenerated wholesale because that requires a dump of the live      │
+-- │ database; hand-merging 16 migrations into 1100 lines would risk a       │
+-- │ confidently-wrong document, which is worse than a visibly stale one.    │
+-- │ Backlog B-2 tracks doing it properly from a real pg_dump.               │
+-- └─────────────────────────────────────────────────────────────────────────┘
+--
 -- WARNING: This is a REFERENCE file showing the final state of the database.
 -- DO NOT run this on an existing database — it will conflict with existing
 -- objects. Use individual migration files for incremental changes.
--- For a fresh Supabase project, run this file once.
+-- For a fresh Supabase project, run this file once THEN apply v36–v51.
 -- ===========================================================================
 
 -- ── Extensions ──────────────────────────────────────────────────────────────
@@ -1119,3 +1142,107 @@ GRANT EXECUTE ON FUNCTION public.has_pro_access(uuid) TO service_role;
 -- END OF UNIFIED SCHEMA
 -- 32 tables, 70+ indexes, 80+ RLS policies, 9 triggers, 4 functions
 -- ══════════════════════════════════════════════════════════════════════════════
+
+-- ═══════════════════════════════════════════════════════════════════════════
+-- SECTION 8: CHANGES SINCE v35  (v36 → v51)
+--
+-- The body above stops at v35 (2026-03-23). This section records the CURRENT
+-- state of everything that changed after it. Where a policy appears both above
+-- and here, THIS is what production runs.
+--
+-- This is hand-consolidated from the migration files, not a pg_dump. Backlog
+-- B-2 tracks regenerating the whole file properly from the live database.
+-- ═══════════════════════════════════════════════════════════════════════════
+
+-- ── New tables ──────────────────────────────────────────────────────────────
+--   v36  ai_usage_log          AI cost/quota telemetry (+ stripe_webhook_events)
+--   v37  page_views            page-view analytics
+--   v38  social_post_history   social auto-post tracking
+--   v46  migraine_logs         migraine tracker profile sync (NOT YET RUN in prod)
+
+-- ── Column additions ────────────────────────────────────────────────────────
+--   v43  profiles.referred_by  -> ON DELETE SET NULL (referrers could not delete
+--                                 their account before this)
+--   v44  email_subscribers     + first_name, unsubscribe_token, sequence_stage,
+--                                last_email_at
+--   v45  email_subscribers     + utm_source/medium/campaign/content/term,
+--                                referrer_url
+
+-- ── Helper functions (v47) ──────────────────────────────────────────────────
+-- SECURITY DEFINER so they do NOT re-enter RLS. These exist specifically to
+-- break the mutual recursion between projects and project_members.
+CREATE OR REPLACE FUNCTION public.is_project_member(pid uuid)
+RETURNS boolean LANGUAGE sql SECURITY DEFINER STABLE SET search_path = public AS $$
+  SELECT EXISTS (SELECT 1 FROM project_members pm
+                 WHERE pm.project_id = pid AND pm.user_id = auth.uid()
+                   AND pm.status = 'accepted');
+$$;
+
+CREATE OR REPLACE FUNCTION public.is_project_owner(pid uuid)
+RETURNS boolean LANGUAGE sql SECURITY DEFINER STABLE SET search_path = public AS $$
+  SELECT EXISTS (SELECT 1 FROM projects p WHERE p.id = pid AND p.user_id = auth.uid());
+$$;
+
+GRANT EXECUTE ON FUNCTION public.is_project_member(uuid) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.is_project_owner(uuid)  TO authenticated, service_role;
+
+-- ── RLS: projects / project_members (v47, v51) ──────────────────────────────
+-- v40 added a member-read policy on projects that queried project_members,
+-- while project_members' owner policy queried projects. Each triggered the
+-- other: "infinite recursion detected in policy for relation projects", which
+-- made 18 of 21 tables unreadable for EVERY authenticated user.
+CREATE POLICY "Members can view shared projects" ON projects FOR SELECT
+  USING (public.is_project_member(id));
+
+CREATE POLICY "Project owners can manage members" ON project_members FOR ALL
+  USING (public.is_project_owner(project_id));
+
+-- v51: the free 1-project cap used to be counted INSIDE this policy — the same
+-- self-referential shape that broke defects/variations. Now a trigger.
+CREATE POLICY "Users can create own projects" ON projects FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+-- ── RLS: child-table INSERTs (v48) ──────────────────────────────────────────
+-- These counted their OWN table inside their own WITH CHECK, so evaluating the
+-- policy re-entered it. Logging a defect failed for every tier, including
+-- guardian_pro + is_admin. has_pro_access() OR (...) did not save it: SQL does
+-- not guarantee short-circuit evaluation, so the subquery was planned anyway.
+CREATE POLICY "Users can insert own project defects" ON defects FOR INSERT
+  WITH CHECK (public.is_project_owner(project_id));
+
+CREATE POLICY "Users can insert own project variations" ON variations FOR INSERT
+  WITH CHECK (public.is_project_owner(project_id));
+
+-- ── Tier limits are enforced by TRIGGERS, not policies ──────────────────────
+-- SECURITY DEFINER, so their counts never re-enter policy evaluation.
+--   v41  enforce_free_variation_limit()  max 2 variations / project (free tier)
+--   v42  enforce_free_defect_limit()     max 3 defects   / project (free tier)
+--   v51  enforce_free_project_limit()    max 1 project   / user    (free tier)
+-- Each raises FREE_TIER_*_LIMIT, which the UI maps to a friendly message.
+
+-- ── Storage: buckets are PRIVATE (v49) ──────────────────────────────────────
+-- evidence / documents / certificates were PUBLIC — every defect photo, signed
+-- contract and compliance certificate was readable by anyone with the URL, and
+-- the project UUID forming the path prefix is visible in the address bar.
+-- /object/public/ bypasses RLS entirely, so storage policies did not help.
+UPDATE storage.buckets SET public = false
+WHERE id IN ('evidence', 'documents', 'certificates');
+
+-- Reads must be signed. Owners AND accepted members can SELECT (signing an
+-- object requires SELECT on it), otherwise shared images render broken.
+CREATE POLICY "Users can read own project files" ON storage.objects
+  FOR SELECT TO authenticated
+  USING (
+    bucket_id IN ('evidence', 'documents', 'certificates')
+    AND (
+      (storage.foldername(name))[1] IN (SELECT id::text FROM projects WHERE user_id = auth.uid())
+      OR public.is_project_member(((storage.foldername(name))[1])::uuid)
+    )
+  );
+
+-- ── Data convention (v50) ───────────────────────────────────────────────────
+-- certifications.required_for_stage stores the STAGE UUID.
+-- It previously held two formats (seeding wrote the UUID, CertificationGate
+-- wrote the stage NAME) and StageGate matched on name only — so every seeded
+-- certificate requirement was invisible and the gate reported "All Clear" while
+-- mandatory certificates were missing.

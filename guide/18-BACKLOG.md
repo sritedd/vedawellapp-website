@@ -7,7 +7,7 @@
 > ~~strike the row~~ and append `✅ FIXED <date> (<commit>)` with a one-line note on what
 > actually changed. Don't delete rows — the history is the point.
 >
-> **Status**: 12 open · 0 done · created 2026-08-11
+> **Status**: 10 open · 1 done · 1 partial · created 2026-08-11 · last worked 2026-08-14
 >
 > Closed already and NOT repeated here: the two P0 RLS outages (v47/v48), the AI
 > quota outage, the PDF-worker CSP block, the contract-parser overwrite, the Stage
@@ -30,7 +30,15 @@
 
 ## P1 — do these first
 
-### B-1 · `projects` INSERT policy still carries the self-referential pattern
+### ~~B-1 · `projects` INSERT policy still carries the self-referential pattern~~
+✅ **FIXED 2026-08-14 (schema_v51 + b2053b5)** — cap moved to
+`enforce_free_project_limit()` trigger; policy reduced to `auth.uid() = user_id`.
+Verified on prod: the 2nd project is now blocked by **`FREE_TIER_PROJECT_LIMIT`
+(trigger)**, not `row-level security` (policy), proving the self-reference is
+gone while behaviour is unchanged. `verify-write-limits.mjs` extended to cover
+projects + project-impersonation; results identical pre/post. The new-project
+page maps the raw trigger message to a friendly one for the bypass path.
+
 **Effort**: 30 min · **Risk if skipped**: latent repeat of a P0
 
 `schema_unified.sql:838` still has `(SELECT count(*) FROM projects WHERE user_id = auth.uid()) < 1`
@@ -46,7 +54,16 @@ the policy to `auth.uid() = user_id`.
 **Verify**: free user creates 1st project ✅, 2nd blocked ✅, pro/trial/admin
 unlimited ✅ — via `verify-write-limits.mjs` extended to cover projects.
 
-### B-2 · `schema_unified.sql` is stale
+### ~~B-2 · `schema_unified.sql` is stale~~
+⚠️ **PARTIALLY DONE 2026-08-14** — full regeneration still needs a `pg_dump` of the
+live DB (no direct SQL access from here), and hand-merging 16 migrations into
+1100 lines would risk a *confidently wrong* file, which is worse than a visibly
+stale one. Instead: a prominent staleness banner at the top naming the four
+policy sets that no longer match production, plus **SECTION 8** consolidating the
+current state of every v36–v51 change (helper functions, rewritten policies,
+tier triggers, private buckets, the `required_for_stage` convention).
+**Remaining**: regenerate wholesale from a real dump.
+
 **Effort**: 1–2 h · **Risk if skipped**: wrong source of truth for every future migration
 
 Missing everything from v36 onward. Anyone reading it to understand current RLS
