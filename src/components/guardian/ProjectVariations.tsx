@@ -149,6 +149,28 @@ export default function ProjectVariations({
             return;
         }
 
+        // Audit trail — signing a variation is a contractual act: it's the moment
+        // the homeowner accepted a cost change. A dispute about "did you approve
+        // this?" turns on exactly this timestamp.
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            const signed = variations.find(v => v.id === variationId);
+            logActivity(supabase, {
+                projectId,
+                userId: user.id,
+                action: "variation.signed",
+                entityType: "variation",
+                entityId: variationId,
+                oldValues: { status: signed?.status ?? null },
+                newValues: {
+                    status: "approved",
+                    title: signed?.title ?? null,
+                    additional_cost: signed?.additional_cost ?? null,
+                    signed_at: new Date().toISOString(),
+                },
+            });
+        }
+
         setSelectedVariation(null);
         fetchVariations();
     };

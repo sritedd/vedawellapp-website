@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { logActivity } from "@/lib/activity-log";
 import { useToast } from "@/components/guardian/Toast";
 import {
   ESCALATION_LEVELS,
@@ -112,6 +113,25 @@ export default function BuilderEscalation({ projectId }: { projectId: string }) 
       toast(`Could not start escalation: ${error.message}`, "error");
       return;
     }
+
+    // Audit trail — an escalation history is one of the first things a tribunal
+    // asks for: it evidences that the homeowner followed the formal process and
+    // at what point each step was taken.
+    logActivity(supabase, {
+      projectId,
+      userId: user.id,
+      action: level === 1 ? "escalation.started" : "escalation.advanced",
+      entityType: "escalation",
+      entityId: selectedDefect || undefined,
+      newValues: {
+        level,
+        status: "active",
+        builder_name: builderName,
+        letter_type: escalationGenerators[level - 1]?.name || `Level ${level}`,
+        defect: defect?.title || null,
+      },
+    });
+
     // Generate letter
     const params: TemplateParams = {
       homeownerName: homeownerName || "Homeowner",

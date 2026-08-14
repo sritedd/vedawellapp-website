@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { logActivity } from "@/lib/activity-log";
 import {
     getInspectionStatusColor,
     getInspectionStatusLabel,
@@ -121,6 +122,25 @@ export default function InspectionTimeline({ projectId, currentStage }: Inspecti
             return;
         }
 
+        // Audit trail — an inspection RESULT is evidence. "Passed on this date"
+        // is what a progress payment is justified against; a later dispute turns
+        // on when that was recorded, not just that it is currently true.
+        if (updates.result || updates.certificate_received !== undefined) {
+            const before = inspections.find(i => i.id === id);
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                logActivity(supabase, {
+                    projectId,
+                    userId: user.id,
+                    action: "inspection.completed",
+                    entityType: "inspection",
+                    entityId: id,
+                    oldValues: { result: before?.result ?? null, certificate_received: before?.certificate_received ?? null },
+                    newValues: { ...updates, stage: before?.stage ?? null },
+                });
+            }
+        }
+
         // Stage-gate progress signal: when an inspection for a stage is marked passed,
         // promote that stage from `pending` → `in_progress` so the user sees movement
         // on the timeline. Final completion still flows through StageGate (explicit
@@ -163,6 +183,25 @@ export default function InspectionTimeline({ projectId, currentStage }: Inspecti
         if (error || !data) {
             setAddError(error?.message || "Failed to add inspection. Please try again.");
             return;
+        }
+
+        // Audit trail — when an inspection was booked matters in a dispute about
+        // whether a stage was signed off before the mandatory inspection happened.
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            logActivity(supabase, {
+                projectId,
+                userId: user.id,
+                action: "inspection.scheduled",
+                entityType: "inspection",
+                entityId: data.id,
+                newValues: {
+                    stage: data.stage,
+                    inspector_name: data.inspector_name,
+                    scheduled_date: data.scheduled_date,
+                    result: data.result,
+                },
+            });
         }
 
         setInspections(prev => [...prev, data]);

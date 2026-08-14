@@ -7,7 +7,7 @@
 > ~~strike the row~~ and append `✅ FIXED <date> (<commit>)` with a one-line note on what
 > actually changed. Don't delete rows — the history is the point.
 >
-> **Status**: 10 open · 1 done · 1 partial · created 2026-08-11 · last worked 2026-08-14
+> **Status**: 9 open · 2 done · 1 partial · created 2026-08-11 · last worked 2026-08-14
 >
 > Closed already and NOT repeated here: the two P0 RLS outages (v47/v48), the AI
 > quota outage, the PDF-worker CSP block, the contract-parser overwrite, the Stage
@@ -77,20 +77,25 @@ then diff against the v1–v50 chain to confirm nothing was missed.
 
 ## P2 — worth doing, not urgent
 
-### B-3 · 9 of 17 audit actions never fire
+### ~~B-3 · 9 of 17 audit actions never fire~~
+✅ **FIXED 2026-08-14** — emitted actions go **8 → 13 of 17**. Added the four that
+carry evidentiary weight:
+
+| Action | Why it matters |
+|---|---|
+| `variation.signed` | the moment the homeowner accepted a cost change — a dispute about "did you approve this?" turns on this timestamp |
+| `escalation.started` / `escalation.advanced` | proves the formal process was followed, and when each step was taken |
+| `inspection.scheduled` | whether a stage was signed off *before* its mandatory inspection |
+| `inspection.completed` | "passed on this date" is what a progress payment is justified against |
+
+**Deliberately still not emitted (4)**, with reasons rather than as an oversight:
+`project.created` / `project.updated` / `project.deleted` — the row's existence
+already evidences these, and deletion cascades the log with it, so the entry
+could never be read. `payment.created` — payment milestones are seeded at project
+creation, not a user action; `payment.updated` (recording a payment) is the one
+that matters and already fires.
+
 **Effort**: 2 h · **Value**: tribunal evidence completeness
-
-Emitted today (8): `certificate.uploaded`, `communication.logged`,
-`payment.updated`, `defect.created`, `defect.updated`, `defect.resolved`,
-`variation.created`, `stage.advanced`.
-
-Never emitted (9): `payment.created`, `variation.signed`, `project.created`,
-`project.updated`, `project.deleted`, `inspection.scheduled`,
-`inspection.completed`, `escalation.started`, `escalation.advanced`.
-
-`variation.signed` and the `escalation.*` pair are the valuable ones — a signed
-variation and an escalation history are exactly what a tribunal asks for.
-`project.*` is lower value.
 
 ### B-4 · AI spec fires faster than the rate limiter
 **Effort**: 45 min
