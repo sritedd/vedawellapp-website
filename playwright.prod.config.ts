@@ -23,6 +23,17 @@ export default defineConfig({
     forbidOnly: true,
     retries: 1,
     workers: 1,
+    // Per-test budget. The 30 s default is too small for prod: these tests log in
+    // (Netlify cold start + Supabase auth round trip), navigate to the project
+    // list, open a project, then switch tabs — each a real network hop. Tests
+    // sitting near 30 s passed or failed at random, which read as product
+    // flakiness but was purely the budget.
+    //
+    // Must stay comfortably ABOVE the 45 s login wait inside the specs, or the
+    // test is killed mid-wait and reports a misleading "login did not complete"
+    // for a login that actually succeeded.
+    timeout: 120_000,
+    expect: { timeout: 15_000 },
     reporter: [["html", { open: "never" }], ["list"]],
     use: {
         baseURL: process.env.E2E_BASE_URL || "https://vedawellapp.com",

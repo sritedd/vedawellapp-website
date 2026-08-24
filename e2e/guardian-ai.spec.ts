@@ -37,10 +37,13 @@ function requiredEnv(key: string): string {
     return v;
 }
 
+// Resolved LAZILY, at first use rather than at module load. Throwing during
+// module evaluation breaks `playwright test --list` and any collection that
+// happens without these set — including for specs that never need them.
 const FREE_EMAIL = process.env.E2E_FREE_EMAIL || "e2e-free@vedawellapp.com";
-const FREE_PASSWORD = requiredEnv("E2E_FREE_PASSWORD");
 const PRO_EMAIL = process.env.E2E_PRO_EMAIL || "e2e-test@vedawellapp.com";
-const PRO_PASSWORD = requiredEnv("E2E_PRO_PASSWORD");
+const FREE_PASSWORD = () => requiredEnv("E2E_FREE_PASSWORD");
+const PRO_PASSWORD = () => requiredEnv("E2E_PRO_PASSWORD");
 
 // Honour the Playwright baseURL so the same spec can target prod.
 const BASE_URL = process.env.E2E_BASE_URL || "http://localhost:3000";
@@ -162,7 +165,7 @@ test.describe("AI Routes — Input Validation", () => {
 
     test.beforeAll(async ({ browser }) => {
         page = await browser.newPage();
-        await login(page, PRO_EMAIL, PRO_PASSWORD);
+        await login(page, PRO_EMAIL, PRO_PASSWORD());
     });
 
     test.afterAll(async () => {
@@ -253,7 +256,7 @@ test.describe("AI Routes — Tier Gating (Free User)", () => {
 
     test.beforeAll(async ({ browser }) => {
         page = await browser.newPage();
-        await login(page, FREE_EMAIL, FREE_PASSWORD);
+        await login(page, FREE_EMAIL, FREE_PASSWORD());
     });
 
     test.afterAll(async () => {
@@ -337,7 +340,7 @@ test.describe("AI Routes — Defect Assist Response", () => {
 
     test.beforeAll(async ({ browser }) => {
         page = await browser.newPage();
-        await login(page, PRO_EMAIL, PRO_PASSWORD);
+        await login(page, PRO_EMAIL, PRO_PASSWORD());
     });
 
     test.afterAll(async () => {
@@ -383,7 +386,7 @@ test.describe("AI Routes — Prompt Injection Defense", () => {
 
     test.beforeAll(async ({ browser }) => {
         page = await browser.newPage();
-        await login(page, PRO_EMAIL, PRO_PASSWORD);
+        await login(page, PRO_EMAIL, PRO_PASSWORD());
     });
 
     test.afterAll(async () => {
