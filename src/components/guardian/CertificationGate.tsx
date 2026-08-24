@@ -344,9 +344,21 @@ export default function CertificationGate({
                 </div>
             </div>
 
-            {/* All Mandatory Certificates Reference */}
-            <div className="p-4 bg-card border border-border rounded-xl">
-                <h3 className="font-bold mb-3">All Mandatory Certificates ({state})</h3>
+            {/* All Mandatory Certificates Reference
+                Visually separated and re-titled: this list is a WHOLE-BUILD
+                reference for the state, not the current stage's requirements.
+                Sitting unlabelled under a green "you may proceed with payment"
+                banner, its unchecked boxes read as a contradiction to a stressed
+                homeowner — as if they were being told to pay with items
+                outstanding. The dashed border + muted background + explicit
+                subtitle mark it as reference material rather than a gate. */}
+            <div className="p-4 bg-muted/20 border border-dashed border-border rounded-xl">
+                <h3 className="font-bold mb-1">Reference: all certificates for a {state} build</h3>
+                <p className="text-xs text-muted-foreground mb-3">
+                    The full list for the whole build — not what&apos;s required to pass the
+                    current stage. Items here stay unticked until that certificate is due
+                    and uploaded; that is expected and does not block your current payment.
+                </p>
                 <div className="grid md:grid-cols-2 gap-2 text-sm">
                     {mandatoryCerts.map((cert) => {
                         const uploaded = certifications.some(
