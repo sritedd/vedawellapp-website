@@ -77,12 +77,26 @@ async function login(page: Page) {
         return;
     }
 
+    // Wait for hydration before filling — a not-yet-interactive React form
+    // silently drops the value and submits empty credentials.
+    await page.waitForSelector('input[type="email"]', { state: "visible", timeout: 30_000 });
+    await page.waitForTimeout(1_000);
+
     await page.fill('input[type="email"]', TEST_EMAIL);
     await page.fill('input[type="password"]', TEST_PASSWORD);
     await page.click('button[type="submit"]');
 
-    // Wait for redirect away from login
-    await page.waitForURL(/\/(dashboard|projects)/, { timeout: 15000 });
+    // 45 s, not 15 s: against prod a Netlify cold start plus the Supabase auth
+    // round trip regularly exceeds 15 s, and a timeout here fails every test in
+    // the file while the product is perfectly healthy.
+    try {
+        await page.waitForURL(/\/guardian\/(dashboard|projects)/, { timeout: 45_000 });
+    } catch {
+        throw new Error(
+            `Login did not complete for ${TEST_EMAIL} within 45 s (landed on ${page.url()}). ` +
+            `Check E2E_PRO_PASSWORD in .env.local is current — prod-accounts.mjs rotates it.`
+        );
+    }
 }
 
 /**

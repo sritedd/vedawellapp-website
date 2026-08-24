@@ -7,7 +7,7 @@
 > ~~strike the row~~ and append `✅ FIXED <date> (<commit>)` with a one-line note on what
 > actually changed. Don't delete rows — the history is the point.
 >
-> **Status**: 9 open · 2 done · 1 partial · created 2026-08-11 · last worked 2026-08-14
+> **Status**: 8 open · 3 done · 1 partial · created 2026-08-11 · last worked 2026-08-24
 >
 > Closed already and NOT repeated here: the two P0 RLS outages (v47/v48), the AI
 > quota outage, the PDF-worker CSP block, the contract-parser overwrite, the Stage
@@ -97,17 +97,31 @@ that matters and already fires.
 
 **Effort**: 2 h · **Value**: tribunal evidence completeness
 
-### B-4 · AI spec fires faster than the rate limiter
+### ~~B-4 · AI spec fires faster than the rate limiter~~
+✅ **FIXED 2026-08-24 — 4 passed/13 failed → 17/17 green.**
+
+**My original diagnosis in this row was wrong.** I attributed the failures to the
+per-user rate limiter and wrote a retry-on-429 helper; re-running produced the
+*identical* 4/13. Looking at the failure artifacts instead of assuming: every
+screenshot was the **login page**. `beforeAll`'s `login()` gave the redirect 10 s,
+and against prod a Netlify cold start plus a Supabase auth round trip regularly
+exceeds that — so `beforeAll` threw and every authenticated test in the file
+failed while the product was healthy.
+
+Fixes: wait for hydration before filling (a not-yet-interactive React form
+silently drops the value and submits empty credentials), raise the redirect wait
+to 45 s, and throw a real diagnosis instead of a bare timeout. Same racy login
+existed in `guardian-full-workflow.spec.ts` and was fixed there too.
+
+The `postAI()` retry helper was kept — it is correct and cheap (only pays when a
+429 actually fires), just not the blocker.
+
+Last failure was a genuinely stale assertion: `builder-check` short-circuits to
+**503 `comingSoon` ABOVE input validation**, so a Pro user never sees 400. Test
+now asserts `[403, 503]` and would fail loudly if the feature were re-enabled
+without revisiting it.
+
 **Effort**: 45 min
-
-`guardian-ai.spec.ts` scored 4 passed / 13 failed on prod. The failures are
-environmental, not product bugs: the Input Validation block fires 6 requests
-back-to-back as one user through a 5 s per-user limiter, so requests 2+ get 429
-instead of the expected 400. Verified by hand with 8 s spacing — validation
-returns correct 400s, free gating 403, free chat on a foreign project 404.
-
-Add a rate-limit-aware helper (space requests, or retry once on 429) so the
-suite's result means something.
 
 ### B-5 · 4 workflow-spec failures
 **Effort**: 1–2 h
