@@ -113,6 +113,15 @@ export async function createTestProject(
     const { data: project, error } = await admin.from("projects").insert({
         user_id: userId,
         name: projectName,
+        // MUST be set explicitly. `projects.state` is `TEXT DEFAULT 'NSW'`, and
+        // omitting it meant every one of the 8 per-state describe blocks created a
+        // project the app read as NSW. Stage NAMES were still seeded per state
+        // (see stateWorkflow below), so the suite looked like 8-state coverage and
+        // reported 70/72 green — while every state-dependent code path (licence
+        // register links, tribunal contacts, HBCF rules, escalation templates,
+        // state-specific certificate gates, and the AI prompts in lib/ai/prompts.ts)
+        // ran as NSW eight times over.
+        state: stateCode,
         builder_name: `${stateCode} Test Builders Pty Ltd`,
         builder_license_number: `${stateCode}12345C`,
         builder_abn: "12345678901",
@@ -328,17 +337,49 @@ export async function deleteTestProject(projectId: string): Promise<void> {
 /**
  * Clean up all E2E test projects by name pattern.
  */
-export async function cleanupE2EProjects(): Promise<void> {
+/**
+ * Delete leftover E2E projects.
+ *
+ * `namePrefix` should be as narrow as the caller can make it. This used to always
+ * delete every project matching "E2E %", which meant one describe block's setup
+ * could destroy another describe block's LIVE project — a worker restart partway
+ * through the suite was enough to trigger it. The victim test then failed with a
+ * meaningless "element not visible" against an empty project list rather than
+ * anything that pointed at the deletion. Scoping the match to the state under
+ * test removes that whole class of cross-describe interference.
+ */
+export async function cleanupE2EProjects(namePrefix = "E2E "): Promise<void> {
     const admin = getAdminClient();
-    const { data: projects } = await admin.from("projects")
+    const { data: projects, error } = await admin.from("projects")
         .select("id")
-        .like("name", "E2E %");
+        .like("name", `${namePrefix}%`);
 
-    if (projects) {
-        for (const p of projects) {
-            await deleteTestProject(p.id);
-        }
+    // Swallowing this error let setup "succeed" against a project list it never
+    // actually read, leaving stale rows to collide with the new fixture.
+    if (error) {
+        throw new Error(`cleanupE2EProjects(${namePrefix}): could not list projects: ${error.message}`);
     }
+
+    for (const p of projects ?? []) {
+        await deleteTestProject(p.id);
+    }
+}
+
+/**
+ * Read a project's stored `state`.
+ *
+ * Exists so the suite can prove the per-state fixture really is that state.
+ * `projects.state` defaults to 'NSW', so an omitted field fails silently and
+ * every "8-state" run exercises NSW eight times.
+ */
+export async function getProjectState(projectId: string): Promise<string | null> {
+    const admin = getAdminClient();
+    const { data, error } = await admin.from("projects")
+        .select("state")
+        .eq("id", projectId)
+        .single();
+    if (error) throw new Error(`getProjectState: ${error.message}`);
+    return data?.state ?? null;
 }
 
 /**

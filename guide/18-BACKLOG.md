@@ -7,7 +7,11 @@
 > ~~strike the row~~ and append `✅ FIXED <date> (<commit>)` with a one-line note on what
 > actually changed. Don't delete rows — the history is the point.
 >
-> **Status**: 2 open · 9 done · 1 partial · created 2026-08-11 · last worked 2026-09-08
+> **Status**: 2 open · 11 done · 1 partial · created 2026-08-11 · last worked 2026-09-08
+>
+> Open: **B-10** (OCR for scanned PDFs — large) and **B-12** (yearly Stripe price —
+> owner, 15 min). B-2 remains partial: it needs a real `pg_dump` of prod, which is
+> not reachable from this machine.
 >
 > Closed already and NOT repeated here: the two P0 RLS outages (v47/v48), the AI
 > quota outage, the PDF-worker CSP block, the contract-parser overwrite, the Stage
@@ -142,14 +146,53 @@ them product defects:
    isolation and any reordering would have broken it silently. It now seeds its
    own fixture.
 
-### B-6 · `guardian-smoke.spec.ts` can never pass
-**Effort**: 2 h to redesign, 5 min to retire
+### ~~B-5b · 8-state run: 2 NSW failures that NSW-alone could not reproduce~~
+✅ **FIXED 2026-09-08** — B-5 closed NSW at 9/9 *run on its own*. The full 8-state
+suite then came back **70 passed / 1 failed / 1 flaky**, and both failures were in
+NSW — the state that had just been declared green. Running a spec in isolation
+does not prove it passes in the suite.
 
-Seeds a LOCAL Postgres (`guardian_test`) then asserts the cloud-backed UI shows
-that data. Architecturally impossible. Currently excluded from the prod config.
+Neither was a product bug. Both were the same harness defect, and the artifacts —
+not the error text — are what identified it:
 
-Decide: point it at Supabase like the other specs, or delete it. Leaving a
-permanently-red spec in the repo trains people to ignore red.
+| Test | What the snapshot actually showed | What it reported |
+|---|---|---|
+| Progress through stages | Page sat on **Home/Dashboard**; the Stages tab was never opened. The DB was correct ("3/8 stages done") | `toBeVisible failed` |
+| Stage Gate renders | Project list was **empty** — "No Projects Yet" | `toBeVisible failed` |
+
+`goToTab()` and `navigateToProject()` each returned a failure signal that **all 13
+call sites discarded**. A failed navigation therefore left the test asserting
+against whatever page it happened to be on, and the error named a missing element
+instead of the navigation that never happened — pointing away from the cause.
+
+Three fixes:
+
+1. **Both helpers now throw**, naming what failed. `navigateToProject` lists the
+   projects it actually saw, so an empty list says so rather than masquerading as
+   a rendering fault.
+2. **`openSection()` verifies the click landed.** The section strip is
+   server-rendered, so its tabs are clickable *before* React hydrates — an early
+   click hits a dead handler and silently does nothing. Under a full 8-state run
+   the machine is loaded enough for that race to open, which is exactly why NSW
+   passed alone and failed in the suite. It now checks `aria-selected` and
+   retries (and accepts the click when the attribute is absent, rather than
+   burning the retry budget on a control that will never report state).
+3. **`cleanupE2EProjects()` is scoped per state.** It deleted *every* project
+   matching `E2E %`, so one describe block's setup could destroy another's live
+   project. Now `E2E NSW %`. Also added the missing `.error` check — it was
+   swallowing read failures, against this repo's own database rule.
+
+**Lesson for this backlog**: a test helper that reports failure by return value
+rather than by throwing will, sooner or later, produce a failure report that
+blames the wrong thing. Prefer throwing in test code.
+
+### ~~B-6 · `guardian-smoke.spec.ts` can never pass~~
+✅ **FIXED 2026-08-24 (58d16de)** — retired. It seeded a LOCAL Postgres
+(`guardian_test`) then asserted the cloud-backed UI showed that data, which is
+architecturally impossible. Its genuinely unique assertions (no fabricated
+counts, totals, or placeholder rows anywhere in the UI) were ported to
+`guardian-no-fake-data.spec.ts`, which runs against Supabase like every other
+spec — 7/7 green. A permanently-red spec trains people to ignore red.
 
 ### ~~B-7 · NSW payment milestones total 90%, not 100%~~
 ✅ **FIXED 2026-09-08 (54e59cd)** — owner's call: schedules must reconcile to 100%.
@@ -192,7 +235,11 @@ later edited or removed.
 
 ## P3 — polish
 
-### B-8 · Certificate gate reads as contradictory
+### ~~B-8 · Certificate gate reads as contradictory~~
+✅ **FIXED 2026-08-24 (8f64696)** — the static state-wide list is now visually and
+textually separated from the current stage's actual gate, so the green banner and
+the ⬜ list no longer read as contradicting each other.
+
 **Effort**: 20 min
 
 A green "You may proceed with the progress payment" banner sits directly above a
@@ -201,7 +248,18 @@ requirements; the list is a static state-wide reference. Both correct, but a
 stressed homeowner will read them as conflicting. Separate them visually or
 retitle the list.
 
-### B-9 · Orphaned storage sweep
+### ~~B-9 · Orphaned storage sweep~~
+✅ **FIXED 2026-08-24 (8f64696) + 2026-09-08 — see the second half.**
+
+The route (`POST /api/cron/storage-sweep`) landed in 8f64696, but **no scheduled
+function ever called it**, so for two weeks the sweep never ran once and orphans
+kept accumulating. Adding an API route is not the same as shipping a cron; the
+schedule is the feature. `netlify/functions/cron-storage-sweep.mts` now invokes
+it weekly (Sun 2am AEST).
+
+Worth generalising: anything added under `src/app/api/cron/` needs a matching
+`netlify/functions/cron-*.mts` or it is dead code that type-checks.
+
 **Effort**: 1 h
 
 `deleteProject()` and `delete-account` both clear storage correctly (verified).

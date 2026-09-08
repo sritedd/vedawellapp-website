@@ -28,6 +28,7 @@ import {
     deleteTestProject,
     cleanupE2EProjects,
     getProjectStages,
+    getProjectState,
     TEST_EMAIL,
     TEST_PASSWORD,
 } from "./setup/supabase-seed";
@@ -137,43 +138,105 @@ const TAB_ALIASES: Record<string, string> = {
     "Check-Ins": "Check-ins",
 };
 
-async function goToTab(page: Page, rawLabel: string): Promise<boolean> {
-    const tabLabel = TAB_ALIASES[rawLabel] ?? rawLabel;
-    const section = TAB_SECTION[tabLabel];
-    if (section) {
-        const sectionBtn = page.locator(`button:text-is("${section}")`).first();
-        if (await sectionBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-            await sectionBtn.click();
-            await page.waitForTimeout(600);
-        }
-    }
+/**
+ * Click a top-level section and CONFIRM it actually took effect.
+ *
+ * The section strip is server-rendered, so its tabs are present and clickable
+ * before React hydrates — an early click lands on a not-yet-live handler and
+ * silently does nothing. Under a full 8-state run the machine is loaded enough
+ * for that race to open up, which is why a spec that passed state-by-state
+ * failed inside the long suite. Fire-and-forget clicking hid it; checking
+ * aria-selected and retrying does not.
+ */
+async function openSection(page: Page, section: string): Promise<boolean> {
+    const byRole = page.getByRole("tab", { name: section, exact: true }).first();
+    const byText = page.locator(`button:text-is("${section}")`).first();
 
-    // Exact match first so "Stages" doesn't match "Stage Gate".
-    for (const locator of [
-        page.locator(`button:text-is("${tabLabel}")`).first(),
-        page.locator(`button:has-text("${tabLabel}")`).first(),
-    ]) {
-        if (await locator.isVisible({ timeout: 2500 }).catch(() => false)) {
-            await locator.click();
-            await page.waitForTimeout(800);
-            return true;
+    for (let attempt = 0; attempt < 3; attempt++) {
+        for (const btn of [byRole, byText]) {
+            if (!(await btn.isVisible({ timeout: 2000 }).catch(() => false))) continue;
+            if ((await btn.getAttribute("aria-selected").catch(() => null)) === "true") return true;
+
+            await btn.click({ timeout: 5000 }).catch(() => { });
+            await page.waitForTimeout(500);
+
+            const after = await btn.getAttribute("aria-selected").catch(() => null);
+            if (after === "true") return true;
+            // No aria-selected on this element at all — the click is unverifiable,
+            // so accept it rather than burning the retry budget re-clicking a
+            // control that will never report its state.
+            if (after === null) return true;
         }
+        await page.waitForTimeout(600);
     }
     return false;
 }
 
-async function navigateToProject(page: Page, projectName: string): Promise<string | null> {
+/**
+ * Open a tab, or THROW naming the tab that could not be opened.
+ *
+ * This returned a boolean that all 13 call sites discarded, so a failed
+ * navigation left the test asserting against whatever page it happened to be on
+ * — reporting "expect(locator).toBeVisible() failed" for a perfectly healthy app
+ * that simply was not showing the requested tab. The assertion named the missing
+ * element instead of the navigation that never happened, which is why these
+ * failures were unreadable. Fail where the problem actually is.
+ */
+async function goToTab(page: Page, rawLabel: string): Promise<void> {
+    const tabLabel = TAB_ALIASES[rawLabel] ?? rawLabel;
+    const section = TAB_SECTION[tabLabel];
+
+    for (let attempt = 0; attempt < 2; attempt++) {
+        if (section) await openSection(page, section);
+
+        // Exact match first so "Stages" doesn't match "Stage Gate".
+        for (const locator of [
+            page.getByRole("tab", { name: tabLabel, exact: true }).first(),
+            page.locator(`button:text-is("${tabLabel}")`).first(),
+            page.locator(`button:has-text("${tabLabel}")`).first(),
+        ]) {
+            if (await locator.isVisible({ timeout: 2000 }).catch(() => false)) {
+                await locator.click({ timeout: 5000 });
+                await page.waitForTimeout(800);
+                return;
+            }
+        }
+    }
+
+    throw new Error(
+        `goToTab: could not open tab "${rawLabel}"` +
+        (section ? ` (inside section "${section}")` : "") +
+        `. URL=${page.url()}`
+    );
+}
+
+/**
+ * Open a project by name, or THROW listing what the project page actually showed.
+ *
+ * Returning null on failure meant the caller sailed on and asserted against the
+ * project LIST page, so a missing fixture surfaced as "element not visible"
+ * rather than "the project isn't there". Both of the hardest-to-read failures in
+ * the 8-state run were this.
+ */
+async function navigateToProject(page: Page, projectName: string): Promise<string> {
     await page.goto("/guardian/projects");
     await page.waitForLoadState("networkidle");
 
     const projectLink = page.locator(`a:has-text("${projectName}")`).first();
     if (!(await projectLink.isVisible({ timeout: 5000 }).catch(() => false))) {
-        return null;
+        const listed = (await page.locator('a[href*="/guardian/projects/"]').allInnerTexts())
+            .map((t) => t.replace(/s+/g, " ").trim())
+            .filter(Boolean);
+        throw new Error(
+            `navigateToProject: "${projectName}" is not in the project list. ` +
+            `Listed: ${listed.length ? listed.join(" | ") : "(none — the list is empty)"}. ` +
+            `Setup either did not create it, or something deleted it mid-run.`
+        );
     }
     await projectLink.click();
     await page.waitForURL("**/guardian/projects/**", { timeout: 10000 });
 
-    return page.url().split("/projects/")[1]?.split("?")[0]?.split("/")[0] || null;
+    return page.url().split("/projects/")[1]?.split("?")[0]?.split("/")[0] || "";
 }
 
 // ─── Full workflow per state ───────────────────────
@@ -186,8 +249,9 @@ for (const [stateCode, config] of Object.entries(STATE_CONFIGS)) {
         test.beforeAll(async () => {
             // Ensure test user in Supabase Auth + profiles
             await ensureTestUser();
-            // Clean any leftover E2E projects for this state
-            await cleanupE2EProjects();
+            // Scoped to THIS state. An unscoped cleanup here also deletes the
+            // other seven describe blocks' projects, including live ones.
+            await cleanupE2EProjects(`E2E ${stateCode} `);
             // Create the test project with state-specific stages
             projectId = await createTestProject(await ensureTestUser(), stateCode, projectName);
         });
@@ -219,6 +283,45 @@ for (const [stateCode, config] of Object.entries(STATE_CONFIGS)) {
             await expect(
                 page.locator(`text=${projectName}`).first()
             ).toBeVisible({ timeout: 5000 });
+        });
+
+        // ── Step 2b: The fixture is REALLY this state ──
+
+        /**
+         * Guards the assumption every other test in this block rests on.
+         *
+         * `projects.state` is `TEXT DEFAULT 'NSW'`. When the seed helper omitted
+         * the field, all 8 describe blocks produced NSW projects — stage NAMES
+         * were still per-state, so the suite reported 8-state coverage and went
+         * green while every state-dependent branch ran as NSW. A DB check alone
+         * would not have caught it either, so this also asserts a state-dependent
+         * branch actually rendered.
+         */
+        test(`${stateCode}: Project is really a ${stateCode} project`, async ({ page }) => {
+            if (!projectId) { test.skip(true, "No project"); return; }
+
+            expect(await getProjectState(projectId)).toBe(stateCode);
+
+            await login(page);
+            await navigateToProject(page, projectName);
+
+            // Mirrors getLicenseVerificationUrl() in guardian/projects/[id]/page.tsx.
+            // SA/TAS/ACT/NT deliberately fall back to the NSW register there — that
+            // is the app's current behaviour, not an oversight in this expectation.
+            const REGISTER_HOST: Record<string, string> = {
+                VIC: "vba.vic.gov.au",
+                QLD: "qbcc.qld.gov.au",
+                WA: "commerce.wa.gov.au",
+            };
+            const expectedHost = REGISTER_HOST[stateCode] ?? "fairtrading.nsw.gov.au";
+
+            // Rendered as: <a href="…register">License: NSW12345C</a>
+            const licenceLink = page.locator('a:has-text("License:")').first();
+            await expect(licenceLink).toBeVisible({ timeout: 15_000 });
+            expect(
+                await licenceLink.getAttribute("href"),
+                `${stateCode} should link to its own licence register`
+            ).toContain(expectedHost);
         });
 
         // ── Step 3: Verify stages seeded ───────────

@@ -30,11 +30,13 @@ async function findUser(email) {
 
 const args = process.argv.slice(2);
 
-// NOTE on naming: the Playwright suite's cleanupE2EProjects() deletes EVERY project
-// matching `E2E %` in its beforeAll. A browser-driven fixture named "E2E ..." will be
-// deleted out from under you if a spec run starts concurrently — which looks exactly
-// like a write bug (RLS denies writes to a project that no longer exists). Browser
-// fixtures therefore use the `UITEST ` prefix, which that pattern cannot match.
+// NOTE on naming: the Playwright suite calls cleanupE2EProjects() in every
+// describe block's beforeAll. That is now scoped per state (`E2E NSW %` etc.), but
+// it still deletes rows in bulk, and a browser-driven fixture caught by one of
+// those patterns gets deleted out from under you if a spec run starts
+// concurrently — which looks exactly like a write bug (RLS denies writes to a
+// project that no longer exists). Browser fixtures therefore use the `UITEST `
+// prefix, which none of those patterns can match.
 /**
  * Remove every storage object under a project prefix.
  *
