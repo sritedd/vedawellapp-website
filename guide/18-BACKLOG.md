@@ -7,10 +7,10 @@
 > ~~strike the row~~ and append `✅ FIXED <date> (<commit>)` with a one-line note on what
 > actually changed. Don't delete rows — the history is the point.
 >
-> **Status**: 2 open · 11 done · 1 partial · created 2026-08-11 · last worked 2026-09-08
+> **Status**: 3 open · 12 done · 1 partial · created 2026-08-11 · last worked 2026-09-09
 >
-> Open: **B-10** (OCR for scanned PDFs — large) and **B-12** (yearly Stripe price —
-> owner, 15 min). B-2 remains partial: it needs a real `pg_dump` of prod, which is
+> Open: **B-10** (OCR for scanned PDFs — large), **B-12** (yearly Stripe price —
+> owner, 15 min) and **B-13** (SA/TAS/ACT/NT sent to the NSW licence regulator). B-2 remains partial: it needs a real `pg_dump` of prod, which is
 > not reachable from this machine.
 >
 > Closed already and NOT repeated here: the two P0 RLS outages (v47/v48), the AI
@@ -186,6 +186,38 @@ Three fixes:
 rather than by throwing will, sooner or later, produce a failure report that
 blames the wrong thing. Prefer throwing in test code.
 
+### ~~B-5c · The "8-state" suite was testing NSW eight times~~
+✅ **FIXED 2026-09-09 (7804a0a)** — the most consequential finding of this whole
+E2E effort, and the suite reported **70/72 green** the entire time it was true.
+
+`projects.state` is `TEXT DEFAULT 'NSW'` and `createTestProject()` never set the
+field, so all 8 per-state describe blocks created **NSW** projects. Stage *names*
+were still seeded per state from the workflow JSON, which is exactly why nothing
+looked wrong: the stage assertions — the visible bulk of each state's tests —
+passed legitimately, while every state-*dependent* branch ran as NSW eight times.
+
+The clearest casualty is `getLicenseVerificationUrl()` in
+`guardian/projects/[id]/page.tsx`: a `switch (state)` whose VIC, QLD and WA
+branches **were never executed once**. The suite only ever reached `default:`.
+Eight files read `project.state` (AI prompts, claim review, PDF export,
+inspector-report parsing, overview, dashboard).
+
+Fixes:
+- `createTestProject()` sets `state: stateCode`.
+- A new per-state test asserts the fixture really is that state at **both**
+  levels: the stored column, *and* a state-dependent branch actually rendering
+  (the licence-register link). A DB assertion alone would not have caught the UI
+  half, and a UI assertion alone would not have explained why.
+- Proven by disabling the seed fix and confirming the new test fails, rather than
+  trusting a green run — the same "force the actual code path" rule that nearly
+  let the cert-ref fix through as a false pass.
+
+**Lesson**: a column default is a silent-failure machine in test fixtures. The
+fixture looked right in every log line that named a state, because the *name* was
+per-state; only the column was not. Assert the discriminator, not the label.
+
+Directly produced **B-13**.
+
 ### ~~B-6 · `guardian-smoke.spec.ts` can never pass~~
 ✅ **FIXED 2026-08-24 (58d16de)** — retired. It seeded a LOCAL Postgres
 (`guardian_test`) then asserted the cloud-backed UI showed that data, which is
@@ -296,6 +328,29 @@ triggers.
 `pro_yearly.priceId` is `""`, so the button shows "Coming Soon". The webhook
 already allowlists `STRIPE_YEARLY_PRICE_ID`, so creating the price and setting
 the env var is all that's needed.
+
+### B-13 · Four states are sent to the wrong licence regulator
+**Effort**: 30 min, but needs verified URLs — do not guess these
+**Found**: 2026-09-09, while fixing the state-fidelity bug in B-5c
+
+`getLicenseVerificationUrl()` in `src/app/guardian/projects/[id]/page.tsx` maps
+only VIC → VBA, QLD → QBCC, WA → Building Commission. **SA, TAS, ACT and NT all
+fall through to `default:`, which is NSW Fair Trading.** A South Australian
+homeowner clicking "Verify License" is sent to a register their builder is not
+on, from a screen whose whole purpose is verifying the builder is licensed.
+
+Note the two-layer failure: the app supports 8 states in its workflows (all 8
+were added in the 2026-03-20 Tier 1 sprint) but only 4 in this map, and the
+"8-state" E2E suite could not catch the difference because every fixture was
+secretly NSW — the `default:` branch was the *only* one it ever executed.
+
+`GuidedOnboarding.tsx:394` has the same NSW hardcode as a fallback when
+`step.actionTarget` is missing; lower severity, same root assumption.
+
+Before fixing, verify each regulator's current public-register URL (SA CBS,
+TAS CBOS, ACT Access Canberra, NT Building Practitioners Board). A confidently
+wrong regulator link is worse than a generic one, so these should be checked
+against the live sites rather than recalled.
 
 ---
 
