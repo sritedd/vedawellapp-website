@@ -333,15 +333,27 @@ for (const [stateCode, config] of Object.entries(STATE_CONFIGS)) {
 
             // The old ".min-h-[500px]" wrapper stopped existing in the 2026-03
             // restructure, so that selector matched nothing and this assertion was
-            // effectively testing undefined rather than the rendered panel.
-            const content = await page.locator("main").last().textContent();
-            expect(content?.length).toBeGreaterThan(0);
+            // effectively testing undefined. `main` alone is ambiguous too — the
+            // app layout has one AND the project page has one — so target the
+            // project panel by its aria-label and WAIT for it to actually render
+            // rather than sampling whatever is there the instant the tab is clicked.
+            const panel = page.locator('main[aria-label="Project content"]');
+            await expect(panel).toBeVisible({ timeout: 20_000 });
+            await expect
+                .poll(async () => (await panel.innerText()).trim().length, { timeout: 20_000 })
+                .toBeGreaterThan(0);
         });
 
         // ── Step 7: Materials, Visits, Check-ins ───
 
         test(`${stateCode}: Material, site visit, check-in on tabs`, async ({ page }) => {
-            // Data was seeded in step 5 via seedProjectData
+            if (!projectId) { test.skip(true, "No project"); return; }
+            // Seed our OWN fixture rather than relying on an earlier test having
+            // run. Depending on execution order meant this test could not be run
+            // in isolation (`-g` on just this name found no data and failed for a
+            // reason that had nothing to do with the feature), and any reordering
+            // or a skip upstream would break it silently.
+            await seedProjectData(projectId, stateCode);
             await login(page);
             await navigateToProject(page, projectName);
 
@@ -378,9 +390,15 @@ for (const [stateCode, config] of Object.entries(STATE_CONFIGS)) {
             await goToTab(page, "Dashboard");
             // The old ".min-h-[500px]" wrapper stopped existing in the 2026-03
             // restructure, so that selector matched nothing and this assertion was
-            // effectively testing undefined rather than the rendered panel.
-            const content = await page.locator("main").last().textContent();
-            expect(content?.length).toBeGreaterThan(0);
+            // effectively testing undefined. `main` alone is ambiguous too — the
+            // app layout has one AND the project page has one — so target the
+            // project panel by its aria-label and WAIT for it to actually render
+            // rather than sampling whatever is there the instant the tab is clicked.
+            const panel = page.locator('main[aria-label="Project content"]');
+            await expect(panel).toBeVisible({ timeout: 20_000 });
+            await expect
+                .poll(async () => (await panel.innerText()).trim().length, { timeout: 20_000 })
+                .toBeGreaterThan(0);
 
             // DB verification
             const dbStages = await getProjectStages(projectId);
