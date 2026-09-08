@@ -7,7 +7,7 @@
 > ~~strike the row~~ and append `✅ FIXED <date> (<commit>)` with a one-line note on what
 > actually changed. Don't delete rows — the history is the point.
 >
-> **Status**: 8 open · 3 done · 1 partial · created 2026-08-11 · last worked 2026-08-24
+> **Status**: 4 open · 7 done · 1 partial · created 2026-08-11 · last worked 2026-09-08
 >
 > Closed already and NOT repeated here: the two P0 RLS outages (v47/v48), the AI
 > quota outage, the PDF-worker CSP block, the contract-parser overwrite, the Stage
@@ -144,16 +144,42 @@ that data. Architecturally impossible. Currently excluded from the prod config.
 Decide: point it at Supabase like the other specs, or delete it. Leaving a
 permanently-red spec in the repo trains people to ignore red.
 
-### B-7 · NSW payment milestones total 90%, not 100%
-**Effort**: owner decision, then 30 min
+### ~~B-7 · NSW payment milestones total 90%, not 100%~~
+✅ **FIXED 2026-09-08 (54e59cd)** — owner's call: schedules must reconcile to 100%.
 
-Seeding parses percentages out of free text and takes the **low end** of ranges:
-`"Frame Stage (15-20%)"` → 15, `"Final Stage / PC (5-10%)"` → 5. NSW sums to 90%.
+Percentages were regex-scraped from free text and took the **low end** of every
+range, so NSW seeded to 90%. Not cosmetic: `contract_value` drives milestone
+amounts, the budget dashboard, variation-percentage warnings and the HBCF
+insurance threshold check.
 
-The UI now says so explicitly ("these milestones cover 90% … the remainder is
-commonly the deposit … check your contract"), so it is honest rather than
-misleading. **Needs your call**: is 90% the intended convention, or should the
-schedule reconcile to 100%?
+Replaced parsing with **explicit authored numbers** — `paymentPercentage` on all
+61 stages (0 for no-payment stages and for "combined" milestones whose payment
+belongs to the preceding stage; creating a row for those double-bills), plus
+`depositPercentage` for the two states whose stages deliberately stop short
+because a deposit is paid up front (VIC 5%, QLD 10%), seeded as a visible
+"Deposit" line.
+
+Values respect the source data: fixed figures kept, ranges resolved *inside* the
+stated range, VIC's 15% frame statutory maximum honoured.
+
+`scripts/verify-payment-percentages.mjs` asserts all 8 states total 100% and
+**runs in `npm run build`**, so a silent drift back fails the build.
+
+**Verified through the real wizard on prod** (QLD — the hardest case, needing the
+new deposit line):
+
+```
+ 25%  $162,500  Enclosed / Lockup      10%  $65,000  Site Start
+ 20%  $130,000  Frame Stage            10%  $65,000  Deposit
+ 20%  $130,000  Fixing Stage          ----  --------
+ 15%   $97,500  Practical Completion   100%  $650,000  TOTAL  ✅
+```
+
+Totals 100% ✅ · equals contract value exactly ✅ · deposit line present ✅
+
+The PaymentSchedule gap notice is kept but reworded as an **anomaly detector** —
+it now fires only for projects seeded before this fix, or if a milestone was
+later edited or removed.
 
 ---
 
