@@ -7,7 +7,7 @@
 > ~~strike the row~~ and append `✅ FIXED <date> (<commit>)` with a one-line note on what
 > actually changed. Don't delete rows — the history is the point.
 >
-> **Status**: 4 open · 7 done · 1 partial · created 2026-08-11 · last worked 2026-09-08
+> **Status**: 2 open · 9 done · 1 partial · created 2026-08-11 · last worked 2026-09-08
 >
 > Closed already and NOT repeated here: the two P0 RLS outages (v47/v48), the AI
 > quota outage, the PDF-worker CSP block, the contract-parser overwrite, the Stage
@@ -123,17 +123,24 @@ without revisiting it.
 
 **Effort**: 45 min
 
-### B-5 · 4 workflow-spec failures
-**Effort**: 1–2 h
+### ~~B-5 · 4 workflow-spec failures~~
+✅ **FIXED 2026-09-08 (fc56e01) — NSW 9/9 green.** Three separate causes, none of
+them product defects:
 
-`5 passed / 4 failed` after fixing the stale tab names, the More card grid and
-the dead `.min-h-[500px]` selector. Remaining: `Stages seeded correctly`,
-`Stage Gate renders`, `Material/site visit/check-in on tabs`, `Complete all
-stages and close project`.
-
-Likely the onboarding overlay intercepting clicks and text-matching. **Not
-product defects** — every feature these cover is verified working through the
-browser. Dismiss the onboarding wizard in `beforeAll` and re-check.
+1. **Per-test timeout.** The prod config had no explicit `timeout`, so the 30 s
+   default applied while the spec's login wait is 45 s. Tests were killed
+   mid-login and reported "Login did not complete" for logins that *had*
+   succeeded — the error even named the dashboard URL it reached. This was also
+   the entire source of the "flaky" results; at 120 s the flakiness vanished.
+2. **Ambiguous `main` selector.** My earlier replacement for the dead
+   `.min-h-[500px]` used `locator("main").last()`, but the layout has a `<main>`
+   *and* the project page has one — `.last()` picked an empty one and returned 0
+   characters. Now targets `main[aria-label="Project content"]` and **polls**
+   until it has content rather than sampling the instant a tab is clicked.
+3. **Hidden order dependency.** "Material, site visit, check-in" relied on an
+   earlier test having called `seedProjectData`, so it could not be run in
+   isolation and any reordering would have broken it silently. It now seeds its
+   own fixture.
 
 ### B-6 · `guardian-smoke.spec.ts` can never pass
 **Effort**: 2 h to redesign, 5 min to retire
@@ -212,13 +219,18 @@ PCI report extracted only image data. The component already guards this
 (`fullText.trim().length < 50`) so it degrades to a message rather than feeding
 garbage to the AI. Supporting them needs OCR (Tesseract, or a vision model).
 
-### B-11 · Free-tier caps never clicked as a real free user
-**Effort**: 30 min
+### ~~B-11 · Free-tier caps never clicked as a real free user~~
+✅ **VERIFIED 2026-09-08** — logged into prod as `e2e-free@` in a real browser and
+hit both caps for real, rather than inferring from string-matching:
 
-Verified by string-matching the trigger errors (`FREE_TIER_*_LIMIT`) against the
-UI's handlers, plus server-side enforcement proven via API. That's strong but not
-the same as clicking it. Log in as `e2e-free@` in a browser and hit the 4th
-defect / 3rd variation / 2nd project.
+| Cap | Result |
+|---|---|
+| 4th defect (cap 3) | *"Free plan allows 3 defect reports. Upgrade to Guardian Pro for unlimited."* + working Upgrade link ✅ |
+| 2nd project (cap 1, now via the v51 **trigger**) | *"Free plan allows 1 project. Upgrade to Guardian Pro for unlimited projects."* — stays on the form ✅ |
+
+No raw Postgres text (`FREE_TIER_*`, `row-level security`, `violates`) reached
+the user in either case, which was the specific risk of moving enforcement into
+triggers.
 
 ### B-12 · Yearly Stripe price still absent
 **Effort**: 15 min (owner)
