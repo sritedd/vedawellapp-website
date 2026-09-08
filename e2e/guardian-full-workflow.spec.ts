@@ -305,15 +305,22 @@ for (const [stateCode, config] of Object.entries(STATE_CONFIGS)) {
             await login(page);
             await navigateToProject(page, projectName);
 
-            // Mirrors getLicenseVerificationUrl() in guardian/projects/[id]/page.tsx.
-            // SA/TAS/ACT/NT deliberately fall back to the NSW register there — that
-            // is the app's current behaviour, not an oversight in this expectation.
+            // Mirrors getLicenseVerificationUrl() in lib/guardian/calculations.ts —
+            // the single map every "Verify License" link reads from. All 8 states
+            // are listed on purpose: a fallback here would let a missing state pass
+            // by landing on someone else's regulator, which is exactly B-13.
             const REGISTER_HOST: Record<string, string> = {
-                VIC: "vba.vic.gov.au",
-                QLD: "qbcc.qld.gov.au",
-                WA: "commerce.wa.gov.au",
+                NSW: "verify.licence.nsw.gov.au",
+                VIC: "bpc.vic.gov.au",
+                QLD: "my.qbcc.qld.gov.au",
+                WA: "wa.gov.au",
+                SA: "secure.cbs.sa.gov.au",
+                TAS: "cbos.tas.gov.au",
+                ACT: "accesscanberra.act.gov.au",
+                NT: "nt.gov.au",
             };
-            const expectedHost = REGISTER_HOST[stateCode] ?? "fairtrading.nsw.gov.au";
+            const expectedHost = REGISTER_HOST[stateCode];
+            expect(expectedHost, `no expected register host for ${stateCode}`).toBeTruthy();
 
             // Rendered as: <a href="…register">License: NSW12345C</a>
             const licenceLink = page.locator('a:has-text("License:")').first();

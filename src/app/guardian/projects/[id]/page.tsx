@@ -36,6 +36,7 @@ import AccountabilityScore from "@/components/guardian/AccountabilityScore";
 import NCC2025Compliance from "@/components/guardian/NCC2025Compliance";
 import GuidedOnboarding, { shouldShowOnboarding } from "@/components/guardian/GuidedOnboarding";
 import { stageNameToKey } from "@/lib/guardian/stage-keys";
+import { getLicenseVerificationUrl } from "@/lib/guardian/calculations";
 import PhoneVerificationBanner from "@/components/guardian/PhoneVerificationBanner";
 import MobilePhotoCapture, { PhotoFAB } from "@/components/guardian/MobilePhotoCapture";
 import PushNotificationSetup from "@/components/guardian/PushNotificationSetup";
@@ -239,15 +240,10 @@ export default function ProjectDetailPage() {
         if (section) setActiveTab(section.defaultTab);
     };
 
-    // State-aware license verification URLs
-    const getLicenseVerificationUrl = (state?: string) => {
-        switch (state) {
-            case "VIC": return "https://www.vba.vic.gov.au/tools/register";
-            case "QLD": return "https://www.qbcc.qld.gov.au/check-licence-status";
-            case "WA": return "https://www.commerce.wa.gov.au/building-commission/register-builders";
-            default: return "https://www.fairtrading.nsw.gov.au/trades-and-businesses/licensing-and-registrations/public-register";
-        }
-    };
+    // Licence-register URL comes from the single 8-state map in lib/guardian/
+    // calculations.ts. This page used to carry its own 4-state copy whose
+    // `default:` sent SA, TAS, ACT and NT to the NSW register — and the E2E
+    // suite could not see it because every fixture was secretly NSW (B-5c).
 
     const [memberRole, setMemberRole] = useState<"owner" | "collaborator" | "viewer" | null>(null);
 
@@ -486,7 +482,7 @@ export default function ProjectDetailPage() {
                                 <>
                                     <span className="hidden sm:inline">|</span>
                                     <a
-                                        href={getLicenseVerificationUrl(project.state)}
+                                        href={getLicenseVerificationUrl(project.state ?? "")}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="text-primary hover:underline"
@@ -517,6 +513,7 @@ export default function ProjectDetailPage() {
                         <GuidedOnboarding
                             projectId={project.id}
                             projectName={project.name}
+                            stateCode={project.state ?? undefined}
                             builderName={project.builder_name || "Builder"}
                             onDismiss={() => setShowOnboarding(false)}
                             onNavigateTab={setActiveTab}

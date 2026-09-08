@@ -27,7 +27,7 @@
       "code": "NSW",
       "name": "New South Wales",
       "regulator": "NSW Fair Trading",
-      "regulatorUrl": "https://www.fairtrading.nsw.gov.au",
+      "regulatorUrl": "https://www.nsw.gov.au/departments-and-agencies/fair-trading",
       "insuranceScheme": "HBCF (Home Building Compensation Fund)",
       "insuranceThreshold": 20000,
       "warrantyPeriods": {
@@ -39,13 +39,13 @@
         "Local Council"
       ],
       "planningPortal": "NSW Planning Portal",
-      "planningPortalUrl": "https://www.planningportal.nsw.gov.au"
+      "planningPortalUrl": "https://www.planning.nsw.gov.au"
     },
     {
       "code": "VIC",
       "name": "Victoria",
       "regulator": "Victorian Building Authority (VBA) → VBPC from April 2025",
-      "regulatorUrl": "https://www.vba.vic.gov.au",
+      "regulatorUrl": "https://www.bpc.vic.gov.au",
       "insuranceScheme": "Domestic Building Insurance (DBI)",
       "insuranceThreshold": 16000,
       "warrantyPeriods": {
@@ -82,7 +82,7 @@
       "code": "WA",
       "name": "Western Australia",
       "regulator": "DMIRS Building Commission",
-      "regulatorUrl": "https://www.commerce.wa.gov.au/building-commission",
+      "regulatorUrl": "https://www.wa.gov.au/organisation/building-and-energy/building-and-energy",
       "insuranceScheme": "Home Indemnity Insurance",
       "insuranceThreshold": 20000,
       "warrantyPeriods": {
@@ -108,7 +108,7 @@
       "code": "SA",
       "name": "South Australia",
       "regulator": "Office of the Technical Regulator",
-      "regulatorUrl": "https://www.plan.sa.gov.au",
+      "regulatorUrl": "https://plan.sa.gov.au",
       "insuranceScheme": "Builder's Indemnity Insurance",
       "insuranceThreshold": 12000,
       "warrantyPeriods": {
@@ -2418,55 +2418,55 @@
   },
   "usefulLinks": {
     "NSW": {
-      "fairTrading": "https://www.fairtrading.nsw.gov.au/housing-and-property/building-and-renovating",
-      "hbcfClaims": "https://www.sira.nsw.gov.au/claiming-compensation/home-building-compensation-fund",
-      "licenseCheck": "https://www.fairtrading.nsw.gov.au/trades-and-businesses/licensing-and-registrations/public-register",
+      "fairTrading": "https://www.nsw.gov.au/housing-and-construction/building-or-renovating-a-home",
+      "hbcfClaims": "https://www.icare.nsw.gov.au/builders-and-homeowners/homeowners/make-a-claim",
+      "licenseCheck": "https://verify.licence.nsw.gov.au/home/Trades",
       "complaintsForm": "https://www.fairtrading.nsw.gov.au/about-fair-trading/make-a-complaint",
-      "ncat": "https://www.ncat.nsw.gov.au/case-types/home-building"
+      "ncat": "https://ncat.nsw.gov.au/"
     },
     "VIC": {
-      "vba": "https://www.vba.vic.gov.au",
-      "dbdrv": "https://www.dbdrv.vic.gov.au",
-      "insuranceCheck": "https://www.vba.vic.gov.au/consumers/home-building-insurance"
+      "vba": "https://www.bpc.vic.gov.au",
+      "dbdrv": "https://www.bpc.vic.gov.au/issues-complaints-and-disputes/disputes-resolution",
+      "insuranceCheck": "https://www.bpc.vic.gov.au/home-owners/insurance-for-domestic-building-work/domestic-building-insurance-and-home-warranty"
     },
     "QLD": {
       "qbcc": "https://www.qbcc.qld.gov.au",
-      "licenseSearch": "https://www.qbcc.qld.gov.au/licence-search",
-      "disputeResolution": "https://www.qbcc.qld.gov.au/home-building-matters/resolving-disputes"
+      "licenseSearch": "https://my.qbcc.qld.gov.au/myQBCC/s/qbcc-licensee-register",
+      "disputeResolution": "https://www.qbcc.qld.gov.au/complaints-disputes"
     },
     "WA": {
-      "dmirs": "https://www.commerce.wa.gov.au/building-commission",
-      "licenseSearch": "https://www.commerce.wa.gov.au/building-commission/search-registered-building-service-providers",
-      "hii": "https://www.commerce.wa.gov.au/building-commission/home-indemnity-insurance",
+      "dmirs": "https://www.wa.gov.au/organisation/building-and-energy/building-and-energy",
+      "licenseSearch": "https://www.wa.gov.au/service/business-support/professional-accreditation/find-registered-building-service-provider",
+      "hii": "https://www.wa.gov.au/government/publications/home-indemnity-insurance-fact-sheet",
       "complaints": "https://www.commerce.wa.gov.au/building-commission/building-complaints"
     },
     "SA": {
       "planSA": "https://plan.sa.gov.au",
-      "otr": "https://www.sa.gov.au/topics/planning-and-property/building-development-and-renovations",
+      "otr": "https://www.sa.gov.au/topics/housing/buying-building-selling/building-a-home",
       "sacat": "https://www.sacat.sa.gov.au",
-      "licenseCheck": "https://www.cbs.sa.gov.au/occupational-licensing",
-      "complaints": "https://www.sa.gov.au/topics/planning-and-property/building-development-and-renovations/building-disputes"
+      "licenseCheck": "https://secure.cbs.sa.gov.au/OccLicPubReg/index.php",
+      "complaints": "https://www.sa.gov.au/topics/housing/buying-building-selling/building-a-home"
     },
     "TAS": {
       "cbos": "https://www.cbos.tas.gov.au",
-      "buildingPermits": "https://www.cbos.tas.gov.au/topics/building-construction",
-      "licenseCheck": "https://www.cbos.tas.gov.au/topics/building-construction/building-practitioners",
-      "disputes": "https://www.cbos.tas.gov.au/topics/building-construction/disputes-and-complaints",
-      "planningPortal": "https://www.iplan.tas.gov.au"
+      "buildingPermits": "https://cbos.tas.gov.au/topics/housing/building-renovating",
+      "licenseCheck": "https://www.cbos.tas.gov.au/topics/licensing-and-registration/search-licensed-occupations",
+      "disputes": "https://cbos.tas.gov.au/topics/housing/building-renovating/consumer-building-information",
+      "planningPortal": "https://www.planbuild.tas.gov.au"
     },
     "ACT": {
-      "accessCanberra": "https://www.accesscanberra.act.gov.au/s/topic/0TOt100000XpOaOGAV/building",
+      "accessCanberra": "https://www.accesscanberra.act.gov.au/business-and-work/building-and-construction",
       "actpla": "https://www.planning.act.gov.au",
       "acat": "https://www.acat.act.gov.au",
-      "licenseCheck": "https://www.accesscanberra.act.gov.au/s/topic/0TOt100000LI4WOGA1/licensing-and-registrations",
-      "complaints": "https://www.accesscanberra.act.gov.au/s/article/building-complaints-tab-overview"
+      "licenseCheck": "https://www.accesscanberra.act.gov.au/business-and-work/public-registers",
+      "complaints": "https://www.accesscanberra.act.gov.au/business-and-work/building-and-construction"
     },
     "NT": {
       "buildingAdvisory": "https://nt.gov.au/property/building",
       "consumerAffairs": "https://consumeraffairs.nt.gov.au",
-      "licenseCheck": "https://nt.gov.au/property/building/find-a-registered-building-practitioner",
-      "complaints": "https://consumeraffairs.nt.gov.au/for-consumers/how-to-make-a-complaint",
-      "buildingCertification": "https://nt.gov.au/property/building/building-certification"
+      "licenseCheck": "https://nt.gov.au/property/building/build-or-renovate-your-home/check-if-your-builder-is-registered",
+      "complaints": "https://consumeraffairs.nt.gov.au/",
+      "buildingCertification": "https://nt.gov.au/property/building/build-or-renovate-your-home/building-and-renovating-permits-and-processes/building-certification-process"
     }
   }
 }

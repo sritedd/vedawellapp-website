@@ -73,7 +73,7 @@ const STATE_PATHWAYS: Record<StateCode, StatePathway> = {
           "If the builder fails to respond or resolve the issue, lodge a formal complaint with NSW Fair Trading. They will attempt to mediate between you and the builder.",
         timeframe: "Typically 4\u201312 weeks for investigation",
         authority: "NSW Fair Trading",
-        url: "https://www.fairtrading.nsw.gov.au/housing-and-property/building-and-renovating/resolving-building-disputes",
+        url: "https://www.nsw.gov.au/housing-and-construction/building-or-renovating-a-home/resolving-building-disputes",
         cost: "Free",
       },
       {
@@ -83,7 +83,7 @@ const STATE_PATHWAYS: Record<StateCode, StatePathway> = {
           "Apply to the NSW Civil and Administrative Tribunal (NCAT) for a binding decision. You may need legal advice at this stage. The tribunal can order rectification or compensation.",
         timeframe: "2\u20136 months from application to hearing",
         authority: "NSW Civil and Administrative Tribunal (NCAT)",
-        url: "https://www.ncat.nsw.gov.au/",
+        url: "https://ncat.nsw.gov.au/",
         cost: "Filing fee from $53 (consumer claims under $10,000)",
       },
     ],
@@ -110,7 +110,7 @@ const STATE_PATHWAYS: Record<StateCode, StatePathway> = {
           "In Victoria, you must apply to Domestic Building Dispute Resolution Victoria (DBDRV) before proceeding to VCAT. DBDRV provides free conciliation services and this step is mandatory.",
         timeframe: "Typically 4\u20138 weeks for conciliation",
         authority: "Domestic Building Dispute Resolution Victoria (DBDRV)",
-        url: "https://www.dbdrv.vic.gov.au/",
+        url: "https://www.bpc.vic.gov.au/issues-complaints-and-disputes/disputes-resolution",
         cost: "Free",
       },
       {
@@ -147,7 +147,7 @@ const STATE_PATHWAYS: Record<StateCode, StatePathway> = {
           "Lodge a complaint with the Queensland Building and Construction Commission (QBCC). They offer early dispute resolution and can issue directions to the builder for rectification.",
         timeframe: "Typically 4\u201310 weeks",
         authority: "Queensland Building and Construction Commission (QBCC)",
-        url: "https://www.qbcc.qld.gov.au/disputes-complaints",
+        url: "https://www.qbcc.qld.gov.au/complaints-disputes",
         cost: "Free",
       },
       {
@@ -185,7 +185,7 @@ const STATE_PATHWAYS: Record<StateCode, StatePathway> = {
         timeframe: "Typically 6\u201312 weeks for investigation",
         authority:
           "Department of Mines, Industry Regulation and Safety (DMIRS)",
-        url: "https://www.commerce.wa.gov.au/building-and-energy",
+        url: "https://www.wa.gov.au/organisation/building-and-energy/building-and-energy",
         cost: "Free",
       },
       {
@@ -222,7 +222,7 @@ const STATE_PATHWAYS: Record<StateCode, StatePathway> = {
           "Lodge a complaint with Consumer and Business Services (CBS). They can investigate and attempt conciliation between you and the builder.",
         timeframe: "Typically 4\u201310 weeks",
         authority: "Consumer and Business Services (CBS)",
-        url: "https://www.cbs.sa.gov.au/building-disputes",
+        url: "https://www.sa.gov.au/topics/housing/buying-building-selling/building-a-home",
         cost: "Free",
       },
       {
@@ -260,7 +260,7 @@ const STATE_PATHWAYS: Record<StateCode, StatePathway> = {
           "Lodge a complaint with Consumer, Building and Occupational Services (CBOS). They provide building dispute resolution services and can investigate complaints against building practitioners.",
         timeframe: "Typically 4\u201310 weeks",
         authority: "Consumer, Building and Occupational Services (CBOS)",
-        url: "https://www.cbos.tas.gov.au/topics/housing-building/building-disputes",
+        url: "https://cbos.tas.gov.au/topics/housing/building-renovating/consumer-building-information",
         cost: "Free",
       },
       {
@@ -270,7 +270,7 @@ const STATE_PATHWAYS: Record<StateCode, StatePathway> = {
           "If CBOS resolution is unsuccessful, escalate to the Building Appeals Board for building-specific matters or the Magistrates Court for contractual disputes and compensation claims.",
         timeframe: "3\u20139 months from application to hearing",
         authority: "Building Appeals Board / Magistrates Court of Tasmania",
-        url: "https://www.cbos.tas.gov.au/topics/housing-building/building-disputes",
+        url: "https://cbos.tas.gov.au/topics/housing/building-renovating/consumer-building-information",
         cost: "Filing fee varies by claim value",
       },
     ],
@@ -297,7 +297,7 @@ const STATE_PATHWAYS: Record<StateCode, StatePathway> = {
           "Lodge a complaint with Access Canberra (Construction Occupations Registrar). They can investigate complaints about licensed builders and attempt to facilitate resolution.",
         timeframe: "Typically 4\u201310 weeks for investigation",
         authority: "Access Canberra (Construction Occupations Registrar)",
-        url: "https://www.accesscanberra.act.gov.au/s/building-and-construction",
+        url: "https://www.accesscanberra.act.gov.au/business-and-work/building-and-construction",
         cost: "Free",
       },
       {
@@ -334,7 +334,7 @@ const STATE_PATHWAYS: Record<StateCode, StatePathway> = {
           "Lodge a complaint with NT Building Advisory Services. They provide mediation services and can investigate complaints about licensed builders.",
         timeframe: "Typically 4\u201310 weeks",
         authority: "NT Building Advisory Services",
-        url: "https://nt.gov.au/property/building-and-development",
+        url: "https://nt.gov.au/property/building",
         cost: "Free",
       },
       {

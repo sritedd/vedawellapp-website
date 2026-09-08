@@ -18,7 +18,7 @@ const customJestConfig = {
     ],
     // e2e/ holds Playwright specs — they import @playwright/test and fail to
     // load under Jest. Playwright runs them via `npx playwright test`.
-    testPathIgnorePatterns: ['/node_modules/', '/e2e/', '/.next/'],
+    testPathIgnorePatterns: ['/node_modules/', '/e2e/', '/.next/', '/.claude/'], // .claude/ holds stray git worktrees — a full repo copy Jest would otherwise run twice
 };
 
 module.exports = createJestConfig(customJestConfig);

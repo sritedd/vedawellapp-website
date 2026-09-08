@@ -1811,8 +1811,8 @@ export const BLOG_POSTS: BlogPost[] = [
 <h2>Red Flag #2: Unverifiable License</h2>
 <p>Every builder in Australia must hold a valid license. Verify it:</p>
 <ul>
-<li><strong>NSW:</strong> Search the <a href="https://www.fairtrading.nsw.gov.au" target="_blank" rel="noopener">NSW Fair Trading</a> public register</li>
-<li><strong>VIC:</strong> Check the <a href="https://www.vba.vic.gov.au" target="_blank" rel="noopener">Victorian Building Authority</a> register</li>
+<li><strong>NSW:</strong> Search the <a href="https://verify.licence.nsw.gov.au/home/Trades" target="_blank" rel="noopener">NSW Government Verify Licence</a> register</li>
+<li><strong>VIC:</strong> Check the <a href="https://www.bpc.vic.gov.au/find-and-check-a-practitioner" target="_blank" rel="noopener">Building and Plumbing Commission (formerly VBA)</a> register</li>
 <li><strong>QLD:</strong> Search the <a href="https://www.qbcc.qld.gov.au" target="_blank" rel="noopener">QBCC</a> license search</li>
 </ul>
 <p>If the license number doesn't match, or the builder can't provide one, that's a major red flag.</p>

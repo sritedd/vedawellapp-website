@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { getLicenseVerificationUrl } from "@/lib/guardian/calculations";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/components/guardian/Toast";
 
@@ -52,16 +53,9 @@ const RATING_GUIDELINES: { stars: number; description: string }[] = [
   { stars: 1, description: "Poor \u2014 would not recommend" },
 ];
 
-const STATE_REGISTRIES: Record<string, string> = {
-  NSW: "https://www.onegov.nsw.gov.au/publicregister/#/search/Builders",
-  VIC: "https://www.vba.vic.gov.au/tools/register-search",
-  QLD: "https://www.qbcc.qld.gov.au/licence-search",
-  SA: "https://www.sa.gov.au/topics/planning-and-property/building-and-renovating",
-  WA: "https://www.commerce.wa.gov.au/building-and-energy/register-searches",
-  TAS: "https://www.cbos.tas.gov.au/topics/licensing-and-registration/occupational-licensing",
-  NT: "https://nt.gov.au/industry/licences/apply-for-a-building-licence",
-  ACT: "https://www.accesscanberra.act.gov.au/s/",
-};
+// Licence-register links come from the single map in lib/guardian/calculations.ts.
+// This file carried its own 8-entry copy — the third such copy in the codebase —
+// and half of it was dead (B-13). One map, one place to fix.
 
 /* ------------------------------------------------------------------ */
 /*  Helper: old localStorage key (for migration)                       */
@@ -288,7 +282,7 @@ export default function BuilderRatings({
     setRecommend(null);
   };
 
-  const registryUrl = stateCode ? STATE_REGISTRIES[stateCode] : null;
+  const registryUrl = stateCode ? getLicenseVerificationUrl(stateCode) : null;
 
   /* ---------------------------------------------------------------- */
   /*  Render                                                           */

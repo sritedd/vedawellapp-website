@@ -420,54 +420,61 @@ interface StateInsuranceConfig {
     verifyUrl: string;
 }
 
+// verifyUrl entries re-verified 2026-09-09 (see getLicenseVerificationUrl for
+// why): the previous set pointed at licence searches, a planning portal and
+// four 404s. Each now targets the state's own insurance-check or scheme page.
+// VIC: VMIA's policy-verification host did not resolve from here, so it points
+// at the regulator's DBI page instead.
 const STATE_INSURANCE: Record<string, StateInsuranceConfig> = {
     NSW: {
         scheme: 'HBCF (Home Building Compensation Fund)',
         threshold: 20000,
         label: 'HBCF Policy #',
-        verifyUrl: 'https://www.fairtrading.nsw.gov.au/trades-and-businesses/licensing-and-registrations/public-register',
+        verifyUrl: 'https://verify.licence.nsw.gov.au/home/HBCF',
     },
     VIC: {
         scheme: 'Domestic Building Insurance (DBI)',
         threshold: 16000,
         label: 'DBI Policy #',
-        verifyUrl: 'https://www.vba.vic.gov.au/consumers/home-building-insurance',
+        verifyUrl: 'https://www.bpc.vic.gov.au/home-owners/insurance-for-domestic-building-work/domestic-building-insurance-and-home-warranty',
     },
     QLD: {
         scheme: 'QBCC Home Warranty Insurance',
         threshold: 3300,
         label: 'QBCC Insurance #',
-        verifyUrl: 'https://www.qbcc.qld.gov.au/licence-search',
+        verifyUrl: 'https://www.qbcc.qld.gov.au/home-owner-hub/queensland-home-warranty-scheme/insurance-search-property',
     },
     WA: {
         scheme: 'Home Indemnity Insurance',
         threshold: 20000,
         label: 'Home Indemnity Policy #',
-        verifyUrl: 'https://www.commerce.wa.gov.au/building-commission/search-registered-building-service-providers',
+        verifyUrl: 'https://www.wa.gov.au/government/publications/home-indemnity-insurance-fact-sheet',
     },
     SA: {
         scheme: "Builder's Indemnity Insurance",
         threshold: 12000,
         label: 'Indemnity Policy #',
-        verifyUrl: 'https://plan.sa.gov.au',
+        verifyUrl: 'https://www.sa.gov.au/topics/housing/buying-building-selling/building-a-home/building-indemnity-insurance',
     },
     TAS: {
         scheme: 'Building Practitioner Accreditation (voluntary insurance)',
         threshold: 20000,
         label: 'Accreditation #',
-        verifyUrl: 'https://www.cbos.tas.gov.au/topics/housing-building/building-practitioners',
+        verifyUrl: 'https://cbos.tas.gov.au/topics/housing/building-renovating/consumer-building-information',
     },
     ACT: {
         scheme: 'ACT Fidelity Fund Certificate',
         threshold: 12000,
         label: 'Fidelity Certificate #',
-        verifyUrl: 'https://www.accesscanberra.act.gov.au/s/building-and-construction',
+        verifyUrl: 'https://www.planning.act.gov.au/community/build-or-renovate/before-you-start/building-contracts/residential-building-work-insurance',
     },
     NT: {
-        scheme: 'Home Building Certification Fund (HBCF)',
+        // The HBCF stopped issuing policies on 31 Dec 2012; NT residential
+        // building cover is now a fidelity fund certificate (nt.gov.au).
+        scheme: 'Residential building cover (fidelity fund certificate)',
         threshold: 12000,
-        label: 'HBCF Policy #',
-        verifyUrl: 'https://nt.gov.au/property/building-and-development/find-a-licensed-builder',
+        label: 'Fidelity Fund Certificate #',
+        verifyUrl: 'https://nt.gov.au/property/building/build-or-renovate-your-home/residential-building-insurance',
     },
 };
 
@@ -740,27 +747,40 @@ export function getWarrantyAlerts(
 // LICENSE VERIFICATION URLs
 // ===========================================
 
+/**
+ * The ONE place a "Verify License" link comes from. Do not add per-component
+ * copies — the project page carried a 4-state copy whose `default:` sent SA,
+ * TAS, ACT and NT to the NSW register (B-13), and it went unnoticed because the
+ * E2E fixtures were all secretly NSW (B-5c).
+ *
+ * Re-verified 2026-09-09: every previous entry was dead or wrong — five 404s,
+ * NSW and WA redirecting to generic department landing pages, SA pointing at
+ * the planning portal, and VIC's regulator has since become the Building and
+ * Plumbing Commission. Government sites restructure often; when a homeowner
+ * reports a dead link, fix it here and the E2E state-fidelity test will hold
+ * the rest of the app to it.
+ */
 export function getLicenseVerificationUrl(stateCode: string): string {
     const urls: Record<string, string> = {
-        NSW: 'https://www.fairtrading.nsw.gov.au/trades-and-businesses/licensing-and-registrations/public-register',
-        VIC: 'https://www.vba.vic.gov.au/consumers/check-a-builder-or-tradesperson',
-        QLD: 'https://www.qbcc.qld.gov.au/licence-search',
-        WA: 'https://www.commerce.wa.gov.au/building-commission/search-registered-building-service-providers',
-        SA: 'https://plan.sa.gov.au',
-        TAS: 'https://www.cbos.tas.gov.au/topics/housing-building/building-practitioners',
-        ACT: 'https://www.accesscanberra.act.gov.au/s/building-and-construction',
-        NT: 'https://nt.gov.au/property/building-and-development/find-a-licensed-builder',
+        NSW: 'https://verify.licence.nsw.gov.au/home/Trades',
+        VIC: 'https://www.bpc.vic.gov.au/find-and-check-a-practitioner',
+        QLD: 'https://my.qbcc.qld.gov.au/myQBCC/s/qbcc-licensee-register',
+        WA: 'https://www.wa.gov.au/service/business-support/professional-accreditation/find-registered-building-service-provider',
+        SA: 'https://secure.cbs.sa.gov.au/OccLicPubReg/index.php',
+        TAS: 'https://www.cbos.tas.gov.au/topics/licensing-and-registration/search-licensed-occupations',
+        ACT: 'https://www.accesscanberra.act.gov.au/business-and-work/public-registers',
+        NT: 'https://nt.gov.au/property/building/build-or-renovate-your-home/check-if-your-builder-is-registered',
     };
     return urls[stateCode] || urls['NSW'];
 }
 
 export function getLicenseVerificationLabel(stateCode: string): string {
     const labels: Record<string, string> = {
-        NSW: 'Verify on Fair Trading',
-        VIC: 'Verify on VBA',
+        NSW: 'Verify on NSW Verify Licence',
+        VIC: 'Verify on BPC (formerly VBA)',
         QLD: 'Verify on QBCC',
-        WA: 'Verify on DMIRS',
-        SA: 'Verify on PlanSA',
+        WA: 'Verify on WA Building and Energy',
+        SA: 'Verify on CBS SA',
         TAS: 'Verify on CBOS',
         ACT: 'Verify on Access Canberra',
         NT: 'Verify on NT Gov',

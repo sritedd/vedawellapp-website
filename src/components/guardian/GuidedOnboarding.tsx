@@ -1,12 +1,15 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { getLicenseVerificationUrl } from "@/lib/guardian/calculations";
 
 /* ─── Types ─── */
 
 interface GuidedOnboardingProps {
   projectId: string;
   projectName: string;
+  /** Project state code (NSW, VIC, …). Drives the licence-register link. */
+  stateCode?: string;
   builderName: string;
   onDismiss: () => void;
   onNavigateTab: (tabId: string) => void;
@@ -126,6 +129,7 @@ const STEPS: OnboardingStep[] = [
 export default function GuidedOnboarding({
   projectId,
   projectName,
+  stateCode,
   builderName,
   onDismiss,
   onNavigateTab,
@@ -389,10 +393,7 @@ export default function GuidedOnboarding({
                   <div className="mt-2">
                     {step.actionType === "external" ? (
                       <a
-                        href={
-                          step.actionTarget ||
-                          "https://www.fairtrading.nsw.gov.au/trades-and-businesses/licensing-and-registrations/public-register"
-                        }
+                        href={step.actionTarget || getLicenseVerificationUrl(stateCode ?? "")}
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={() => completeStep(step.id)}
