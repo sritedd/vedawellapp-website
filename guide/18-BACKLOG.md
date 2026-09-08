@@ -7,10 +7,11 @@
 > ~~strike the row~~ and append `✅ FIXED <date> (<commit>)` with a one-line note on what
 > actually changed. Don't delete rows — the history is the point.
 >
-> **Status**: 3 open · 12 done · 1 partial · created 2026-08-11 · last worked 2026-09-09
+> **Status**: 4 open · 13 done · 1 partial · created 2026-08-11 · last worked 2026-09-09
 >
 > Open: **B-10** (OCR for scanned PDFs — large), **B-12** (yearly Stripe price —
-> owner, 15 min) and **B-13** (SA/TAS/ACT/NT sent to the NSW licence regulator). B-2 remains partial: it needs a real `pg_dump` of prod, which is
+> owner, 15 min), **B-14** (gov-link backstop + 3 generic links) and **B-15**
+> (stray worktree — owner's call). B-2 remains partial: it needs a real `pg_dump` of prod, which is
 > not reachable from this machine.
 >
 > Closed already and NOT repeated here: the two P0 RLS outages (v47/v48), the AI
@@ -329,28 +330,78 @@ triggers.
 already allowlists `STRIPE_YEARLY_PRICE_ID`, so creating the price and setting
 the env var is all that's needed.
 
-### B-13 · Four states are sent to the wrong licence regulator
-**Effort**: 30 min, but needs verified URLs — do not guess these
-**Found**: 2026-09-09, while fixing the state-fidelity bug in B-5c
+### ~~B-13 · Four states are sent to the wrong licence regulator~~
+✅ **FIXED 2026-09-09 (4f81123)** — and it was much worse than four states.
 
-`getLicenseVerificationUrl()` in `src/app/guardian/projects/[id]/page.tsx` maps
-only VIC → VBA, QLD → QBCC, WA → Building Commission. **SA, TAS, ACT and NT all
-fall through to `default:`, which is NSW Fair Trading.** A South Australian
-homeowner clicking "Verify License" is sent to a register their builder is not
-on, from a screen whose whole purpose is verifying the builder is licensed.
+Verifying the four fallback URLs meant verifying the whole map, and **every
+licence-register link in the product was dead or wrong, in all 8 states**: five
+404s (QLD, TAS, ACT, NT and SA's CBS page), NSW and WA redirecting to generic
+department landing pages, SA's "register" pointing at the planning portal, and
+VIC's regulator having become the Building and Plumbing Commission. There were
+**three separate copies** of the map (`projects/[id]/page.tsx`,
+`calculations.ts`, `BuilderRatings.tsx`), each rotten differently, plus a
+hardcoded NSW fallback in `GuidedOnboarding`. The "Verify License" CTA — the
+onboarding step whose whole purpose is checking the builder is licensed — did
+not work anywhere.
 
-Note the two-layer failure: the app supports 8 states in its workflows (all 8
-were added in the 2026-03-20 Tier 1 sprint) but only 4 in this map, and the
-"8-state" E2E suite could not catch the difference because every fixture was
-secretly NSW — the `default:` branch was the *only* one it ever executed.
+| State | Now links to | Verified how |
+|---|---|---|
+| NSW | `verify.licence.nsw.gov.au/home/Trades` | 200, content |
+| VIC | `bpc.vic.gov.au/find-and-check-a-practitioner` | real Chrome (WAF blocks curl) |
+| QLD | `my.qbcc.qld.gov.au/…/qbcc-licensee-register` | 200 |
+| WA | `wa.gov.au/service/…/find-registered-building-service-provider` | 200, content |
+| SA | `secure.cbs.sa.gov.au/OccLicPubReg/` | real Chrome — title "Licence Search" |
+| TAS | `cbos.tas.gov.au/…/search-licensed-occupations` | 200 |
+| ACT | `accesscanberra.act.gov.au/business-and-work/public-registers` | 200, content |
+| NT | `nt.gov.au/…/check-if-your-builder-is-registered` | real Chrome — title matches |
 
-`GuidedOnboarding.tsx:394` has the same NSW hardcode as a fallback when
-`step.actionTarget` is missing; lower severity, same root assumption.
+What changed:
+- **One map.** `getLicenseVerificationUrl()` in `calculations.ts` is the only
+  source; the project page, onboarding step 2 and BuilderRatings all read it.
+- **The 8 insurance-check links** (`STATE_INSURANCE.verifyUrl`, on the overview
+  and dashboard) had the same rot: same treatment. NT's scheme text was also
+  wrong — the HBCF stopped issuing policies in 2012; NT cover is a fidelity fund
+  certificate (nt.gov.au).
+- **The journey page's `usefulLinks` / `regulatorUrl` JSON, `DisputeResolution`,
+  and two blog links**: 24 dead or redirected URLs replaced with verified ones.
+- **E2E**: the state-fidelity test expects all 8 register hosts explicitly, with
+  no fallback — a missing state can no longer pass by landing on another
+  state's regulator.
 
-Before fixing, verify each regulator's current public-register URL (SA CBS,
-TAS CBOS, ACT Access Canberra, NT Building Practitioners Board). A confidently
-wrong regulator link is worse than a generic one, so these should be checked
-against the live sites rather than recalled.
+**Lesson**: a "central" map is only central if nothing else duplicates it, and a
+link that returned 200 two years ago is not evidence today. See B-14.
+
+### B-14 · Government links rot — add a backstop; 3 links still generic
+**Effort**: 1 h
+**Found**: 2026-09-09, during B-13
+
+Three links have no verified *specific* replacement and currently land on a
+generic-but-correct page rather than a 404: the NSW Fair Trading complaint form
+(the old URL now redirects to "who we are"), WA building complaints (redirects
+to the department landing page), and ACT building complaints (points at the
+building hub). VMIA's DBI policy-verification host (`dbi.vmia.vic.gov.au`) did
+not resolve from this machine at all — VIC's insurance check points at the BPC
+DBI page instead; re-check from another network.
+
+Backstop: a `scripts/check-gov-links.mjs` that fetches every `gov.au` URL in
+the workflow JSON and guardian source with a browser user-agent and fails on
+404 / DNS errors (WAF 403s need a real browser — list them, don't fail).
+Government sites restructure every couple of years; this class of defect will
+recur, and nothing in the app notices until a homeowner clicks.
+
+### B-15 · Jest was running the whole suite twice
+**Effort**: 5 min (owner: decide on the worktree)
+
+A leftover git worktree lives *inside* the repo at
+`.claude/worktrees/folder-location-344dd0` (detached at `c97d9a0`, 9.7 MB,
+git-excluded). Jest's ignore list did not cover it, so every suite ran twice and
+"16 failed / 240 passed" was really 8 / 120. Fixed the ignore pattern in
+`jest.config` (4f81123). The worktree itself is untouched — remove it with
+`git worktree remove` if it is not someone's WIP.
+
+The remaining ~60 real failures are all `Cannot read properties of undefined
+(reading 'getUser')` — Supabase-client mocks that pre-date the auth check — i.e.
+P8-3 from the April review, not product defects.
 
 ---
 
