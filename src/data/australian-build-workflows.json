@@ -235,7 +235,8 @@
             "dodgyBuilderWarnings": [
               "🚨 'Piering costs extra' after contract signed - should be in soil report",
               "🚨 Excavation started without inspection booking"
-            ]
+            ],
+            "paymentPercentage": 10
           },
           {
             "id": "slab",
@@ -253,7 +254,8 @@
               "🚨🚨 Concrete poured BEFORE inspection - MAJOR RED FLAG",
               "🚨 Weekend pour to avoid inspector",
               "🚨 'Inspector was here yesterday' with no certificate"
-            ]
+            ],
+            "paymentPercentage": 0
           },
           {
             "id": "frame",
@@ -271,7 +273,8 @@
               "🚨 Cladding started before frame inspection",
               "🚨 Window openings don't match contract plans",
               "🚨 Damaged or twisted timber in frames"
-            ]
+            ],
+            "paymentPercentage": 20
           },
           {
             "id": "lockup",
@@ -289,7 +292,8 @@
               "🚨 Demanding lockup payment without EICC certificate",
               "🚨 Windows not sealed properly - check for gaps",
               "🚨 No termite barrier/protection installed"
-            ]
+            ],
+            "paymentPercentage": 35
           },
           {
             "id": "pre_plasterboard",
@@ -357,7 +361,8 @@
               "🚨🚨 'We'll do insulation after plaster' - NO! It must be done NOW",
               "🚨 Rushing to close walls = hiding defects",
               "🚨 No moisture barrier in bathrooms"
-            ]
+            ],
+            "paymentPercentage": 0
           },
           {
             "id": "fixing",
@@ -373,7 +378,8 @@
             "dodgyBuilderWarnings": [
               "🚨 Tiles installed before waterproofing certified",
               "🚨 Cabinet quality lower than spec in contract"
-            ]
+            ],
+            "paymentPercentage": 25
           },
           {
             "id": "practical_completion",
@@ -398,7 +404,8 @@
               "🚨 'Sign here and we'll fix defects later' - NEVER DO THIS",
               "🚨 Missing any of the required certificates",
               "🚨 Keys handed over before formal sign-off"
-            ]
+            ],
+            "paymentPercentage": 10
           },
           {
             "id": "warranty",
@@ -415,9 +422,11 @@
               "HBCF insurance covers you if builder dies, disappears, or becomes insolvent",
               "Maximum claim $340,000 (2024 NSW)",
               "Lodge claims via Service NSW or NCAT"
-            ]
+            ],
+            "paymentPercentage": 0
           }
-        ]
+        ],
+        "depositPercentage": 0
       },
       "VIC": {
         "approvalPathways": [
@@ -451,7 +460,8 @@
                 "critical": false,
                 "requiresPhoto": false
               }
-            ]
+            ],
+            "paymentPercentage": 0
           },
           {
             "id": "building_permit",
@@ -475,7 +485,8 @@
                 "critical": true,
                 "requiresPhoto": false
               }
-            ]
+            ],
+            "paymentPercentage": 0
           },
           {
             "id": "site_start",
@@ -489,7 +500,8 @@
             "dodgyBuilderWarnings": [
               "🚨 'Piering costs extra' after contract signed - should be in soil report",
               "🚨 Excavation started without inspection booking"
-            ]
+            ],
+            "paymentPercentage": 10
           },
           {
             "id": "slab",
@@ -507,7 +519,8 @@
               "🚨🚨 Concrete poured BEFORE inspection - MAJOR RED FLAG",
               "🚨 Weekend pour to avoid inspector",
               "🚨 'Inspector was here yesterday' with no certificate"
-            ]
+            ],
+            "paymentPercentage": 0
           },
           {
             "id": "frame",
@@ -525,7 +538,8 @@
               "🚨 Cladding started before frame inspection",
               "🚨 Window openings don't match contract plans",
               "🚨 Damaged or twisted timber in frames"
-            ]
+            ],
+            "paymentPercentage": 15
           },
           {
             "id": "lockup",
@@ -543,7 +557,8 @@
               "🚨 Demanding lockup payment without Electrical Compliance Certificate (ECC) certificate",
               "🚨 Windows not sealed properly - check for gaps",
               "🚨 No termite barrier/protection installed"
-            ]
+            ],
+            "paymentPercentage": 35
           },
           {
             "id": "pre_plasterboard",
@@ -611,7 +626,8 @@
               "🚨🚨 'We'll do insulation after plaster' - NO! It must be done NOW",
               "🚨 Rushing to close walls = hiding defects",
               "🚨 No moisture barrier in bathrooms"
-            ]
+            ],
+            "paymentPercentage": 0
           },
           {
             "id": "fixing",
@@ -627,7 +643,8 @@
             "dodgyBuilderWarnings": [
               "🚨 Tiles installed before waterproofing certified",
               "🚨 Cabinet quality lower than spec in contract"
-            ]
+            ],
+            "paymentPercentage": 25
           },
           {
             "id": "practical_completion",
@@ -652,7 +669,8 @@
               "🚨 'Sign here and we'll fix defects later' - NEVER DO THIS",
               "🚨 Missing any of the required certificates",
               "🚨 Keys handed over before formal sign-off"
-            ]
+            ],
+            "paymentPercentage": 10
           },
           {
             "id": "warranty",
@@ -669,10 +687,12 @@
               "Domestic Building Insurance (DBI) is mandatory for works over $16,000 — covers incomplete/defective work if builder dies, disappears, or becomes insolvent",
               "DBI cover: up to $300,000 (max 20% of contract for incomplete work)",
               "Disputes: start with DBDRV (Domestic Building Dispute Resolution Victoria — free conciliation), then VCAT if unresolved"
-            ]
+            ],
+            "paymentPercentage": 0
           }
         ],
-        "notes": "From April 2025, VBA becomes VBPC with stricter enforcement"
+        "notes": "From April 2025, VBA becomes VBPC with stricter enforcement",
+        "depositPercentage": 5
       },
       "QLD": {
         "approvalPathways": [
@@ -710,7 +730,8 @@
             "dodgyBuilderWarnings": [
               "🚨 Builder starting work without QBCC Home Warranty Insurance certificate",
               "🚨 'Site costs not included' — should be addressed in soil report before contract"
-            ]
+            ],
+            "paymentPercentage": 10
           },
           {
             "id": "slab",
@@ -730,7 +751,8 @@
               "🚨🚨 Concrete poured BEFORE inspection - MAJOR RED FLAG",
               "🚨 Weekend pour to avoid inspector",
               "🚨 No Form 16 (inspection certificate) provided after inspection"
-            ]
+            ],
+            "paymentPercentage": 0
           },
           {
             "id": "frame",
@@ -748,7 +770,8 @@
               "🚨 Cladding started before frame inspection",
               "🚨 Window openings don't match approved plans",
               "🚨 Damaged or twisted timber in frames"
-            ]
+            ],
+            "paymentPercentage": 20
           },
           {
             "id": "lockup",
@@ -766,7 +789,8 @@
               "🚨 Demanding lockup payment without EICC certificate",
               "🚨 Windows not sealed properly — check for gaps",
               "🚨 No termite protection system installed"
-            ]
+            ],
+            "paymentPercentage": 25
           },
           {
             "id": "fixing",
@@ -805,7 +829,8 @@
               "🚨 Tiles installed before waterproofing certified",
               "🚨 Cabinet quality lower than spec in contract",
               "🚨🚨 Missing ceiling batts — #1 most common defect"
-            ]
+            ],
+            "paymentPercentage": 20
           },
           {
             "id": "practical_completion",
@@ -829,7 +854,8 @@
               "🚨 'Sign here and we'll fix defects later' — NEVER DO THIS",
               "🚨 Missing any mandatory certificates at handover",
               "🚨 Keys handed over before formal sign-off"
-            ]
+            ],
+            "paymentPercentage": 15
           },
           {
             "id": "warranty",
@@ -846,9 +872,11 @@
               "QBCC Home Warranty Insurance covers builder insolvency, death, or disappearance",
               "Maximum claim $200,000 (standard) or $300,000 (optional upgrade)",
               "Lodge claims via QBCC dispute resolution process"
-            ]
+            ],
+            "paymentPercentage": 0
           }
-        ]
+        ],
+        "depositPercentage": 10
       },
       "WA": {
         "approvalPathways": [
@@ -893,7 +921,8 @@
             "dodgyBuilderWarnings": [
               "🚨 Builder starting without Home Indemnity Insurance (mandatory for work >$20,000)",
               "🚨 Excavation started without site classification"
-            ]
+            ],
+            "paymentPercentage": 10
           },
           {
             "id": "slab",
@@ -910,7 +939,8 @@
             "dodgyBuilderWarnings": [
               "🚨🚨 Concrete poured BEFORE slab inspection — MAJOR RED FLAG",
               "🚨 No plumbing rough-in certificate before slab pour"
-            ]
+            ],
+            "paymentPercentage": 10
           },
           {
             "id": "frame",
@@ -927,7 +957,8 @@
             "dodgyBuilderWarnings": [
               "🚨 Roof trusses installed before frame inspection",
               "🚨 Frame not braced correctly — check engineering specs"
-            ]
+            ],
+            "paymentPercentage": 15
           },
           {
             "id": "roof",
@@ -941,7 +972,8 @@
             "dodgyBuilderWarnings": [
               "🚨 Roof sheeting colour/profile doesn't match contract specs",
               "🚨 Missing sarking/reflective foil under roof"
-            ]
+            ],
+            "paymentPercentage": 0
           },
           {
             "id": "lockup",
@@ -958,7 +990,8 @@
               "🚨 Demanding lockup payment without completed cladding",
               "🚨 Windows not sealed — check for gaps around frames",
               "🚨 No termite barrier installed"
-            ]
+            ],
+            "paymentPercentage": 35
           },
           {
             "id": "fixing",
@@ -997,7 +1030,8 @@
               "🚨 Tiles installed before waterproofing certified",
               "🚨🚨 Missing ceiling insulation batts — common defect",
               "🚨 Cabinet quality doesn't match contract specs"
-            ]
+            ],
+            "paymentPercentage": 20
           },
           {
             "id": "practical_completion",
@@ -1020,7 +1054,8 @@
               "🚨 'Sign here and we'll fix defects later' — NEVER DO THIS",
               "🚨 Missing any mandatory certificates at handover",
               "🚨 Keys handed over before PCI sign-off"
-            ]
+            ],
+            "paymentPercentage": 10
           },
           {
             "id": "warranty",
@@ -1037,9 +1072,11 @@
               "Home Indemnity Insurance covers builder insolvency, death, or disappearance",
               "Mandatory for residential work >$20,000",
               "Lodge complaints via DMIRS Building Commission"
-            ]
+            ],
+            "paymentPercentage": 0
           }
-        ]
+        ],
+        "depositPercentage": 0
       },
       "SA": {
         "approvalPathways": [
@@ -1092,7 +1129,8 @@
               "🚨 Builder starting without Builder's Indemnity Insurance (mandatory for work >$12,000 in SA)",
               "🚨 Deposit exceeds 5% — illegal under SA Building Work Contractors Act",
               "🚨 No Building Rules Consent obtained before starting work"
-            ]
+            ],
+            "paymentPercentage": 5
           },
           {
             "id": "slab",
@@ -1110,7 +1148,8 @@
               "🚨🚨 Concrete poured BEFORE inspection — MAJOR RED FLAG",
               "🚨 Weekend pour to avoid inspector",
               "🚨 No notification to building certifier before pour"
-            ]
+            ],
+            "paymentPercentage": 10
           },
           {
             "id": "frame",
@@ -1128,7 +1167,8 @@
               "🚨 Cladding started before frame inspection",
               "🚨 Window openings don't match approved plans",
               "🚨 Damaged or twisted timber in frames"
-            ]
+            ],
+            "paymentPercentage": 15
           },
           {
             "id": "lockup",
@@ -1146,7 +1186,8 @@
               "🚨 Demanding lockup payment without EICC certificate",
               "🚨 Windows not sealed properly — check for gaps",
               "🚨 No termite protection system installed"
-            ]
+            ],
+            "paymentPercentage": 35
           },
           {
             "id": "fixing",
@@ -1163,7 +1204,8 @@
               "🚨 Tiles installed before waterproofing certified",
               "🚨 Cabinet quality lower than spec in contract",
               "🚨🚨 Missing ceiling insulation batts — common defect"
-            ]
+            ],
+            "paymentPercentage": 25
           },
           {
             "id": "practical_completion",
@@ -1186,7 +1228,8 @@
               "🚨 'Sign here and we'll fix defects later' — NEVER DO THIS",
               "🚨 Missing any mandatory certificates at handover",
               "🚨 Lodge complaint with SACAT if builder refuses to rectify defects"
-            ]
+            ],
+            "paymentPercentage": 10
           },
           {
             "id": "warranty",
@@ -1203,9 +1246,11 @@
               "Builder's Indemnity Insurance covers builder insolvency, death, or disappearance",
               "Mandatory for residential work >$12,000",
               "Lodge disputes with SACAT (South Australian Civil and Administrative Tribunal)"
-            ]
+            ],
+            "paymentPercentage": 0
           }
-        ]
+        ],
+        "depositPercentage": 0
       },
       "TAS": {
         "approvalPathways": [
@@ -1259,7 +1304,8 @@
               "🚨 Builder starting without Home Warranty Insurance (mandatory for work >$20,000 in TAS)",
               "🚨 No Building Permit obtained before starting work",
               "🚨 Site excavation without soil report — potential foundation issues"
-            ]
+            ],
+            "paymentPercentage": 10
           },
           {
             "id": "slab",
@@ -1277,7 +1323,8 @@
               "🚨🚨 Concrete poured BEFORE inspection — MAJOR RED FLAG",
               "🚨 Weekend pour to avoid inspector",
               "🚨 No notification to building surveyor before pour"
-            ]
+            ],
+            "paymentPercentage": 10
           },
           {
             "id": "frame",
@@ -1295,7 +1342,8 @@
               "🚨 Cladding started before frame inspection",
               "🚨 Window openings don't match approved plans",
               "🚨 Damaged or twisted timber in frames"
-            ]
+            ],
+            "paymentPercentage": 20
           },
           {
             "id": "lockup",
@@ -1312,7 +1360,8 @@
               "🚨 Demanding lockup payment without EICC certificate",
               "🚨 Windows not sealed properly — check for gaps",
               "🚨 No termite protection system installed"
-            ]
+            ],
+            "paymentPercentage": 25
           },
           {
             "id": "fixing",
@@ -1329,7 +1378,8 @@
               "🚨 Tiles installed before waterproofing certified",
               "🚨 Cabinet quality lower than spec in contract",
               "🚨🚨 Missing ceiling insulation batts — common defect"
-            ]
+            ],
+            "paymentPercentage": 25
           },
           {
             "id": "practical_completion",
@@ -1351,7 +1401,8 @@
               "🚨 'Sign here and we'll fix defects later' — NEVER DO THIS",
               "🚨 Missing any mandatory certificates at handover",
               "🚨 Lodge complaint with CBOS if builder refuses to rectify defects"
-            ]
+            ],
+            "paymentPercentage": 10
           },
           {
             "id": "warranty",
@@ -1368,9 +1419,11 @@
               "Home Warranty Insurance covers builder insolvency, death, or disappearance",
               "Mandatory for residential work >$20,000",
               "Lodge disputes with Building and Construction Industry Disputes Tribunal"
-            ]
+            ],
+            "paymentPercentage": 0
           }
-        ]
+        ],
+        "depositPercentage": 0
       },
       "ACT": {
         "approvalPathways": [
@@ -1423,7 +1476,8 @@
               "🚨 Builder starting without Fidelity Fund coverage (mandatory for work >$12,000 in ACT)",
               "🚨 No Building Approval obtained before starting work",
               "🚨 Excavation started without site classification"
-            ]
+            ],
+            "paymentPercentage": 10
           },
           {
             "id": "slab",
@@ -1441,7 +1495,8 @@
               "🚨🚨 Concrete poured BEFORE inspection — MAJOR RED FLAG",
               "🚨 Weekend pour to avoid inspector",
               "🚨 No notification to certifier before pour"
-            ]
+            ],
+            "paymentPercentage": 10
           },
           {
             "id": "frame",
@@ -1459,7 +1514,8 @@
               "🚨 Cladding started before frame inspection",
               "🚨 Window openings don't match approved plans",
               "🚨 Damaged or twisted timber in frames"
-            ]
+            ],
+            "paymentPercentage": 20
           },
           {
             "id": "lockup",
@@ -1476,7 +1532,8 @@
               "🚨 Demanding lockup payment without EICC certificate",
               "🚨 Windows not sealed properly — check for gaps",
               "🚨 No termite protection system installed"
-            ]
+            ],
+            "paymentPercentage": 25
           },
           {
             "id": "fixing",
@@ -1493,7 +1550,8 @@
               "🚨 Tiles installed before waterproofing certified",
               "🚨 Cabinet quality lower than spec in contract",
               "🚨🚨 Missing ceiling insulation batts — common defect"
-            ]
+            ],
+            "paymentPercentage": 25
           },
           {
             "id": "practical_completion",
@@ -1516,7 +1574,8 @@
               "🚨 'Sign here and we'll fix defects later' — NEVER DO THIS",
               "🚨 Missing any mandatory certificates at handover",
               "🚨 Lodge complaint with ACAT if builder refuses to rectify defects"
-            ]
+            ],
+            "paymentPercentage": 10
           },
           {
             "id": "warranty",
@@ -1533,9 +1592,11 @@
               "Fidelity Fund covers builder insolvency, death, or disappearance",
               "Mandatory for residential work >$12,000",
               "Lodge disputes with ACT Civil and Administrative Tribunal (ACAT)"
-            ]
+            ],
+            "paymentPercentage": 0
           }
-        ]
+        ],
+        "depositPercentage": 0
       },
       "NT": {
         "approvalPathways": [
@@ -1575,7 +1636,8 @@
               "🚨 Builder starting without Home Building Certification Fund coverage (mandatory for work >$12,000 in NT)",
               "🚨 No Building Permit obtained before starting work",
               "🚨 Excavation started without soil report — critical in NT conditions"
-            ]
+            ],
+            "paymentPercentage": 10
           },
           {
             "id": "slab",
@@ -1593,7 +1655,8 @@
               "🚨🚨 Concrete poured BEFORE inspection — MAJOR RED FLAG",
               "🚨 Weekend pour to avoid inspector",
               "🚨 No notification to building certifier before pour"
-            ]
+            ],
+            "paymentPercentage": 10
           },
           {
             "id": "frame",
@@ -1612,7 +1675,8 @@
               "🚨 Cladding started before frame inspection",
               "🚨 Missing or inadequate cyclone tie-downs — critical in NT",
               "🚨 Damaged or twisted timber in frames"
-            ]
+            ],
+            "paymentPercentage": 20
           },
           {
             "id": "lockup",
@@ -1629,7 +1693,8 @@
               "🚨 Demanding lockup payment without EICC certificate",
               "🚨 Windows not sealed properly — check for gaps",
               "🚨 No termite protection system installed — especially critical in NT climate"
-            ]
+            ],
+            "paymentPercentage": 25
           },
           {
             "id": "fixing",
@@ -1646,7 +1711,8 @@
               "🚨 Tiles installed before waterproofing certified",
               "🚨 Cabinet quality lower than spec in contract",
               "🚨🚨 Missing ceiling insulation batts — common defect"
-            ]
+            ],
+            "paymentPercentage": 25
           },
           {
             "id": "practical_completion",
@@ -1670,7 +1736,8 @@
               "🚨 'Sign here and we'll fix defects later' — NEVER DO THIS",
               "🚨 Missing any mandatory certificates at handover",
               "🚨 Lodge complaint with NT Consumer Affairs if builder refuses to rectify defects"
-            ]
+            ],
+            "paymentPercentage": 10
           },
           {
             "id": "warranty",
@@ -1687,9 +1754,11 @@
               "Home Building Certification Fund covers builder insolvency, death, or disappearance",
               "Mandatory for residential work >$12,000",
               "Lodge complaints with NT Consumer Affairs"
-            ]
+            ],
+            "paymentPercentage": 0
           }
-        ]
+        ],
+        "depositPercentage": 0
       }
     },
     "granny_flat": {

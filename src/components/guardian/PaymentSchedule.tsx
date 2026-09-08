@@ -164,11 +164,14 @@ export default function PaymentSchedule({ projectId, contractValue }: PaymentSch
     const remainingBalance = contractValue - totalPaid;
     const paidPercent = contractValue > 0 ? Math.round((totalPaid / contractValue) * 100) : 0;
 
-    // The seeded schedule comes from generic state workflow data, where milestones
-    // are free text like "Frame Stage (15-20%)" and parse to the low end of the
-    // range. NSW therefore seeds to 90%, not 100%. That gap is usually the deposit,
-    // but it is NOT safe to assume — so surface it rather than let a homeowner
-    // believe the listed milestones add up to their whole contract.
+    // Every state's schedule is authored to total exactly 100% (stage percentages
+    // plus a deposit line where the stages stop short — VIC 5%, QLD 10%), and the
+    // build fails if that ever stops being true (scripts/verify-payment-percentages.mjs).
+    //
+    // So this is now an ANOMALY detector, not a standing caveat. It fires for
+    // projects seeded BEFORE that fix (which really do total ~90%) or if a
+    // milestone was edited or deleted. Either way the homeowner should reconcile
+    // against their signed contract rather than trust the list.
     const scheduledPercent = payments.reduce((sum, p) => sum + (p.percentage || 0), 0);
     const percentGap = Math.round((100 - scheduledPercent) * 10) / 10;
     const hasPercentGap = payments.length > 0 && percentGap > 0.5;
@@ -248,14 +251,14 @@ export default function PaymentSchedule({ projectId, contractValue }: PaymentSch
                 <div className="p-4 bg-slate-50 dark:bg-slate-900/40 border border-slate-300 dark:border-slate-700 rounded-xl">
                     <h3 className="font-semibold text-sm mb-1 flex items-center gap-1.5">
                         <ClipboardList className="w-4 h-4 text-slate-600 dark:text-slate-300" />
-                        These milestones cover {scheduledPercent}% of your contract
+                        This schedule covers {scheduledPercent}% of your contract, not 100%
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                        The remaining <strong>{percentGap}%</strong> (about {formatCurrency(gapAmount)}) isn&apos;t
-                        listed above. That&apos;s commonly the deposit, but it can also mean a milestone is
-                        missing or your contract splits payments differently — this schedule is seeded from
-                        typical stage percentages for your state, not from your actual contract.
-                        <strong> Check it against your signed contract and adjust before paying.</strong>
+                        <strong>{percentGap}%</strong> (about {formatCurrency(gapAmount)}) is unaccounted for.
+                        New projects are set up to total 100%, so this usually means the project was
+                        created before that fix, or a milestone has since been edited or removed.
+                        <strong> Reconcile these milestones against your signed contract before paying</strong> —
+                        a schedule that doesn&apos;t add up can understate what you still owe.
                     </p>
                 </div>
             )}

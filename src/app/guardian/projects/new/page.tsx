@@ -216,14 +216,18 @@ export default function NewProjectPage() {
             for (let stageIdx = 0; stageIdx < stages.length; stageIdx++) {
                 const stageTemplate = stages[stageIdx];
                 const milestoneText = ((stageTemplate as any).paymentMilestone as string | null) || "";
-                // Milestones marked "combined"/"additional" are part of the PREVIOUS
-                // stage's payment (e.g. QLD slab "Base Stage (combined 10%)" is the
-                // same 10% already created for site_start). Creating a row for them
-                // double-bills the homeowner — exactly the kind of thing this app
-                // exists to prevent.
-                const isCombinedMilestone = /combined|additional/i.test(milestoneText);
-                const paymentPercent = milestoneText && !isCombinedMilestone
-                    ? parseFloat(milestoneText.match(/\d+/)?.[0] || "0")
+                // Use the EXPLICIT percentage from the workflow data. This used to be
+                // regex-scraped out of free text like "Frame Stage (15-20%)", which
+                // took the low end of every range and left NSW summing to 90% of the
+                // contract — the schedule silently understated what was owed, and the
+                // gap drove payment milestones, budget, variation warnings and the
+                // insurance threshold check. Percentages are now authored per state
+                // and asserted to total 100 (stages + deposit) by
+                // scripts/verify-payment-percentages.mjs, which runs in the build.
+                // "combined" stages carry 0 deliberately: their payment belongs to the
+                // preceding stage, and creating a row for them double-bills.
+                const paymentPercent = typeof (stageTemplate as any).paymentPercentage === "number"
+                    ? (stageTemplate as any).paymentPercentage
                     : 0;
 
                 const { data: stageData, error: stageError } = await supabase
@@ -300,6 +304,26 @@ export default function NewProjectPage() {
                     });
                     if (payErr) console.warn("Payment insert failed:", payErr.message);
                 }
+            }
+
+            // Deposit line. In VIC and QLD the stage milestones deliberately stop
+            // short of the contract sum because a separate deposit is paid up front
+            // (VIC 5%, QLD 10%). Without an explicit row the schedule would appear
+            // to under-total, which is the confusion this whole change removes.
+            // States whose stages already reach 100% carry depositPercentage 0 and
+            // get no row.
+            const depositPct = (stateWorkflow as unknown as { depositPercentage?: number })?.depositPercentage ?? 0;
+            if (depositPct > 0) {
+                const contractVal = Math.max(0, parseFloat(formData.contract_value) || 0);
+                const { error: depErr } = await supabase.from("payments").insert({
+                    project_id: projectId,
+                    stage_name: "Deposit",
+                    percentage: depositPct,
+                    amount: Math.round((depositPct / 100) * contractVal),
+                    status: "pending",
+                    certificates_required: [],
+                });
+                if (depErr) console.warn("Deposit insert failed:", depErr.message);
             }
 
             // Atomicity guard: if any stage insert failed, the project is
