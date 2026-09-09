@@ -16,6 +16,12 @@ import { defineConfig, devices } from "@playwright/test";
  * NOTE: guardian-smoke.spec.ts is EXCLUDED — it seeds a local Postgres that the
  * deployed app cannot read. It only makes sense against a locally-configured app.
  */
+// Specs that call the API directly (guardian-ai) build absolute URLs from
+// E2E_BASE_URL rather than the fixture baseURL. Default it here so this config is
+// self-sufficient: the 2026-09-09 run without it posted to localhost:3000 and
+// reported eight product "failures" that were ECONNREFUSED.
+process.env.E2E_BASE_URL ||= "https://vedawellapp.com";
+
 export default defineConfig({
     testDir: "./e2e",
     testIgnore: ["**/guardian-smoke.spec.ts"],

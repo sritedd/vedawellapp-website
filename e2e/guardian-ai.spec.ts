@@ -17,6 +17,7 @@
  */
 
 import { test, expect, Page, APIResponse } from "@playwright/test";
+import { PRO, FREE } from "./setup/credentials";
 
 // The free-tier accounts must be genuinely free. Previously these defaulted to
 // "test@vedawellapp.com", which is not the account the seed layer provisions —
@@ -26,24 +27,16 @@ import { test, expect, Page, APIResponse } from "@playwright/test";
 // Passwords are NEVER hardcoded: this repo is public and these accounts exist on
 // production, so a committed default is a working prod login for any reader.
 // Set E2E_PRO_PASSWORD / E2E_FREE_PASSWORD in .env.local or the environment.
-function requiredEnv(key: string): string {
-    const v = process.env[key];
-    if (!v) {
-        throw new Error(
-            `${key} is not set. E2E account passwords are never committed — set it in ` +
-            `.env.local or the environment (see e2e/setup/credentials.mjs).`
-        );
-    }
-    return v;
-}
-
-// Resolved LAZILY, at first use rather than at module load. Throwing during
-// module evaluation breaks `playwright test --list` and any collection that
-// happens without these set — including for specs that never need them.
-const FREE_EMAIL = process.env.E2E_FREE_EMAIL || "e2e-free@vedawellapp.com";
-const PRO_EMAIL = process.env.E2E_PRO_EMAIL || "e2e-test@vedawellapp.com";
-const FREE_PASSWORD = () => requiredEnv("E2E_FREE_PASSWORD");
-const PRO_PASSWORD = () => requiredEnv("E2E_PRO_PASSWORD");
+// Credentials come from e2e/setup/credentials.ts (TS twin of credentials.mjs,
+// which the plain-Node scripts use). This file used to carry its own resolver
+// that read process.env only, so the same run passed the workflow suite (which
+// reads .env.local) and failed this one with "E2E_PRO_PASSWORD is not set"
+// while the value sat in .env.local the whole time. Still resolved lazily: the getters throw
+// at first use, not at module load, so `playwright test --list` keeps working.
+const FREE_EMAIL = FREE.email;
+const PRO_EMAIL = PRO.email;
+const FREE_PASSWORD = () => FREE.password;
+const PRO_PASSWORD = () => PRO.password;
 
 // Honour the Playwright baseURL so the same spec can target prod.
 const BASE_URL = process.env.E2E_BASE_URL || "http://localhost:3000";
