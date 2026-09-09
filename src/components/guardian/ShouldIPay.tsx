@@ -81,11 +81,17 @@ export default function ShouldIPay({ projectId, contractValue, currentStage, onN
                 console.error("[ShouldIPay] stages fetch failed:", stagesErr.message);
             }
             const doneNames = new Set((doneStages || []).map((r: { name: string }) => r.name));
+            // The deposit row has no stage of its own; it is paid at signing, so
+            // once any stage is complete it is in the past too. Found by driving
+            // the wizard on prod: a VIC project at Site Start was told its next
+            // claim was the deposit.
+            const buildStarted = doneNames.size > 0;
+            const isPast = (p: PaymentRow) => doneNames.has(p.stage_name) || (buildStarted && p.stage_name === "Deposit");
             const unpaid = (payments as PaymentRow[]).filter((p: PaymentRow) => p.status !== "paid");
-            const earlier = unpaid.filter((p: PaymentRow) => doneNames.has(p.stage_name));
+            const earlier = unpaid.filter(isPast);
             setEarlierUnrecorded(earlier.length);
 
-            const next = unpaid.find((p: PaymentRow) => !doneNames.has(p.stage_name)) ?? unpaid[0] ?? undefined;
+            const next = unpaid.find((p: PaymentRow) => !isPast(p)) ?? unpaid[0] ?? undefined;
             if (!next) {
                 setNextPayment(null);
                 setLoading(false);
