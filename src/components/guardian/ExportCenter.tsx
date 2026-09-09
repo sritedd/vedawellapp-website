@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import LegalNotice from "@/components/guardian/LegalNotice";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/components/guardian/Toast";
 import {
@@ -303,6 +304,7 @@ export default function ExportCenter({ projectId, projectName, builderName, cont
 
     return (
         <div className="space-y-6">
+            <LegalNotice compact />
             <div>
                 <h2 className="text-2xl font-bold">Export Center</h2>
                 <p className="text-muted-foreground">

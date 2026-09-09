@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import LegalNotice from "@/components/guardian/LegalNotice";
 import { createClient } from "@/lib/supabase/client";
 import { logActivity } from "@/lib/activity-log";
 import { useToast } from "@/components/guardian/Toast";
@@ -426,6 +427,7 @@ export default function StageGate({ projectId, currentStage, nextStage, onProcee
 
     return (
         <div className="space-y-6">
+            <LegalNotice compact />
             {/* Header */}
             <div>
                 <h2 className="text-2xl font-bold">Stage Gate: {stageName}</h2>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import LegalNotice from "@/components/guardian/LegalNotice";
 import { createClient } from "@/lib/supabase/client";
 
 interface ReviewResult {
@@ -108,6 +109,7 @@ export default function ClaimReview({ projectId }: { projectId: string }) {
 
   return (
     <div className="space-y-6">
+      <LegalNotice compact />
       <div>
         <h3 className="font-bold text-lg mb-1">Progress Claim Review</h3>
         <p className="text-sm text-muted">

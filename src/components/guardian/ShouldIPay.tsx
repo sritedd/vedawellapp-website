@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import LegalNotice from "@/components/guardian/LegalNotice";
 import { createClient } from "@/lib/supabase/client";
 import { formatMoney } from "@/utils/format";
 
@@ -293,6 +294,8 @@ export default function ShouldIPay({ projectId, contractValue, currentStage, onN
                     </p>
                 </div>
             )}
+
+            <LegalNotice compact className="px-1" />
         </div>
     );
 }
