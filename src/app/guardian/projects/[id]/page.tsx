@@ -36,7 +36,8 @@ import AccountabilityScore from "@/components/guardian/AccountabilityScore";
 import NCC2025Compliance from "@/components/guardian/NCC2025Compliance";
 import GuidedOnboarding, { shouldShowOnboarding } from "@/components/guardian/GuidedOnboarding";
 import { stageNameToKey } from "@/lib/guardian/stage-keys";
-import { getLicenseVerificationUrl } from "@/lib/guardian/calculations";
+import { getLicenseVerificationUrl, LICENSE_REGISTER_LAST_VERIFIED } from "@/lib/guardian/calculations";
+import VerifiedAt from "@/components/guardian/VerifiedAt";
 import PhoneVerificationBanner from "@/components/guardian/PhoneVerificationBanner";
 import MobilePhotoCapture, { PhotoFAB } from "@/components/guardian/MobilePhotoCapture";
 import PushNotificationSetup from "@/components/guardian/PushNotificationSetup";
@@ -489,6 +490,7 @@ export default function ProjectDetailPage() {
                                     >
                                         License: {project.builder_license_number}
                                     </a>
+                                    <VerifiedAt lastVerified={LICENSE_REGISTER_LAST_VERIFIED} className="hidden sm:inline" />
                                 </>
                             )}
                         </div>

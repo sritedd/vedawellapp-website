@@ -418,6 +418,12 @@ interface StateInsuranceConfig {
     threshold: number;
     label: string;
     verifyUrl: string;
+    /** ISO date the scheme, threshold and link were last checked against the source. */
+    lastVerified?: string;
+    /** The official page the figure was read from. */
+    source?: string;
+    /** Anything the reader needs to know that the one-line scheme name cannot carry. */
+    note?: string;
 }
 
 // verifyUrl entries re-verified 2026-09-09 (see getLicenseVerificationUrl for
@@ -431,42 +437,71 @@ const STATE_INSURANCE: Record<string, StateInsuranceConfig> = {
         threshold: 20000,
         label: 'HBCF Policy #',
         verifyUrl: 'https://verify.licence.nsw.gov.au/home/HBCF',
+        lastVerified: '2026-09-09',
+        source: 'https://www.icare.nsw.gov.au/builders-and-homeowners/homeowners/what-is-icare-hbcf',
     },
     VIC: {
-        scheme: 'Domestic Building Insurance (DBI)',
-        threshold: 16000,
-        label: 'DBI Policy #',
+        // Home Warranty replaced Domestic Building Insurance for eligible contracts
+        // signed on or after 1 July 2026 (over $20,000, BPC the sole provider).
+        // Contracts signed before then keep their DBI cover, whose threshold was
+        // $16,000 — so a project with an older contract may still hold a DBI certificate.
+        scheme: 'Home Warranty (contracts from 1 Jul 2026; DBI for earlier contracts)',
+        threshold: 20000,
+        label: 'Home Warranty / DBI Certificate #',
         verifyUrl: 'https://www.bpc.vic.gov.au/home-owners/insurance-for-domestic-building-work/domestic-building-insurance-and-home-warranty',
+        lastVerified: '2026-09-09',
+        source: 'https://www.bpc.vic.gov.au/home-owners/insurance-for-domestic-building-work/domestic-building-insurance-and-home-warranty',
+        note: 'Contracts signed before 1 July 2026 were covered by Domestic Building Insurance (threshold $16,000); contracts from that date need Home Warranty (threshold $20,000).',
     },
     QLD: {
         scheme: 'QBCC Home Warranty Insurance',
         threshold: 3300,
         label: 'QBCC Insurance #',
         verifyUrl: 'https://www.qbcc.qld.gov.au/home-owner-hub/queensland-home-warranty-scheme/insurance-search-property',
+        lastVerified: '2026-09-09',
+        source: 'https://www.qbcc.qld.gov.au/home-owner-hub/queensland-home-warranty-scheme/what-home-warranty-insurance',
     },
     WA: {
         scheme: 'Home Indemnity Insurance',
         threshold: 20000,
         label: 'Home Indemnity Policy #',
         verifyUrl: 'https://www.wa.gov.au/government/publications/home-indemnity-insurance-fact-sheet',
+        lastVerified: '2026-09-09',
+        source: 'https://www.wa.gov.au/government/publications/home-indemnity-insurance-fact-sheet',
     },
     SA: {
-        scheme: "Builder's Indemnity Insurance",
-        threshold: 12000,
+        // Was $12,000 here until 2026-09-09; the threshold rose to $20,000 on
+        // 10 November 2025 (sa.gov.au, read in a browser — the site blocks scripts).
+        scheme: 'Building Indemnity Insurance',
+        threshold: 20000,
         label: 'Indemnity Policy #',
         verifyUrl: 'https://www.sa.gov.au/topics/housing/buying-building-selling/building-a-home/building-indemnity-insurance',
+        lastVerified: '2026-09-09',
+        source: 'https://www.sa.gov.au/topics/housing/buying-building-selling/building-a-home/building-indemnity-insurance',
+        note: 'Required for council-approved domestic building work costing $20,000 or more (raised from $12,000 on 10 November 2025).',
     },
     TAS: {
-        scheme: 'Building Practitioner Accreditation (voluntary insurance)',
+        // The Residential Building (Home Warranty Insurance Amendments) Act 2023 makes
+        // a Home Warranty Insurance policy mandatory for contracts over $20,000, but its
+        // provisions commence by proclamation and no commencement date was published as
+        // of 2026-09-09. Until then there is no mandatory builder warranty insurance in
+        // Tasmania; CBOS runs a Financial Assistance Package for some builder failures.
+        scheme: 'Home Warranty Insurance (legislated 2023; commencement by proclamation)',
         threshold: 20000,
-        label: 'Accreditation #',
+        label: 'Home Warranty Policy # (if issued)',
         verifyUrl: 'https://cbos.tas.gov.au/topics/housing/building-renovating/consumer-building-information',
+        lastVerified: '2026-09-09',
+        source: 'https://www.legislation.tas.gov.au/view/whole/html/asmade/act-2023-025',
+        note: 'Mandatory once the 2023 Act is proclaimed; check CBOS for the commencement date. Ask your builder what cover, if any, is in place today.',
     },
     ACT: {
-        scheme: 'ACT Fidelity Fund Certificate',
+        scheme: 'Residential building work insurance or Fidelity Fund Certificate',
         threshold: 12000,
-        label: 'Fidelity Certificate #',
+        label: 'Insurance policy / Fidelity Certificate #',
         verifyUrl: 'https://www.planning.act.gov.au/community/build-or-renovate/before-you-start/building-contracts/residential-building-work-insurance',
+        lastVerified: '2026-09-09',
+        source: 'https://www.planning.act.gov.au/community/build-or-renovate/before-you-start/building-contracts/residential-building-work-insurance',
+        note: 'Required for work over $12,000 on residential buildings up to three storeys; QBE insurance or the Master Builders Fidelity Fund. Maximum cover $85,000.',
     },
     NT: {
         // The HBCF stopped issuing policies on 31 Dec 2012; NT residential
@@ -475,6 +510,9 @@ const STATE_INSURANCE: Record<string, StateInsuranceConfig> = {
         threshold: 12000,
         label: 'Fidelity Fund Certificate #',
         verifyUrl: 'https://nt.gov.au/property/building/build-or-renovate-your-home/residential-building-insurance',
+        lastVerified: '2026-09-09',
+        source: 'https://nt.gov.au/property/building/build-or-renovate-your-home/residential-building-insurance/fidelity-fund-certificate',
+        note: 'Required for prescribed residential building work worth more than $12,000.',
     },
 };
 
@@ -550,21 +588,35 @@ export function getInsuranceAlerts(
 // COOLING-OFF PERIOD
 // ===========================================
 
-const STATE_COOLING_OFF: Record<string, { days: number; type: 'business' | 'calendar'; note: string }> = {
-    NSW: { days: 5, type: 'business', note: 'Under Home Building Act 1989 s.7BA' },
-    VIC: { days: 5, type: 'business', note: 'Under Domestic Building Contracts Act 1995' },
-    QLD: { days: 5, type: 'business', note: 'Under QBCC Act 1991' },
-    WA: { days: 0, type: 'business', note: 'No statutory cooling-off period for building contracts in WA' },
-    SA: { days: 5, type: 'business', note: 'Under Building Work Contractors Act 1995' },
-    TAS: { days: 5, type: 'business', note: 'Under Building Act 2016' },
-    ACT: { days: 5, type: 'business', note: 'Under Building Act 2004' },
-    NT: { days: 0, type: 'business', note: 'No statutory cooling-off period for building contracts in NT' },
+export interface CoolingOffConfig {
+    days: number;
+    type: 'business' | 'calendar';
+    note: string;
+    /** ISO date the period and citation were last checked against the source. */
+    lastVerified?: string;
+    /** The official page the rule was read from. */
+    source?: string;
+}
+
+// Re-verified 2026-09-09. Two entries were wrong before that date: TAS cited the
+// building-regulation Act instead of the contracts Act, and ACT claimed a
+// five-day period that does not exist — the most dangerous kind of error, since
+// it tells an owner they can cancel when they cannot.
+const STATE_COOLING_OFF: Record<string, CoolingOffConfig> = {
+    NSW: { days: 5, type: 'business', note: 'Under Home Building Act 1989 s.7BA (contracts over $20,000)', lastVerified: '2026-09-09', source: 'https://www.nsw.gov.au/housing-and-construction/building-or-renovating-a-home/preparing/contracts' },
+    VIC: { days: 5, type: 'business', note: 'Under Domestic Building Contracts Act 1995 (5 clear business days after receiving the signed contract)', lastVerified: '2026-09-09', source: 'https://www.consumer.vic.gov.au/licensing-and-registration/builders-and-tradespeople/running-your-business/domestic-building-contracts/cooling-off-on-a-building-contract' },
+    QLD: { days: 5, type: 'business', note: 'Under QBCC Act 1991 Schedule 1B s.35', lastVerified: '2026-09-09', source: 'https://www.qbcc.qld.gov.au/home-owner-hub/build-renovate/contracts-payments/cooling-off-period' },
+    WA: { days: 0, type: 'business', note: 'Home building contracts in WA are not required to include a cooling-off period', lastVerified: '2026-09-09', source: 'https://www.wa.gov.au/government/announcements/building-regulators-top-10-preparation-tips-new-home-constructions' },
+    SA: { days: 5, type: 'business', note: 'Under Building Work Contractors Act 1995 (5 clear business days)', lastVerified: '2026-09-09', source: 'https://www.cbs.sa.gov.au/documents/form-1-building-contract-rights-and-obligations.pdf' },
+    TAS: { days: 5, type: 'business', note: 'Under Residential Building Work Contracts and Dispute Resolution Act 2016', lastVerified: '2026-09-09', source: 'https://www.cbos.tas.gov.au/__data/assets/pdf_file/0020/405038/Residential-Building-Consumer-Guide-July-2024-Final.pdf' },
+    ACT: { days: 0, type: 'business', note: 'No mandatory cooling-off period for residential building contracts in the ACT', lastVerified: '2026-09-09', source: 'https://www.planning.act.gov.au/community/build-or-renovate/before-you-start/building-contracts/hiring-a-builder' },
+    NT: { days: 0, type: 'business', note: 'No statutory cooling-off period found for residential building contracts in the NT', lastVerified: '2026-09-09', source: 'https://nt.gov.au/property/building/build-or-renovate-your-home/building-and-renovating-a-home/signing-a-residential-building-contract' },
 };
 
 /**
  * Get cooling-off period config for a state.
  */
-export function getCoolingOffConfig(stateCode: string): { days: number; type: 'business' | 'calendar'; note: string } | null {
+export function getCoolingOffConfig(stateCode: string): CoolingOffConfig | null {
     return STATE_COOLING_OFF[stateCode] || null;
 }
 
@@ -593,6 +645,8 @@ export interface CoolingOffStatus {
     isActive: boolean;
     stateNote: string;
     totalDays: number;
+    lastVerified?: string;
+    source?: string;
 }
 
 export function getCoolingOffStatus(
@@ -616,6 +670,8 @@ export function getCoolingOffStatus(
         isActive: daysRemaining > 0,
         stateNote: config.note,
         totalDays: config.days,
+        lastVerified: config.lastVerified,
+        source: config.source,
     };
 }
 
@@ -772,6 +828,15 @@ export function getLicenseVerificationUrl(stateCode: string): string {
         NT: 'https://nt.gov.au/property/building/build-or-renovate-your-home/check-if-your-builder-is-registered',
     };
     return urls[stateCode] || urls['NSW'];
+}
+
+/** When every entry of the register map above was last checked (see B-13). */
+export const LICENSE_REGISTER_LAST_VERIFIED = '2026-09-09';
+
+/** URL + label + verification stamp in one call, for surfaces that show all three. */
+export function getLicenseVerification(stateCode: string): { url: string; label: string; lastVerified: string; source: string } {
+    const url = getLicenseVerificationUrl(stateCode);
+    return { url, label: getLicenseVerificationLabel(stateCode), lastVerified: LICENSE_REGISTER_LAST_VERIFIED, source: url };
 }
 
 export function getLicenseVerificationLabel(stateCode: string): string {

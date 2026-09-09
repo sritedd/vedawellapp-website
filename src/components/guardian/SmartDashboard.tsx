@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
+import VerifiedAt from "@/components/guardian/VerifiedAt";
 import { createClient } from "@/lib/supabase/client";
 import { formatMoney } from "@/utils/format";
 import { useToast } from "@/components/guardian/Toast";
@@ -233,12 +234,16 @@ function ConsolidatedAlerts({
                 <div className="flex-1 min-w-0">
                     <h4 className="font-semibold text-sm">{topAlert.title}</h4>
                     <p className="text-sm opacity-80 mt-0.5">{topAlert.message}</p>
-                    {topAlert.type === "insurance" && insuranceConfig && (
+                    {topAlert.type === "insurance" && insuranceConfig && (<>
                         <a href={insuranceConfig.verifyUrl} target="_blank" rel="noopener noreferrer"
                             className="mt-1 text-sm text-primary hover:underline inline-block">
                             Check {insuranceConfig.scheme} status &rarr;
                         </a>
-                    )}
+                        {insuranceConfig.note && (
+                            <p className="text-xs opacity-80 mt-1">{insuranceConfig.note}</p>
+                        )}
+                        <VerifiedAt lastVerified={insuranceConfig.lastVerified} source={insuranceConfig.source} className="block mt-1" />
+                    </>)}
                 </div>
                 {remainingAlerts.length > 0 && (
                     <button

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import VerifiedAt from "@/components/guardian/VerifiedAt";
 import { createClient } from "@/lib/supabase/client";
 import { formatMoney } from "@/utils/format";
 import type { Project } from "@/types/guardian";
@@ -120,6 +121,8 @@ export default function ProjectOverview({ project }: ProjectOverviewProps) {
                             </div>
                             <p className="text-xs text-muted-foreground mt-1">
                                 {coolingOff.totalDays} business day cooling-off period ({stateCode})
+                                {" "}
+                                <VerifiedAt lastVerified={coolingOff.lastVerified} source={coolingOff.source} />
                             </p>
                         </div>
                     </div>
@@ -144,7 +147,7 @@ export default function ProjectOverview({ project }: ProjectOverviewProps) {
                     <div>
                         <h4 className="font-bold">{alert.title}</h4>
                         <p className="text-sm text-muted-foreground mt-1">{alert.message}</p>
-                        {insuranceConfig && (
+                        {insuranceConfig && (<>
                             <a
                                 href={insuranceConfig.verifyUrl}
                                 target="_blank"
@@ -153,7 +156,11 @@ export default function ProjectOverview({ project }: ProjectOverviewProps) {
                             >
                                 Check {insuranceConfig.scheme} status →
                             </a>
-                        )}
+                            {insuranceConfig.note && (
+                                <p className="text-xs text-muted-foreground mt-1">{insuranceConfig.note}</p>
+                            )}
+                            <VerifiedAt lastVerified={insuranceConfig.lastVerified} source={insuranceConfig.source} className="block mt-1" />
+                        </>)}
                     </div>
                 </div>
             ))}
