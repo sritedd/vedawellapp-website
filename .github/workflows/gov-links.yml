@@ -1,0 +1,26 @@
+name: Government links
+
+# Government sites restructure every couple of years and nothing in the app
+# notices until a homeowner clicks (guide/19 §4.5, B-14). Monthly, and on any
+# change to the files that carry the links.
+on:
+  schedule:
+    - cron: "0 16 1 * *" # 1st of the month, 2am AEST
+  pull_request:
+    paths:
+      - "src/data/australian-build-workflows.json"
+      - "src/lib/guardian/calculations.ts"
+      - "src/components/guardian/**"
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check every gov.au link in the product
+        run: node scripts/check-gov-links.mjs

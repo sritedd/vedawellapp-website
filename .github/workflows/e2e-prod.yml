@@ -1,0 +1,57 @@
+name: Nightly E2E against production
+
+# The suites that caught every real outage in this codebase run against the
+# live site, nightly (guide/19 §6.1). They create and delete "E2E <STATE> …"
+# projects on the E2E accounts only; cleanup is scoped per state.
+#
+# Secrets required (Settings → Secrets → Actions):
+#   E2E_PRO_PASSWORD, E2E_FREE_PASSWORD  — the E2E accounts (never committed)
+#   NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SECRET_KEY — for the seed/cleanup helpers
+on:
+  schedule:
+    - cron: "0 16 * * *" # 2am AEST
+  workflow_dispatch:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    env:
+      E2E_BASE_URL: https://vedawellapp.com
+      E2E_PRO_EMAIL: e2e-test@vedawellapp.com
+      E2E_FREE_EMAIL: e2e-free@vedawellapp.com
+      E2E_PRO_PASSWORD: ${{ secrets.E2E_PRO_PASSWORD }}
+      E2E_FREE_PASSWORD: ${{ secrets.E2E_FREE_PASSWORD }}
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      # The seed helpers read .env.local; give them the same four keys the
+      # secrets carry so one credentials source stays true in CI too.
+      - name: Write .env.local from secrets
+        run: |
+          {
+            echo "NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL"
+            echo "SUPABASE_SECRET_KEY=$SUPABASE_SECRET_KEY"
+            echo "E2E_PRO_EMAIL=$E2E_PRO_EMAIL"
+            echo "E2E_PRO_PASSWORD=$E2E_PRO_PASSWORD"
+            echo "E2E_FREE_EMAIL=$E2E_FREE_EMAIL"
+            echo "E2E_FREE_PASSWORD=$E2E_FREE_PASSWORD"
+          } > .env.local
+      - name: Workflow suite (8 states), AI suite, no-fake-data suite
+        run: npx playwright test --config=playwright.prod.config.ts guardian-full-workflow guardian-ai guardian-no-fake-data --reporter=line
+      - name: Upload failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 14
