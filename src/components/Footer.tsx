@@ -1,6 +1,28 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export default function Footer() {
+    const pathname = usePathname();
+
+    // Inside the product: legal links only. Coffee buttons and "Request a Tool"
+    // belong to the free-tools site, not under a homeowner's evidence (guide/19 §2.1).
+    if (pathname.startsWith("/guardian")) {
+        return (
+            <footer className="border-t border-border py-6 px-6">
+                <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-3 text-sm">
+                    <p className="text-muted">© {new Date().getFullYear()} HomeOwner Guardian by VedaWell · Beta</p>
+                    <div className="flex items-center gap-4 flex-wrap justify-center">
+                        <Link href="/guardian/legal-notice" className="text-muted hover:text-foreground transition-colors">Legal notice</Link>
+                        <Link href="/privacy" className="text-muted hover:text-foreground transition-colors">Privacy</Link>
+                        <a href="mailto:support@vedawellapp.com?subject=Guardian%20support" className="text-muted hover:text-foreground transition-colors">Support</a>
+                    </div>
+                </div>
+            </footer>
+        );
+    }
+
     return (
         <footer className="border-t border-border py-8 px-6">
             <div className="max-w-7xl mx-auto space-y-5">

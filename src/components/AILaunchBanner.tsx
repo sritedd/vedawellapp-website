@@ -1,6 +1,13 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export default function AILaunchBanner() {
+    // A launch promo above someone's live project is marketing inside the product
+    // (guide/19 §2.1). Public pages keep it.
+    const pathname = usePathname();
+    if (pathname.startsWith("/guardian")) return null;
     return (
         <section className="border-b border-teal-200/60 bg-gradient-to-r from-teal-50 via-blue-50 to-teal-50 dark:from-slate-900 dark:via-teal-950/60 dark:to-teal-950/40 dark:border-teal-900/40">
             <div className="max-w-7xl mx-auto px-4 py-3 sm:px-6">

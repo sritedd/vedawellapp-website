@@ -63,6 +63,18 @@ export default function MilestoneCelebrations({ projectId, projectName }: Milest
     const [bannerAnimating, setBannerAnimating] = useState(false);
     const [loading, setLoading] = useState(true);
 
+    // Off by default. "Achievement Unlocked" on a $650k build reads as a hobby app
+    // (guide/19 §2.6); anyone who likes it can turn it on, per browser.
+    const [enabled, setEnabled] = useState(false);
+    useEffect(() => {
+        try { setEnabled(localStorage.getItem("guardian:celebrations") === "on"); } catch { /* storage unavailable */ }
+    }, []);
+    const toggleEnabled = () => {
+        const next = !enabled;
+        setEnabled(next);
+        try { localStorage.setItem("guardian:celebrations", next ? "on" : "off"); } catch { /* ignore */ }
+    };
+
     const dismissBanner = useCallback(() => {
         setBannerAnimating(false);
         setTimeout(() => setVisibleBanner(null), 300);
@@ -152,6 +164,15 @@ export default function MilestoneCelebrations({ projectId, projectName }: Milest
 
     if (loading) return null;
 
+    if (!enabled) {
+        return (
+            <p className="text-xs text-muted-foreground">
+                Achievements are off.{" "}
+                <button type="button" onClick={toggleEnabled} className="underline hover:text-foreground">Turn on</button>
+            </p>
+        );
+    }
+
     return (
         <div className="space-y-3">
             {/* Celebration Banner */}
@@ -196,7 +217,10 @@ export default function MilestoneCelebrations({ projectId, projectName }: Milest
 
             {/* Achievements Grid */}
             <div className="rounded-xl border border-border bg-card p-4">
-                <h3 className="text-sm font-semibold mb-3">Achievements</h3>
+                <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-semibold">Achievements</h3>
+                    <button type="button" onClick={toggleEnabled} className="text-xs text-muted-foreground underline hover:text-foreground">Turn off</button>
+                </div>
                 <div className="grid grid-cols-4 gap-2">
                     {MILESTONES.map((m) => {
                         const earned = earnedIds.has(m.id);

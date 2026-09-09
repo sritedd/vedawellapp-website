@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Shield, Home, Menu, X, Wrench, Gamepad2, BookOpen, Sun, Moon, Monitor } from "lucide-react";
+import { Shield, Home, Menu, X, Wrench, Gamepad2, BookOpen, Sun, Moon, Monitor, LayoutDashboard, FolderKanban, LifeBuoy } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 
 const navLinks = [
@@ -14,12 +14,24 @@ const navLinks = [
     // { href: "/panchang", label: "Panchang", icon: Sun }, // hidden — keeping religious content out for now
 ];
 
+// Inside the product the public site's navigation (Tools, Games, Blog) and its
+// promotional CTA are noise at best and a trust problem at worst — someone about
+// to pay a builder should not be looking at a "Games" link. /guardian/* gets the
+// product's own small header instead (guide/19 §2.1, §5.4).
+const guardianLinks = [
+    { href: "/guardian/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/guardian/projects", label: "Projects", icon: FolderKanban },
+    { href: "mailto:support@vedawellapp.com?subject=Guardian%20support", label: "Support", icon: LifeBuoy },
+];
+
 export default function Navbar() {
     const [mobileOpen, setMobileOpen] = useState(false);
     const [user, setUser] = useState<{ email?: string; full_name?: string } | null>(null);
     const [scrolled, setScrolled] = useState(false);
     const pathname = usePathname();
     const { theme, setTheme } = useTheme();
+    const inGuardian = pathname.startsWith("/guardian");
+    const links = inGuardian ? guardianLinks : navLinks;
 
     const cycleTheme = () => {
         const next = theme === "light" ? "dark" : theme === "dark" ? "system" : "light";
@@ -61,7 +73,7 @@ export default function Navbar() {
         <nav className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? "bg-card/95 backdrop-blur-xl shadow-lg border-b border-border" : "bg-card/80 backdrop-blur-md border-b border-border/50"}`}>
             <div className="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
                 {/* Logo */}
-                <Link href="/" className="flex items-center gap-2.5 group">
+                <Link href={inGuardian ? "/guardian/dashboard" : "/"} className="flex items-center gap-2.5 group">
                     <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
                         <Home className="w-5 h-5 text-white" />
                     </div>
@@ -74,10 +86,15 @@ export default function Navbar() {
                         </span>
                     </div>
                 </Link>
+                {inGuardian && (
+                    <span className="ml-2 hidden sm:inline-flex items-center rounded-md border border-amber-300 bg-amber-50 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-amber-800 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-300" title="Guardian is in beta — tell us what breaks">
+                        Beta
+                    </span>
+                )}
 
                 {/* Desktop Nav */}
                 <div className="hidden md:flex items-center gap-1">
-                    {navLinks.map((link) => {
+                    {links.map((link) => {
                         const Icon = link.icon;
                         return (
                             <Link
@@ -108,7 +125,7 @@ export default function Navbar() {
                     <div className="w-px h-6 bg-border mx-2" />
 
                     {/* Guardian CTA Button — the star */}
-                    {user ? (
+                    {inGuardian ? null : user ? (
                         <Link
                             href="/guardian/dashboard"
                             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-primary to-teal-500 text-white font-semibold text-sm shadow-md hover:shadow-lg hover:scale-[1.02] transition-all"
@@ -140,7 +157,7 @@ export default function Navbar() {
             {/* Mobile Menu */}
             {mobileOpen && (
                 <div className="md:hidden border-t border-border bg-card px-6 py-4 space-y-1 animate-slide-down">
-                    {navLinks.map((link) => {
+                    {links.map((link) => {
                         const Icon = link.icon;
                         return (
                             <Link
@@ -168,7 +185,7 @@ export default function Navbar() {
                     </button>
 
                     <div className="pt-3 border-t border-border space-y-2">
-                        {user ? (
+                        {inGuardian ? null : user ? (
                             <Link
                                 href="/guardian/dashboard"
                                 onClick={() => setMobileOpen(false)}
@@ -187,13 +204,13 @@ export default function Navbar() {
                                 Get HomeOwner Guardian
                             </Link>
                         )}
-                        <Link
+                        {!inGuardian && (<Link
                             href="/red-flags"
                             onClick={() => setMobileOpen(false)}
                             className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg border border-primary/30 text-primary text-sm font-medium hover:bg-primary/5"
                         >
                             Free PDF: 30 Builder Red Flags
-                        </Link>
+                        </Link>)}
                     </div>
                 </div>
             )}
