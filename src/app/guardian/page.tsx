@@ -7,13 +7,13 @@ import RefCapture from "@/components/guardian/RefCapture";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "HomeOwner Guardian — AI-Powered Australian Construction Tracker",
+    title: "HomeOwner Guardian — Know what to check before you pay your builder",
     description:
         "Protect your Australian home construction investment with AI-powered defect analysis, stage advice, progress claim review, and construction chat. Legal-ready documentation for NSW Fair Trading and NCAT disputes.",
     keywords:
         "home construction tracker, AI building defects, construction defect documentation, variation tracker, building inspection, owner builder, new home build Australia, NSW Fair Trading, NCAT building disputes, AI construction advisor",
     openGraph: {
-        title: "HomeOwner Guardian — AI-Powered Protection for Your Home Build",
+        title: "HomeOwner Guardian — Know what to check before you pay each progress claim",
         description:
             "AI defect analysis, stage advice, progress claim review, and construction chat. Legal-ready documentation for Australian homeowners.",
         url: "https://vedawellapp.com/guardian",
@@ -37,9 +37,9 @@ export default async function GuardianPage() {
         applicationCategory: "BusinessApplication",
         operatingSystem: "Web",
         url: "https://vedawellapp.com/guardian",
-        description: "AI-powered construction tracker for Australian homeowners. Track building defects, variations, and costs with intelligent analysis.",
+        description: "For Australian homeowners building a house: your state's payment stages, the certificates to hold before each progress claim, and the record that proves what happened. Free for one build.",
         offers: [
-            { "@type": "Offer", price: "0", priceCurrency: "AUD", name: "Free", description: "1 project, 3 defects, AI defect assist" },
+            { "@type": "Offer", price: "0", priceCurrency: "AUD", name: "Free", description: "One project, unlimited defects and photos, Should I Pay? before every claim" },
             { "@type": "Offer", price: "14.99", priceCurrency: "AUD", name: "Guardian Pro", billingIncrement: "P1M", description: "Unlimited projects, AI chat, progress claim review, PDF exports" },
         ],
         author: { "@type": "Organization", name: "VedaWell", url: "https://vedawellapp.com" },
@@ -223,16 +223,16 @@ export default async function GuardianPage() {
                         </div>
 
                         <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white mb-6 leading-[1.1]">
-                            AI-powered protection
+                            Know what to check
                             <br />
                             <span className="bg-gradient-to-r from-primary-light to-teal-300 bg-clip-text text-transparent">
-                                for your home build
+                                before you pay each claim
                             </span>
                         </h1>
 
                         <p className="text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-                            Don&apos;t lose <strong className="text-white">$40,000+</strong> on uncertified builder variations.
-                            Guardian&apos;s AI tracks every stage, flags every risk, and builds your legal evidence — automatically.
+                            Your state&apos;s payment stages, the certificates to hold before each progress claim, and a record
+                            that proves what happened — <strong className="text-white">so every payment you make is one you can stand behind.</strong>
                         </p>
 
                         <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-lg mx-auto mb-4">
@@ -457,8 +457,8 @@ export default async function GuardianPage() {
                                     desc: "Payment milestones blocked until EICC, plumbing certs, and compliance docs are uploaded. No cert = no payment.",
                                 },
                                 {
-                                    icon: "&#x1F6E1;&#xFE0F;", title: "Red Flag Alerts", gradient: "from-yellow-500 to-amber-500",
-                                    desc: "AI-matched pattern detection flags dodgy builder behaviours — material substitutions, skipped inspections, unsigned variations.",
+                                    icon: "&#x1F6E1;&#xFE0F;", title: "Stage watch-outs", gradient: "from-yellow-500 to-amber-500",
+                                    desc: "What to check at each stage — material substitutions, skipped inspections, unsigned variations — matched to where your build is, so you ask before it is covered up.",
                                 },
                             ].map((f, i) => (
                                 <div key={i} className="card group hover:border-primary/30 hover:shadow-lg transition-all">

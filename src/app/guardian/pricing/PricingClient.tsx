@@ -144,11 +144,12 @@ export default function PricingClient() {
                         ← Back to Guardian
                     </Link>
                     <h1 className="text-4xl font-extrabold mb-4">
-                        Protect Your Home Build
+                        Know what to check before you pay each claim
                     </h1>
                     <p className="text-xl text-muted max-w-2xl mx-auto">
-                        Australian homeowners lose an average of $30,000 to construction defects.
-                        Guardian Pro gives you the documentation to fight back.
+                        Keep booking independent inspections — $400–900 each, four to six per build. Guardian is the
+                        record that makes them, and your payments, count. The money loop is free for your build; Pro adds
+                        the AI review and the evidence pack.
                     </p>
                 </div>
 
