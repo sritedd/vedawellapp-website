@@ -33,6 +33,15 @@ export default function ShouldIPay({ projectId, contractValue, currentStage, onN
     const [blockers, setBlockers] = useState<BlockerItem[]>([]);
     const [totalPaid, setTotalPaid] = useState(0);
     const [fetchError, setFetchError] = useState(false);
+    // Nothing recorded yet → "pre-flight" framing (guide/19 §1.2). The verdict is
+    // computed from payments, certificates, inspections and defects, all empty on
+    // a new project; without this the first thing a new user saw was
+    // "DO NOT PAY" in red for having done nothing yet.
+    const [evidenceCount, setEvidenceCount] = useState(0);
+    // Unpaid claims for stages the owner told us are already complete. We do not
+    // invent a "paid" record for them — we point at the right next claim and
+    // say how many earlier ones are unrecorded, so the totals stay honest.
+    const [earlierUnrecorded, setEarlierUnrecorded] = useState(0);
 
     useEffect(() => {
         async function analyse() {
@@ -60,7 +69,23 @@ export default function ShouldIPay({ projectId, contractValue, currentStage, onN
             const paid = (payments as PaymentRow[]).filter((p: PaymentRow) => p.status === "paid");
             setTotalPaid(paid.reduce((s: number, p: PaymentRow) => s + (p.amount || 0), 0));
 
-            const next = (payments as PaymentRow[]).find((p: PaymentRow) => p.status !== "paid");
+            // Stages already marked completed (the wizard sets these from "Where is
+            // the build now?"). Their claims are in the past whether or not the
+            // owner has recorded them here, so they are not "the next claim".
+            const { data: doneStages, error: stagesErr } = await supabase
+                .from("stages")
+                .select("name")
+                .eq("project_id", projectId)
+                .in("status", ["completed", "verified"]);
+            if (stagesErr) {
+                console.error("[ShouldIPay] stages fetch failed:", stagesErr.message);
+            }
+            const doneNames = new Set((doneStages || []).map((r: { name: string }) => r.name));
+            const unpaid = (payments as PaymentRow[]).filter((p: PaymentRow) => p.status !== "paid");
+            const earlier = unpaid.filter((p: PaymentRow) => doneNames.has(p.stage_name));
+            setEarlierUnrecorded(earlier.length);
+
+            const next = unpaid.find((p: PaymentRow) => !doneNames.has(p.stage_name)) ?? unpaid[0] ?? undefined;
             if (!next) {
                 setNextPayment(null);
                 setLoading(false);
@@ -73,6 +98,14 @@ export default function ShouldIPay({ projectId, contractValue, currentStage, onN
             // show "Safe to Pay" — a silent read failure could otherwise
             // green-light a payment that actually has open certs/defects.
             let checkFailed = false;
+
+            // How much has been recorded at all? Drives the pre-flight framing.
+            const { count: certCount } = await supabase
+                .from("certifications")
+                .select("id", { count: "exact", head: true })
+                .eq("project_id", projectId)
+                .in("status", ["uploaded", "verified"]);
+            setEvidenceCount((certCount || 0) + paid.length);
 
             // 2. Check required certificates
             if (next.certificates_required?.length > 0) {
@@ -214,6 +247,57 @@ export default function ShouldIPay({ projectId, contractValue, currentStage, onN
     }
 
     const isSafe = blockers.length === 0;
+    const onlyPaperwork = blockers.every((b) => b.type === "certificate");
+    const preflight = !isSafe && evidenceCount === 0 && onlyPaperwork;
+
+    if (preflight) {
+        // Nothing is wrong yet — these are the documents to collect before this
+        // claim. Same rules as the verdict below, framed as a checklist rather
+        // than a refusal.
+        return (
+            <div className="space-y-3">
+                <button
+                    onClick={() => onNavigateTab("payments")}
+                    className="w-full p-5 rounded-2xl border-2 text-left transition-all active:scale-[0.99] border-amber-300 bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/20 dark:border-amber-800"
+                >
+                    <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-full bg-amber-500 flex items-center justify-center flex-shrink-0 text-white font-bold text-lg">
+                            {blockers.length}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-xs font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-300">Your next claim</p>
+                            <h3 className="text-lg font-bold text-amber-900 dark:text-amber-200">
+                                {nextPayment.stage_name} — {formatMoney(nextPayment.amount)} ({nextPayment.percentage}%)
+                            </h3>
+                            <p className="text-sm mt-0.5 text-amber-800 dark:text-amber-300">
+                                Not ready to pay yet — {blockers.length} document{blockers.length !== 1 ? "s" : ""} to have in hand first. Nothing is wrong; the record just starts here.
+                            </p>
+                        </div>
+                    </div>
+                </button>
+                <div className="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20 p-4 space-y-2">
+                    <h4 className="font-semibold text-sm text-amber-900 dark:text-amber-200">Before you pay this claim, you should hold:</h4>
+                    {blockers.map((b, i) => (
+                        <button
+                            key={i}
+                            onClick={() => onNavigateTab(b.tab)}
+                            className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-amber-100/60 dark:hover:bg-amber-900/20 transition-colors text-left group"
+                        >
+                            <span className="flex-shrink-0 w-5 h-5 rounded border border-amber-400" aria-hidden="true" />
+                            <span className="text-sm text-amber-900 dark:text-amber-200 flex-1">{b.label}</span>
+                            <span className="text-xs text-amber-700 dark:text-amber-300">Upload</span>
+                        </button>
+                    ))}
+                    {earlierUnrecorded > 0 && (
+                        <p className="text-xs text-muted-foreground pt-1">
+                            {earlierUnrecorded} earlier claim{earlierUnrecorded !== 1 ? "s" : ""} not recorded as paid — update them in Progress claims so your totals are right.
+                        </p>
+                    )}
+                </div>
+                <LegalNotice compact className="px-1" />
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-3">
@@ -229,7 +313,7 @@ export default function ShouldIPay({ projectId, contractValue, currentStage, onN
                 <div className="flex items-center gap-4">
                     {/* Big circle icon */}
                     <div className={`w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 ${
-                        isSafe ? "bg-green-500" : "bg-red-500 animate-pulse"
+                        isSafe ? "bg-green-500" : "bg-red-500"
                     }`}>
                         {isSafe ? (
                             <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
@@ -246,7 +330,7 @@ export default function ShouldIPay({ projectId, contractValue, currentStage, onN
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                             <h3 className={`text-lg font-bold ${isSafe ? "text-green-800 dark:text-green-300" : "text-red-800 dark:text-red-300"}`}>
-                                {isSafe ? "Safe to Pay" : "DO NOT PAY"}
+                                {isSafe ? "Safe to pay" : "Hold payment"}
                             </h3>
                         </div>
                         <p className={`text-sm mt-0.5 ${isSafe ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400"}`}>
@@ -257,6 +341,7 @@ export default function ShouldIPay({ projectId, contractValue, currentStage, onN
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
                             Paid so far: {formatMoney(totalPaid)} of {formatMoney(contractValue)}
+                            {earlierUnrecorded > 0 && ` · ${earlierUnrecorded} earlier claim${earlierUnrecorded !== 1 ? "s" : ""} not recorded`}
                         </p>
                     </div>
 

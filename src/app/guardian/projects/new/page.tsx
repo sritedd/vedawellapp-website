@@ -94,6 +94,10 @@ export default function NewProjectPage() {
         contract_signed_date: "",
         build_category: "",
         state: "NSW",
+        // Index into the state's stage list, or "" for "not started". Drives the
+        // seeded stage statuses so the first thing the owner sees is THEIR next
+        // claim, not the deposit (guide/19 §1.2).
+        current_stage: "",
     });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -108,8 +112,14 @@ export default function NewProjectPage() {
             ...formData,
             build_category: category,
             state: state,
+            current_stage: "", // stage lists differ per state; reset the answer
         });
     };
+
+    // The stage list for the chosen build type + state, for "Where is the build now?"
+    const stageOptions = (((australianData as unknown as {
+        workflows: Record<string, Record<string, { stages?: Array<{ name: string }> }>>;
+    }).workflows?.[formData.build_category || "new_build"]?.[formData.state || "NSW"]?.stages) ?? []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -189,7 +199,7 @@ export default function NewProjectPage() {
                         address: formData.address,
                         start_date: formData.start_date || null,
                         contract_signed_date: formData.contract_signed_date || null,
-                        status: "planning",
+                        status: formData.current_stage === "" ? "planning" : "active",
                         state: formData.state || "NSW",
                         build_category: formData.build_category || "new_build",
                     },
@@ -213,6 +223,9 @@ export default function NewProjectPage() {
 
             // 3. Seed stages and checklist items based on workflow
             let stageFailures = 0;
+            const chosenStage = formData.current_stage === "" ? -1 : Number(formData.current_stage);
+            const stageStatusFor = (i: number): "completed" | "in_progress" | "pending" =>
+                i < chosenStage ? "completed" : i === chosenStage ? "in_progress" : "pending";
             for (let stageIdx = 0; stageIdx < stages.length; stageIdx++) {
                 const stageTemplate = stages[stageIdx];
                 const milestoneText = ((stageTemplate as any).paymentMilestone as string | null) || "";
@@ -235,7 +248,7 @@ export default function NewProjectPage() {
                     .insert({
                         project_id: projectId,
                         name: stageTemplate.name,
-                        status: "pending",
+                        status: stageStatusFor(stageIdx),
                         payment_percentage: paymentPercent,
                         order_index: stageIdx,
                     })
@@ -588,6 +601,27 @@ export default function NewProjectPage() {
                                         onChange={handleChange}
                                         className="w-full px-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
                                     />
+                                </div>
+
+                                {/* Where is the build now? */}
+                                <div>
+                                    <label className="block text-sm font-medium text-foreground mb-2">Where is the build now?</label>
+                                    <select
+                                        name="current_stage"
+                                        value={formData.current_stage}
+                                        onChange={handleChange}
+                                        className="w-full px-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                                    >
+                                        <option value="">Not started yet — contract signed or about to be</option>
+                                        {stageOptions.map((st, i) => (
+                                            <option key={st.name} value={String(i)}>
+                                                {i + 1}. {st.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                        Earlier stages will be marked complete so your dashboard shows the claim that is actually next.
+                                    </p>
                                 </div>
 
                                 {/* Address */}
