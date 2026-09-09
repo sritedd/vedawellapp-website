@@ -72,55 +72,47 @@ export function shouldShowOnboarding(projectId: string): boolean {
 
 /* ─── Steps definition ─── */
 
-// Step order optimised for time-to-aha. Step 1 uses the free describe-defect
-// AI route to deliver value in the first 60 seconds \u2014 most onboarding flows
-// frontload data entry, which kills momentum. AI defect description is the
-// fastest way to demonstrate Guardian's intelligence to a new user.
+// Four outcomes, not five chores (guide/19 §2.4). The old list opened with
+// "try the AI helper" and closed with "set up weekly check-ins" — neither is why
+// a homeowner is here. Each step here ends with something they now KNOW or HOLD:
+// what the next claim is, that the builder is licensed and insured, and one
+// piece of evidence in the record. AI appears where it is useful, not as a step.
 const STEPS: OnboardingStep[] = [
   {
     id: 1,
-    title: "Try the AI Defect Helper (free, 60 seconds)",
+    title: "Know your next progress claim",
     description:
-      "Describe anything you've noticed on site \u2014 even a small concern. Guardian's AI suggests severity, related red flags, and what to do next. No credit card. No commitment.",
-    actionLabel: "Try AI Defect Assist",
+      "Guardian has laid out your state's payment stages. The dashboard shows the next claim, the amount, and what you should have in hand before paying it.",
+    actionLabel: "See my next claim",
     actionType: "tab",
-    actionTarget: "defects",
+    actionTarget: "overview",
   },
   {
     id: 2,
-    title: "Check Your Builder\u2019s License",
+    title: "Verify your builder\u2019s licence",
     description:
-      "Verify your builder is properly licensed in your state \u2014 it takes 30 seconds and protects against unlicensed-builder disputes",
-    actionLabel: "Verify License",
+      "Look up the licence number from your contract on your state\u2019s official register. It takes a minute and it is the first thing a tribunal asks about.",
+    actionLabel: "Open the register",
     actionType: "external",
     actionTarget: "", // resolved at render time from project state
   },
   {
     id: 3,
-    title: "Review Your Project Details",
+    title: "Add the insurance certificate",
     description:
-      "Make sure your builder name, license number, ABN, and insurance details are correct",
-    actionLabel: "Go to Settings",
+      "Your builder must give you the home warranty / indemnity certificate before you pay a deposit. Upload it so every payment check can see it.",
+    actionLabel: "Go to Certificates",
     actionType: "tab",
-    actionTarget: "settings",
+    actionTarget: "certificates",
   },
   {
     id: 4,
-    title: "Upload Your Building Contract",
+    title: "Capture your first piece of evidence",
     description:
-      "Keep your contract safe in the Document Vault \u2014 Guardian\u2019s AI can scan it for dodgy clauses",
-    actionLabel: "Go to Documents",
+      "A photo of the site today, or one thing you have noticed. The record starts now, and everything you add later builds on it.",
+    actionLabel: "Add a photo or defect",
     actionType: "tab",
-    actionTarget: "documents",
-  },
-  {
-    id: 5,
-    title: "Set Up Weekly Check-ins",
-    description:
-      "Log your builder\u2019s responsiveness each week \u2014 this builds your accountability record",
-    actionLabel: "Start Check-ins",
-    actionType: "tab",
-    actionTarget: "checkins",
+    actionTarget: "photos",
   },
 ];
 
