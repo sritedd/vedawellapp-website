@@ -51,6 +51,7 @@ import TribunalExport from "@/components/guardian/TribunalExport";
 import ProgressTimeline from "@/components/guardian/ProgressTimeline";
 import ProjectHealthScore from "@/components/guardian/ProjectHealthScore";
 import MilestoneCelebrations from "@/components/guardian/MilestoneCelebrations";
+import RightsOnSite from "@/components/guardian/RightsOnSite";
 import ShareProgressCard from "@/components/guardian/ShareProgressCard";
 import ActivityLog from "@/components/guardian/ActivityLog";
 import BuilderEscalation from "@/components/guardian/BuilderEscalation";
@@ -99,6 +100,7 @@ const SECTION_SUBTABS: Record<SectionId, { id: string; label: string }[]> = {
         { id: "inspections", label: "Inspections" },
         { id: "certificates", label: "Certificates" },
         { id: "prehandover", label: "Pre-Handover" },
+        { id: "rights", label: "Rights on site" },
         { id: "gantt", label: "Timeline" },
         { id: "ncc2025", label: "NCC 2025" },
     ],
@@ -671,6 +673,9 @@ export default function ProjectDetailPage() {
                         {activeTab === "photos" && <ProgressPhotos projectId={project.id} stages={stageNames} />}
                         {activeTab === "documents" && <DocumentVault projectId={project.id} />}
                         {activeTab === "communication" && <CommunicationLog projectId={project.id} />}
+                        {activeTab === "rights" && (
+                            <RightsOnSite stateCode={project.state ?? "NSW"} builderName={project.builder_name} projectAddress={project.address} />
+                        )}
                         {activeTab === "checkins" && <WeeklyCheckIn projectId={project.id} />}
                         {activeTab === "visits" && <SiteVisitLog projectId={project.id} />}
 

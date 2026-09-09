@@ -111,7 +111,7 @@ async function login(page: Page) {
 const TAB_SECTION: Record<string, string> = {
     Dashboard: "Home", "What to do now": "Home", "Watch-outs": "Home",
     "Stage Gate": "Build", Stages: "Build", Inspections: "Build", Certificates: "Build",
-    "Pre-Handover": "Build", Timeline: "Build", "NCC 2025": "Build",
+    "Pre-Handover": "Build", "Rights on site": "Build", Timeline: "Build", "NCC 2025": "Build",
     "Progress claims": "Pay", "Claim Review": "Pay", Variations: "Pay", Budget: "Pay", "PC/PS Tracker": "Pay",
     Photos: "Evidence", Defects: "Evidence", Documents: "Evidence", Messages: "Evidence",
     "Site Visits": "Evidence", "Check-ins": "Evidence",
