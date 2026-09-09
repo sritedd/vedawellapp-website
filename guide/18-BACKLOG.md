@@ -7,7 +7,11 @@
 > ~~strike the row~~ and append `✅ FIXED <date> (<commit>)` with a one-line note on what
 > actually changed. Don't delete rows — the history is the point.
 >
-> **Status**: 4 open · 13 done · 1 partial · created 2026-08-11 · last worked 2026-09-09
+> **Status**: 14 open · 13 done · 1 partial · created 2026-08-11 · last worked 2026-09-09
+>
+> 2026-09-09 review verdict: **engineering GO, paid public launch HOLD.** The ten new
+> P1-product items (B-16 → B-25) are why; B-16/17/18 gate any real user, the rest gate a
+> paid launch. Recommended next move is a free private beta in one state, not features.
 >
 > Open: **B-10** (OCR for scanned PDFs — large), **B-12** (yearly Stripe price —
 > owner, 15 min), **B-14** (gov-link backstop + 3 generic links) and **B-15**
@@ -219,6 +223,8 @@ per-state; only the column was not. Assert the discriminator, not the label.
 
 Directly produced **B-13**.
 
+**Verified on the live deploy 85d10fc, 2026-09-09:** 8-state workflow suite 79 passed · 1 flaky of 80 (31 min; the flake was SA 'Stage Gate' section-click timing under load — 3/3 in isolation); AI spec AI + no-fake-data together: 23 passed · 1 skipped of 24. The one flake (SA "Stage Gate renders") was the Build-section click not registering while the page was still loading under suite load — it passed on retry and 3/3 in isolation. The new error text named that cause directly; the old harness would have reported "toBeVisible failed".
+
 ### ~~B-6 · `guardian-smoke.spec.ts` can never pass~~
 ✅ **FIXED 2026-08-24 (58d16de)** — retired. It seeded a LOCAL Postgres
 (`guardian_test`) then asserted the cloud-backed UI showed that data, which is
@@ -402,6 +408,105 @@ git-excluded). Jest's ignore list did not cover it, so every suite ran twice and
 The remaining ~60 real failures are all `Cannot read properties of undefined
 (reading 'getUser')` — Supabase-client mocks that pre-date the auth check — i.e.
 P8-3 from the April review, not product defects.
+
+## P1-product — launch readiness, from the 2026-09-09 user-perspective review
+
+> Engineering is verified; these are the reasons the product is **not** ready as a paid
+> public launch. Owner decisions are marked. Full reasoning is in the 2026-09-09 session
+> transcript; the short version: a private free beta with ~10 owners mid-build in one
+> state, product cut to the money loop (project → stage gate → claim → Should I Pay →
+> evidence export), and the metric is "do they come back at the next progress claim".
+
+### B-16 · Legal content has no disclaimer and no "last verified" dates
+**Effort**: 3 h · **Blocks**: any real user
+
+The product's differentiator is state-specific legal rules, and they drift: every
+regulator link was dead (B-13), NT's scheme was wrong since 2012, and more below. Add a
+general "general information, not legal advice" notice (only the tribunal pack has one
+today), a `lastVerified` date on each rule in `calculations.ts` and the workflow JSON
+that the UI shows ("verified Sep 2026"), and a quarterly review task.
+
+### B-17 · Known-stale legal figures
+**Effort**: 2 h once verified · **Blocks**: any real user in the affected states
+
+- **SA building indemnity insurance threshold**: app says $12,000; the SA Government
+  page (sa.gov.au, building-indemnity-insurance) says the threshold rose to **$20,000
+  from 10 November 2025**. Fetch is WAF-blocked; confirm in a browser, then change
+  `STATE_INSURANCE.SA.threshold`.
+- **VIC**: BPC states Victoria is moving from Domestic Building Insurance to Home
+  Warranty for new eligible work; app still says DBI only. Verify commencement.
+- **TAS**: Home Warranty Insurance was legislated in 2023 (contracts > $20,000); app says
+  "voluntary insurance". Verify whether the scheme has commenced.
+- **Cooling-off citations**: TAS cites "Building Act 2016" (the contracts act is the
+  Residential Building Work Contracts and Dispute Resolution Act 2016); ACT cites
+  "Building Act 2004". Verify both — either may have no statutory cooling-off at all.
+
+### B-18 · Member roles are cosmetic — and the UI promises the opposite
+**Effort**: 4 h to enforce, 30 min to remove · **Blocks**: public launch (per `13-CONSUMER-LAUNCH-CHECKLIST`)
+
+The invite UI offers "Collaborator (add & edit)" and "Viewer (read-only)". At the
+database level every accepted member is **read-only** (v47 policies: members SELECT;
+writes are owner-only). A collaborator invited to edit hits RLS errors. Either grant
+collaborators INSERT/UPDATE on the project tables and hide owner-only controls from
+viewers, or remove the collaborator option and call the feature "share read-only".
+
+### B-19 · Guardian chrome shows Tools · Games · Blog above a construction-evidence tool
+**Effort**: 1 h
+
+The site nav (Tools, Games, Blog, theme toggle) renders above the project page. A
+homeowner about to pay a $650k builder is looking at a "Games" link. Give `/guardian/*`
+its own minimal chrome. Same family: the "Achievement Unlocked" toasts and locked-badge
+grid on the dashboard read as a hobby app on a stressful, expensive build — make them
+opt-in or remove.
+
+### B-20 · Free tier cannot demonstrate the value
+**Effort**: 2 h · **Owner decision**
+
+Free = 1 project, 3 defects, 2 variations. A real pre-handover list has 30–100 items, so
+free users never reach the moment where paying makes sense. Proposed flip: free =
+unlimited logging; Pro = the money features (Should I Pay, claim review, tribunal pack,
+PDF exports). Caps live in the v51/v42/v41 triggers — one migration.
+
+### B-21 · The product doesn't model site-access rights
+**Effort**: 1 day
+
+Under standard HIA/MBA contracts the builder has possession of the site; owners inspect
+at reasonable times with reasonable notice, subject to WHS, and may not direct trades.
+The blog says this; the product doesn't. Weekly on-site check-ins, a GPS site diary and a
+materials register assume access most owners don't have. Add a per-state "your access
+rights" panel and a visit-request notice template; reframe "tracking" from the site to
+the money and documents the owner fully controls (claims, certificates, variations,
+inspections, comms, PCI list).
+
+### B-22 · Adversarial framing
+**Effort**: 1 day of copy · **Owner decision**
+
+Landing + blog: "dodgy" ×18, "red flag" ×29, "tribunal" ×51, "dispute" ×57. An owner
+needs a working relationship with the builder for ~40 weeks; a tool that assumes an
+adversary on day one gets abandoned or makes the build worse. Evidence is neutral —
+"be a good client with a complete paper trail" sells the same features.
+
+### B-23 · Surface area: 49 tools, 11 hand-entry forms
+**Effort**: 2 days · **Owner decision**
+
+Cut the default experience to the money loop; everything else stays reachable behind
+"More". Reduce required logging to the stage-based cadence that matches real access
+(5–6 inspection points + progress claims).
+
+### B-24 · Brand and domain
+**Owner decision**
+
+`08-BRAND-DIFFERENTIATION` stalled at "awaiting decision" on the homeguardian.ai
+collision. The larger trust problem is the neighbourhood: a construction-dispute tool
+next to Ayurveda, migraine and birth-chart tools on vedawellapp.com. Its own name and
+domain (their Option B) is the fix; not before the beta, but before anyone pays.
+
+### B-25 · Small launch hygiene
+**Effort**: 1 h
+
+Set `NEXT_PUBLIC_SITE_URL` on Netlify (still open in `13-CONSUMER-LAUNCH-CHECKLIST`);
+confirm the Sentry DSN is set; a support path for beta users; label the product "beta"
+in onboarding and billing until B-16/B-17/B-18 are done.
 
 ---
 
