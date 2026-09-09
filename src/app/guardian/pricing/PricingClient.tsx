@@ -6,23 +6,30 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useToast } from "@/components/guardian/Toast";
 
 // Price IDs from Stripe Dashboard (Products > Price > copy the price_xxx ID)
+// What is free and what is Pro (guide/19 §1.3, §3.4): the money loop and
+// evidence CAPTURE are free forever — an owner who could not log the defect has
+// nothing to export later, so the Pro feature would have nothing to sell. Pro is
+// evidence PACKAGING (exports, evidence pack), AI, more projects, sharing and the
+// vault. The old Free list told users they had "no certification gates, no
+// payment milestones, no Should I Pay?" — none of which was ever gated in the
+// product. Caps on defects and variations were removed in schema_v52.
 const PLANS = {
     free: {
         name: "Free",
         price: "$0",
-        period: "forever",
+        period: "for the whole build",
         features: [
-            "1 active project",
-            "3 defect reports",
-            "2 variation records",
-            "Basic stage tracking",
-            "AI defect descriptions",
-            "Community resources",
+            "One project — your build",
+            "Your state's payment stages and certificate gates",
+            "\"Should I Pay?\" before every progress claim",
+            "Unlimited defects, photos, documents and messages",
+            "Camera-first defect capture",
+            "AI defect descriptions (5 a day)",
         ],
         limits: [
-            "No PDF export",
-            "No certification gates",
-            "No payment milestones",
+            "No PDF exports or evidence pack",
+            "No AI claim review or Guardian Chat",
+            "One project at a time",
         ],
     },
     pro_monthly: {
@@ -31,33 +38,27 @@ const PLANS = {
         period: "/month",
         priceId: "price_1T4zHCGrwDXNt9f4x4O2MxlZ",
         features: [
-            "Unlimited projects",
-            "Unlimited defect reports",
-            "Unlimited variation records",
-            "\"Should I Pay?\" smart payment verdict",
-            "Camera-first defect reporting",
-            "Builder speed vs industry benchmarks",
-            "Tribunal-ready evidence export",
-            "PDF export & evidence packs",
-            "Certification gates & payment milestones",
-            "Document vault (1GB)",
-            "AI Guardian Chat assistant",
             "AI progress claim review (PAY / HOLD / DISPUTE)",
-            "AI stage-by-stage advice",
+            "AI Guardian Chat and stage-by-stage advice",
+            "PDF exports and a tribunal-ready evidence pack",
+            "Unlimited projects",
+            "Share with family (read-only)",
+            "Document vault (1 GB)",
+            "Builder speed vs industry benchmarks",
             "Fair Trading compliance reports",
             "Priority support",
         ],
         limits: [],
     },
     pro_yearly: {
-        name: "Guardian Pro",
+        name: "Guardian Pro — whole build",
         price: "$149",
         period: "/year",
-        savings: "Save $30.88/year",
-        priceId: "", // Create yearly price in Stripe and paste ID here
+        savings: "Covers a typical 9–14 month build — two months free",
+        priceId: "", // Create the yearly price in Stripe and paste the ID here (B-12)
         features: [
-            "Everything in monthly plan",
-            "2 months free",
+            "Everything in monthly",
+            "Paid once for the build",
             "All future feature updates",
         ],
         limits: [],
