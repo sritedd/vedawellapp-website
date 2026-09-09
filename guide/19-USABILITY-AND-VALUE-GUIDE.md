@@ -1,12 +1,13 @@
 # 19 — Usability & Value Guide
 
-> **Purpose**: the two findings from the 2026-09-09 user-perspective review that the owner
-> agreed with — *why would anyone use it* and *is it easy to use* — turned into changes
+> **Purpose**: every recommendation from the 2026-09-09 user-perspective review — *why
+> would anyone use it*, *is it easy to use*, *is it worth the price*, *are owners allowed
+> this*, *legal content that drifts*, *trust*, *engineering practice* — turned into changes
 > that are feasible in **this** codebase: each with the files it touches, an honest effort
 > for one developer, a sequence, and the number that tells you whether it worked.
-> Everything here re-cuts or re-words what already exists. Nothing needs a rebuild.
+> Everything here re-cuts, re-words or hardens what already exists. Nothing needs a rebuild.
 >
-> **Date**: 2026-09-09 · **Companion**: `18-BACKLOG.md` B-19 → B-23 are the tickets; this is
+> **Date**: 2026-09-09 · **Companion**: `18-BACKLOG.md` B-12 → B-25 are the tickets; this is
 > the "how" · **Status**: proposal — nothing in this file is built yet.
 
 ---
@@ -105,7 +106,7 @@ mirror `tools/migraine-tracker`); register in `src/data/tool-catalog.ts` and
 `tool-metadata.ts` (sitemap picks it up); data from `australian-build-workflows.json`
 (`paymentPercentage`, `certificates`, `inspections`, `depositPercentage`) and
 `getInsuranceConfig` / `getLicenseVerificationUrl` from `calculations.ts`. Show the
-B-16 disclaimer and the "verified" date. Track with `trackToolUse("progress-claim-check")`.
+§4.1 disclaimer and the verified date. Track with `trackToolUse("progress-claim-check")`.
 **Effort**: 1–2 days. **Measure**: tool views → signups; search impressions for the
 target phrases in Search Console after 6 weeks.
 
@@ -136,11 +137,13 @@ that pushes them goes (2.4).
 **Why**: under standard HIA/MBA contracts the builder has possession of the site. The
 blog says this; the product assumes continuous access (weekly check-ins, GPS site diary,
 materials register). Reframe "tracking" from the site to the money and documents the
-owner fully controls.
+owner fully controls — claims, certificates, variations, inspections, messages, the
+handover defect list. Owners have every right to those; they do not have a right to be on
+site daily.
 **How**: new `RightsOnSite.tsx` in the Build section, content as a `siteAccess` block per
 state in the workflow JSON (start from `red-flags-pdf.ts` item "refuses inspection access"
 and the blog paragraphs); link to `MessageTemplates` "Site Visit Request".
-**Effort**: 1 day + content verification (legal hedge, B-16 dates). **Measure**: none
+**Effort**: 1 day + content verification (legal hedge, §4 dates). **Measure**: none
 quantitative; beta interviews.
 
 ### 1.7 Bring the builder into the loop (phase 2)
@@ -157,17 +160,16 @@ sent before payment.
 ## 2. Is it easy to use? — usability
 
 ### 2.1 Give Guardian its own chrome
-**What**: inside `/guardian/*`, no "Tools · Games · Blog", no ad slots, no achievement
-toasts. A minimal header: logo, project switcher, account. The public site keeps its own
-navigation.
+**What**: inside `/guardian/*`, no "Tools · Games · Blog", no achievement toasts. A minimal
+header: logo, project switcher, account, support. The public site keeps its own
+navigation. (Ads already stay out: `/guardian` is not in `AD_ENABLED_PREFIXES`.)
 **Why**: someone about to pay a $650k builder is looking at a "Games" link. Trust is the
 whole product.
-**How**: `src/components/Navbar.tsx` already uses `usePathname()` — return the Guardian
-header for `/guardian` paths; confirm `/guardian` is **not** in `AD_ENABLED_PREFIXES`
-(`GlobalAdSlots.tsx:26`) and remove it if it is; `src/app/guardian/layout.tsx` is the
-natural home for a `GuardianHeader`. Footer trimmed to legal links.
-**Effort**: half a day. **Measure**: n/a — check that no AdSense request fires on
-`/guardian/*` (the E2E console check already collects requests).
+**How**: `src/components/Navbar.tsx` already uses `usePathname()` — return a Guardian
+header for `/guardian` paths; `src/app/guardian/layout.tsx` is the natural home for a
+`GuardianHeader`. Footer trimmed to legal links.
+**Effort**: half a day. **Measure**: n/a — the E2E console check already collects
+requests; assert none go to AdSense on `/guardian/*`.
 
 ### 2.2 Re-cut the five sections around the loop
 **What**: keep five sections (users have muscle memory for the bar), but make one of them
@@ -218,7 +220,7 @@ automatic.
 | **Stage-based prompts** replace weekly check-ins | "What To Do Now" in `SmartDashboard.tsx` is already stage-aware; add a "claim due" prompt from `payments.due_date` and let the wizard's stage answer drive it | 1 day |
 | **Share-to-Guardian** from the phone | PWA `share_target` in `public/manifest.json` (POST, `multipart/form-data`) → `src/app/guardian/share/route.ts` creates a draft photo/defect/message on the active project. Cookies travel with the share navigation, so auth works as normal | 2 days |
 | **Paste an email** | Messages tab: paste → parsed date/sender/subject into a comms entry (no inbound email needed) | half a day |
-| **Claim-due reminder** email | new `netlify/functions/cron-claim-due.mts` + `api/cron/claim-due` using `payments.due_date` 7 and 2 days out, listing what should be in hand (same data as 1.2). Pattern: `cron-defect-reminders` | half a day |
+| **Claim-due reminder** email | new `netlify/functions/cron-claim-due.mts` + `api/cron/claim-due` using `payments.due_date` 7 and 2 days out, listing what should be in hand (same data as 1.2). Pattern: `cron-defect-reminders` — and remember §6.3: a route without a schedule is dead code | half a day |
 | **Import what the builder sends** | contract parser, inspector-report import and CSV import already exist — surface them at the moment they apply (contract → deposit step; inspection report → Build section) rather than under More | half a day |
 
 **Measure**: entries created per active project per week without a form submit (share /
@@ -254,38 +256,240 @@ the project page in GA4.
 
 ---
 
-## 3. What not to do
+## 3. Is it worth the price?
 
-- **Don't add features.** The list above removes or re-cuts; the only genuinely new
-  surface is the public checker (1.4), and it is made of existing calculations.
+The price is not the obstacle — $14.99/month over a ten-month build is about $150 against
+a $500k–$1m contract, less than one independent stage inspection. Attention and trust are
+the obstacles. So the work is in what the price *buys* and how it is *framed*.
+
+### 3.1 Position against the inspector, not instead of the inspector
+**What**: pricing and landing copy say plainly: *keep buying independent inspections
+($400–900 each, four to six per build); Guardian is the record that makes them and your
+payments count.* Never imply the app replaces an inspector.
+**Why**: the honest value is organisation + gating + evidence. An owner who thinks the app
+is a substitute for an inspection is worse off, and will say so.
+**How**: `PricingClient.tsx`, `src/app/guardian/page.tsx`. **Effort**: 2 hours.
+
+### 3.2 A "whole build" price instead of a missing yearly one
+**What**: a second Stripe price presented as **Whole build — $149 for 12 months** (B-12).
+Implement it as a **yearly recurring price**: the webhook already allowlists
+`STRIPE_YEARLY_PRICE_ID` and verifies purchased price IDs, so this is the 15-minute path.
+A true one-off would need `mode: "payment"` in checkout plus an expiry column on
+`profiles` — not worth it yet.
+**Why**: builds are 9–14 months; "per month" invites churn the moment a claim is paid,
+and "for the build" matches how the owner thinks about the cost.
+**How**: create the price in Stripe, set `STRIPE_YEARLY_PRICE_ID` on Netlify, fill
+`pro_yearly.priceId` in `pricing/page.tsx`. **Effort**: 15 min (owner) + 30 min copy.
+**Measure**: share of Pro sign-ups choosing whole-build.
+
+### 3.3 Trial framed around the first claim
+**What**: keep the existing 7-day self-service trial (no card), but *offer it from the
+Next-claim screen* when a Pro-only action is attempted — "Try claim review on this claim,
+free for 7 days" — instead of a generic pricing-page button.
+**Why**: the moment of need is the moment of conversion; a trial started from the pricing
+page is a trial nobody remembers to use.
+**How**: the existing upgrade prompts (`UpgradePrompt` / "Upgrade to Pro" CTAs) on
+`ClaimReview`, `TribunalExport`, `ExportCenter` call the same trial-start endpoint the
+pricing page uses; add `trackGuardian("trial_started", { from })`. **Effort**: half a day.
+**Measure**: trial starts from the loop vs from pricing; trial → paid.
+
+### 3.4 What Pro must contain — and what must stay free forever
+Free forever: the loop (stage gate, schedule, Should I Pay rules), evidence *capture*
+(photos, defects, documents, messages) for one project. Pro: evidence *packaging* (PDF
+exports, evidence pack), AI (claim review, chat, stage advice), more than one project,
+team, the vault. Gate packaging and AI; never gate capture — an owner who could not log
+the defect has nothing to export later, so the Pro feature has nothing to sell.
+**How**: this is the rule behind 1.3; write it into `PricingClient.tsx` and the tier table
+in `.claude/CLAUDE.md` so it is not eroded feature by feature. **Effort**: 1 hour.
+
+---
+
+## 4. Legal content as a maintained asset
+
+The state-specific rules are the differentiator and they drift: in one morning, every
+regulator link was dead, NT's insurance scheme was wrong since 2012, and more below. A
+paid product asserting legal thresholds needs a disclaimer, a date on every rule, and a
+review cadence — otherwise the content is a liability, not an asset.
+
+### 4.1 One disclaimer component, everywhere a rule is shown
+**What**: `LegalNotice.tsx` — one sentence ("General information for Australian
+homeowners, not legal advice; verify with your state regulator or a lawyer for your
+contract") linking to `/guardian/legal-notice`. Placed on Stage Gate, Should I Pay, Claim
+Review, Rights on site (1.6), the public checker (1.4) and every PDF export.
+`TribunalExport.tsx` already carries one — reuse its wording.
+**Effort**: 2 hours. **Blocks**: any real user (B-16).
+
+### 4.2 A verified date and a source on every rule
+**What**: `{ lastVerified: "2026-09-09", source: "<official url>" }` on each entry of
+`STATE_INSURANCE`, `STATE_COOLING_OFF` and the licence map in `calculations.ts`, and a
+`verified` block per state in the workflow JSON. A `VerifiedAt` badge renders "Verified
+Sep 2026 · NSW Fair Trading" next to the figure. The public checker shows it too.
+**Why**: a date turns "we say $20,000" into "we checked on this day, here" — and tells
+*you* when a rule is due for review.
+**Effort**: 3 hours. **Blocks**: any real user (B-16).
+
+### 4.3 Fix the figures already known to be stale (B-17)
+| Rule | App says | Found 2026-09-09 | Action |
+|---|---|---|---|
+| SA building indemnity insurance threshold | $12,000 | SA Government: **$20,000 from 10 Nov 2025** | confirm in a browser (site blocks automation), change `STATE_INSURANCE.SA.threshold`, add source + date |
+| VIC scheme | Domestic Building Insurance | BPC: moving to **Home Warranty** for new eligible work | verify commencement; describe both with the cut-over date |
+| TAS scheme | "voluntary insurance" | Home Warranty Insurance legislated 2023, contracts > $20,000 | verify whether commenced; update text |
+| TAS cooling-off | cites Building Act 2016 | contracts act is the Residential Building Work Contracts and Dispute Resolution Act 2016 | verify existence and length; fix citation |
+| ACT cooling-off | cites Building Act 2004 | uncertain | verify; may be none |
+
+**Method**: real browser (WAFs 403 automated fetches), record source + date, owner signs
+off any legal change. **Effort**: 2 hours once verified.
+
+### 4.4 Quarterly review, one hour
+**What**: `guide/LEGAL-REVIEW-CHECKLIST.md` — eight states × (licence register URL,
+insurance scheme + threshold, cooling-off, defect warranty periods, tribunal contact,
+regulator home). Tick, date, bump `lastVerified`. Calendar reminder every quarter.
+**Effort**: 1 hour to write; 1 hour per quarter to run.
+
+### 4.5 The link checker (B-14)
+**What**: `scripts/check-gov-links.mjs` — extracts every `gov.au` URL from the workflow
+JSON and `src/`, fetches each with a browser user-agent, fails on 404/DNS, lists 403s as
+"needs a browser". Run monthly by a GitHub Action and on any PR touching the JSON.
+**Why**: government sites restructure every couple of years; nothing in the app notices
+until a homeowner clicks. This is the backstop for 4.2.
+**Effort**: 3 hours.
+
+---
+
+## 5. Trust — chrome, roles, monitoring, brand
+
+### 5.1 Chrome
+See 2.1. This is the cheapest trust fix on the list and should ship first.
+
+### 5.2 Make member roles honest (B-18)
+Today the invite UI offers "Collaborator (add & edit)" and "Viewer (read-only)", but at the
+database level every accepted member is **read-only** (v47 policies). A collaborator
+invited to edit hits RLS errors.
+
+| Option | What | Effort | When |
+|---|---|---|---|
+| **B — remove** | drop the collaborator option; call the feature "share read-only with family"; hide owner-only controls for members | 30 min | before the beta |
+| **A — enforce** | migration granting collaborators INSERT/UPDATE on defects, photos, documents, comms via `is_project_member` + role check; viewers stay SELECT; UI hides controls by role | 4 hours + migration | phase 2, if beta owners ask to share editing |
+
+Recommend B now, A later. Either is honest; the current state is neither.
+
+### 5.3 See it break before a user tells you
+- **Sentry**: set `NEXT_PUBLIC_SENTRY_DSN` and `SENTRY_DSN` on Netlify (wiring exists);
+  one alert rule on 5xx rate and one on AI 503 rate. **Effort**: 30 min.
+- **AI "busy" UX**: when Gemini returns "high demand" the routes already return
+  `503 { fallback: true }`; make each consumer show *"AI is busy — your checklist still
+  works"* and render the deterministic content (the rules-based verdict, the stage
+  checklist) rather than a generic error. **Effort**: half a day.
+- **Cold start**: 2.10.
+
+### 5.4 A support path and a beta label (B-25)
+`support@vedawellapp.com` in the Guardian header; a "Report a problem" link that pre-fills
+the project id; "Beta" label in onboarding and on the billing page until §4.1–4.3 and 5.2
+are done. `NEXT_PUBLIC_SITE_URL` set on Netlify (still open in
+`13-CONSUMER-LAUNCH-CHECKLIST`). **Effort**: 2 hours.
+
+### 5.5 Brand and domain (B-24)
+`08-BRAND-DIFFERENTIATION` stalled at "awaiting decision" on the homeguardian.ai
+collision. The larger trust problem is the neighbourhood: a construction-evidence tool on
+a domain that also hosts Ayurveda, migraine and birth-chart tools. Its own name and domain
+(the brand doc's Option B) is the fix.
+**When**: after the beta shows owners returning at claim time, before the first paid
+cohort. Not before — it is a distraction until ten people have used the loop.
+**How** (from the brand doc): name and domain check → 301s from `/guardian/*` → the
+150+ brand strings → Stripe product name → sitemap resubmission → email to existing
+accounts. **Effort**: 2–3 days. Until then, 2.1 removes the neighbourhood from the product
+surface, which is what a signed-in user actually sees.
+
+---
+
+## 6. Engineering practice that keeps it true
+
+Three items the record called "done" were not — a suite that tested NSW eight times, a
+cron that was never scheduled, a map of dead links — and all three passed type-checks
+and code review. These are the habits that catch that class.
+
+### 6.1 Nightly E2E against production
+`.github/workflows/e2e-prod.yml`, cron `0 16 * * *` (2 am AEST): the 8-state workflow
+suite, the AI suite and the no-fake-data suite under `playwright.prod.config.ts`. Secrets:
+`E2E_PRO_PASSWORD`, `E2E_FREE_PASSWORD`, `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SECRET_KEY`.
+~40 minutes; artifacts uploaded on failure. It creates and deletes `E2E *` projects on
+prod — it already does, and cleanup is scoped per state. **Effort**: half a day.
+
+### 6.2 Migrations are "applied" only when the database says so
+Keep the April rule: a migration is marked applied only after a `pg_catalog` probe of the
+live database, never on "please run this". Add `scripts/verify-migrations.mjs` that
+checks the objects each migration creates (pattern from the 2026-04-21 sweep). B-2
+(`schema_unified.sql` regeneration) still needs a real `pg_dump`.
+**Effort**: 2 hours.
+
+### 6.3 A five-line PR checklist
+In `.claude/rules/` (the agent reads them) and the PR template:
+1. **Assert the discriminator, not the label** — a test fixture must set the column the
+   app branches on (`projects.state` defaulted to NSW and the suite looked 8-state).
+2. **A cron route needs a schedule** — anything under `src/app/api/cron/` ships with a
+   `netlify/functions/cron-*.mts` or it is dead code that type-checks.
+3. **A new government link runs the checker** (4.5); **a new legal figure has a source
+   and a date** (4.2).
+4. **Test helpers throw** — a helper that returns `false` on failure produces a failure
+   report that blames the wrong thing.
+5. **Verify on prod, not the type checker** — every P0 in this codebase passed `tsc`.
+
+### 6.4 One credentials source
+Done on 2026-09-09: `e2e/setup/credentials.ts` (specs) and `credentials.mjs` (Node
+scripts) read the same four keys from the same `.env.local`. Keep them in lock-step; the
+header of each says why there are two.
+
+---
+
+## 7. Housekeeping before the beta
+
+| Item | Who | Effort |
+|---|---|---|
+| Create the whole-build (yearly) Stripe price, set `STRIPE_YEARLY_PRICE_ID` (3.2, B-12) | owner | 15 min |
+| Remove the stray worktree `.claude/worktrees/folder-location-344dd0` if it is not WIP (B-15) — Jest already ignores it | owner | 2 min |
+| Run `schema_v46_migraine_logs.sql` — the tracker works on local storage until then | owner | 5 min |
+| Decide the uncommitted Lemonade local-AI work in `provider.ts`, `ai/chat/route.ts`, `.env.example` — commit, branch, or stash | owner | your call |
+| Set `NEXT_PUBLIC_SITE_URL` and the Sentry DSN on Netlify (5.3, 5.4) | owner | 10 min |
+| "Beta" label in onboarding and billing (5.4) | dev | 30 min |
+
+---
+
+## 8. Sequence
+
+**Phase 0 — before inviting anyone (≈ 8 working days)**
+2.1 chrome · 2.2 sections · 2.4 onboarding · 2.6 gamification · 2.7 vocabulary ·
+1.2 first verdict · 1.3 free tier + 3.1/3.4 pricing truth · 1.5 copy · 1.6 rights panel ·
+4.1 disclaimer · 4.2 verified dates · 4.3 stale figures · 5.2 roles (option B) ·
+5.3 Sentry · 5.4 support + beta label · §7 housekeeping.
+
+**Phase 1 — during the beta (3–4 weeks, alongside interviews)**
+1.4 public checker · 3.2 whole-build price · 3.3 trial from the loop · 2.5 prompts,
+share-target, claim-due reminders · 2.3 More drawer · 2.8 empty states · 2.9 mobile loop
+test · 2.10 first load · 4.4 quarterly checklist · 4.5 link checker · 5.3 AI-busy UX ·
+6.1 nightly E2E · 6.2 migration probe · 6.3 PR checklist.
+
+**Phase 2 — only after the beta shows people returning at claim time**
+1.7 builder share · AI claim review from a photo of the claim · 5.2 roles (option A) ·
+5.5 brand and domain.
+
+---
+
+## 9. What not to do
+
+- **Don't add features.** The list above removes, re-cuts or hardens; the only genuinely
+  new surface is the public checker (1.4), and it is made of existing calculations.
 - **Don't rebuild the project page.** `SECTIONS` + the tab map is the whole navigation
   model; it is one file.
 - **Don't delete tools.** Hide, group, dynamic-import. Every tool has a moment; the
   problem is that they all look equally important.
-- **Don't rename the brand before the beta.** B-24 is real but it is a distraction until
+- **Don't rename the brand before the beta.** 5.5 is real but it is a distraction until
   ten people have used the loop.
-- **Don't ship legal copy without B-16.** Disclaimer and verified dates first.
+- **Don't ship legal copy without §4.** Disclaimer and verified dates first.
+- **Don't imply the app replaces an inspector.** 3.1.
 
 ---
 
-## 4. Sequence
-
-**Phase 0 — before inviting anyone (≈ 6 working days)**
-2.1 chrome · 2.2 sections · 2.4 onboarding · 2.6 gamification · 2.7 vocabulary ·
-1.2 first verdict · 1.3 free tier + pricing truth · 1.5 copy · 1.6 rights panel ·
-plus B-16 (disclaimer/dates), B-17 (stale figures), B-18 (roles honesty) from the backlog.
-
-**Phase 1 — during the beta (3–4 weeks, alongside interviews)**
-1.4 public checker · 2.5 prompts, share-target, claim-due reminders · 2.3 More drawer ·
-2.8 empty states · 2.9 mobile loop test · 2.10 first load.
-
-**Phase 2 — only after the beta shows people returning at claim time**
-1.7 builder share · AI claim review from a photo of the claim · role enforcement (the
-full version of B-18) · B-24 brand and domain.
-
----
-
-## 5. Measurement — the only numbers that matter
+## 10. Measurement — the only numbers that matter
 
 Add one helper to `src/lib/analytics.ts` next to `trackToolUse`:
 
@@ -293,7 +497,8 @@ Add one helper to `src/lib/analytics.ts` next to `trackToolUse`:
 export function trackGuardian(event: GuardianEvent, params?: Record<string, string | number>) { … }
 type GuardianEvent =
   | "project_created" | "next_claim_viewed" | "verdict_viewed"
-  | "claim_recorded" | "certificate_uploaded" | "evidence_exported" | "returned_at_claim";
+  | "claim_recorded" | "certificate_uploaded" | "evidence_exported"
+  | "trial_started" | "returned_at_claim";
 ```
 
 | Question | Event(s) | Beta target (10 owners) |
@@ -302,6 +507,7 @@ type GuardianEvent =
 | Did they use it for money? | `claim_recorded` with ≥ 1 `certificate_uploaded` before it | ≥ 5 of 10 |
 | **Did they come back?** | `returned_at_claim`: any session within ±5 days of `payments.due_date` | **≥ 5 of 10** |
 | Did the paper trail matter? | `evidence_exported` | ≥ 3 of 10 by handover |
+| Would they pay? | `trial_started` from the loop → paid | ≥ 2 of 10 by the second claim |
 
 `page_views` already records signed-in sessions (user, path, session) — enough to compute
 "returned at claim" server-side against `payments.due_date` without GA4. The
@@ -309,7 +515,7 @@ type GuardianEvent =
 
 ---
 
-## 6. The beta, concretely
+## 11. The beta, concretely
 
 - **Who**: 10 owners with a signed contract and a build between slab and lock-up, in one
   state (the one you can visit). Owner-builder and new-home Facebook groups, the HIA/MBA
@@ -318,21 +524,28 @@ type GuardianEvent =
 - **Offer**: free for the whole build; in return, a 15-minute call after each claim.
 - **Ask, every time**: What did you open the app for? What did you do instead of the app?
   Did you show anything to the builder? What would you have paid for this week?
-- **Watch**: the four numbers in §5, and the unprompted messages — the feature people ask
+- **Watch**: the five numbers in §10, and the unprompted messages — the feature people ask
   for at claim time is the roadmap.
 - **Stop rule**: if fewer than 3 of 10 return at their next claim after Phase 0 and Phase 1
   are live, the problem is not usability and more building will not fix it.
 
 ---
 
-## 7. Traceability
+## 12. Traceability
 
 | Guide item | Backlog |
 |---|---|
-| 1.3 | B-20 |
+| 1.3, 3.4 | B-20 |
 | 1.5 | B-22 |
 | 1.6 | B-21 |
 | 2.1, 2.6 | B-19 |
 | 2.2, 2.3, 2.5, 2.7 | B-23 |
-| Prerequisites | B-16, B-17, B-18, B-25 |
-| 1.7, 2.10, B-24 | phase 2 |
+| 3.2 | B-12 |
+| 4.1, 4.2, 4.4 | B-16 |
+| 4.3 | B-17 |
+| 4.5 | B-14 |
+| 5.2 | B-18 |
+| 5.4, §7 | B-25, B-15 |
+| 5.5 | B-24 |
+| 6.2 | B-2 |
+| 1.7, 2.10, 5.2-A, 5.5 | phase 2 |
