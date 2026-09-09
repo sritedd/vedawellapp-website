@@ -411,6 +411,9 @@ P8-3 from the April review, not product defects.
 
 ## P1-product — launch readiness, from the 2026-09-09 user-perspective review
 
+> **How to work these**: `19-USABILITY-AND-VALUE-GUIDE.md` — files, effort, sequence and a
+> measure for every item below, plus the beta script.
+>
 > Engineering is verified; these are the reasons the product is **not** ready as a paid
 > public launch. Owner decisions are marked. Full reasoning is in the 2026-09-09 session
 > transcript; the short version: a private free beta with ~10 owners mid-build in one

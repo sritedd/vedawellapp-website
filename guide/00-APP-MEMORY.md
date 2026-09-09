@@ -510,6 +510,8 @@ All 12 bugs from the original plan (hardcoded fake data in ProjectOverview, Stag
 ## 5. KEY FILES REFERENCE
 
 ### Must-Read Files for Any Session
+- `guide/19-USABILITY-AND-VALUE-GUIDE.md` — the 2026-09-09 plan for the two agreed review findings (value + usability): what to change, where, how much, in what order, and how to measure it
+- `guide/18-BACKLOG.md` — the live queue (B-16 → B-25 are the launch-readiness items)
 | File | Purpose |
 |------|---------|
 | `guide/00-APP-MEMORY.md` | **THIS FILE** — Start here |
