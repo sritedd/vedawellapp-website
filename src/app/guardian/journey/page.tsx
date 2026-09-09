@@ -28,10 +28,7 @@ async function JourneyContent({
             {/* Navigation */}
             <nav className="border-b border-border bg-card">
                 <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-                    <Link href="/" className="flex items-center gap-2 text-xl font-bold">
-                        <span>🛠️</span>
-                        <span>VedaWell Tools</span>
-                    </Link>
+                    <span className="text-sm font-semibold text-muted-foreground">HomeOwner Guardian</span>
                     <div className="flex items-center gap-6">
                         <Link href="/guardian/dashboard" className="text-muted hover:text-foreground">
                             Dashboard
@@ -132,7 +129,7 @@ async function JourneyContent({
             </main>
 
             <footer className="border-t border-border py-8 px-6 text-center text-muted">
-                <p>© 2026 VedaWell Tools. Free & Open Source.</p>
+                <p>© {new Date().getFullYear()} HomeOwner Guardian by VedaWell</p>
             </footer>
         </div>
     );

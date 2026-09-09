@@ -27,10 +27,7 @@ export default function ResourcesPage() {
             {/* Header */}
             <nav className="border-b border-border bg-card">
                 <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-                    <a href="/" className="flex items-center gap-2 text-xl font-bold">
-                        <span>🛠️</span>
-                        <span>VedaWell Tools</span>
-                    </a>
+                    <span className="text-sm font-semibold text-muted-foreground">HomeOwner Guardian</span>
                     <div className="flex items-center gap-6">
                         <a href="/guardian/journey" className="text-muted hover:text-foreground">
                             📚 Learn
