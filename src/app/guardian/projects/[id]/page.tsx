@@ -507,6 +507,15 @@ export default function ProjectDetailPage() {
                         </div>
                     </div>
 
+                    {/* Shared-project banner: members can read everything and change
+                        nothing (schema_v47). Saying so up front beats a permission error
+                        on the first edit (guide/19 §5.2). */}
+                    {memberRole && memberRole !== "owner" && (
+                        <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-200" role="status">
+                            You are viewing this project as a family member. You can see everything the owner has recorded; only the owner can add or change records.
+                        </div>
+                    )}
+
                     {/* Phone verification soft prompt — replaces the hard pre-creation gate */}
                     <PhoneVerificationBanner />
 

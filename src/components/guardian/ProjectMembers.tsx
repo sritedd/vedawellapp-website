@@ -11,9 +11,14 @@ interface Member {
   created_at: string;
 }
 
+// Members are READ-ONLY at the database level (schema_v47: members SELECT,
+// writes owner-only). Until editing is granted by a migration, the invite UI
+// must not promise "add & edit" — a collaborator invited to edit hit RLS
+// errors (guide/19 §5.2, B-18). Existing collaborator rows keep their badge,
+// labelled honestly.
 const ROLE_LABELS: Record<string, { label: string; color: string; desc: string }> = {
   owner: { label: "Owner", color: "bg-primary/10 text-primary", desc: "Full control" },
-  collaborator: { label: "Collaborator", color: "bg-green-500/10 text-green-700", desc: "Can add & edit" },
+  collaborator: { label: "Collaborator", color: "bg-blue-500/10 text-blue-700", desc: "Read-only (editing not yet available)" },
   viewer: { label: "Viewer", color: "bg-blue-500/10 text-blue-700", desc: "Read-only" },
 };
 
@@ -126,9 +131,9 @@ export default function ProjectMembers({ projectId }: { projectId: string }) {
             value={inviteRole}
             onChange={(e) => setInviteRole(e.target.value)}
             className="px-3 py-2 text-sm rounded border border-border bg-background"
+            aria-label="Access level"
           >
-            <option value="viewer">Viewer (read-only)</option>
-            <option value="collaborator">Collaborator (add & edit)</option>
+            <option value="viewer">Read-only</option>
           </select>
           <button
             type="submit"
