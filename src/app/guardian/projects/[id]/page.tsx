@@ -68,56 +68,67 @@ import CSVImport from "@/components/guardian/CSVImport";
 /*  Navigation Structure — 5 main sections                            */
 /* ------------------------------------------------------------------ */
 
+// Five sections, cut around the moments that cost money (guide/19 §2.2):
+// Home = what is next, Build = what must be true, Pay = the claim, Evidence =
+// the proof, More = everything else. "Issues" was folded into Pay and Evidence —
+// the money features were scattered across three places and users could not
+// find the loop because it was not a place.
 const SECTIONS = [
     { id: "home", label: "Home", defaultTab: "overview" },
     { id: "build", label: "Build", defaultTab: "stagegate" },
-    { id: "issues", label: "Issues", defaultTab: "defects" },
+    { id: "pay", label: "Pay", defaultTab: "payments" },
     { id: "evidence", label: "Evidence", defaultTab: "photos" },
     { id: "more", label: "More", defaultTab: "more_grid" },
 ] as const;
 
 type SectionId = (typeof SECTIONS)[number]["id"];
 
+// Labels use the owner's words — the ones on the contract and the claim
+// (guide/19 §2.7, §1.5): "Progress claims" not "Payments", "Messages" not
+// "Comms", "Watch-outs" not "Red Flags". Tab ids are unchanged so deep links,
+// onNavigateTab() calls and the stage-visibility map keep working.
 const SECTION_SUBTABS: Record<SectionId, { id: string; label: string }[]> = {
     home: [
         { id: "overview", label: "Dashboard" },
-        { id: "actions", label: "Pending Actions" }
+        { id: "actions", label: "What to do now" },
+        { id: "redflags", label: "Watch-outs" },
     ],
     build: [
         { id: "stagegate", label: "Stage Gate" },
-        { id: "gantt", label: "Timeline" },
         { id: "stages", label: "Stages" },
         { id: "inspections", label: "Inspections" },
         { id: "certificates", label: "Certificates" },
+        { id: "prehandover", label: "Pre-Handover" },
+        { id: "gantt", label: "Timeline" },
         { id: "ncc2025", label: "NCC 2025" },
     ],
-    issues: [
-        { id: "defects", label: "Defects" },
+    pay: [
+        { id: "payments", label: "Progress claims" },
+        { id: "claimreview", label: "Claim Review" },
         { id: "variations", label: "Variations" },
-        { id: "redflags", label: "Red Flags" },
-        { id: "disputes", label: "Disputes" },
-        { id: "prehandover", label: "Pre-Handover" },
+        { id: "budget", label: "Budget" },
+        { id: "allowances", label: "PC/PS Tracker" },
     ],
     evidence: [
         { id: "photos", label: "Photos" },
+        { id: "defects", label: "Defects" },
         { id: "documents", label: "Documents" },
-        { id: "communication", label: "Comms" },
-        { id: "checkins", label: "Check-ins" },
+        { id: "communication", label: "Messages" },
         { id: "visits", label: "Site Visits" },
+        { id: "checkins", label: "Check-ins" },
     ],
     more: [], // "More" uses a card grid, not sub-tabs
 };
 
 // Items shown in the "More" card grid
 const MORE_ITEMS = [
-    { id: "payments", label: "Payments", desc: "Track progress payments", icon: "payments" },
-    { id: "budget", label: "Budget", desc: "Budget overview", icon: "budget" },
     { id: "benchmarking", label: "Cost Check", desc: "Compare costs to benchmarks", icon: "cost" },
     { id: "accountability", label: "Builder Score", desc: "Builder accountability rating", icon: "score" },
     { id: "ratings", label: "Rate Builder", desc: "Leave a builder rating", icon: "rate" },
     { id: "materials", label: "Materials", desc: "Track materials delivered", icon: "materials" },
     { id: "timeline", label: "Builder Speed", desc: "Builder pace vs industry", icon: "cost" },
-    { id: "tribunal", label: "Tribunal Pack", desc: "Export evidence for dispute", icon: "export" },
+    { id: "tribunal", label: "Evidence pack", desc: "Export your records for a dispute", icon: "export" },
+    { id: "disputes", label: "Dispute guide", desc: "Your state's dispute pathways", icon: "alerts" },
     { id: "contractreview", label: "Contract Review", desc: "Review contract before signing", icon: "checklists" },
     { id: "checklists", label: "Checklists", desc: "Custom checklists", icon: "checklists" },
     { id: "export", label: "Export", desc: "Export reports & evidence", icon: "export" },
@@ -126,14 +137,12 @@ const MORE_ITEMS = [
     { id: "notifications", label: "Alerts", desc: "View all alerts", icon: "alerts" },
     { id: "share", label: "Share Progress", desc: "Share your build progress", icon: "share" },
     { id: "team", label: "Team", desc: "Invite family & partners", icon: "share" },
-    { id: "escalation", label: "Escalate Builder", desc: "Formal escalation workflow", icon: "alerts" },
-    { id: "claimreview", label: "Claim Review", desc: "AI-powered invoice check", icon: "budget" },
+    { id: "escalation", label: "Formal notices", desc: "Written notices, step by step", icon: "alerts" },
     { id: "activitylog", label: "Activity Log", desc: "Audit trail of all changes", icon: "reports" },
     { id: "calendar", label: "Calendar Export", desc: "Download .ics file", icon: "export" },
     { id: "sitediary", label: "Site Diary", desc: "Evidence-grade site visits", icon: "checklists" },
     { id: "contractparser", label: "Parse Contract", desc: "AI extracts contract details", icon: "reports" },
     { id: "inspectorreport", label: "Import Report", desc: "Auto-create defects from PDF", icon: "checklists" },
-    { id: "allowances", label: "PC/PS Tracker", desc: "Track allowance blowouts", icon: "budget" },
     { id: "csvimport", label: "CSV Import", desc: "Import defects or payments", icon: "export" },
     { id: "settings", label: "Settings", desc: "Project settings", icon: "settings" },
 ];
@@ -173,6 +182,8 @@ function NavIcon({ type, className = "w-5 h-5" }: { type: string; className?: st
             return <svg {...props}><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>;
         case "build":
             return <svg {...props}><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" /></svg>;
+        case "pay":
+            return <svg {...props}><rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg>;
         case "issues":
             return <svg {...props}><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>;
         case "evidence":

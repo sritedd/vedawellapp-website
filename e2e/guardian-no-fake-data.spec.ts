@@ -69,13 +69,15 @@ async function openSection(page: Page, section: string, tab: string) {
 
 test.describe("Empty project renders empty states, not fabricated data", () => {
     // Tabs that historically shipped hardcoded sample rows.
+    // Labels follow the 2026-09 re-cut (guide/19 §2.2): Issues folded into
+    // Evidence/Pay, owner vocabulary on the tabs.
     const TABS: Array<[string, string]> = [
-        ["Home", "Pending Actions"],
+        ["Home", "What to do now"],
         ["Evidence", "Site Visits"],
         ["Evidence", "Check-ins"],
-        ["Evidence", "Comms"],
-        ["Issues", "Defects"],
-        ["Issues", "Variations"],
+        ["Evidence", "Messages"],
+        ["Evidence", "Defects"],
+        ["Pay", "Variations"],
     ];
 
     for (const [section, tab] of TABS) {

@@ -753,11 +753,13 @@ export default function SmartDashboard({ project, currentStage, stageNames, onNa
                 </div>
             </div>
 
-            {/* Dodgy Builder Warnings */}
+            {/* Stage watch-outs — the JSON key is still dodgyBuilderWarnings; the
+                heading is not, because the owner needs this builder for forty weeks
+                and evidence is neutral (guide/19 §1.5). */}
             {dodgyWarnings.length > 0 && (
-                <div className="p-4 bg-red-500/5 border border-red-500/20 rounded-xl">
-                    <h3 className="font-bold mb-3 text-red-700 dark:text-red-400">
-                        Watch Out For (Common Builder Issues at This Stage)
+                <div className="p-4 bg-amber-500/5 border border-amber-500/20 rounded-xl">
+                    <h3 className="font-bold mb-3 text-amber-800 dark:text-amber-300">
+                        What to check at this stage
                     </h3>
                     <ul className="space-y-2">
                         {dodgyWarnings.map((warning, idx) => (

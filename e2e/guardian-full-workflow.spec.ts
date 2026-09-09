@@ -109,22 +109,20 @@ async function login(page: Page) {
  * failed against a page that was actually working.
  */
 const TAB_SECTION: Record<string, string> = {
-    Dashboard: "Home", "Pending Actions": "Home",
-    "Stage Gate": "Build", Timeline: "Build", Stages: "Build",
-    Inspections: "Build", Certificates: "Build", "NCC 2025": "Build",
-    Defects: "Issues", Variations: "Issues", "Red Flags": "Issues",
-    Disputes: "Issues", "Pre-Handover": "Issues",
-    Photos: "Evidence", Documents: "Evidence", Comms: "Evidence",
-    "Check-ins": "Evidence", "Site Visits": "Evidence",
+    Dashboard: "Home", "What to do now": "Home", "Watch-outs": "Home",
+    "Stage Gate": "Build", Stages: "Build", Inspections: "Build", Certificates: "Build",
+    "Pre-Handover": "Build", Timeline: "Build", "NCC 2025": "Build",
+    "Progress claims": "Pay", "Claim Review": "Pay", Variations: "Pay", Budget: "Pay", "PC/PS Tracker": "Pay",
+    Photos: "Evidence", Defects: "Evidence", Documents: "Evidence", Messages: "Evidence",
+    "Site Visits": "Evidence", "Check-ins": "Evidence",
     // "More" is a card grid of low-frequency tools, not a tab strip — but it
     // opens the same way, so the same helper works.
-    Payments: "More", Budget: "More", "Cost Check": "More", "Builder Score": "More",
-    "Rate Builder": "More", Materials: "More", "Builder Speed": "More",
-    "Tribunal Pack": "More", "Contract Review": "More", Checklists: "More",
-    Export: "More", Reports: "More", Notifications: "More", Alerts: "More",
-    Settings: "More", "Share Progress": "More", Team: "More",
-    "Escalate Builder": "More", "Claim Review": "More", "Activity Log": "More",
-    "Calendar Export": "More", "Site Diary": "More", "Parse Contract": "More",
+    "Cost Check": "More", "Builder Score": "More", "Rate Builder": "More", Materials: "More",
+    "Builder Speed": "More", "Evidence pack": "More", "Dispute guide": "More",
+    "Contract Review": "More", Checklists: "More", Export: "More", Reports: "More",
+    Notifications: "More", Alerts: "More", Settings: "More", "Share Progress": "More",
+    Team: "More", "Formal notices": "More", "Activity Log": "More", "Calendar Export": "More",
+    "Site Diary": "More", "Parse Contract": "More", "Import Report": "More", "CSV Import": "More",
 };
 
 /**
@@ -133,9 +131,18 @@ const TAB_SECTION: Record<string, string> = {
  * assertions after them failed against a page that was working fine.
  */
 const TAB_ALIASES: Record<string, string> = {
-    "Comms Log": "Comms",
+    // 2026-03 five-section labels
+    "Comms Log": "Messages",
     "Weekly Check-ins": "Check-ins",
     "Check-Ins": "Check-ins",
+    // 2026-09 owner-vocabulary labels (guide/19 §2.2, §2.7, §1.5)
+    Comms: "Messages",
+    "Pending Actions": "What to do now",
+    Payments: "Progress claims",
+    "Red Flags": "Watch-outs",
+    "Tribunal Pack": "Evidence pack",
+    "Escalate Builder": "Formal notices",
+    Disputes: "Dispute guide",
 };
 
 /**
