@@ -8,7 +8,17 @@
 > Everything here re-cuts, re-words or hardens what already exists. Nothing needs a rebuild.
 >
 > **Date**: 2026-09-09 · **Companion**: `18-BACKLOG.md` B-12 → B-25 are the tickets; this is
-> the "how" · **Status**: proposal — nothing in this file is built yet.
+> the "how" · **Status**: **Phase 0 built** 2026-09-09 (fdb81ca → c69704e) and **much of
+> Phase 1** 2026-09-11 (9f5d762 → e1eae0a). Done since: **1.4 the public Progress Claim
+> Checker** · 2.3 grouped More · 2.9 the 375px loop test · 4.4 the quarterly checklist ·
+> 4.5 the link checker · 5.3 AI-busy copy · 6.1 nightly prod E2E (needs repo secrets) ·
+> 6.2 the migration probe · 6.3 the PR checklist · the claim-due half of 2.5.
+> **Still open:** 1.7, 2.5's share-target/paste/importers, 2.8 empty states, 2.10 the
+> first load, 3.2/3.3 the whole-build price and loop-side trial, and all of Phase 2.
+> Verification on the live deploy: **104/104 passed, no failures, no flakes** (38 min, 2026-09-11) — the 8-state workflow, AI and no-fake-data suites against the live deploy. The first fully clean run of this suite.
+>
+> **⚠ `schema_v52` has not been run** — §1.3's copy is live while the caps are not
+> lifted. Probed 2026-09-11; run it before any beta user.
 
 ---
 
