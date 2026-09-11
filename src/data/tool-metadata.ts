@@ -511,6 +511,23 @@ export const toolMetadata: Record<string, Metadata> = {
       canonical: "https://vedawellapp.com/tools/habit-tracker",
     },
   },
+  "progress-claim-check": {
+    title: "Progress Claim Checker - Should I Pay My Builder? | Australian Home Builds",
+    description: "Your builder sent a progress claim. See what that stage is normally worth in your state, the certificates you should already hold, the inspections that should have happened, and the three questions to ask before you pay. Free, no account.",
+    keywords: ["progress claim", "should i pay my builder", "builder progress payment", "building stage payments", "home building contract australia", "frame stage payment", "lockup stage payment", "building certificates", "HBCF", "QBCC", "domestic building insurance"],
+    openGraph: {
+      title: "Progress Claim Checker - Should I Pay My Builder?",
+      description: "What the stage is worth in your state, the certificates to hold, and what to ask before you pay. Free, no account.",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Progress Claim Checker - Should I Pay My Builder?",
+      description: "What the stage is worth in your state, the certificates to hold, and what to ask before you pay.",
+    },
+    alternates: {
+      canonical: "https://vedawellapp.com/tools/progress-claim-check",
+    },
+  },
   "migraine-tracker": {
     title: "Free Migraine Tracker & Headache Diary - Log Triggers, Severity & Meds",
     description: "Track migraine attacks, severity, triggers and medication in a clean headache diary. Spot patterns, watch medication-overuse days, and export a doctor-ready summary. Syncs to your account and Google Drive. Free.",

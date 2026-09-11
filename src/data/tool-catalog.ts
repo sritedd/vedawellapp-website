@@ -931,6 +931,16 @@ export const TOOLS: ToolEntry[] = [
         href: '/tools/breathing-exercise',
     },
     {
+        id: 'progress-claim-check',
+        title: 'Progress Claim Checker',
+        description: "Your builder sent a progress claim. Check what the stage is normally worth in your state, which certificates you should already hold, and what to ask before you pay.",
+        icon: '🏗️',
+        category: 'calculator',
+        tags: ['progress claim', 'builder payment', 'building contract', 'home build', 'construction', 'should i pay', 'building stages', 'australia'],
+        color: CATEGORY_COLORS.calculator,
+        href: '/tools/progress-claim-check',
+    },
+    {
         id: 'migraine-tracker',
         title: 'Migraine Tracker',
         description: 'Log migraine attacks, severity, triggers and medication. Syncs to your account and Google Drive; exports a doctor-ready summary.',
