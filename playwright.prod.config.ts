@@ -51,5 +51,27 @@ export default defineConfig({
             name: "chromium",
             use: { ...devices["Desktop Chrome"] },
         },
+        {
+            // The money loop is used on site, on a phone — that is the whole point
+            // of the camera-first capture — but every test ran at desktop width
+            // (guide/19 §2.9). Scoped to NSW's loop tests so it adds a couple of
+            // minutes, not a second full suite. A mobile VIEWPORT on chromium
+            // rather than a device preset: layout is what breaks, and this needs
+            // no extra browser download in CI.
+            name: "mobile-loop",
+            use: {
+                ...devices["Desktop Chrome"],
+                viewport: { width: 375, height: 812 },
+                hasTouch: true,
+            },
+            grep: /NSW: (Login and reach dashboard|Project is really|Stage Gate renders|Defect, variation|Complete all stages)/,
+            // Both projects build the same "E2E NSW Build" fixture, and each
+            // describe's beforeAll cleans that name — so if they interleaved they
+            // would delete each other's project mid-run, which is exactly how the
+            // 8-state suite used to fail. `dependencies` is the documented
+            // guarantee that chromium finishes first. (Running --project=mobile-loop
+            // alone therefore pulls the desktop suite with it; that is the trade.)
+            dependencies: ["chromium"],
+        },
     ],
 });
