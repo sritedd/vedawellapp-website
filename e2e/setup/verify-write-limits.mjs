@@ -3,7 +3,8 @@
  *
  * Confirms, with real user sessions:
  *   1. defect + variation INSERT no longer recurse
- *   2. free-tier caps still hold (3 defects / 2 variations) via the v41/v42 triggers
+ *   2. free-tier evidence capture is UNCAPPED (schema_v52 dropped the v41/v42
+ *      triggers) while the 1-project cap (v51) still holds
  *   3. a user still cannot write into someone else's project
  *
  * Creates only `E2E …` rows and deletes everything it made.
@@ -52,17 +53,22 @@ for (let i = 1; i <= 4; i++) {
 const { error: pv } = await pro.c.from("variations").insert(variation(pp.id, 1));
 console.log(`  variation 1: ${tag(pv)}`);
 
-console.log("── FREE user (3 defects / 2 variations) ──");
+// schema_v52: evidence CAPTURE is free forever. An owner who could not log the
+// defect has nothing to export later, so capping it cost the product the very
+// moment that sells Pro. These inserts must now all succeed.
+console.log("── FREE user (evidence capture is uncapped since v52) ──");
 const free = await session(FREE);
 await admin.from("projects").delete().eq("user_id", free.uid);
 const { data: fp } = await mkProject(free.uid, "E2E WriteCheck Free");
-for (let i = 1; i <= 4; i++) {
+for (let i = 1; i <= 5; i++) {
     const { error } = await free.c.from("defects").insert(defect(fp.id, i));
-    console.log(`  defect ${i}: ${tag(error)}${i === 4 ? "   <- 4th MUST be blocked" : ""}`);
+    console.log(`  defect ${i}: ${tag(error)}${error ? "   <- MUST NOT be blocked (v52)" : ""}`);
+    if (error) process.exitCode = 1;
 }
-for (let i = 1; i <= 3; i++) {
+for (let i = 1; i <= 4; i++) {
     const { error } = await free.c.from("variations").insert(variation(fp.id, i));
-    console.log(`  variation ${i}: ${tag(error)}${i === 3 ? "   <- 3rd MUST be blocked" : ""}`);
+    console.log(`  variation ${i}: ${tag(error)}${error ? "   <- MUST NOT be blocked (v52)" : ""}`);
+    if (error) process.exitCode = 1;
 }
 
 console.log("── FREE user project cap (1) ──");
@@ -76,7 +82,8 @@ const mkAsUser = (uid, name) => free.c.from("projects").insert({
 const { error: p1 } = await mkAsUser(free.uid, "E2E WriteCheck FreeProj 1");
 console.log(`  project 1: ${tag(p1)}`);
 const { error: p2 } = await mkAsUser(free.uid, "E2E WriteCheck FreeProj 2");
-console.log(`  project 2: ${tag(p2)}   <- MUST be blocked`);
+console.log(`  project 2: ${tag(p2)}   <- MUST be blocked (v51)`);
+if (!p2) process.exitCode = 1;
 
 console.log("── Cross-tenant isolation ──");
 const { error: xt } = await free.c.from("defects").insert(defect(pp.id, "intruder"));
