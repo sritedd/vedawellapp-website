@@ -123,30 +123,40 @@ const SECTION_SUBTABS: Record<SectionId, { id: string; label: string }[]> = {
 };
 
 // Items shown in the "More" card grid
-const MORE_ITEMS = [
-    { id: "benchmarking", label: "Cost Check", desc: "Compare costs to benchmarks", icon: "cost" },
-    { id: "accountability", label: "Builder Score", desc: "Builder accountability rating", icon: "score" },
-    { id: "ratings", label: "Rate Builder", desc: "Leave a builder rating", icon: "rate" },
-    { id: "materials", label: "Materials", desc: "Track materials delivered", icon: "materials" },
-    { id: "timeline", label: "Builder Speed", desc: "Builder pace vs industry", icon: "cost" },
-    { id: "tribunal", label: "Evidence pack", desc: "Export your records for a dispute", icon: "export" },
-    { id: "disputes", label: "Dispute guide", desc: "Your state's dispute pathways", icon: "alerts" },
-    { id: "contractreview", label: "Contract Review", desc: "Review contract before signing", icon: "checklists" },
-    { id: "checklists", label: "Checklists", desc: "Custom checklists", icon: "checklists" },
-    { id: "export", label: "Export", desc: "Export reports & evidence", icon: "export" },
-    { id: "reports", label: "Reports", desc: "Generate formal reports", icon: "reports" },
-    { id: "pushnotifs", label: "Notifications", desc: "Push notification settings", icon: "notifs" },
-    { id: "notifications", label: "Alerts", desc: "View all alerts", icon: "alerts" },
-    { id: "share", label: "Share Progress", desc: "Share your build progress", icon: "share" },
-    { id: "team", label: "Team", desc: "Invite family & partners", icon: "share" },
-    { id: "escalation", label: "Formal notices", desc: "Written notices, step by step", icon: "alerts" },
-    { id: "activitylog", label: "Activity Log", desc: "Audit trail of all changes", icon: "reports" },
-    { id: "calendar", label: "Calendar Export", desc: "Download .ics file", icon: "export" },
-    { id: "sitediary", label: "Site Diary", desc: "Evidence-grade site visits", icon: "checklists" },
-    { id: "contractparser", label: "Parse Contract", desc: "AI extracts contract details", icon: "reports" },
-    { id: "inspectorreport", label: "Import Report", desc: "Auto-create defects from PDF", icon: "checklists" },
-    { id: "csvimport", label: "CSV Import", desc: "Import defects or payments", icon: "export" },
-    { id: "settings", label: "Settings", desc: "Project settings", icon: "settings" },
+// Grouped by the job the owner is doing, not by when the feature was built
+// (guide/19 §2.3). 23 equally-weighted cards made everything look equally
+// important; four short groups let someone find the one they came for.
+type MoreGroup = "Money" | "Records" | "Reports & exports" | "Setup";
+const MORE_GROUP_ORDER: MoreGroup[] = ["Money", "Records", "Reports & exports", "Setup"];
+
+const MORE_ITEMS: { id: string; label: string; desc: string; icon: string; group: MoreGroup }[] = [
+    // Money — anything that changes what you pay or what it is worth
+    { id: "benchmarking", label: "Cost Check", desc: "Compare costs to benchmarks", icon: "cost", group: "Money" },
+    { id: "contractreview", label: "Contract Review", desc: "Review contract before signing", icon: "checklists", group: "Money" },
+    { id: "contractparser", label: "Parse Contract", desc: "AI extracts contract details", icon: "reports", group: "Money" },
+    // Records — what happened, kept
+    { id: "materials", label: "Materials", desc: "Track materials delivered", icon: "materials", group: "Records" },
+    { id: "sitediary", label: "Site Diary", desc: "Evidence-grade site visits", icon: "checklists", group: "Records" },
+    { id: "checklists", label: "Checklists", desc: "Custom checklists", icon: "checklists", group: "Records" },
+    { id: "inspectorreport", label: "Import Report", desc: "Auto-create defects from PDF", icon: "checklists", group: "Records" },
+    { id: "csvimport", label: "CSV Import", desc: "Import defects or payments", icon: "export", group: "Records" },
+    { id: "activitylog", label: "Activity Log", desc: "Audit trail of all changes", icon: "reports", group: "Records" },
+    // Reports & exports — getting the record out, and escalating
+    { id: "tribunal", label: "Evidence pack", desc: "Export your records for a dispute", icon: "export", group: "Reports & exports" },
+    { id: "export", label: "Export", desc: "Export reports & evidence", icon: "export", group: "Reports & exports" },
+    { id: "reports", label: "Reports", desc: "Generate formal reports", icon: "reports", group: "Reports & exports" },
+    { id: "escalation", label: "Formal notices", desc: "Written notices, step by step", icon: "alerts", group: "Reports & exports" },
+    { id: "disputes", label: "Dispute guide", desc: "Your state's dispute pathways", icon: "alerts", group: "Reports & exports" },
+    { id: "calendar", label: "Calendar Export", desc: "Download .ics file", icon: "export", group: "Reports & exports" },
+    { id: "share", label: "Share Progress", desc: "Share your build progress", icon: "share", group: "Reports & exports" },
+    // Setup — configure once, revisit rarely
+    { id: "settings", label: "Settings", desc: "Project settings", icon: "settings", group: "Setup" },
+    { id: "team", label: "Team", desc: "Share with family (read-only)", icon: "share", group: "Setup" },
+    { id: "notifications", label: "Alerts", desc: "View all alerts", icon: "alerts", group: "Setup" },
+    { id: "pushnotifs", label: "Notifications", desc: "Push notification settings", icon: "notifs", group: "Setup" },
+    { id: "timeline", label: "Builder Speed", desc: "Builder pace vs industry", icon: "cost", group: "Setup" },
+    { id: "accountability", label: "Builder Score", desc: "Builder accountability rating", icon: "score", group: "Setup" },
+    { id: "ratings", label: "Rate Builder", desc: "Leave a builder rating", icon: "rate", group: "Setup" },
 ];
 
 // Reverse lookup: tab ID → section ID
@@ -548,10 +558,12 @@ export default function ProjectDetailPage() {
                     <div role="tabpanel" aria-label={activeTab} className="min-h-[400px]">
                         {/* ── "More" Grid View ── */}
                         {activeTab === "more_grid" && (
-                            <div>
-                                <h2 className="text-xl font-bold mb-4">Tools & Settings</h2>
+                            <div className="space-y-6">
+                                {MORE_GROUP_ORDER.map((group) => (
+                                <div key={group}>
+                                <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-3">{group}</h2>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                                    {MORE_ITEMS.map((item) => (
+                                    {MORE_ITEMS.filter((i) => i.group === group).map((item) => (
                                         <button
                                             key={item.id}
                                             onClick={() => setActiveTab(item.id)}
@@ -567,6 +579,8 @@ export default function ProjectDetailPage() {
                                         </button>
                                     ))}
                                 </div>
+                                </div>
+                                ))}
                             </div>
                         )}
 
