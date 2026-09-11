@@ -84,6 +84,22 @@ export default function ClaimReview({ projectId }: { projectId: string }) {
         return;
       }
 
+      // The route returns 503 { fallback: true } when the model is overloaded.
+      // Never leave the owner stuck on a payment decision: Should I Pay checks
+      // the same certificates, inspections and defects with plain rules.
+      if (res.status === 503) {
+        setError(
+          "AI is busy right now. You can still check this claim yourself: \"Should I Pay?\" on the " +
+          "dashboard runs the same certificate, inspection and defect checks without AI."
+        );
+        return;
+      }
+
+      if (res.status === 429) {
+        setError("You have used your AI reviews for today. The Should I Pay checks still work.");
+        return;
+      }
+
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error || "Review failed");

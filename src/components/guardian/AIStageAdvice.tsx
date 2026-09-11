@@ -42,7 +42,10 @@ export default function AIStageAdvice({
         return;
       }
       if (res.status === 503) {
-        setError("AI features are not available at this time.");
+        setError(
+          "AI is busy right now. Your Stage Gate checklist, certificates and inspections " +
+          "for this stage are unaffected — they come from your state's rules, not from AI."
+        );
         return;
       }
       if (!res.ok) {

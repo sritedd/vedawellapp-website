@@ -57,7 +57,11 @@ export default function AIDefectAssist({
         return;
       }
       if (res.status === 503) {
-        setError("AI features are currently unavailable.");
+        setError(
+          "AI is busy right now — this happens when the model is under load. " +
+          "Write the defect in your own words and save it; the description is yours either way, " +
+          "and you can ask AI to tidy it up later."
+        );
         return;
       }
       if (!res.ok) {
