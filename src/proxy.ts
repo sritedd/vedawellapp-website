@@ -37,6 +37,10 @@ export async function proxy(request: NextRequest) {
         pathname === '/guardian/faq' ||
         pathname === '/guardian/pricing' ||
         pathname === '/guardian/journey' ||
+        // The legal notice is linked from the PUBLIC progress-claim checker and
+        // from every PDF export, so it has to be readable without an account —
+        // bouncing someone to a login page to read a disclaimer defeats it.
+        pathname === '/guardian/legal-notice' ||
         pathname.startsWith('/guardian/learn/')
 
     if (isGuardianPublic) {
